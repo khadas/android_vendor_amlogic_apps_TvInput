@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">DroidLogicTVSource</string>
+
+    <!-- string for source button -->
+    <string name="source_bt_atv">ATV</string>
+    <string name="source_bt_dtv">DTV</string>
+    <string name="source_bt_av">AV</string>
+    <string name="source_bt_hdmi1">HDMI1</string>
+
+</resources>

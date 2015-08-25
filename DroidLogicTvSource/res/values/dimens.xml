@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- size for source button -->
+    <dimen name="source_bt_width">180dp</dimen>
+    <dimen name="source_bt_height">100dp</dimen>
+    <dimen name="source_bt_textsize">30sp</dimen>
+    <dimen name="source_bt_gap">30dp</dimen>
+</resources>

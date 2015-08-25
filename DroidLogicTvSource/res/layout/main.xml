@@ -1,0 +1,33 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+
+    <android.media.tv.TvView
+        android:id="@+id/source_view"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent" />
+
+    <LinearLayout
+        android:id="@+id/source_menu"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:orientation="vertical">
+        <Button
+            style="@style/tv_source_button"
+            android:id="@+id/atv"
+            android:text="@string/source_bt_atv" />
+        <Button
+            style="@style/tv_source_button"
+            android:id="@+id/dtv"
+            android:text="@string/source_bt_dtv" />
+        <Button
+            style="@style/tv_source_button"
+            android:id="@+id/av"
+            android:text="@string/source_bt_av" />
+        <Button
+            style="@style/tv_source_button"
+            android:id="@+id/hdmi1"
+            android:text="@string/source_bt_hdmi1" />
+    </LinearLayout>
+
+</FrameLayout>
