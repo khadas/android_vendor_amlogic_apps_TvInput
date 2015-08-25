@@ -13,7 +13,6 @@ import android.widget.Toast;
 
 public class DroidLogicTvInputService extends TvInputService {
     private static final String TAG = DroidLogicTvInputService.class.getSimpleName();
-    private static boolean DEBUG = true;
 
     private static Tv tv;
 

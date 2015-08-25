@@ -12,7 +12,6 @@ import android.util.Log;
 
 public class InputUtils {
     private static final String TAG = "InputUtils";
-    private static final boolean DEBUG = true;
 
     private Context mContext;
 
@@ -35,8 +34,7 @@ public class InputUtils {
             if (!android.Manifest.permission.BIND_TV_INPUT.equals(si.permission)) {
                 continue;
             }
-            if (DEBUG)
-                Log.d(TAG, "===cls_name = " + cls_name + ", si.name = " + si.name);
+            Utils.logd(TAG, "===cls_name = " + cls_name + ", si.name = " + si.name);
             if (cls_name.equals(si.name)) {
                 ret_ri = ri;
                 break;

@@ -24,12 +24,12 @@ import android.view.Surface;
 @SuppressLint("NewApi")
 public class AVInputService extends DroidLogicTvInputService {
     private static final String TAG = AVInputService.class.getSimpleName();
-    private static final boolean DEBUG = true;
+
+    private TvInputInfo mTvInputInfo;
 
     @Override
     public Session onCreateSession(String inputId) {
-        if (DEBUG)
-            Log.d(TAG, "=====onCreateSession====");
+        Utils.logd(TAG, "=====onCreateSession====");
         return new AVInputSession(getApplicationContext());
     }
 
@@ -57,8 +57,7 @@ public class AVInputService extends DroidLogicTvInputService {
 
         @Override
         public boolean onTune(Uri channelUri) {
-            if (DEBUG)
-                Log.d(TAG, "====onTune====");
+            Utils.logd(TAG, "====onTune====");
             switchToSourceInput(Utils.SOURCE_AV1);
             return false;
         }
@@ -73,8 +72,7 @@ public class AVInputService extends DroidLogicTvInputService {
         if (hardwareInfo.getType() != TvInputHardwareInfo.TV_INPUT_TYPE_COMPONENT)
             return null;
 
-        if (DEBUG)
-            Log.d(TAG, "=====onHardwareAdded====="+hardwareInfo.getDeviceId());
+        Utils.logd(TAG, "=====onHardwareAdded====="+hardwareInfo.getDeviceId());
 
         TvInputInfo info = null;
         ResolveInfo rInfo = getResolveInfo(AVInputService.class.getName());
@@ -90,6 +88,15 @@ public class AVInputService extends DroidLogicTvInputService {
         }
 
         return info;
+    }
+
+    public String onHardwareRemoved(TvInputHardwareInfo hardwareInfo) {
+        if (hardwareInfo.getType() != TvInputHardwareInfo.TV_INPUT_TYPE_COMPONENT
+                || mTvInputInfo == null)
+            return null;
+
+        Utils.logd(TAG, "===onHardwareRemoved===" + mTvInputInfo.getId());
+        return mTvInputInfo.getId();
     }
 
 }
