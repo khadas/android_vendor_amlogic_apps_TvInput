@@ -5,8 +5,11 @@ import java.util.List;
 import android.media.tv.TvInputHardwareInfo;
 import android.media.tv.TvInputInfo;
 import android.media.tv.TvInputManager;
+import android.util.Log;
 
 public class Utils {
+    private static final boolean DEBUG = true;
+    
     public static TvInputManager mTvInputManager;
     public static final int SOURCE_TYPE_ATV          = 0;
     public static final int SOURCE_TYPE_DTV          = 1;
@@ -25,12 +28,22 @@ public class Utils {
     public static final int port_hdmi2 = 2;
     public static final int port_hdmi3 = 3;
 
+    public static void logd(String tag, String msg) {
+        if (DEBUG)
+            Log.d(tag, msg);
+    }
+
+    public static void loge(String tag, String msg) {
+        if (DEBUG)
+            Log.e(tag, msg);
+    }
+
     public static int getSourceType(TvInputInfo info) {
         int info_type = info.getType();
         int source_type = SOURCE_TYPE_ATV;
         switch (info_type) {
             case TvInputInfo.TYPE_HDMI:
-                source_type = SOURCE_TYPE_HDMI1;
+                source_type = getSourceType(info.getId());
                 break;
             case TvInputInfo.TYPE_COMPONENT:
                 source_type = SOURCE_TYPE_COMPONENT;
@@ -47,8 +60,13 @@ public class Utils {
         int source_type = SOURCE_TYPE_ATV;
         switch (info_type) {
             case TvInputHardwareInfo.TV_INPUT_TYPE_HDMI:
-                if (info.getHdmiPortId() == 1)
+                if (info.getHdmiPortId() == port_hdmi1) {
                     source_type = SOURCE_TYPE_HDMI1;
+                } else if (info.getHdmiPortId() == port_hdmi2) {
+                    source_type =  SOURCE_TYPE_HDMI2;
+                } else {
+                    source_type = SOURCE_TYPE_HDMI3;
+                }
                 break;
             case TvInputHardwareInfo.TV_INPUT_TYPE_COMPONENT:
                 source_type = SOURCE_TYPE_COMPONENT;
@@ -56,6 +74,30 @@ public class Utils {
             default:
                 source_type = SOURCE_TYPE_ATV;
                 break;
+        }
+        return source_type;
+    }
+
+    public static int getSourceType(String input_id) {
+        int source_type = SOURCE_TYPE_ATV;
+        String[] temp = input_id.split("/");
+        int device_id = 0;
+        if (temp.length == 3) {
+            logd("Utils", "=====temp[2] =" + temp[2]);
+            device_id = Integer.parseInt(temp[2].substring(2));
+            switch (device_id) {
+                case 4:
+                    source_type = SOURCE_TYPE_HDMI1;
+                    break;
+                case 5:
+                    source_type = SOURCE_TYPE_HDMI2;
+                    break;
+                case 6:
+                    source_type = SOURCE_TYPE_HDMI3;
+                    break;
+                default:
+                    break;
+            }
         }
         return source_type;
     }
@@ -68,4 +110,5 @@ public class Utils {
         }
         return null;
     }
+
 }

@@ -8,45 +8,62 @@ import org.xmlpull.v1.XmlPullParserException;
 import com.droidlogic.common.DroidLogicTvInputService;
 import com.droidlogic.utils.Utils;
 
-import android.amlogic.Tv.SourceInput;
-import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.media.tv.TvInputHardwareInfo;
 import android.media.tv.TvInputInfo;
+import android.media.tv.TvInputManager;
+import android.media.tv.TvInputManager.Hardware;
+import android.media.tv.TvInputManager.HardwareCallback;
 import android.media.tv.TvInputService;
+import android.media.tv.TvStreamConfig;
 import android.net.Uri;
-import android.util.Log;
 import android.view.Surface;
 
-@SuppressLint("NewApi")
 public class AVInputService extends DroidLogicTvInputService {
     private static final String TAG = AVInputService.class.getSimpleName();
-
-    private TvInputInfo mTvInputInfo;
 
     @Override
     public Session onCreateSession(String inputId) {
         Utils.logd(TAG, "=====onCreateSession====");
-        return new AVInputSession(getApplicationContext());
+        return new AVInputSession(getApplicationContext(), inputId);
     }
 
     public class AVInputSession extends TvInputService.Session {
+        private String mInputId;
+        private Surface mSurface;
+        private Hardware mHardware;
+        private TvInputManager mTvInputManager;
+        private TvStreamConfig[] mConfigs;
+        private HardwareCallback mHardwareCallback = new HardwareCallback(){
+            @Override
+            public void onReleased() {
+                Utils.logd(TAG, "====onReleased===");
+            }
 
-        public AVInputSession(Context context) {
+            @Override
+            public void onStreamConfigChanged(TvStreamConfig[] configs) {
+                Utils.logd(TAG, "===onStreamConfigChanged==");
+                mConfigs = configs;
+            }
+        };
+
+        public AVInputSession(Context context, String inputId) {
             super(context);
+            mInputId = inputId;
+            mTvInputManager = (TvInputManager)context.getSystemService(Context.TV_INPUT_SERVICE);
+            mHardware = mTvInputManager.acquireTvInputHardware(getHardwareDeviceId(inputId),
+                    mHardwareCallback, mTvInputManager.getTvInputInfo(inputId));
         }
 
         @Override
         public void onRelease() {
-            // TODO Auto-generated method stub
+            mTvInputManager.releaseTvInputHardware(getHardwareDeviceId(mInputId), mHardware);
         }
 
         @Override
         public boolean onSetSurface(Surface surface) {
-            // TODO Auto-generated method stub
+            mSurface = surface;
             return false;
         }
 
@@ -58,7 +75,7 @@ public class AVInputService extends DroidLogicTvInputService {
         @Override
         public boolean onTune(Uri channelUri) {
             Utils.logd(TAG, "====onTune====");
-            switchToSourceInput(Utils.SOURCE_AV1);
+            switchToSourceInput();
             return false;
         }
 
@@ -66,6 +83,11 @@ public class AVInputService extends DroidLogicTvInputService {
         public void onSetCaptionEnabled(boolean enabled) {
             // TODO Auto-generated method stub
         }
+
+        private void switchToSourceInput(){
+            mHardware.setSurface(mSurface, mConfigs[0]);
+        }
+
     }
 
     public TvInputInfo onHardwareAdded(TvInputHardwareInfo hardwareInfo) {
@@ -86,17 +108,23 @@ public class AVInputService extends DroidLogicTvInputService {
                 // TODO: handle exception
             }
         }
+        updateInfoListIfNeededLocked(hardwareInfo, info, false);
 
         return info;
     }
 
     public String onHardwareRemoved(TvInputHardwareInfo hardwareInfo) {
-        if (hardwareInfo.getType() != TvInputHardwareInfo.TV_INPUT_TYPE_COMPONENT
-                || mTvInputInfo == null)
+        if (hardwareInfo.getType() != TvInputHardwareInfo.TV_INPUT_TYPE_COMPONENT)
             return null;
 
-        Utils.logd(TAG, "===onHardwareRemoved===" + mTvInputInfo.getId());
-        return mTvInputInfo.getId();
+        TvInputInfo info = getTvInputInfo(hardwareInfo);
+        String id = null;
+        if (info != null)
+            id = info.getId();
+        updateInfoListIfNeededLocked(hardwareInfo, info, true);
+
+        Utils.logd(TAG, "=====onHardwareRemoved=====" + id);
+        return id;
     }
 
 }

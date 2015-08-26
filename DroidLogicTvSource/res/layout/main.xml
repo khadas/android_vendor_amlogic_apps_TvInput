@@ -28,6 +28,10 @@
             style="@style/tv_source_button"
             android:id="@+id/hdmi1"
             android:text="@string/source_bt_hdmi1" />
+        <Button
+            style="@style/tv_source_button"
+            android:id="@+id/hdmi2"
+            android:text="@string/source_bt_hdmi2" />
     </LinearLayout>
 
 </FrameLayout>

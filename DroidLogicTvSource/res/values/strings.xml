@@ -8,5 +8,6 @@
     <string name="source_bt_dtv">DTV</string>
     <string name="source_bt_av">AV</string>
     <string name="source_bt_hdmi1">HDMI1</string>
+    <string name="source_bt_hdmi2">HDMI2</string>
 
 </resources>

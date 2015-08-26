@@ -8,7 +8,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.media.tv.TvInputService;
-import android.util.Log;
 
 public class InputUtils {
     private static final String TAG = "InputUtils";
@@ -42,4 +41,5 @@ public class InputUtils {
         }
         return ret_ri;
     }
+
 }

@@ -1,25 +1,19 @@
 package com.droidlogic.tv;
 
-import java.util.List;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.media.tv.TvContract;
-import android.media.tv.TvInputInfo;
 import android.media.tv.TvInputManager;
 import android.media.tv.TvView;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 
-@SuppressLint("NewApi")
 public class MainActivity extends Activity implements OnClickListener{
     private static final String TAG = "DroidLogicTVSource_MainActivity";
-    private static final boolean DEBUG = true;
 
     private TvView mSourceView;
     private TvInputManager mTvInputManager;
@@ -42,6 +36,8 @@ public class MainActivity extends Activity implements OnClickListener{
         av.setOnClickListener(this);
         Button hdmi1 = (Button) findViewById(R.id.hdmi1);
         hdmi1.setOnClickListener(this);
+        Button hdmi2 = (Button) findViewById(R.id.hdmi2);
+        hdmi2.setOnClickListener(this);
 
         mTvInputManager = (TvInputManager)getSystemService(Context.TV_INPUT_SERVICE);
         Utils.mTvInputManager = mTvInputManager;
@@ -62,9 +58,13 @@ public class MainActivity extends Activity implements OnClickListener{
             case Utils.SOURCE_TYPE_ATV:
                 break;
             case Utils.SOURCE_TYPE_COMPONENT:
+                switchToSourceInput(Utils.SOURCE_TYPE_COMPONENT);
                 break;
             case Utils.SOURCE_TYPE_HDMI1:
-                switchToHdmi1();
+                switchToSourceInput(Utils.SOURCE_TYPE_HDMI1);
+                break;
+            case Utils.SOURCE_TYPE_HDMI2:
+                switchToSourceInput(Utils.SOURCE_TYPE_HDMI2);
                 break;
             default:
                 break;
@@ -80,34 +80,38 @@ public class MainActivity extends Activity implements OnClickListener{
             case R.id.dtv:
                 break;
             case R.id.av:
-                switchToAv();
+                switchToSourceInput(Utils.SOURCE_TYPE_COMPONENT);
                 break;
             case R.id.hdmi1:
-                switchToHdmi1();
+                switchToSourceInput(Utils.SOURCE_TYPE_HDMI1);
+                break;
+            case R.id.hdmi2:
+                switchToSourceInput(Utils.SOURCE_TYPE_HDMI2);
                 break;
             default:
                 break;
         }
     }
 
-    private void switchToHdmi1() {
-        if (DEBUG)
-            Log.d(TAG, "======switchToHdmi1=======");
-        String input_id = Utils.getInputId(Utils.SOURCE_TYPE_HDMI1);
-        Log.d(TAG, "Input id switching to is " + input_id);
+    private void switchToSourceInput(int source_type) {
+        Utils.logd(TAG, "======switchToSourceInput=======");
+        String input_id = Utils.getInputId(source_type);
+        Utils.logd(TAG, "Input id switching to is " + input_id);
         Uri channelUri = TvContract.buildChannelUriForPassthroughInput(input_id);
-        Log.d(TAG, "channelUri switching to is " + channelUri);
+        Utils.logd(TAG, "channelUri switching to is " + channelUri);
         mSourceView.tune(input_id, channelUri);
     }
 
-    private void switchToAv() {
-        if (DEBUG)
-            Log.d(TAG, "======switchToAv=======");
-        String input_id = Utils.getInputId(Utils.SOURCE_TYPE_COMPONENT);
-        Log.d(TAG, "Input id switching to is " + input_id);
-        Uri channelUri = TvContract.buildChannelUriForPassthroughInput(input_id);
-        Log.d(TAG, "channelUri switching to is " + channelUri);
-
-        mSourceView.tune(input_id, channelUri);
+    @Override
+    protected void onStop() {
+        // TODO Auto-generated method stub
+        super.onStop();
     }
+
+    @Override
+    protected void onDestroy() {
+        mSourceView.reset();
+        super.onDestroy();
+    }
+
 }
