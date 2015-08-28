@@ -23,10 +23,14 @@ import android.view.Surface;
 public class HdmiInputService extends DroidLogicTvInputService {
     private static final String TAG = HdmiInputService.class.getSimpleName();
 
+    private HdmiInputSession mSession;
+
     @Override
     public Session onCreateSession(String inputId) {
         Utils.logd(TAG, "=====onCreateSession====");
-        return new HdmiInputSession(getApplicationContext(), inputId);
+        mSession = new HdmiInputSession(getApplicationContext(), inputId);
+        registerInputSession(mSession);
+        return mSession;
     }
 
     public class HdmiInputSession extends TvInputService.Session {
@@ -101,8 +105,12 @@ public class HdmiInputService extends DroidLogicTvInputService {
         ResolveInfo rInfo = getResolveInfo(HdmiInputService.class.getName());
         if (rInfo != null) {
             try {
-                info = TvInputInfo.createTvInputInfo(getApplicationContext(), rInfo,
-                        hardwareInfo, null, null);
+                info = TvInputInfo.createTvInputInfo(
+                        getApplicationContext(),
+                        rInfo,
+                        hardwareInfo,
+                        getTvInputInfoLabel(hardwareInfo.getDeviceId()),
+                        null);
             } catch (XmlPullParserException e) {
                 // TODO: handle exception
             }catch (IOException e) {

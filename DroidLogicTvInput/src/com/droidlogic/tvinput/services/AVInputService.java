@@ -23,10 +23,14 @@ import android.view.Surface;
 public class AVInputService extends DroidLogicTvInputService {
     private static final String TAG = AVInputService.class.getSimpleName();
 
+    private AVInputSession mSession;
+
     @Override
     public Session onCreateSession(String inputId) {
         Utils.logd(TAG, "=====onCreateSession====");
-        return new AVInputSession(getApplicationContext(), inputId);
+        mSession = new AVInputSession(getApplicationContext(), inputId);
+        registerInputSession(mSession);
+        return mSession;
     }
 
     public class AVInputSession extends TvInputService.Session {
@@ -101,8 +105,12 @@ public class AVInputService extends DroidLogicTvInputService {
         ResolveInfo rInfo = getResolveInfo(AVInputService.class.getName());
         if (rInfo != null) {
             try {
-                info = TvInputInfo.createTvInputInfo(getApplicationContext(), rInfo,
-                        hardwareInfo, null, null);
+                info = TvInputInfo.createTvInputInfo(
+                        getApplicationContext(),
+                        rInfo,
+                        hardwareInfo,
+                        getTvInputInfoLabel(hardwareInfo.getDeviceId()),
+                        null);
             } catch (XmlPullParserException e) {
                 // TODO: handle exception
             }catch (IOException e) {

@@ -2,6 +2,8 @@ package com.droidlogic.tv;
 
 import java.util.List;
 
+import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.media.tv.TvInputHardwareInfo;
 import android.media.tv.TvInputInfo;
 import android.media.tv.TvInputManager;
@@ -9,7 +11,7 @@ import android.util.Log;
 
 public class Utils {
     private static final boolean DEBUG = true;
-    
+
     public static TvInputManager mTvInputManager;
     public static final int SOURCE_TYPE_ATV          = 0;
     public static final int SOURCE_TYPE_DTV          = 1;
@@ -109,6 +111,18 @@ public class Utils {
                 return info.getId();
         }
         return null;
+    }
+
+    public static CharSequence getInputLabel(Context context, String input_id) {
+        TvInputManager tim = (TvInputManager)context.getSystemService(Context.TV_INPUT_SERVICE);
+        TvInputInfo info = tim.getTvInputInfo(input_id);
+        return info == null ? null : info.loadCustomLabel(context);
+    }
+
+    public static Drawable getInputIcon(Context context, String input_id) {
+        TvInputManager tim = (TvInputManager)context.getSystemService(Context.TV_INPUT_SERVICE);
+        TvInputInfo info = tim.getTvInputInfo(input_id);
+        return info == null ? null : info.loadIcon(context);
     }
 
 }

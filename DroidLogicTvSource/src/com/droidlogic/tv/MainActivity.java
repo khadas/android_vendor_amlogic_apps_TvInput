@@ -6,6 +6,7 @@ import android.content.Context;
 import android.media.tv.TvContract;
 import android.media.tv.TvInputManager;
 import android.media.tv.TvView;
+import android.media.tv.TvView.TvInputCallback;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -27,6 +28,7 @@ public class MainActivity extends Activity implements OnClickListener{
 
     private void init(){
         mSourceView = (TvView) findViewById(R.id.source_view);
+        mSourceView.setCallback(new DroidLogicInputCallback());
 
         Button atv = (Button) findViewById(R.id.atv);
         atv.setOnClickListener(this);
@@ -112,6 +114,25 @@ public class MainActivity extends Activity implements OnClickListener{
     protected void onDestroy() {
         mSourceView.reset();
         super.onDestroy();
+    }
+
+    public class DroidLogicInputCallback extends TvInputCallback {
+
+        @Override
+        public void onEvent(String inputId, String eventType, Bundle eventArgs) {
+            Utils.logd(TAG, "====onEvent==inputId =" + inputId +", ===eventType ="+ eventType);
+        }
+
+        @Override
+        public void onVideoAvailable(String inputId) {
+            Utils.logd(TAG, "====onVideoAvailable==inputId =" + inputId);
+        }
+
+        @Override
+        public void onVideoUnavailable(String inputId, int reason) {
+            Utils.logd(TAG, "====onVideoUnavailable==inputId =" + inputId +", ===reason ="+ reason);
+        }
+
     }
 
 }
