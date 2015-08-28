@@ -86,13 +86,13 @@ public class Utils {
             logd("Utils", "=====temp[2] =" + temp[2]);
             device_id = Integer.parseInt(temp[2].substring(2));
             switch (device_id) {
-                case 4:
+                case 5:
                     source_type = SOURCE_TYPE_HDMI1;
                     break;
-                case 5:
+                case 6:
                     source_type = SOURCE_TYPE_HDMI2;
                     break;
-                case 6:
+                case 7:
                     source_type = SOURCE_TYPE_HDMI3;
                     break;
                 default:
