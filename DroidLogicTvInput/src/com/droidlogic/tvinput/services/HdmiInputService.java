@@ -58,6 +58,7 @@ public class HdmiInputService extends DroidLogicTvInputService {
 
         @Override
         public void onRelease() {
+            mHardware.setSurface(null, null);
             mTvInputManager.releaseTvInputHardware(getHardwareDeviceId(mInputId), mHardware);
         }
 
