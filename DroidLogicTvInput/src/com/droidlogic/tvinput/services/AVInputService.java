@@ -29,7 +29,7 @@ public class AVInputService extends DroidLogicTvInputService {
     public Session onCreateSession(String inputId) {
         Utils.logd(TAG, "=====onCreateSession====");
         mSession = new AVInputSession(getApplicationContext(), inputId);
-        registerInputSession(mSession);
+        registerInputSession(mSession, inputId);
         return mSession;
     }
 

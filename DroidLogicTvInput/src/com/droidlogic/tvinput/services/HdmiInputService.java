@@ -29,7 +29,7 @@ public class HdmiInputService extends DroidLogicTvInputService {
     public Session onCreateSession(String inputId) {
         Utils.logd(TAG, "=====onCreateSession====");
         mSession = new HdmiInputSession(getApplicationContext(), inputId);
-        registerInputSession(mSession);
+        registerInputSession(mSession, inputId);
         return mSession;
     }
 
