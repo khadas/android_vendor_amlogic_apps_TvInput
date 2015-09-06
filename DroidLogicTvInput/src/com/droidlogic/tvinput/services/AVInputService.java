@@ -5,7 +5,7 @@ import java.io.IOException;
 
 import org.xmlpull.v1.XmlPullParserException;
 
-import com.droidlogic.common.DroidLogicTvInputService;
+import com.droidlogic.app.DroidLogicTvInputService;
 import com.droidlogic.utils.Utils;
 
 import android.content.Context;

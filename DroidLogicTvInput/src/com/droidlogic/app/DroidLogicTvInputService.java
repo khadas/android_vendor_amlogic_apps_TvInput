@@ -1,4 +1,4 @@
-package com.droidlogic.common;
+package com.droidlogic.app;
 
 
 import java.util.List;
@@ -19,6 +19,7 @@ import android.media.tv.TvInputHardwareInfo;
 import android.media.tv.TvInputInfo;
 import android.media.tv.TvInputManager;
 import android.media.tv.TvInputService;
+import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseArray;
@@ -31,6 +32,8 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
     private static final int SOURCE_HDMI1 = 5;
     private static final int SOURCE_HDMI2 = 6;
     private static final int SOURCE_HDMI3 = 7;
+
+    private Tv tv = TvClient.getTvInstance();
 
     private SparseArray<TvInputInfo> mInfoList = new SparseArray<>();
 
@@ -49,7 +52,6 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
      */
     protected void registerInputSession(Session session, String inputId) {
         mSession = session;
-        Tv tv = Tv.open();
         tv.SetSigInfoChangeListener(this);
     }
 
@@ -129,7 +131,7 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
             }
 
             if (DEBUG)
-                Log.d(TAG, "===cls_name = " + cls_name + ", si.name = " + si.name);
+                Log.d(TAG, "====cls_name = " + cls_name + ", si.name = " + si.name);
 
             if (cls_name.equals(si.name)) {
                 ret_ri = ri;
@@ -144,13 +146,7 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
         Tv.tvin_sig_status_t status = signal_info.status;
 
         if (DEBUG)
-            Log.d(TAG, "-------- onSigChange --------" + status.ordinal() + status.toString());
-
-        String type = "hdmi";
-        if (mSession instanceof HdmiInputSession)
-            type = "hdmi";
-        else if (mSession instanceof AVInputSession)
-            type = "av";
+            Log.d(TAG, "==== onSigChange ====" + status.ordinal() + status.toString());
 
         if (status == Tv.tvin_sig_status_t.TVIN_SIG_STATUS_NOSIG
                 || status == Tv.tvin_sig_status_t.TVIN_SIG_STATUS_NULL
@@ -158,6 +154,61 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
             mSession.notifyVideoUnavailable(TvInputManager.VIDEO_UNAVAILABLE_REASON_UNKNOWN);
         }else if (status == Tv.tvin_sig_status_t.TVIN_SIG_STATUS_STABLE) {
             mSession.notifyVideoAvailable();
+            if (mSession instanceof HdmiInputSession) {
+                if (DEBUG)
+                    Log.d(TAG, "signal_info.fmt.toString() for hdmi=" + signal_info.fmt.toString());
+
+                String[] strings = signal_info.fmt.toString().split("_");
+                if (strings[4].equalsIgnoreCase("1440X480I")
+                        || strings[4].equalsIgnoreCase("2880X480I")
+                        || strings[4].equalsIgnoreCase("720X480I")) {
+                    strings[4] = "480I";
+                }else if (strings[4].equalsIgnoreCase("1440X576I")
+                        || strings[4].equalsIgnoreCase("2880X576I")
+                        || strings[4].equalsIgnoreCase("720X576I")) {
+                    strings[4] = "576I";
+                }
+                Bundle bundle = new Bundle();
+                bundle.putString(DroidLogicTvInputUtils.SIG_INFO_TYPE, "hdmi");
+                bundle.putString(DroidLogicTvInputUtils.SIG_INFO_ARGS, strings[4]
+                        + "_" + signal_info.reserved + "HZ");
+                mSession.notifySessionEvent(DroidLogicTvInputUtils.SIG_INFO_EVENT, bundle);
+            } else if (mSession instanceof AVInputSession) {
+                if (DEBUG)
+                    Log.d(TAG, "tmpInfo.fmt.toString() for av=" + signal_info.fmt.toString());
+
+                String[] strings = signal_info.fmt.toString().split("_");
+                Bundle bundle = new Bundle();
+                bundle.putString(DroidLogicTvInputUtils.SIG_INFO_TYPE, "av");
+                bundle.putString(DroidLogicTvInputUtils.SIG_INFO_ARGS, strings[4]);
+                mSession.notifySessionEvent(DroidLogicTvInputUtils.SIG_INFO_EVENT, bundle);
+            } /*else if (mSession instanceof ATVInputSession) {
+                int dataBuf[] = new int[8];
+                String v_fmt = null;
+                String a_fmt = null;
+
+                //id here used default because of we do not know
+                if (tv.ATVGetChanInfo(1, dataBuf) == 0) {
+                    v_fmt = Tv.atv_video_std_e.values()[dataBuf[2]].toString().substring("ATV_VIDEO_STD_".length());
+                    a_fmt = Tv.atv_audio_std_e.values()[dataBuf[3]].toString().substring("ATV_AUDIO_STD_".length());
+                } else {
+                    Log.e(TAG,"error in tv.ATVGetChanInfo");
+                }
+                Bundle bundle = new Bundle();
+                bundle.putString(DroidLogicTvInputUtils.SIG_INFO_TYPE, "atv");
+                bundle.putString(DroidLogicTvInputUtils.SIG_INFO_ARGS, v_fmt + "/" + a_fmt);
+                mSession.notifySessionEvent(DroidLogicTvInputUtils.SIG_INFO_EVENT, bundle);
+            }*/
+        }
+    }
+
+    private static class TvClient {
+        private static Tv tv;
+        public static Tv getTvInstance() {
+            if (tv == null) {
+                tv = Tv.open();
+            }
+            return tv;
         }
     }
 
