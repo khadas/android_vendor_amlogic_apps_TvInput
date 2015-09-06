@@ -1,6 +1,6 @@
 package com.droidlogic.app;
 
-public class DroidLogicTvInputUtils {
+public class DroidLogicTvUtils {
 
     /**
      * final parameters for {@link TvInpuptService.Session.notifySessionEvent}

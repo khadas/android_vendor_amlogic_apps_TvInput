@@ -169,19 +169,19 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
                     strings[4] = "576I";
                 }
                 Bundle bundle = new Bundle();
-                bundle.putString(DroidLogicTvInputUtils.SIG_INFO_TYPE, "hdmi");
-                bundle.putString(DroidLogicTvInputUtils.SIG_INFO_ARGS, strings[4]
+                bundle.putString(DroidLogicTvUtils.SIG_INFO_TYPE, "hdmi");
+                bundle.putString(DroidLogicTvUtils.SIG_INFO_ARGS, strings[4]
                         + "_" + signal_info.reserved + "HZ");
-                mSession.notifySessionEvent(DroidLogicTvInputUtils.SIG_INFO_EVENT, bundle);
+                mSession.notifySessionEvent(DroidLogicTvUtils.SIG_INFO_EVENT, bundle);
             } else if (mSession instanceof AVInputSession) {
                 if (DEBUG)
                     Log.d(TAG, "tmpInfo.fmt.toString() for av=" + signal_info.fmt.toString());
 
                 String[] strings = signal_info.fmt.toString().split("_");
                 Bundle bundle = new Bundle();
-                bundle.putString(DroidLogicTvInputUtils.SIG_INFO_TYPE, "av");
-                bundle.putString(DroidLogicTvInputUtils.SIG_INFO_ARGS, strings[4]);
-                mSession.notifySessionEvent(DroidLogicTvInputUtils.SIG_INFO_EVENT, bundle);
+                bundle.putString(DroidLogicTvUtils.SIG_INFO_TYPE, "av");
+                bundle.putString(DroidLogicTvUtils.SIG_INFO_ARGS, strings[4]);
+                mSession.notifySessionEvent(DroidLogicTvUtils.SIG_INFO_EVENT, bundle);
             } /*else if (mSession instanceof ATVInputSession) {
                 int dataBuf[] = new int[8];
                 String v_fmt = null;
@@ -195,9 +195,9 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
                     Log.e(TAG,"error in tv.ATVGetChanInfo");
                 }
                 Bundle bundle = new Bundle();
-                bundle.putString(DroidLogicTvInputUtils.SIG_INFO_TYPE, "atv");
-                bundle.putString(DroidLogicTvInputUtils.SIG_INFO_ARGS, v_fmt + "/" + a_fmt);
-                mSession.notifySessionEvent(DroidLogicTvInputUtils.SIG_INFO_EVENT, bundle);
+                bundle.putString(DroidLogicTvUtils.SIG_INFO_TYPE, "atv");
+                bundle.putString(DroidLogicTvUtils.SIG_INFO_ARGS, v_fmt + "/" + a_fmt);
+                mSession.notifySessionEvent(DroidLogicTvUtils.SIG_INFO_EVENT, bundle);
             }*/
         }
     }
