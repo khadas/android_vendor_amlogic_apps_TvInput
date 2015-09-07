@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- size for source button -->
-    <dimen name="source_bt_width">180dp</dimen>
-    <dimen name="source_bt_height">100dp</dimen>
+    <dimen name="source_bt_width">271dp</dimen>
+    <dimen name="source_bt_height">55dp</dimen>
     <dimen name="source_bt_textsize">30sp</dimen>
-    <dimen name="source_bt_gap">30dp</dimen>
+    <dimen name="source_bt_gap">10dp</dimen>
+    <dimen name="text_size_no_signal">50sp</dimen>
+
+    <!-- dimention for hdmi info and av info -->
+    <dimen name="info_margin_to_parent">50dp</dimen>
+    <dimen name="info_margin_to_parent1">20dp</dimen>
+    <dimen name="text_size_info_ha_type">50sp</dimen>
+    <dimen name="text_size_info_ha_rel">30sp</dimen>
+    <dimen name="gap_margin_to">20dp</dimen>
 </resources>

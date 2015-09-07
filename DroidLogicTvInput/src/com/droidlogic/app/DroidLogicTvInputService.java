@@ -33,8 +33,6 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
     private static final int SOURCE_HDMI2 = 6;
     private static final int SOURCE_HDMI3 = 7;
 
-    private Tv tv = TvClient.getTvInstance();
-
     private SparseArray<TvInputInfo> mInfoList = new SparseArray<>();
 
     private Session mSession;
@@ -52,6 +50,7 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
      */
     protected void registerInputSession(Session session, String inputId) {
         mSession = session;
+        Tv tv = DroidLogicTvUtils.TvClient.getTvInstance();
         tv.SetSigInfoChangeListener(this);
     }
 
@@ -169,7 +168,7 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
                     strings[4] = "576I";
                 }
                 Bundle bundle = new Bundle();
-                bundle.putString(DroidLogicTvUtils.SIG_INFO_TYPE, "hdmi");
+                bundle.putString(DroidLogicTvUtils.SIG_INFO_TYPE, DroidLogicTvUtils.SIG_INFO_TYPE_HDMI);
                 bundle.putString(DroidLogicTvUtils.SIG_INFO_ARGS, strings[4]
                         + "_" + signal_info.reserved + "HZ");
                 mSession.notifySessionEvent(DroidLogicTvUtils.SIG_INFO_EVENT, bundle);
@@ -179,7 +178,7 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
 
                 String[] strings = signal_info.fmt.toString().split("_");
                 Bundle bundle = new Bundle();
-                bundle.putString(DroidLogicTvUtils.SIG_INFO_TYPE, "av");
+                bundle.putString(DroidLogicTvUtils.SIG_INFO_TYPE, DroidLogicTvUtils.SIG_INFO_TYPE_AV);
                 bundle.putString(DroidLogicTvUtils.SIG_INFO_ARGS, strings[4]);
                 mSession.notifySessionEvent(DroidLogicTvUtils.SIG_INFO_EVENT, bundle);
             } /*else if (mSession instanceof ATVInputSession) {
@@ -199,16 +198,6 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
                 bundle.putString(DroidLogicTvUtils.SIG_INFO_ARGS, v_fmt + "/" + a_fmt);
                 mSession.notifySessionEvent(DroidLogicTvUtils.SIG_INFO_EVENT, bundle);
             }*/
-        }
-    }
-
-    private static class TvClient {
-        private static Tv tv;
-        public static Tv getTvInstance() {
-            if (tv == null) {
-                tv = Tv.open();
-            }
-            return tv;
         }
     }
 

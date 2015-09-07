@@ -6,5 +6,7 @@
         <item name="android:textSize">@dimen/source_bt_textsize</item>
         <item name="android:gravity">center</item>
         <item name="android:layout_marginTop">@dimen/source_bt_gap</item>
+        <item name="android:background">@drawable/bg_source_bt</item>
+        <item name="android:textColor">@drawable/color_source_bt</item>
     </style>
 </resources>

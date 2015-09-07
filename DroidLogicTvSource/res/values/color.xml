@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="source_unfocus">#1E1E1E</color>
+    <color name="source_focus">#FFFFFF</color>
+    <color name="source_unselect">#5D5D5D</color>
+    <color name="no_signal">#1E1E1E</color>
+    <color name="source_info_ha">#1E1E1E</color>
+</resources>

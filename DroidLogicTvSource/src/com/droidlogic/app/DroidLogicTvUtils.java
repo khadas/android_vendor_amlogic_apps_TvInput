@@ -1,6 +1,5 @@
 package com.droidlogic.app;
 
-import android.amlogic.Tv;
 
 public class DroidLogicTvUtils {
 
@@ -13,14 +12,4 @@ public class DroidLogicTvUtils {
     public static final String SIG_INFO_TYPE_HDMI = "hdmi";
     public static final String SIG_INFO_TYPE_AV   = "av";
 
-
-    public static class TvClient {
-        private static Tv tv;
-        public static Tv getTvInstance() {
-            if (tv == null) {
-                tv = Tv.open();
-            }
-            return tv;
-        }
-    }
 }

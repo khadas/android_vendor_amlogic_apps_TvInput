@@ -8,8 +8,8 @@
         <item>AV2</item>     <!-- av2 -->
         <item>null</item>              <!-- YPBPR1 -->
         <item>null</item>              <!-- YPBPR2 -->
-        <item>HDMiI1</item>   <!-- HDMI1 -->
-        <item>HDMiI2</item>   <!-- HDMI2 -->
-        <item>HDMiI3</item>   <!-- HDMI3 -->
+        <item>HDMI1</item>   <!-- HDMI1 -->
+        <item>HDMI2</item>   <!-- HDMI2 -->
+        <item>HDMI3</item>   <!-- HDMI3 -->
     </string-array>
 </resources>

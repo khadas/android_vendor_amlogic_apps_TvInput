@@ -18,13 +18,16 @@ public class Utils {
     public static final int SOURCE_TYPE_COMPOSITE    = 2;
     public static final int SOURCE_TYPE_SVIDEO       = 3;
     public static final int SOURCE_TYPE_SCART        = 4;
-    public static final int SOURCE_TYPE_COMPONENT    = 5;
+    public static final int SOURCE_TYPE_AV           = 5;
     public static final int SOURCE_TYPE_VGA          = 6;
     public static final int SOURCE_TYPE_DVI          = 7;
     public static final int SOURCE_TYPE_HDMI1        = 8;
     public static final int SOURCE_TYPE_HDMI2        = 9;
     public static final int SOURCE_TYPE_HDMI3        = 10;
     public static final int SOURCE_TYPE_OTHER        = 11;
+
+    public static final boolean SHOW_VIEW = true;
+    public static final boolean HIDE_VIEW = false;
 
     public static final int port_hdmi1 = 1;
     public static final int port_hdmi2 = 2;
@@ -48,7 +51,7 @@ public class Utils {
                 source_type = getSourceType(info.getId());
                 break;
             case TvInputInfo.TYPE_COMPONENT:
-                source_type = SOURCE_TYPE_COMPONENT;
+                source_type = SOURCE_TYPE_AV;
                 break;
             default:
                 source_type = SOURCE_TYPE_ATV;
@@ -71,7 +74,7 @@ public class Utils {
                 }
                 break;
             case TvInputHardwareInfo.TV_INPUT_TYPE_COMPONENT:
-                source_type = SOURCE_TYPE_COMPONENT;
+                source_type = SOURCE_TYPE_AV;
                 break;
             default:
                 source_type = SOURCE_TYPE_ATV;
@@ -85,9 +88,11 @@ public class Utils {
         String[] temp = input_id.split("/");
         int device_id = 0;
         if (temp.length == 3) {
-            logd("Utils", "=====temp[2] =" + temp[2]);
             device_id = Integer.parseInt(temp[2].substring(2));
             switch (device_id) {
+                case 1:
+                    source_type = SOURCE_TYPE_AV;
+                    break;
                 case 5:
                     source_type = SOURCE_TYPE_HDMI1;
                     break;
@@ -102,6 +107,15 @@ public class Utils {
             }
         }
         return source_type;
+    }
+
+    public static TvInputInfo getInputInfo(int source_type) {
+        List<TvInputInfo> list = mTvInputManager.getTvInputList();
+        for (TvInputInfo info:list) {
+            if (getSourceType(info) == source_type)
+                return info;
+        }
+        return null;
     }
 
     public static String getInputId(int source_type) {

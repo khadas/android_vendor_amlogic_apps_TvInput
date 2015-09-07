@@ -1,4 +1,5 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:droidlogic="http://schemas.android.com/apk/res/com.droidlogic.tv"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
 
@@ -7,31 +8,64 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" />
 
-    <LinearLayout
-        android:id="@+id/source_menu"
-        android:layout_width="fill_parent"
+    <RelativeLayout
+        android:layout_width="wrap_content"
         android:layout_height="fill_parent"
-        android:orientation="vertical">
-        <Button
-            style="@style/tv_source_button"
-            android:id="@+id/atv"
-            android:text="@string/source_bt_atv" />
-        <Button
-            style="@style/tv_source_button"
-            android:id="@+id/dtv"
-            android:text="@string/source_bt_dtv" />
-        <Button
-            style="@style/tv_source_button"
-            android:id="@+id/av"
-            android:text="@string/source_bt_av" />
-        <Button
-            style="@style/tv_source_button"
-            android:id="@+id/hdmi1"
-            android:text="@string/source_bt_hdmi1" />
-        <Button
-            style="@style/tv_source_button"
-            android:id="@+id/hdmi2"
-            android:text="@string/source_bt_hdmi2" />
-    </LinearLayout>
-
+        android:orientation="horizontal" >
+        <LinearLayout
+	        android:id="@+id/menu_layout"
+	        android:layout_width="wrap_content"
+	        android:layout_height="fill_parent"
+	        android:orientation="vertical"
+	        android:background="@drawable/bg_source">
+	        <TextView
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:enabled="false"
+	            android:layout_marginTop="50dp"/>
+	        <com.droidlogic.ui.SourceButton
+	            style="@style/tv_source_button"
+	            android:id="@+id/atv"
+	            droidlogic:source_id="0" />
+	        <com.droidlogic.ui.SourceButton
+	            style="@style/tv_source_button"
+	            android:id="@+id/dtv"
+	            droidlogic:source_id="1" />
+	        <com.droidlogic.ui.SourceButton
+	            style="@style/tv_source_button"
+	            android:id="@+id/av"
+	            droidlogic:source_id="5" />
+	        <com.droidlogic.ui.SourceButton
+	            style="@style/tv_source_button"
+	            android:id="@+id/hdmi1"
+	            droidlogic:source_id="8" />
+	        <com.droidlogic.ui.SourceButton
+	            style="@style/tv_source_button"
+	            android:id="@+id/hdmi2"
+	            droidlogic:source_id="9" />
+	        <com.droidlogic.ui.SourceButton
+	            style="@style/tv_source_button"
+	            android:id="@+id/hdmi3"
+	            droidlogic:source_id="10" />
+        </LinearLayout>
+        <TextView
+            android:id="@+id/no_signal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/no_signal"
+            android:gravity="center"
+            android:textColor="@color/no_signal"
+            android:textSize="@dimen/text_size_no_signal"
+            android:background="@drawable/bg_no_signal"
+            android:layout_centerInParent="true"
+            android:visibility="invisible"/>
+        <LinearLayout
+            android:id="@+id/info_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:orientation="vertical">
+        </LinearLayout>
+    </RelativeLayout>
 </FrameLayout>
