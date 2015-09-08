@@ -9,14 +9,14 @@
         android:layout_height="fill_parent" />
 
     <RelativeLayout
-        android:layout_width="wrap_content"
-        android:layout_height="fill_parent"
-        android:orientation="horizontal" >
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent">
         <LinearLayout
 	        android:id="@+id/menu_layout"
 	        android:layout_width="wrap_content"
 	        android:layout_height="fill_parent"
 	        android:orientation="vertical"
+	        android:visibility="invisible"
 	        android:background="@drawable/bg_source">
 	        <TextView
 	            android:layout_width="wrap_content"

@@ -40,13 +40,16 @@ public class DroidLogicTv extends Activity implements OnClickListener, Callback 
     private int mCurrentSourceType;
     private String mSourceInfo;
     private boolean isNoSignal;
+    private boolean isNoSignalShowing;
     private boolean isSourceMenuShowing;
+    private boolean isSourceInfoShowing;
 
     private Timer delayTimer = null;
     private int delayCounter = 0;
 
     private Handler mHandler;
     private static final int MSG_INFO_DELAY = 0;
+    private static final int MSG_SOURCE_DELAY = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,26 +127,38 @@ public class DroidLogicTv extends Activity implements OnClickListener, Callback 
 
     private void popupSourceMenu(boolean show_or_hide) {//ture:show
         if (!show_or_hide) {
+            destroyDelayTimer();
+            isSourceMenuShowing = false;
             mSourceMenuLayout.setVisibility(View.INVISIBLE);
             popupSourceInfo(Utils.SHOW_VIEW);
         } else {
+            isSourceMenuShowing = true;
             mSourceMenuLayout.setVisibility(View.VISIBLE);
-            popupSourceInfo(Utils.HIDE_VIEW);
-            popupNoSignal(Utils.HIDE_VIEW);
+            mSourceMenuLayout.requestLayout();
+            if (isSourceInfoShowing)
+                popupSourceInfo(Utils.HIDE_VIEW);
+            if (isNoSignalShowing)
+                popupNoSignal(Utils.HIDE_VIEW);
+            createDelayTimer(MSG_SOURCE_DELAY, 5);
         }
     }
 
     private void popupNoSignal(boolean show_or_hide) {//true:show
         TextView no_signal = (TextView)findViewById(R.id.no_signal);
         if (!show_or_hide) {
+            isNoSignalShowing = false;
             no_signal.setVisibility(View.INVISIBLE);
         } else {
+            isNoSignalShowing = true;
             no_signal.setVisibility(View.VISIBLE);
+            no_signal.requestLayout();
         }
     }
 
     private void popupSourceInfo(boolean show_or_hide) {//true:show
         if (!show_or_hide) {
+            destroyDelayTimer();
+            isSourceInfoShowing = false;
             mSourceInfoLayout.setVisibility(View.INVISIBLE);
         } else {
             switch (mCurrentSourceType) {
@@ -168,8 +183,14 @@ public class DroidLogicTv extends Activity implements OnClickListener, Callback 
                 default:
                     break;
             }
-            popupNoSignal(Utils.HIDE_VIEW);
+            if (isNoSignalShowing) {
+                popupNoSignal(Utils.HIDE_VIEW);
+            }
+            if (isSourceMenuShowing) {
+                popupSourceMenu(Utils.HIDE_VIEW);
+            }
             mSourceInfoLayout.setVisibility(View.VISIBLE);
+            isSourceInfoShowing = true;
             createDelayTimer(MSG_INFO_DELAY, 5);//hide it automatically after 5s
         }
     }
@@ -303,17 +324,24 @@ public class DroidLogicTv extends Activity implements OnClickListener, Callback 
 
     @Override
     public boolean handleMessage(Message msg) {
+        int max_counter;
         switch (msg.what) {
             case MSG_INFO_DELAY:
                 delayCounter++;
-                int max_counter = (int)msg.obj;
+                max_counter = (int)msg.obj;
                 if (delayCounter > max_counter) {
                     popupSourceInfo(Utils.HIDE_VIEW);
                     Utils.logd(TAG, "====isNoSignal =" + isNoSignal);
                     if (isNoSignal) {
                         popupNoSignal(Utils.SHOW_VIEW);
                     }
-                    destroyDelayTimer();
+                }
+                break;
+            case MSG_SOURCE_DELAY:
+                delayCounter++;
+                max_counter = (int)msg.obj;
+                if (delayCounter > max_counter) {
+                    popupSourceMenu(Utils.HIDE_VIEW);
                 }
                 break;
             default:
