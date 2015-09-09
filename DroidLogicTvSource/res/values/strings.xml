@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">DroidLogicTVSource</string>
+    <string name="app_name">TVApp</string>
 
     <!-- string for source button -->
     <string name="source_bt_atv">ATV</string>

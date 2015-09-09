@@ -88,12 +88,18 @@ public class DroidLogicTv extends Activity implements OnClickListener, Callback 
         hdmi3.setTvInputInfo(Utils.getInputInfo(hdmi3.getSourceType()));
         mSourceMenuLayout = (LinearLayout)findViewById(R.id.menu_layout);
         mSourceInfoLayout = (LinearLayout)findViewById(R.id.info_layout);
+    }
 
+    @Override
+    protected void onResume() {
+        Utils.logd(TAG, "==onResume====");
+        SourceButton atv = (SourceButton) findViewById(R.id.atv);
         atv.requestFocus();
 
         switchToSourceInput(getDefaultSource());
 
         popupSourceInfo(Utils.SHOW_VIEW);
+        super.onResume();
     }
 
     /**

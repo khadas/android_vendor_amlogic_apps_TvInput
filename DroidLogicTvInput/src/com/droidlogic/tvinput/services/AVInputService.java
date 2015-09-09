@@ -39,6 +39,7 @@ public class AVInputService extends DroidLogicTvInputService {
         private Hardware mHardware;
         private TvInputManager mTvInputManager;
         private TvStreamConfig[] mConfigs;
+        private boolean isTuneNotReady = false;
         private HardwareCallback mHardwareCallback = new HardwareCallback(){
             @Override
             public void onReleased() {
@@ -73,6 +74,14 @@ public class AVInputService extends DroidLogicTvInputService {
         }
 
         @Override
+        public void onSurfaceChanged(int format, int width, int height) {
+            if (isTuneNotReady) {
+                switchToSourceInput();
+                isTuneNotReady = false;
+            }
+        }
+
+        @Override
         public void onSetStreamVolume(float volume) {
             // TODO Auto-generated method stub
         }
@@ -80,7 +89,11 @@ public class AVInputService extends DroidLogicTvInputService {
         @Override
         public boolean onTune(Uri channelUri) {
             Utils.logd(TAG, "====onTune====");
-            switchToSourceInput();
+            if (mSurface == null) {//TvView is not ready
+                isTuneNotReady = true;
+            } else {
+                switchToSourceInput();
+            }
             return false;
         }
 
@@ -89,7 +102,7 @@ public class AVInputService extends DroidLogicTvInputService {
             // TODO Auto-generated method stub
         }
 
-        private void switchToSourceInput(){
+        private void switchToSourceInput() {
             mHardware.setSurface(mSurface, mConfigs[0]);
         }
 
