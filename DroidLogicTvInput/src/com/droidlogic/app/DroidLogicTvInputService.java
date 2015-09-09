@@ -36,6 +36,7 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
     private SparseArray<TvInputInfo> mInfoList = new SparseArray<>();
 
     private Session mSession;
+    private String mCurrentInputId;
 
     @Override
     public Session onCreateSession(String inputId) {
@@ -50,6 +51,7 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
      */
     protected void registerInputSession(Session session, String inputId) {
         mSession = session;
+        mCurrentInputId = inputId;
         Tv tv = DroidLogicTvUtils.TvClient.getTvInstance();
         tv.SetSigInfoChangeListener(this);
     }
@@ -140,6 +142,11 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
         return ret_ri;
     }
 
+    private String getInfoLabel() {
+        TvInputManager tim = (TvInputManager) getSystemService(Context.TV_INPUT_SERVICE);
+        return tim.getTvInputInfo(mCurrentInputId).loadLabel(this).toString();
+    }
+
     @Override
     public void onSigChange(tvin_info_t signal_info) {
         Tv.tvin_sig_status_t status = signal_info.status;
@@ -168,7 +175,8 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
                     strings[4] = "576I";
                 }
                 Bundle bundle = new Bundle();
-                bundle.putString(DroidLogicTvUtils.SIG_INFO_TYPE, DroidLogicTvUtils.SIG_INFO_TYPE_HDMI);
+                bundle.putInt(DroidLogicTvUtils.SIG_INFO_TYPE, DroidLogicTvUtils.SIG_INFO_TYPE_HDMI);
+                bundle.putString(DroidLogicTvUtils.SIG_INFO_LABEL, getInfoLabel());
                 bundle.putString(DroidLogicTvUtils.SIG_INFO_ARGS, strings[4]
                         + "_" + signal_info.reserved + "HZ");
                 mSession.notifySessionEvent(DroidLogicTvUtils.SIG_INFO_EVENT, bundle);
@@ -178,26 +186,11 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
 
                 String[] strings = signal_info.fmt.toString().split("_");
                 Bundle bundle = new Bundle();
-                bundle.putString(DroidLogicTvUtils.SIG_INFO_TYPE, DroidLogicTvUtils.SIG_INFO_TYPE_AV);
+                bundle.putInt(DroidLogicTvUtils.SIG_INFO_TYPE, DroidLogicTvUtils.SIG_INFO_TYPE_AV);
+                bundle.putString(DroidLogicTvUtils.SIG_INFO_LABEL, getInfoLabel());
                 bundle.putString(DroidLogicTvUtils.SIG_INFO_ARGS, strings[4]);
                 mSession.notifySessionEvent(DroidLogicTvUtils.SIG_INFO_EVENT, bundle);
-            } /*else if (mSession instanceof ATVInputSession) {
-                int dataBuf[] = new int[8];
-                String v_fmt = null;
-                String a_fmt = null;
-
-                //id here used default because of we do not know
-                if (tv.ATVGetChanInfo(1, dataBuf) == 0) {
-                    v_fmt = Tv.atv_video_std_e.values()[dataBuf[2]].toString().substring("ATV_VIDEO_STD_".length());
-                    a_fmt = Tv.atv_audio_std_e.values()[dataBuf[3]].toString().substring("ATV_AUDIO_STD_".length());
-                } else {
-                    Log.e(TAG,"error in tv.ATVGetChanInfo");
-                }
-                Bundle bundle = new Bundle();
-                bundle.putString(DroidLogicTvUtils.SIG_INFO_TYPE, "atv");
-                bundle.putString(DroidLogicTvUtils.SIG_INFO_ARGS, v_fmt + "/" + a_fmt);
-                mSession.notifySessionEvent(DroidLogicTvUtils.SIG_INFO_EVENT, bundle);
-            }*/
+            }
         }
     }
 
