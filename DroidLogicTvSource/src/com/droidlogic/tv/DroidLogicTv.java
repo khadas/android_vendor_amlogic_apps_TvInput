@@ -204,7 +204,7 @@ public class DroidLogicTv extends Activity implements OnClickListener, Callback 
     }
 
     /**
-     * @param type Current AV channel name, AV1 or AV2. if here is just only one£¬ type is AV.
+     * @param type Current AV channel name, AV1 or AV2. if here is just only one, type is AV.
      */
     private void initAVInfo(String type) {
         TextView tv_type;
