@@ -40,6 +40,10 @@
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
             android:layout_alignParentTop="true"
+            android:paddingTop="@dimen/info_margin_top"
+            android:paddingRight="@dimen/info_margin_right"
+            android:paddingLeft="2dp"
+            android:paddingBottom="2dp"
             android:orientation="vertical">
         </LinearLayout>
     </RelativeLayout>

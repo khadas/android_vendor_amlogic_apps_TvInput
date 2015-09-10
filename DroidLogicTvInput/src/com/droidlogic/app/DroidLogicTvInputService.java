@@ -29,6 +29,7 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
     private static final boolean DEBUG = true;
 
     private static final int SOURCE_AV1 = 1;
+    private static final int SOURCE_AV2 = 2;
     private static final int SOURCE_HDMI1 = 5;
     private static final int SOURCE_HDMI2 = 6;
     private static final int SOURCE_HDMI3 = 7;
@@ -98,6 +99,9 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
         switch (device_id) {
             case SOURCE_AV1:
                 label = labels[SOURCE_AV1];
+                break;
+            case SOURCE_AV2:
+                label = labels[SOURCE_AV2];
                 break;
             case SOURCE_HDMI1:
                 label = labels[SOURCE_HDMI1];

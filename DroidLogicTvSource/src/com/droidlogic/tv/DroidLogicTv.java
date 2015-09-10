@@ -33,6 +33,7 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
     private static final String TAG = "DroidLogicTv";
 
     private Context mContext;
+    private TvInputManager mTvInputManager;
 
     private TvView mSourceView;
 
@@ -41,8 +42,6 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
 
     //max index of all hardware devices in mSourceMenuLayout
     private int maxHardwareIndex = 0;
-
-    private String mCurrentSource;
 
     private int msigType;
     private String mSigInfo;
@@ -70,6 +69,8 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
     }
 
     private void init() {
+        mTvInputManager = (TvInputManager)getSystemService(Context.TV_INPUT_SERVICE);
+
         mContext = getApplicationContext();
         mHandler = new Handler(this);
 
@@ -88,8 +89,7 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
      * have been added {@link main.xml}.
      */
     private void initSourceMenuLayout() {
-        TvInputManager tim = (TvInputManager)getSystemService(Context.TV_INPUT_SERVICE);
-        List<TvInputInfo> input_list = tim.getTvInputList();
+        List<TvInputInfo> input_list = mTvInputManager.getTvInputList();
         if (mSourceMenuLayout.getChildCount() > 1) {
             mSourceMenuLayout.removeViews(1, mSourceMenuLayout.getChildCount()-1);
         }
@@ -126,7 +126,8 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
     @Override
     protected void onResume() {
         Utils.logd(TAG, "==onResume====");
-        switchToSourceInput("com.droidlogic.tvinput/.services.HdmiInputService/HW5");
+
+        switchToSourceInput(getDefaultSource());
 
         popupSourceInfo(Utils.SHOW_VIEW);
         super.onResume();
@@ -138,8 +139,12 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
     private String getDefaultSource(){
         //get default source, now set hdmi1 as default
 
-        mCurrentSource = "HDMI1";
-        return mCurrentSource;
+        String input_id = "com.droidlogic.tvinput/.services.HdmiInputService/HW5";
+        TvInputInfo info = mTvInputManager.getTvInputInfo(input_id);
+        mSigLabel = info.loadLabel(mContext).toString();
+        msigType = DroidLogicTvUtils.SIG_INFO_TYPE_HDMI;
+
+        return input_id;
     }
 
     private void switchToSourceInput(String inputId) {
@@ -154,9 +159,8 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
 
     @Override
     public void onButtonClick(String inputId, String sourceType) {
-        if (!TextUtils.isEmpty(mCurrentSource) && sourceType.equals(mCurrentSource))
+        if (!TextUtils.isEmpty(mSigLabel) && sourceType.equals(mSigLabel))
             return;
-        mCurrentSource = sourceType;
         mSigInfo = null;
         mSigLabel = sourceType;
         switchToSourceInput(inputId);

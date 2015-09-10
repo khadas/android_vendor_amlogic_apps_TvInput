@@ -3,11 +3,11 @@
 
     <!-- Label of TvInputServcie is defined here, the index of array here is immutable -->
     <string-array name="config_label_name">
-        <item>null</item>              <!-- atv -->
-        <item>AV</item>     <!-- av1 -->
+        <item>null</item>    <!-- atv -->
+        <item>AV1</item>     <!-- av1 -->
         <item>AV2</item>     <!-- av2 -->
-        <item>null</item>              <!-- YPBPR1 -->
-        <item>null</item>              <!-- YPBPR2 -->
+        <item>null</item>    <!-- YPBPR1 -->
+        <item>null</item>    <!-- YPBPR2 -->
         <item>HDMI1</item>   <!-- HDMI1 -->
         <item>HDMI2</item>   <!-- HDMI2 -->
         <item>HDMI3</item>   <!-- HDMI3 -->

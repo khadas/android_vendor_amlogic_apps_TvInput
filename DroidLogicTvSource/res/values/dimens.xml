@@ -8,8 +8,9 @@
     <dimen name="text_size_no_signal">50sp</dimen>
 
     <!-- dimention for hdmi info and av info -->
-    <dimen name="info_margin_to_parent">50dp</dimen>
-    <dimen name="info_margin_to_parent1">20dp</dimen>
+    <dimen name="info_margin_top">50dp</dimen>
+    <dimen name="info_margin_right">50dp</dimen>
+    <dimen name="ha_info_margin_top">20dp</dimen>
     <dimen name="text_size_info_ha_type">50sp</dimen>
     <dimen name="text_size_info_ha_rel">30sp</dimen>
     <dimen name="gap_margin_to">20dp</dimen>
