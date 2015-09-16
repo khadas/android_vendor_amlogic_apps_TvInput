@@ -239,6 +239,7 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
             isSourceMenuShowing = true;
             mSourceMenuLayout.setVisibility(View.VISIBLE);
             mSourceMenuLayout.requestLayout();
+            mSourceMenuLayout.requestFocus();
             if (isSourceInfoShowing)
                 popupSourceInfo(Utils.HIDE_VIEW);
             if (isNoSignalShowing)
@@ -431,8 +432,9 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
 
             if (reason == TvInputManager.VIDEO_UNAVAILABLE_REASON_UNKNOWN) {
                 isNoSignal = true;
+                mSigInfo = null;
+                popupNoSignal(Utils.SHOW_VIEW);
             }
-            popupNoSignal(Utils.SHOW_VIEW);
         }
     }
 
