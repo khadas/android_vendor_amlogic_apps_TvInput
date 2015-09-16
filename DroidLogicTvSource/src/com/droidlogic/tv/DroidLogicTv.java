@@ -12,6 +12,8 @@ import com.droidlogic.ui.SourceButton.SourceButtonListener;
 
 import android.app.Activity;
 import android.content.Context;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.media.tv.TvContract;
 import android.media.tv.TvInputInfo;
 import android.media.tv.TvInputManager;
@@ -25,7 +27,10 @@ import android.os.Message;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -65,7 +70,43 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+        initVideoView();
         init();
+    }
+
+    private void initVideoView() {
+        ViewGroup root = (ViewGroup) getWindow().getDecorView().findViewById(android.R.id.content);
+        root.setFocusable(true);
+        SurfaceView surfaceView = new SurfaceView(this);
+        root.addView(surfaceView, 0);
+        if (surfaceView != null) {
+            surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
+                @Override
+                public void surfaceDestroyed(SurfaceHolder arg0) {
+                    // TODO Auto-generated method stub
+                }
+
+                @Override
+                public void surfaceCreated(SurfaceHolder holder) {
+                    MediaPlayer mediaPlayer = new MediaPlayer();
+                    mediaPlayer.reset();
+                    mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                    try {
+                        mediaPlayer.setDataSource("tvin:test");
+                        mediaPlayer.setDisplay(holder);
+                        mediaPlayer.prepare();
+                    } catch (Exception e) {
+                        Utils.loge(TAG, e.toString());
+                    }
+                    mediaPlayer.start();
+                }
+
+                @Override
+                public void surfaceChanged(SurfaceHolder arg0, int arg1, int arg2, int arg3) {
+                    // TODO Auto-generated method stub
+                }
+            });
+        }
     }
 
     private void init() {
