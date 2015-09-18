@@ -1,0 +1,11 @@
+<?xml vesion="1.0" encoding="utf-8"?>
+<selecto xmlns:android="http://schemas.android.com/apk/res/android">
+    <item andoid:state_pressed="true"
+        andoid:drawable="@drawable/settings_focused" />
+    <item andoid:state_selected="true"
+        andoid:drawable="@drawable/settings_focused" />
+    <item andoid:state_window_focused="true" android:state_focused="true"
+        andoid:drawable="@drawable/settings_focused" />
+    <item
+        andoid:drawable="@drawable/settings_nofocus" />
+</selecto>

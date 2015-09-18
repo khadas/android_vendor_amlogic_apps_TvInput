@@ -3,4 +3,98 @@
     <string name="app_name">DroidLogicTvInput</string>
     <string name="source_input_error">TV source switching to is wrong.</string>
 
+    <!-- Picture -->
+    <string name="picture">Picture</string>
+    <string name="picture_mode">Picture Mode</string>
+    <string name="brightness">Brightness</string>
+    <string name="contrast">Contrast</string>
+    <string name="color">Color</string>
+    <string name="sharpness">Sharpness</string>
+    <string name="backlight">Backlight</string>
+    <string name="color_temperature">Color Temperature</string>
+    <string name="aspect_ratio">Aspect Ratio</string>
+    <string name="dnr">DNR</string>
+    <string name="settings_3d">3D Settings</string>
+
+    <!-- Sound -->
+    <string name="sound">Sound</string>
+    <string name="sound_mode">Sound Mode</string>
+    <string name="treble">Treble</string>
+    <string name="bass">Bass</string>
+    <string name="balance">Balance</string>
+    <string name="spdif">SPDIF</string>
+    <string name="spdif_switch">SPDIF Switch</string>
+    <string name="dialog_clarity">Dialog Clarity</string>
+    <string name="bass_boost">Bass Boost</string>
+    <string name="surround">Surround</string>
+
+    <!-- Channel -->
+    <string name="channel">Channel</string>
+    <string name="current_channel">Current Channel</string>
+    <string name="frequency">Frequency</string>
+    <string name="color_system">Color System</string>
+    <string name="sound_system">Sound System</string>
+    <string name="volume_compensate">Volume Compensate</string>
+    <string name="fine_tune">Fine Tune</string>
+    <string name="manual_search">Manual Search</string>
+    <string name="auto_search">Auto Search</string>
+    <string name="channel_edit">Channel Edit</string>
+    <string name="switch_channel">Switch Channel</string>
+
+    <!-- Settings -->
+    <string name="settings">Settings</string>
+    <string name="sleep_timer">Sleep Timer</string>
+    <string name="menu_time">Menu Time</string>
+    <string name="startup_setting">Startup Setting</string>
+    <string name="dynamic_backlight">Dynamic Backlight</string>
+    <string name="restore_factory">Restore Factory Settings</string>
+    <string name="standard">standard</string>
+    <string name="vivid">vivid</string>
+    <string name="soft">soft</string>
+    <string name="user">user</string>
+    <string name="warm">warm</string>
+    <string name="cool">cool</string>
+    <string name="auto">auto</string>
+    <string name="four2three">4 : 3</string>
+    <string name="panorama">panorama</string>
+    <string name="full_screen">full screen</string>
+    <string name="on">on</string>
+    <string name="off">off</string>
+    <string name="medium">medium</string>
+    <string name="high">high</string>
+    <string name="low">low</string>
+    <string name="mode_lr">left right mode</string>
+    <string name="mode_rl">right left mode</string>
+    <string name="mode_ud">up down mode</string>
+    <string name="mode_du">down up mode</string>
+    <string name="mode_3d_to_2d">3D to 2D</string>
+    <string name="increase">increase</string>
+    <string name="decrease">decrease</string>
+    <string name="default_percent">50%</string>
+    <string name="music">music</string>
+    <string name="news">news</string>
+    <string name="movie">movie</string>
+    <string name="pcm">pcm</string>
+    <string name="pal">PAL</string>
+    <string name="ntsc">NTSC</string>
+    <string name="sound_system_dk">D/K</string>
+    <string name="sound_system_i">I</string>
+    <string name="sound_system_bg">B/G</string>
+    <string name="sound_system_m">M</string>
+    <string name="static_frame">static-frame</string>
+    <string name="black_frame">black-frame</string>
+    <string name="time_15min">15 min</string>
+    <string name="time_30min">30 min</string>
+    <string name="time_45min">45 min</string>
+    <string name="time_60min">60 min</string>
+    <string name="time_90min">90 min</string>
+    <string name="time_120min">120 min</string>
+    <string name="time_10s">10s</string>
+    <string name="time_20s">20s</string>
+    <string name="time_40s">40s</string>
+    <string name="time_60s">60s</string>
+    <string name="launcher">launcher</string>
+    <string name="tv">TV</string>
+    <string name="ensure_restore">ensure restore</string>
+
 </resources>
