@@ -12,6 +12,7 @@ import com.droidlogic.ui.SourceButton.SourceButtonListener;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.tv.TvContract;
@@ -41,6 +42,7 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
     private TvInputManager mTvInputManager;
 
     private TvView mSourceView;
+    private String mInputId;
 
     private LinearLayout mSourceMenuLayout;
     private LinearLayout mSourceInfoLayout;
@@ -66,6 +68,8 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
     private static final int MSG_SOURCE_DELAY = 1;
     private static final int MSG_SOURCE_DELAY_TIME = 5;
 
+    private boolean needSwitchToSource = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,7 +80,6 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
 
     private void initVideoView() {
         ViewGroup root = (ViewGroup) getWindow().getDecorView().findViewById(android.R.id.content);
-        root.setFocusable(true);
         SurfaceView surfaceView = new SurfaceView(this);
         root.addView(surfaceView, 0);
         if (surfaceView != null) {
@@ -168,7 +171,11 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
     protected void onResume() {
         Utils.logd(TAG, "==onResume====");
 
-        switchToSourceInput(getDefaultSource());
+        initDefaultSource();
+
+        if (needSwitchToSource) {
+            switchToSourceInput();
+        }
 
         popupSourceInfo(Utils.SHOW_VIEW);
         super.onResume();
@@ -177,25 +184,29 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
     /**
      * get the default source input at first time.
      */
-    private String getDefaultSource(){
+    private void initDefaultSource(){
         //get default source, now set hdmi1 as default
 
-        String input_id = "com.droidlogic.tvinput/.services.HdmiInputService/HW5";
-        TvInputInfo info = mTvInputManager.getTvInputInfo(input_id);
+        mInputId = "com.droidlogic.tvinput/.services.HdmiInputService/HW5";
+        TvInputInfo info = mTvInputManager.getTvInputInfo(mInputId);
         mSigLabel = info.loadLabel(mContext).toString();
         msigType = DroidLogicTvUtils.SIG_INFO_TYPE_HDMI;
-
-        return input_id;
     }
 
-    private void switchToSourceInput(String inputId) {
-        Uri channel = TvContract.buildChannelUriForPassthroughInput(inputId);
-        Utils.logd(TAG, "channelUri switching to is " + channel);
+    private void switchToSourceInput() {
+        Uri channel_uri = TvContract.buildChannelUriForPassthroughInput(mInputId);
+        Utils.logd(TAG, "channelUri switching to is " + channel_uri);
 
-        mSourceView.tune(inputId, channel);
+        mSourceView.tune(mInputId, channel_uri);
 
         if (isSourceMenuShowing)
             popupSourceMenu(Utils.HIDE_VIEW);
+    }
+
+    private void startSetupActivity () {
+        TvInputInfo info = mTvInputManager.getTvInputInfo(mInputId);
+        Intent intent = info.createSetupIntent();
+        startActivityForResult(intent, 0);
     }
 
     @Override
@@ -204,7 +215,8 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
             return;
         mSigInfo = null;
         mSigLabel = sourceType;
-        switchToSourceInput(inputId);
+        mInputId = inputId;
+        switchToSourceInput();
     }
 
     @Override
@@ -216,13 +228,20 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
         }
         switch (keyCode) {
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_SOURCE_LIST:
-            case DroidLogicKeyEvent.KEYCODE_MENU:
-                popupSourceMenu(
-                        mSourceMenuLayout.getVisibility() == View.VISIBLE ? Utils.HIDE_VIEW : Utils.SHOW_VIEW);
+                popupSourceMenu(isSourceMenuShowing ? Utils.HIDE_VIEW : Utils.SHOW_VIEW);
                 return true;
+            case DroidLogicKeyEvent.KEYCODE_MENU:
+                startSetupActivity();
+                break;
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_TVINFO:
                 popupSourceInfo(Utils.SHOW_VIEW);
                 return true;
+            case DroidLogicKeyEvent.KEYCODE_BACK:
+                if (isSourceMenuShowing) {
+                    popupSourceMenu(Utils.HIDE_VIEW);
+                    return true;
+                }
+                break;
             default:
                 break;
         }
