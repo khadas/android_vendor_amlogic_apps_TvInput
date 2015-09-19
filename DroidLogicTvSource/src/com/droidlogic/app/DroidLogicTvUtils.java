@@ -11,9 +11,25 @@ public class DroidLogicTvUtils {
     public static final String SIG_INFO_LABEL  = "sig_info_label";
     public static final String SIG_INFO_ARGS  = "sig_info_args";
 
-    public static final int SIG_INFO_TYPE_ATV  = 0;
-    public static final int SIG_INFO_TYPE_DTV  = 1;
-    public static final int SIG_INFO_TYPE_HDMI = 2;
-    public static final int SIG_INFO_TYPE_AV   = 3;
+    public static final int SIG_INFO_TYPE_ATV    = 0;
+    public static final int SIG_INFO_TYPE_DTV    = 1;
+    public static final int SIG_INFO_TYPE_HDMI   = 2;
+    public static final int SIG_INFO_TYPE_AV     = 3;
+    public static final int SIG_INFO_TYPE_OTHER  = 4;
+
+    /**
+     * source input type need to switch
+     */
+    private static final int SOURCE_TYPE_START  = 0;
+    private static final int SOURCE_TYPE_END    = 7;
+
+    public static final int SOURCE_TYPE_ATV     = SOURCE_TYPE_START;
+    public static final int SOURCE_TYPE_DTV     = SOURCE_TYPE_START + 1;
+    public static final int SOURCE_TYPE_AV1     = SOURCE_TYPE_START + 2;
+    public static final int SOURCE_TYPE_AV2     = SOURCE_TYPE_START + 3;
+    public static final int SOURCE_TYPE_HDMI1   = SOURCE_TYPE_START + 4;
+    public static final int SOURCE_TYPE_HDMI2   = SOURCE_TYPE_START + 5;
+    public static final int SOURCE_TYPE_HDMI3   = SOURCE_TYPE_START + 6;
+    public static final int SOURCE_TYPE_OTHER   = SOURCE_TYPE_END;
 
 }
