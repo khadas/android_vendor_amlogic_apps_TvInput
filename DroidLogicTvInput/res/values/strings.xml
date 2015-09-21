@@ -96,5 +96,10 @@
     <string name="launcher">launcher</string>
     <string name="tv">TV</string>
     <string name="ensure_restore">ensure restore</string>
+    <string name="warning">warning</string>
+    <string name="prompt_def_set"> restore default settings will restore the settings menu data to factory condition, determined to restore the default settings? </string>
+    <string name="prompt2">restore default settings.</string>
+    <string name="cancle">cancle</string>
+    <string name="confirm">confirm</string>
 
 </resources>

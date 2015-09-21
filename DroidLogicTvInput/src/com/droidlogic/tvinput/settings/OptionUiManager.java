@@ -1,7 +1,10 @@
 package com.droidlogic.tvinput.settings;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.res.Resources;
+import android.os.PowerManager;
+import android.os.SystemProperties;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -12,10 +15,19 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import android.R.integer;
+import android.amlogic.Tv;
+import android.app.AlertDialog;
+
+import com.droidlogic.app.DroidLogicTvUtils;
+import com.droidlogic.app.DroidLogicTvUtils.TvClient;
 import com.droidlogic.tvinput.R;
 
 public class OptionUiManager implements OnClickListener, OnFocusChangeListener {
     public static final String TAG = "OptionUiManager";
+
+    private static TvClient client = TvClient.getTvClient();
+    private Tv tv = DroidLogicTvUtils.TvClient.getTvInstance();
 
     private static final int OPTION_PICTURE_MODE                   = 100;
     private static final int OPTION_BRIGHTNESS                     = 101;
@@ -227,112 +239,295 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener {
             //====Picture====
             //picture mode
             case R.id.picture_mode_standard:
+                tv.SetPQMode(Tv.Pq_Mode.PQ_MODE_STANDARD, client.curSource, 1);
                 mSettingsManager.setPictureMode(SettingsManager.STATUS_STANDARD);
                 break;
             case R.id.picture_mode_vivid:
+                tv.SetPQMode(Tv.Pq_Mode.PQ_MODE_BRIGHT, client.curSource, 1);
                 mSettingsManager.setPictureMode(SettingsManager.STATUS_VIVID);
                 break;
             case R.id.picture_mode_soft:
+                tv.SetPQMode(Tv.Pq_Mode.PQ_MODE_SOFTNESS, client.curSource, 1);
                 mSettingsManager.setPictureMode(SettingsManager.STATUS_SOFT);
                 break;
             case R.id.picture_mode_user:
+                tv.SetPQMode(Tv.Pq_Mode.PQ_MODE_USER, client.curSource, 1);
                 mSettingsManager.setPictureMode(SettingsManager.STATUS_USER);
                 break;
             //brightness
             case R.id.brightness_increase:
+                tv.SetBrightness(tv.GetBrightness(client.curSource) + 1, client.curSource, 1);
                 mSettingsManager.setBrightness(SettingsManager.PERCENT_INCREASE);
                 break;
             case R.id.brightness_decrease:
+                tv.SetBrightness(tv.GetBrightness(client.curSource) - 1, client.curSource, 1);
                 mSettingsManager.setBrightness(SettingsManager.PERCENT_DECREASE);
                 break;
             //contrast
             case R.id.contrast_increase:
+                tv.SetContrast(tv.GetContrast(client.curSource) + 1, client.curSource, 1);
                 mSettingsManager.setContrast(SettingsManager.PERCENT_INCREASE);
                 break;
             case R.id.contrast_decrease:
+                tv.SetContrast(tv.GetContrast(client.curSource) - 1, client.curSource, 1);
                 mSettingsManager.setContrast(SettingsManager.PERCENT_DECREASE);
                 break;
             //color
             case R.id.color_increase:
+                tv.SetSaturation(tv.GetSaturation(client.curSource) + 1, client.curSource, tv.GetCurrentSignalInfo().fmt, 1);
                 mSettingsManager.setColor(SettingsManager.PERCENT_INCREASE);
                 break;
             case R.id.color_decrease:
+                tv.SetSaturation(tv.GetSaturation(client.curSource) - 1, client.curSource, tv.GetCurrentSignalInfo().fmt, 1);
                 mSettingsManager.setColor(SettingsManager.PERCENT_DECREASE);
                 break;
             //sharpness
             case R.id.sharpness_increase:
+                tv.SetSharpness(tv.GetSharpness(client.curSource) + 1, client.curSource, 1, 0, 1);
                 mSettingsManager.setSharpness(SettingsManager.PERCENT_INCREASE);
                 break;
             case R.id.sharpness_decrease:
+                tv.SetSharpness(tv.GetSharpness(client.curSource) - 1, client.curSource, 1, 0, 1);
                 mSettingsManager.setSharpness(SettingsManager.PERCENT_DECREASE);
                 break;
             //backlight
             case R.id.backlight_increase:
+                tv.SetBacklight(tv.GetBacklight(client.curSource) + 1, client.curSource, 1);
                 mSettingsManager.setBacklight(SettingsManager.PERCENT_INCREASE);
                 break;
             case R.id.backlight_decrease:
+                tv.SetBacklight(tv.GetBacklight(client.curSource) - 1, client.curSource, 1);
                 mSettingsManager.setBacklight(SettingsManager.PERCENT_DECREASE);
                 break;
             //color temperature
             case R.id.color_temperature_standard:
+                tv.SetColorTemperature(Tv.color_temperature.COLOR_TEMP_STANDARD, client.curSource, 1);
                 mSettingsManager.setColorTemperature(SettingsManager.STATUS_STANDARD);
                 break;
             case R.id.color_temperature_warm:
+                tv.SetColorTemperature(Tv.color_temperature.COLOR_TEMP_WARM, client.curSource, 1);
                 mSettingsManager.setColorTemperature(SettingsManager.STATUS_WARM);
                 break;
             case R.id.color_temperature_cool:
+                tv.SetColorTemperature(Tv.color_temperature.COLOR_TEMP_COLD, client.curSource, 1);
                 mSettingsManager.setColorTemperature(SettingsManager.STATUS_COOL);
                 break;
             //aspect ratio
             case R.id.apect_ratio_auto:
+                if (tv.Get3DMode() == 0) {
+                    tv.SetDisplayMode(Tv.Display_Mode.DISPLAY_MODE_NORMAL, client.curSource, tv.GetCurrentSignalInfo().fmt, 1);
+                }
                 mSettingsManager.setAspectRatio(SettingsManager.STATUS_AUTO);
                 break;
             case R.id.apect_ratio_four2three:
+                if (tv.Get3DMode() == 0) {
+                    tv.SetDisplayMode(Tv.Display_Mode.DISPLAY_MODE_MODE43, client.curSource, tv.GetCurrentSignalInfo().fmt, 1);
+                }
                 mSettingsManager.setAspectRatio(SettingsManager.STATUS_4_TO_3);
                 break;
             case R.id.apect_ratio_panorama:
+                if (tv.Get3DMode() == 0) {
+                    tv.SetDisplayMode(Tv.Display_Mode.DISPLAY_MODE_FULL, client.curSource, tv.GetCurrentSignalInfo().fmt, 1);
+                }
                 mSettingsManager.setAspectRatio(SettingsManager.STATUS_PANORAMA);
                 break;
             case R.id.apect_ratio_full_screen:
+                if (tv.Get3DMode() == 0) {
+                    tv.SetDisplayMode(Tv.Display_Mode.DISPLAY_MODE_169, client.curSource, tv.GetCurrentSignalInfo().fmt, 1);
+                }
                 mSettingsManager.setAspectRatio(SettingsManager.STATUS_FULL_SCREEN);
                 break;
             //dnr
             case R.id.dnr_off:
+                tv.SetNoiseReductionMode(Tv.Noise_Reduction_Mode.REDUCE_NOISE_CLOSE, client.curSource, 1);
                 mSettingsManager.setDnr(SettingsManager.STATUS_OFF);
                 break;
             case R.id.dnr_auto:
+                tv.SetNoiseReductionMode(Tv.Noise_Reduction_Mode.REDUCTION_MODE_AUTO, client.curSource, 1);
                 mSettingsManager.setDnr(SettingsManager.STATUS_AUTO);
                 break;
             case R.id.dnr_medium:
+                tv.SetNoiseReductionMode(Tv.Noise_Reduction_Mode.REDUCE_NOISE_MID, client.curSource, 1);
                 mSettingsManager.setDnr(SettingsManager.STATUS_MEDIUM);
                 break;
             case R.id.dnr_high:
+                tv.SetNoiseReductionMode(Tv.Noise_Reduction_Mode.REDUCE_NOISE_STRONG, client.curSource, 1);
                 mSettingsManager.setDnr(SettingsManager.STATUS_HIGH);
                 break;
             case R.id.dnr_low:
+                tv.SetNoiseReductionMode(Tv.Noise_Reduction_Mode.REDUCE_NOISE_WEAK, client.curSource, 1);
                 mSettingsManager.setDnr(SettingsManager.STATUS_LOW);
                 break;
             //3d settings
             case R.id.settings_3d_off:
+                tv.Set3DMode(Tv.Mode_3D.MODE_3D_CLOSE, Tv.Tvin_3d_Status.STATUS3D_DISABLE);
                 mSettingsManager.set3dSettings(SettingsManager.STATUS_OFF);
                 break;
             case R.id.settings_3d_auto:
+                tv.Set3DMode(Tv.Mode_3D.MODE_3D_AUTO, Tv.Tvin_3d_Status.STATUS3D_AUTO);
                 mSettingsManager.set3dSettings(SettingsManager.STATUS_AUTO);
                 break;
             case R.id.settings_3d_lr_mode:
+                tv.Set3DLRSwith(0, Tv.Tvin_3d_Status.STATUS3D_LR);
                 mSettingsManager.set3dSettings(SettingsManager.STATUS_3D_LR_MODE);
                 break;
             case R.id.settings_3d_rl_mode:
+                tv.Set3DLRSwith(1, Tv.Tvin_3d_Status.STATUS3D_LR);
                 mSettingsManager.set3dSettings(SettingsManager.STATUS_3D_RL_MODE);
                 break;
             case R.id.settings_3d_ud_mode:
+                tv.Set3DLRSwith(0, Tv.Tvin_3d_Status.STATUS3D_BT);
                 mSettingsManager.set3dSettings(SettingsManager.STATUS_3D_UD_MODE);
                 break;
             case R.id.settings_3d_du_mode:
+                tv.Set3DLRSwith(1, Tv.Tvin_3d_Status.STATUS3D_BT);
                 mSettingsManager.set3dSettings(SettingsManager.STATUS_3D_DU_MODE);
                 break;
             case R.id.settings_3d_3d_to_2d:
+                //tv.Set3DTo2DMode(Tv.Mode_3D_2D.values()[position], Tv.Tvin_3d_Status.values()[tv.Get3DMode()]);
                 mSettingsManager.set3dSettings(SettingsManager.STATUS_3D_TO_2D);
+                break;
+            //====Sound====
+            //sound mode
+            case R.id.sound_mode_standard:
+                tv.SetAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_STD);
+                tv.SaveCurAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_STD.toInt());
+                break;
+            case R.id.sound_mode_music:
+                tv.SetAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_MUSIC);
+                tv.SaveCurAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_MUSIC.toInt());
+                break;
+            case R.id.sound_mode_news:
+                tv.SetAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_NEWS);
+                tv.SaveCurAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_NEWS.toInt());
+                break;
+            case R.id.sound_mode_movie:
+                tv.SetAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_THEATER);
+                tv.SaveCurAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_THEATER.toInt());
+                break;
+            case R.id.sound_mode_user:
+                tv.SetAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_USER);
+                tv.SaveCurAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_USER.toInt());
+                break;
+            //Treble
+            case R.id.treble_increase:
+                int treble_value_increase = tv.GetCurAudioTrebleVolume() + 1;
+                tv.SetAudioTrebleVolume(treble_value_increase);
+                tv.SaveCurAudioTrebleVolume(treble_value_increase);
+                break;
+            case R.id.treble_decrease:
+                int treble_value_decrease = tv.GetCurAudioTrebleVolume() - 1;
+                tv.SetAudioTrebleVolume(treble_value_decrease);
+                tv.SaveCurAudioTrebleVolume(treble_value_decrease);
+                break;
+            //Bass
+            case R.id.bass_increase:
+                int bass_value_increase = tv.GetCurAudioBassVolume() + 1;
+                tv.SetAudioBassVolume(bass_value_increase);
+                tv.SaveCurAudioBassVolume(bass_value_increase);
+                break;
+            case R.id.bass_decrease:
+                int bass_value_decrease = tv.GetCurAudioBassVolume() - 1;
+                tv.SetAudioBassVolume(bass_value_decrease);
+                tv.SaveCurAudioBassVolume(bass_value_decrease);
+                break;
+            //Balance
+            case R.id.balance_increase:
+                int balance_value_increase = tv.GetCurAudioBalance() + 1;
+                tv.SetAudioBalance(balance_value_increase);
+                tv.SaveCurAudioBalance(balance_value_increase);
+                break;
+            case R.id.balance_decrease:
+                int balance_value_decrease = tv.GetCurAudioBalance() - 1;
+                tv.SetAudioBalance(balance_value_decrease);
+                tv.SaveCurAudioBalance(balance_value_decrease);
+                break;
+            //SPDIF
+            case R.id.spdif_off:
+                tv.SetAudioSPDIFSwitch(0);
+                tv.SaveCurAudioSPDIFSwitch(0);
+                break;
+            case R.id.spdif_auto:
+                tv.SetAudioSPDIFMode(0);
+                tv.SaveCurAudioSPDIFMode(0);
+                break;
+            case R.id.spdif_pcm:
+                tv.SetAudioSPDIFMode(1);
+                tv.SaveCurAudioSPDIFMode(1);
+                break;
+            //Surround
+            case R.id.surround_on:
+                tv.SetAudioSrsSurround(1);
+                tv.SaveCurAudioSrsSurround(1);
+                break;
+            case R.id.surround_off:
+                tv.SetAudioSrsSurround(0);
+                tv.SaveCurAudioSrsSurround(0);
+                break;
+            //Dialog Clarity
+            case R.id.dialog_clarity_on:
+                tv.SetAudioSrsDialogClarity(1);
+                tv.SaveCurAudioSrsDialogClarity(1);
+                break;
+            case R.id.dialog_clarity_off:
+                tv.SetAudioSrsDialogClarity(0);
+                tv.SaveCurAudioSrsDialogClarity(0);
+                break;
+            //Bass Boost
+            case R.id.bass_boost_on:
+                tv.SetAudioSrsTruBass(1);
+                tv.SaveCurAudioSrsTruBass(1);
+                break;
+            case R.id.bass_boost_off:
+                tv.SetAudioSrsTruBass(0);
+                tv.SaveCurAudioSrsTruBass(0);
+                break;
+            //Settings
+            //Sleep Timer
+            case R.id.sleep_timer_off:
+                SystemProperties.set("tv.sleep_timer", "0");
+                break;
+            case R.id.sleep_timer_15min:
+                SystemProperties.set("tv.sleep_timer", "900000");
+                break;
+            case R.id.sleep_timer_30min:
+                SystemProperties.set("tv.sleep_timer", "1800000");
+                break;
+            case R.id.sleep_timer_45min:
+                SystemProperties.set("tv.sleep_timer", "2700000");
+                break;
+            case R.id.sleep_timer_60min:
+                SystemProperties.set("tv.sleep_timer", "3600000");
+                break;
+            case R.id.sleep_timer_90min:
+                SystemProperties.set("tv.sleep_timer", "5400000");
+                break;
+            case R.id.sleep_timer_120min:
+                SystemProperties.set("tv.sleep_timer", "7200000");
+                break;
+            //Dynamic Backlight
+            case R.id.dynamic_backlight_on:
+                tv.startAutoBacklight();
+                break;
+            case R.id.dynamic_backlight_off:
+                tv.stopAutoBacklight();
+                break;
+            //Restore Factory Settings
+            case R.id.restore_factory:
+                new AlertDialog.Builder(mContext).setTitle(R.string.warning).setMessage(R.string.prompt_def_set)
+                .setPositiveButton(R.string.confirm, new DialogInterface.OnClickListener()
+                {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which)
+                    {
+                        // TODO Auto-generated method stub
+                        tv.stopAutoBacklight();
+                        SystemProperties.set("tv.sleep_timer", "0");
+                        tv.SSMInitDevice();
+                        tv.FactoryCleanAllTableForProgram();
+                        ((PowerManager) mContext.getSystemService(Context.POWER_SERVICE)).reboot(null);
+                    }
+                }).setNegativeButton(R.string.cancle, null).show();
                 break;
             default:
                 break;

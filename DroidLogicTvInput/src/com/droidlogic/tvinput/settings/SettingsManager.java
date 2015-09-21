@@ -2,12 +2,21 @@ package com.droidlogic.tvinput.settings;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.os.SystemProperties;
 import android.util.Log;
 
+import com.droidlogic.app.DroidLogicTvUtils;
+import com.droidlogic.app.DroidLogicTvUtils.TvClient;
+
+import android.R.integer;
+import android.amlogic.Tv;
 import com.droidlogic.tvinput.R;
 
 public class SettingsManager {
     public static final String TAG = "SettingsManager";
+
+    private static TvClient client = TvClient.getTvClient();
+    private Tv tv = DroidLogicTvUtils.TvClient.getTvInstance();
 
     public static final String KEY_CONTENT_TITLE                            = "content_title";
 
@@ -133,43 +142,94 @@ public class SettingsManager {
     }
 
     private String getPictureModeStatus () {
-        return STATUS_STANDARD;
+        int pictureModeIndex = tv.GetPQMode(client.curSource);
+        if (pictureModeIndex == 0)
+            return STATUS_STANDARD;
+        else if (pictureModeIndex == 1)
+            return STATUS_VIVID;
+        else if (pictureModeIndex == 2)
+            return STATUS_SOFT;
+        else
+            return STATUS_USER;
     }
 
     private String getBrightnessStatus () {
-        return STATUS_DEFAULT_PERCENT;
+        return tv.GetBrightness(client.curSource) + "%";
     }
 
     private String getContrastStatus () {
-        return STATUS_DEFAULT_PERCENT;
+        return tv.GetContrast(client.curSource) + "%";
     }
 
     private String getColorStatus () {
-        return STATUS_DEFAULT_PERCENT;
+        return tv.GetSaturation(client.curSource) + "%";
     }
 
     private String getSharpnessStatus () {
-        return STATUS_DEFAULT_PERCENT;
+        return tv.GetSharpness(client.curSource) + "%";
     }
 
     private String getBacklightStatus () {
-        return STATUS_DEFAULT_PERCENT;
+        return tv.GetBacklight(client.curSource) + "%";
     }
 
     private String getColorTemperatureStatus () {
-        return mResources.getString(R.string.standard);
+        int itemPosition = tv.GetColorTemperature(client.curSource);
+        if (itemPosition == 0)
+            return mResources.getString(R.string.standard);
+        else if (itemPosition == 1)
+            return mResources.getString(R.string.warm);
+        else
+            return mResources.getString(R.string.cool);
     }
 
     private String getAspectRatioStatus () {
-        return mResources.getString(R.string.standard);
+        int itemPosition = tv.GetDisplayMode(client.curSource);
+        if (itemPosition == 0)
+            return mResources.getString(R.string.full_screen);
+        else if (itemPosition == 1)
+            return mResources.getString(R.string.four2three);
+        else if (itemPosition == 2)
+            return mResources.getString(R.string.panorama);
+        else
+            return mResources.getString(R.string.auto);
     }
 
     private String getDnrStatus () {
-        return mResources.getString(R.string.auto);
+        int itemPosition = tv.GetNoiseReductionMode(client.curSource);
+        if (itemPosition == 0)
+            return mResources.getString(R.string.off);
+        else if (itemPosition == 1)
+            return mResources.getString(R.string.low);
+        else if (itemPosition == 2)
+            return mResources.getString(R.string.medium);
+        else if (itemPosition == 3)
+            return mResources.getString(R.string.high);
+        else
+            return mResources.getString(R.string.auto);
     }
 
     private String get3dSettingsStatus () {
-        return mResources.getString(R.string.off);
+        if (tv.Get3DTo2DMode() != 0)
+            return mResources.getString(R.string.mode_3d_to_2d);
+        int threeD_mode = tv.Get3DMode();
+        if (threeD_mode == Tv.Mode_3D.MODE_3D_CLOSE.toInt()) {
+            return mResources.getString(R.string.off);
+        } else if (threeD_mode == Tv.Mode_3D.MODE_3D_AUTO.toInt()) {
+            return mResources.getString(R.string.auto);
+        } else if (threeD_mode == Tv.Mode_3D.MODE_3D_LEFT_RIGHT.toInt()) {
+            if (tv.Get3DLRSwith() == 0)
+                return mResources.getString(R.string.mode_lr);
+            else
+                return mResources.getString(R.string.mode_rl);
+        } else if (threeD_mode == Tv.Mode_3D.MODE_3D_UP_DOWN.toInt()) {
+            if (tv.Get3DLRSwith() == 0)
+                return mResources.getString(R.string.mode_ud);
+            else
+                return mResources.getString(R.string.mode_du);
+        } else {
+            return null;
+        }
     }
 
     //Sound
@@ -196,35 +256,67 @@ public class SettingsManager {
 
 
     private String getSoundModeStatus () {
-        return mResources.getString(R.string.standard);
+        int itemPosition = tv.GetCurAudioSoundMode();
+        if (itemPosition == 0)
+            return mResources.getString(R.string.standard);
+        else if (itemPosition == 1)
+            return mResources.getString(R.string.music);
+        else if (itemPosition == 2)
+            return mResources.getString(R.string.news);
+        else if (itemPosition == 3)
+            return mResources.getString(R.string.movie);
+        else if (itemPosition == 4)
+            return mResources.getString(R.string.user);
+        else
+            return null;
     }
 
     private String getTrebleStatus () {
-        return STATUS_DEFAULT_PERCENT;
+        return tv.GetCurAudioTrebleVolume() + "%";
     }
 
     private String getBassStatus () {
-        return STATUS_DEFAULT_PERCENT;
+        return tv.GetCurAudioBassVolume() + "%";
     }
 
     private String getBalanceStatus () {
-        return STATUS_DEFAULT_PERCENT;
+        return tv.GetCurAudioBalance() + "%";
     }
 
     private String getSpdifStatus () {
-        return mResources.getString(R.string.auto);
+        if (tv.GetCurAudioSPDIFSwitch() == 0)
+            return mResources.getString(R.string.off);
+        int itemPosition = tv.GetCurAudioSPDIFMode();
+        if (itemPosition == 0)
+            return mResources.getString(R.string.auto);
+        else if (itemPosition == 1)
+            return mResources.getString(R.string.pcm);
+        else
+            return null;
     }
 
     private String getSurroundStatus () {
-        return mResources.getString(R.string.off);
+        int itemPosition = tv.GetCurAudioSrsSurround();
+        if (itemPosition == 0)
+            return mResources.getString(R.string.off);
+        else
+            return mResources.getString(R.string.on);
     }
 
     private String getDialogClarityStatus () {
-        return mResources.getString(R.string.off);
+        int itemPosition = tv.GetCurAudioSrsDialogClarity();
+        if (itemPosition == 0)
+            return mResources.getString(R.string.off);
+        else
+            return mResources.getString(R.string.on);
     }
 
     private String getBassBoostStatus () {
-        return mResources.getString(R.string.off);
+        int itemPosition = tv.GetCurAudioSrsTruBass();
+        if (itemPosition == 0)
+            return mResources.getString(R.string.off);
+        else
+            return mResources.getString(R.string.on);
     }
 
     //Channel
@@ -284,7 +376,36 @@ public class SettingsManager {
     }
 
     private String getSleepTimerStatus () {
-        return mResources.getString(R.string.off);
+        String ret = "";
+        int time = SystemProperties.getInt("tv.sleep_timer", 0);
+        switch (time)
+        {
+            case 0://off
+                ret = mResources.getString(R.string.off);
+                break;
+            case 900000://15min
+                ret = mResources.getString(R.string.time_15min);
+                break;
+            case 1800000://30min
+                ret = mResources.getString(R.string.time_30min);
+                break;
+            case 2700000://45min
+                ret = mResources.getString(R.string.time_45min);
+                break;
+            case 3600000://60min
+                ret = mResources.getString(R.string.time_60min);
+                break;
+            case 5400000://90min
+                ret = mResources.getString(R.string.time_90min);
+                break;
+            case 7200000://120min
+                ret = mResources.getString(R.string.time_120min);
+                break;
+            default:
+                ret = mResources.getString(R.string.off);
+                break;
+        }
+        return ret;
     }
 
     private String getMenuTimeStatus () {
@@ -296,7 +417,11 @@ public class SettingsManager {
     }
 
     private String getDynamicBacklightStatus () {
-        return mResources.getString(R.string.off);
+        int itemPosition = tv.isAutoBackLighting();
+        if (itemPosition == 0)
+            return mResources.getString(R.string.off);
+        else
+            return mResources.getString(R.string.on);
     }
 
     public void setPictureMode (String mode) {
