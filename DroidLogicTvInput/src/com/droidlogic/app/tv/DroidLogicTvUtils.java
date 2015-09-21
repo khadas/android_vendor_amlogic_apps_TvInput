@@ -1,4 +1,4 @@
-package com.droidlogic.app;
+package com.droidlogic.app.tv;
 
 
 public class DroidLogicTvUtils {
@@ -31,5 +31,16 @@ public class DroidLogicTvUtils {
     public static final int SOURCE_TYPE_HDMI2   = SOURCE_TYPE_START + 5;
     public static final int SOURCE_TYPE_HDMI3   = SOURCE_TYPE_START + 6;
     public static final int SOURCE_TYPE_OTHER   = SOURCE_TYPE_END;
+
+    /**
+     * source input id sync with {@link CTvin.h}
+     */
+    public static final int DEVICE_ID_ATV        = 0;
+    public static final int DEVICE_ID_AV1        = 1;
+    public static final int DEVICE_ID_AV2        = 2;
+    public static final int DEVICE_ID_HDMI1      = 5;
+    public static final int DEVICE_ID_HDMI2      = 6;
+    public static final int DEVICE_ID_HDMI3      = 7;
+    public static final int DEVICE_ID_DTV        = 10;
 
 }

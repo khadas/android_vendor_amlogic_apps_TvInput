@@ -6,16 +6,16 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import com.droidlogic.app.DroidLogicKeyEvent;
-import com.droidlogic.app.DroidLogicTvUtils;
+import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.ui.SourceButton;
-import com.droidlogic.ui.SourceButton.SourceButtonListener;
+import com.droidlogic.ui.SourceButton.OnSourceClickListener;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.media.tv.TvContract;
 import android.media.tv.TvInputInfo;
 import android.media.tv.TvInputManager;
 import android.media.tv.TvView;
@@ -35,15 +35,15 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-public class DroidLogicTv extends Activity implements Callback, SourceButtonListener {
+public class DroidLogicTv extends Activity implements Callback, OnSourceClickListener {
     private static final String TAG = "DroidLogicTv";
+    private static final String SHARE_NAME = "tv_app";
 
     private Context mContext;
     private TvInputManager mTvInputManager;
 
     private TvView mSourceView;
-    private String mInputId;
-    private TvInputInfo mInputInfo;
+    private SourceButton mSourceInput;
 
     private LinearLayout mSourceMenuLayout;
     private LinearLayout mSourceInfoLayout;
@@ -52,7 +52,6 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
     private int maxHardwareIndex = 0;
 
     private int mSigType;
-    private String mSigInfo;
     private String mSigLabel;
 
     private boolean isNoSignal;
@@ -69,6 +68,7 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
     private static final int MSG_SOURCE_DELAY = 1;
     private static final int MSG_SOURCE_DELAY_TIME = 5;
 
+    private static final int START_SETUP = 0;
     private boolean needUpdateSource = true;
 
     @Override
@@ -141,6 +141,7 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
         for (TvInputInfo info : input_list) {
             SourceButton sb = new SourceButton(mContext, info);
             if (sb.isHardware()) {
+                setDefaultChannelInfo(sb);
                 if (maxHardwareIndex == 0) {
                     mSourceMenuLayout.addView(sb, 1);
                     maxHardwareIndex++;
@@ -164,7 +165,7 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
             }else {
                 mSourceMenuLayout.addView(sb);
             }
-            sb.setSourceButttonListener(this);
+            sb.setOnSourceClickListener(this);
         }
     }
 
@@ -173,7 +174,6 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
         Utils.logd(TAG, "==onResume====");
 
         if (needUpdateSource) {
-            initDefaultSource();
             switchToSourceInput();
         }
 
@@ -184,42 +184,47 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
     /**
      * get the default source input at first time.
      */
-    private void initDefaultSource(){
-        //get default source, now set hdmi1 as default
+    private void setDefaultChannelInfo(SourceButton sb) {
+        int device_id, atv_channel, dtv_channel;
+        SharedPreferences sp = getSharedPreferences(SHARE_NAME, Context.MODE_PRIVATE);
+        device_id = sp.getInt("device_id", 0);
+        atv_channel = sp.getInt("atv_channel", 0);
+        dtv_channel = sp.getInt("dtv_channel", 0);
+        if (sb.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_ATV) {
+            sb.moveToChannel(atv_channel);
+        } else if (sb.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_DTV) {
+            sb.moveToChannel(dtv_channel);
+        }
 
-        mInputId = "com.droidlogic.tvinput/.services.HdmiInputService/HW5";
-        mInputInfo = mTvInputManager.getTvInputInfo(mInputId);
-        mSigLabel = mInputInfo.loadLabel(mContext).toString();
-        mSigType = DroidLogicTvUtils.SIG_INFO_TYPE_HDMI;
+        if (device_id == sb.getDeviceId()) {
+            mSourceInput = sb;
+            mSigType = getSigType(sb.getSourceType());
+        }
     }
 
     private void switchToSourceInput() {
-        Uri channel_uri;
-        channel_uri = TvContract.buildChannelUriForPassthroughInput(mInputId);
-//        if (mInputInfo.isPassthroughInput()) {
-//            channel_uri = TvContract.buildChannelUriForPassthroughInput(mInputId);
-//        } else {
-//            channel_uri = TvContract.buildChannelsUriForInput(mInputId);
-//        }
+        Uri channel_uri = mSourceInput.getUri();
         Utils.logd(TAG, "channelUri switching to is " + channel_uri);
 
-        mSourceView.tune(mInputId, channel_uri);
-
+        mSourceView.tune(mSourceInput.getInputId(), channel_uri);
         if (isSourceMenuShowing)
             popupSourceMenu(Utils.HIDE_VIEW);
     }
 
     private void startSetupActivity () {
-        TvInputInfo info = mTvInputManager.getTvInputInfo(mInputId);
+        TvInputInfo info = mTvInputManager.getTvInputInfo(mSourceInput.getInputId());
         Intent intent = info.createSetupIntent();
-        startActivityForResult(intent, 0);
+        startActivityForResult(intent, START_SETUP);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Utils.logd(TAG, "====onActivityResult====");
-        needUpdateSource = false;
+        Utils.logd(TAG, "====onActivityResult===resultCode =" + resultCode);
+
+        if (resultCode == Activity.RESULT_OK) {
+            needUpdateSource = false;
+        }
 
     }
 
@@ -250,12 +255,11 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
 
     @Override
     public void onButtonClick(SourceButton sb) {
+        Utils.logd(TAG, "==== onButtonClick ====" + sb);
         if (!TextUtils.isEmpty(mSigLabel) && mSigLabel.equals(sb.getLabel()))
             return;
-        mSigInfo = null;
-        mSigLabel = sb.getLabel();
-        mInputId = sb.getInputId();
-        mInputInfo = sb.geTvInputInfo();
+        saveDefaultChannelId(mSourceInput.getChannelId(), mSourceInput.getSourceType());
+        mSourceInput = sb;
         mSigType = getSigType(sb.getSourceType());
         switchToSourceInput();
     }
@@ -287,6 +291,14 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
                     popupSourceMenu(Utils.HIDE_VIEW);
                     return true;
                 }
+                break;
+            case DroidLogicKeyEvent.KEYCODE_CHANNEL_UP:
+                mSourceInput.channelUp();
+                switchToSourceInput();
+                break;
+            case DroidLogicKeyEvent.KEYCODE_CHANNEL_DOWN:
+                mSourceInput.channelDown();
+                switchToSourceInput();
                 break;
             default:
                 break;
@@ -333,6 +345,7 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
             isSourceInfoShowing = false;
             mSourceInfoLayout.setVisibility(View.INVISIBLE);
         } else {
+            mSourceInfoLayout.removeAllViews();
             switch (mSigType) {
                 case DroidLogicTvUtils.SIG_INFO_TYPE_ATV:
                     initATVInfo();
@@ -347,6 +360,7 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
                     initHmdiInfo();
                     break;
                 default:
+                    initOtherInfo();
                     break;
             }
             if (isNoSignalShowing) {
@@ -361,44 +375,76 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
         }
     }
 
-    private void initATVInfo() {
+    private void initOtherInfo() {
         //TODO
+    }
+
+    private void initATVInfo() {
+        TextView tv_name;
+        TextView tv_number;
+        TextView tv_val;
+        if (mSourceInfoLayout.getChildCount() == 0) {
+            LayoutInflater inflate = LayoutInflater.from(mContext);
+            mSourceInfoLayout.addView(inflate.inflate(R.layout.atv_dtv_info, mSourceInfoLayout, false));
+        }
+        tv_name = (TextView) findViewById(R.id.ad_info_name);
+        tv_number = (TextView) findViewById(R.id.ad_info_number);
+        tv_val = (TextView) findViewById(R.id.ad_info_value);
+        tv_name.setText(mSourceInput.getLabel());
+        int number = mSourceInput.getChannelId();
+        if (number < 0) {
+            tv_number.setText("");
+        } else {
+            tv_number.setText(Integer.toString(mSourceInput.getChannelId()));
+        }
+        tv_val.setText(mSourceInput.getChannelType());
     }
 
     private void initDTVInfo() {
-        //TODO
+        TextView tv_name;
+        TextView tv_number;
+        TextView tv_val;
+        if (mSourceInfoLayout.getChildCount() == 0) {
+            LayoutInflater inflate = LayoutInflater.from(mContext);
+            mSourceInfoLayout.addView(inflate.inflate(R.layout.atv_dtv_info, mSourceInfoLayout, false));
+        }
+        tv_name = (TextView) findViewById(R.id.ad_info_name);
+        tv_number = (TextView) findViewById(R.id.ad_info_number);
+        tv_val = (TextView) findViewById(R.id.ad_info_value);
+        tv_name.setText(mSourceInput.getLabel());
+        int number = mSourceInput.getChannelId();
+        if (number < 0) {
+            tv_number.setText("");
+        } else {
+            tv_number.setText(Integer.toString(mSourceInput.getChannelId()));
+        }
+        tv_val.setText(mSourceInput.getChannelName());
     }
 
     private void initAVInfo() {
-        TextView tv_type;
-        TextView tv_rel;
+        TextView tv_name;
+        TextView tv_val;
         if (mSourceInfoLayout.getChildCount() == 0) {
             LayoutInflater inflate = LayoutInflater.from(mContext);
             mSourceInfoLayout.addView(inflate.inflate(R.layout.hdmi_av_info, mSourceInfoLayout, false));
         }
-        tv_type = (TextView) findViewById(R.id.ha_info_type);
-        tv_rel = (TextView) findViewById(R.id.ha_info_value);
-        tv_type.setText(mSigLabel);
-        if (!TextUtils.isEmpty(mSigInfo))
-            tv_rel.setText(mSigInfo);
-        else
-            tv_rel.setText("");
+        tv_name = (TextView) findViewById(R.id.ha_info_name);
+        tv_val = (TextView) findViewById(R.id.ha_info_value);
+        tv_name.setText(mSourceInput.getLabel());
+        tv_val.setText(mSourceInput.getChannelType());
     }
 
     private void initHmdiInfo() {
         TextView tv_type;
-        TextView tv_rel;
+        TextView tv_val;
         if (mSourceInfoLayout.getChildCount() == 0) {
             LayoutInflater inflate = LayoutInflater.from(mContext);
             mSourceInfoLayout.addView(inflate.inflate(R.layout.hdmi_av_info, mSourceInfoLayout, false));
         }
-        tv_type = (TextView) findViewById(R.id.ha_info_type);
-        tv_rel = (TextView) findViewById(R.id.ha_info_value);
-        tv_type.setText(mSigLabel);
-        if (!TextUtils.isEmpty(mSigInfo))
-            tv_rel.setText(mSigInfo);
-        else
-            tv_rel.setText("");
+        tv_type = (TextView) findViewById(R.id.ha_info_name);
+        tv_val = (TextView) findViewById(R.id.ha_info_value);
+        tv_type.setText(mSourceInput.getLabel());
+        tv_val.setText(mSourceInput.getChannelVideoFormat());
     }
 
     private void processSessionEvent(String inputId, String eventType, Bundle eventArgs) {
@@ -407,11 +453,10 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
             String args = eventArgs.getString(DroidLogicTvUtils.SIG_INFO_ARGS);
             if (mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_HDMI) {
                 String[] temp = args.split("_");
-                mSigInfo = temp[0] + "_" + temp[1];
+                mSourceInput.setChannelVideoFormat(temp[0] + "_" + temp[1]);
             } else if (mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_AV) {
-                mSigInfo = args;
+                mSourceInput.setChannelType(args);
             }
-            mSigLabel = eventArgs.getString(DroidLogicTvUtils.SIG_INFO_LABEL);
             popupSourceInfo(Utils.SHOW_VIEW);
         }
     }
@@ -431,8 +476,29 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
     @Override
     protected void onDestroy() {
         Utils.logd(TAG, "==== onDestroy ====");
+        saveDefaultChannelInfo();
         mSourceView.reset();
         super.onDestroy();
+    }
+
+    private void saveDefaultChannelInfo() {
+        if (mSourceInput.getSourceType() != DroidLogicTvUtils.SOURCE_TYPE_OTHER) {
+            SharedPreferences sp = getSharedPreferences(SHARE_NAME, Context.MODE_PRIVATE);
+            sp.edit().putInt("device_id", mSourceInput.getDeviceId()).commit();
+            saveDefaultChannelId(mSourceInput.getChannelId(), mSourceInput.getSourceType());
+        }
+    }
+
+    private void saveDefaultChannelId(int id, int type) {
+        if (id < 0)
+            return;
+
+        SharedPreferences sp = getSharedPreferences(SHARE_NAME, Context.MODE_PRIVATE);
+        if (type == DroidLogicTvUtils.SOURCE_TYPE_ATV) {
+            sp.edit().putInt("atv_channel", id).commit();
+        } else if (type == DroidLogicTvUtils.SOURCE_TYPE_DTV) {
+            sp.edit().putInt("dtv_channel", id).commit();
+        }
     }
 
     private void createDelayTimer(final int msg_event, final int time){
@@ -496,6 +562,7 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
             Utils.logd(TAG, "====onVideoAvailable==inputId =" + inputId);
 
             isNoSignal = false;
+            popupNoSignal(Utils.HIDE_VIEW);
         }
 
         @Override
@@ -506,7 +573,6 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
                 case TvInputManager.VIDEO_UNAVAILABLE_REASON_UNKNOWN:
                 case TvInputManager.VIDEO_UNAVAILABLE_REASON_TUNING:
                     isNoSignal = true;
-                    mSigInfo = null;
                     popupNoSignal(Utils.SHOW_VIEW);
                     break;
                 default:

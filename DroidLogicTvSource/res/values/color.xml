@@ -4,5 +4,7 @@
     <color name="source_focus">#FFFFFF</color>
     <color name="source_unselect">#5D5D5D</color>
     <color name="no_signal">#1E1E1E</color>
-    <color name="source_info_ha">#1E1E1E</color>
+    <color name="source_info_name">#1E1E1E</color>
+    <color name="source_info_number">#1E1E1E</color>
+    <color name="source_info_value">#1E1E1E</color>
 </resources>

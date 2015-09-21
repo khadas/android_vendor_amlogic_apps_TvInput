@@ -11,19 +11,27 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
         <TextView
-	        android:id="@+id/ha_info_name"
+	        android:id="@+id/ad_info_name"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
 	        android:layout_gravity="center_horizontal"
-	        android:layout_marginTop="@dimen/ha_info_margin_top"
 	        android:textColor="@color/source_info_name"
-	        android:textSize="@dimen/text_size_info_ha_name" />
+	        android:textSize="@dimen/text_size_info_ad_name" />
 	    <TextView
-	        android:id="@+id/ha_info_value"
+	        android:id="@+id/ad_info_number"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
 	        android:layout_gravity="center_horizontal"
-	        android:textColor="@color/source_info_value"
-	        android:textSize="@dimen/text_size_info_ha_value" />
+	        android:layout_marginTop="@dimen/ad_info_margin_top"
+	        android:textColor="@color/source_info_number"
+	        android:textSize="@dimen/text_size_info_ad_number" />
+	    <TextView
+            android:id="@+id/ad_info_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="@dimen/ad_info_margin_top"
+            android:textColor="@color/source_info_value"
+            android:textSize="@dimen/text_size_info_ad_value" />
     </LinearLayout>
 </LinearLayout>

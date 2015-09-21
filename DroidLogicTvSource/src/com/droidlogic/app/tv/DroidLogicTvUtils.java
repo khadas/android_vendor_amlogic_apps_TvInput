@@ -1,7 +1,5 @@
-package com.droidlogic.app;
+package com.droidlogic.app.tv;
 
-import android.amlogic.Tv;
-import android.amlogic.Tv.SourceInput_Type;
 
 public class DroidLogicTvUtils {
 
@@ -19,28 +17,6 @@ public class DroidLogicTvUtils {
     public static final int SIG_INFO_TYPE_AV     = 3;
     public static final int SIG_INFO_TYPE_OTHER  = 4;
 
-
-    public static class TvClient {
-        private static Tv tv;
-
-        static private TvClient mTvClientInstance = null;
-        public SourceInput_Type curSource = Tv.SourceInput_Type.SOURCE_TYPE_TV;
-
-        public static TvClient getTvClient()
-        {
-            if (mTvClientInstance == null)
-                mTvClientInstance = new TvClient();
-            return mTvClientInstance;
-        }
-
-        public static Tv getTvInstance() {
-            if (tv == null) {
-                tv = Tv.open();
-            }
-            return tv;
-        }
-    }
-
     /**
      * source input type need to switch
      */
@@ -55,4 +31,16 @@ public class DroidLogicTvUtils {
     public static final int SOURCE_TYPE_HDMI2   = SOURCE_TYPE_START + 5;
     public static final int SOURCE_TYPE_HDMI3   = SOURCE_TYPE_START + 6;
     public static final int SOURCE_TYPE_OTHER   = SOURCE_TYPE_END;
+
+    /**
+     * source input id sync with {@link CTvin.h}
+     */
+    public static final int DEVICE_ID_ATV        = 0;
+    public static final int DEVICE_ID_AV1        = 1;
+    public static final int DEVICE_ID_AV2        = 2;
+    public static final int DEVICE_ID_HDMI1      = 5;
+    public static final int DEVICE_ID_HDMI2      = 6;
+    public static final int DEVICE_ID_HDMI3      = 7;
+    public static final int DEVICE_ID_DTV        = 10;
+
 }

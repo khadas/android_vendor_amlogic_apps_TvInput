@@ -1,4 +1,4 @@
-package com.droidlogic.app;
+package com.droidlogic.app.tv;
 
 
 import java.util.List;
@@ -53,7 +53,7 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
     protected void registerInputSession(Session session, String inputId) {
         mSession = session;
         mCurrentInputId = inputId;
-        Tv tv = DroidLogicTvUtils.TvClient.getTvInstance();
+        Tv tv = Tv.open();
         tv.SetSigInfoChangeListener(this);
     }
 

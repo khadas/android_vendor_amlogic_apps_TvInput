@@ -1,11 +1,13 @@
 package com.droidlogic.ui;
 
-import com.droidlogic.app.DroidLogicTvUtils;
+import com.droidlogic.app.tv.ChannelTuner;
+import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.tv.R;
 import com.droidlogic.tv.Utils;
 
 import android.content.Context;
 import android.media.tv.TvInputInfo;
+import android.net.Uri;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -15,12 +17,13 @@ public class SourceButton extends Button implements OnClickListener{
     private static final String TAG = "SourceButton";
 
     private Context mContext;
+    private ChannelTuner mChannelTuner;
     private TvInputInfo mInputInfo;
     private int mHardwareDeviceId = -1;
     private int mSourceType;
     private int mIsHardware = -1;
 
-    private SourceButtonListener mListener;
+    private OnSourceClickListener mListener;
 
     public SourceButton(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -35,6 +38,7 @@ public class SourceButton extends Button implements OnClickListener{
 
     private void init() {
         ensureValidField(mInputInfo);
+
         setText(getLabel());
         setTextAppearance(mContext, R.style.tv_source_button);
         setBackgroundResource(R.drawable.bg_source_bt);
@@ -49,14 +53,16 @@ public class SourceButton extends Button implements OnClickListener{
 //        }
         initDeviceId();
         initSourceType();
+        mChannelTuner = new ChannelTuner(mContext, mInputInfo);
+        mChannelTuner.initChannelList(mSourceType);
         setOnClickListener(this);
     }
 
-    public interface SourceButtonListener{
+    public interface OnSourceClickListener{
         void onButtonClick(SourceButton sb);
     }
 
-    public void setSourceButttonListener(SourceButtonListener l) {
+    public void setOnSourceClickListener(OnSourceClickListener l) {
         mListener = l;
     }
 
@@ -84,6 +90,34 @@ public class SourceButton extends Button implements OnClickListener{
         return mSourceType;
     }
 
+    public Uri getUri() {
+        return mChannelTuner.getUri();
+    }
+
+    public int getChannelId() {
+        return mChannelTuner.getChannelIndex();
+    }
+
+    public String getChannelType() {
+        return mChannelTuner.getChannelType();
+    }
+
+    public String getChannelName() {
+        return mChannelTuner.getChannelName();
+    }
+
+    public String getChannelVideoFormat() {
+        return mChannelTuner.getChannelVideoFormat();
+    }
+
+    public void setChannelType(String type) {
+        mChannelTuner.setChannelType(type);
+    }
+
+    public void setChannelVideoFormat(String format) {
+        mChannelTuner.setChannelVideoFormat(format);
+    }
+
     private void initDeviceId() {
         String[] temp = mInputInfo.getId().split("/");
         if (temp.length == 3) {
@@ -96,25 +130,25 @@ public class SourceButton extends Button implements OnClickListener{
         mSourceType = DroidLogicTvUtils.SOURCE_TYPE_OTHER;
         if (isHardware()) {
             switch (mHardwareDeviceId) {
-                case 0:
+                case DroidLogicTvUtils.DEVICE_ID_ATV:
                     mSourceType = DroidLogicTvUtils.SOURCE_TYPE_ATV;
                     break;
-                case 10:
+                case DroidLogicTvUtils.DEVICE_ID_DTV:
                     mSourceType = DroidLogicTvUtils.SOURCE_TYPE_DTV;
                     break;
-                case 1:
+                case DroidLogicTvUtils.DEVICE_ID_AV1:
                     mSourceType = DroidLogicTvUtils.SOURCE_TYPE_AV1;
                     break;
-                case 2:
+                case DroidLogicTvUtils.DEVICE_ID_AV2:
                     mSourceType = DroidLogicTvUtils.SOURCE_TYPE_AV2;
                     break;
-                case 5:
+                case DroidLogicTvUtils.DEVICE_ID_HDMI1:
                     mSourceType = DroidLogicTvUtils.SOURCE_TYPE_HDMI1;
                     break;
-                case 6:
+                case DroidLogicTvUtils.DEVICE_ID_HDMI2:
                     mSourceType = DroidLogicTvUtils.SOURCE_TYPE_HDMI2;
                     break;
-                case 7:
+                case DroidLogicTvUtils.DEVICE_ID_HDMI3:
                     mSourceType = DroidLogicTvUtils.SOURCE_TYPE_HDMI3;
                     break;
                 default:
@@ -136,9 +170,36 @@ public class SourceButton extends Button implements OnClickListener{
         init();
     }
 
+    public void channelUp() {
+        mChannelTuner.moveToChannel(true);
+    }
+
+    public void channelDown() {
+        mChannelTuner.moveToChannel(false);
+    }
+
+    public void moveToChannel(String number) {
+        mChannelTuner.moveToChannel(number);
+    }
+
+    public void moveToChannel(int step) {
+        mChannelTuner.moveToChannel(step);
+    }
+
     @Override
     public void onClick(View v) {
         Utils.logd(TAG, "Input id switching to is " + mInputInfo.getId());
         mListener.onButtonClick(this);
     }
+
+    @Override
+    public String toString() {
+        return "SourceButton {"
+                + "inputId=" + getInputId()
+                + ", isHardware=" + isHardware()
+                + ", label=" + getLabel()
+                + ", sourceType=" + getSourceType()
+                + "}";
+    }
+
 }
