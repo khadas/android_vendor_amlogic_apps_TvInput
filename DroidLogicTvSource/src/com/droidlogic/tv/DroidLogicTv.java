@@ -43,6 +43,7 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
 
     private TvView mSourceView;
     private String mInputId;
+    private TvInputInfo mInputInfo;
 
     private LinearLayout mSourceMenuLayout;
     private LinearLayout mSourceInfoLayout;
@@ -187,38 +188,19 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
         //get default source, now set hdmi1 as default
 
         mInputId = "com.droidlogic.tvinput/.services.HdmiInputService/HW5";
-        TvInputInfo info = mTvInputManager.getTvInputInfo(mInputId);
-        mSigLabel = info.loadLabel(mContext).toString();
+        mInputInfo = mTvInputManager.getTvInputInfo(mInputId);
+        mSigLabel = mInputInfo.loadLabel(mContext).toString();
         mSigType = DroidLogicTvUtils.SIG_INFO_TYPE_HDMI;
     }
 
     private void switchToSourceInput() {
-        switch (mSigType) {
-            case DroidLogicTvUtils.SIG_INFO_TYPE_AV:
-            case DroidLogicTvUtils.SIG_INFO_TYPE_HDMI:
-                switchToHdmi();
-                break;
-            case DroidLogicTvUtils.SIG_INFO_TYPE_ATV:
-                switchToAtv();
-                break;
-            case DroidLogicTvUtils.SIG_INFO_TYPE_DTV:
-                switchToDtv();
-                break;
-            default:
-                break;
-        }
-    }
-
-    private void switchToAtv() {
-        //TODO
-    }
-
-    private void switchToDtv() {
-        //TODO
-    }
-
-    private void switchToHdmi() {
-        Uri channel_uri = TvContract.buildChannelUriForPassthroughInput(mInputId);
+        Uri channel_uri;
+        channel_uri = TvContract.buildChannelUriForPassthroughInput(mInputId);
+//        if (mInputInfo.isPassthroughInput()) {
+//            channel_uri = TvContract.buildChannelUriForPassthroughInput(mInputId);
+//        } else {
+//            channel_uri = TvContract.buildChannelsUriForInput(mInputId);
+//        }
         Utils.logd(TAG, "channelUri switching to is " + channel_uri);
 
         mSourceView.tune(mInputId, channel_uri);
@@ -231,6 +213,14 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
         TvInputInfo info = mTvInputManager.getTvInputInfo(mInputId);
         Intent intent = info.createSetupIntent();
         startActivityForResult(intent, 0);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Utils.logd(TAG, "====onActivityResult====");
+        needUpdateSource = false;
+
     }
 
     private int getSigType(int source_type) {
@@ -265,6 +255,7 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
         mSigInfo = null;
         mSigLabel = sb.getLabel();
         mInputId = sb.getInputId();
+        mInputInfo = sb.geTvInputInfo();
         mSigType = getSigType(sb.getSourceType());
         switchToSourceInput();
     }
@@ -281,6 +272,11 @@ public class DroidLogicTv extends Activity implements Callback, SourceButtonList
                 popupSourceMenu(isSourceMenuShowing ? Utils.HIDE_VIEW : Utils.SHOW_VIEW);
                 return true;
             case DroidLogicKeyEvent.KEYCODE_MENU:
+                if (isSourceMenuShowing) {
+                    popupSourceMenu(Utils.HIDE_VIEW);
+                } else if (isSourceInfoShowing) {
+                    popupSourceInfo(Utils.HIDE_VIEW);
+                }
                 startSetupActivity();
                 break;
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_TVINFO:

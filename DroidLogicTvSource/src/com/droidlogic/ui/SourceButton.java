@@ -60,6 +60,10 @@ public class SourceButton extends Button implements OnClickListener{
         mListener = l;
     }
 
+    public TvInputInfo geTvInputInfo() {
+        return mInputInfo;
+    }
+
     public String getInputId() {
         return mInputInfo.getId();
     }
