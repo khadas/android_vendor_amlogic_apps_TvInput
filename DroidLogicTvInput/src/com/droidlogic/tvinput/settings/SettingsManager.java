@@ -96,11 +96,15 @@ public class SettingsManager {
         mResources = mContext.getResources();
     }
 
-    public void setTag(String tag) {
+    public void setTag (String tag) {
         currentTag = tag;
     }
 
-    public String getStatus(String key) {
+    public String getTag () {
+        return currentTag;
+    }
+
+    public String getStatus (String key) {
         Log.d(TAG, " current screen is :" + currentTag + ", item is :" + key);
         if (currentTag.equals(KEY_PICTURE)) {
             return getPictureStatus(key);
@@ -116,7 +120,7 @@ public class SettingsManager {
     }
 
     //picture
-    private String getPictureStatus(String key) {
+    private String getPictureStatus (String key) {
         if (key.equals(KEY_PICTURE_MODE)) {
             return getPictureModeStatus();
         } else if (key.equals(KEY_BRIGHTNESS)) {

@@ -10,10 +10,14 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import android.R.integer;
 import android.amlogic.Tv;
@@ -66,12 +70,13 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener {
     private static final int OPTION_DYNAMIC_BACKLIGHT              = 403;
     private static final int OPTION_RESTORE_FACTORY                = 404;
 
-    public static final int ALPHA_NO_FOCUS                         = 160;
+    public static final int ALPHA_NO_FOCUS                         = 200;
     public static final int ALPHA_FOCUSED                          = 255;
 
     private Context mContext;
     private SettingsManager mSettingsManager;
     private int optionTag = OPTION_PICTURE_MODE;
+    private String optionKey = null;
 
     public OptionUiManager (Context context){
         mContext = context;
@@ -85,76 +90,109 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener {
         //Picture
         if (item_name.equals(mContext.getResources().getString(R.string.picture_mode))) {
             optionTag = OPTION_PICTURE_MODE;
+            optionKey = SettingsManager.KEY_PICTURE_MODE;
         } else if (item_name.equals(mContext.getResources().getString(R.string.brightness))) {
             optionTag = OPTION_BRIGHTNESS;
+            optionKey = SettingsManager.KEY_BRIGHTNESS;
         } else if (item_name.equals(mContext.getResources().getString(R.string.contrast))) {
             optionTag = OPTION_CONTRAST;
+            optionKey = SettingsManager.KEY_CONTRAST;
         } else if (item_name.equals(mContext.getResources().getString(R.string.color))) {
             optionTag = OPTION_COLOR;
+            optionKey = SettingsManager.KEY_COLOR;
         } else if (item_name.equals(mContext.getResources().getString(R.string.sharpness))) {
             optionTag = OPTION_SHARPNESS;
+            optionKey = SettingsManager.KEY_SHARPNESS;
         } else if (item_name.equals(mContext.getResources().getString(R.string.backlight))) {
             optionTag = OPTION_BACKLIGHT;
+            optionKey = SettingsManager.KEY_BACKLIGHT;
         } else if (item_name.equals(mContext.getResources().getString(R.string.color_temperature))) {
             optionTag = OPTION_COLOR_TEMPERATURE;
+            optionKey = SettingsManager.KEY_COLOR_TEMPERATURE;
         } else if (item_name.equals(mContext.getResources().getString(R.string.aspect_ratio))) {
             optionTag = OPTION_ASPECT_RATIO;
+            optionKey = SettingsManager.KEY_ASPECT_RATIO;
         } else if (item_name.equals(mContext.getResources().getString(R.string.dnr))) {
             optionTag = OPTION_DNR;
+            optionKey = SettingsManager.KEY_DNR;
         } else if (item_name.equals(mContext.getResources().getString(R.string.settings_3d))) {
             optionTag = OPTION_3D_SETTINGS;
+            optionKey = SettingsManager.KEY_3D_SETTINGS;
         }
         //Sound
         else if (item_name.equals(mContext.getResources().getString(R.string.sound_mode))){
             optionTag = OPTION_SOUND_MODE;
+            optionKey = SettingsManager.KEY_SOUND_MODE;
         } else if (item_name.equals(mContext.getResources().getString(R.string.treble))){
             optionTag = OPTION_TREBLE;
+            optionKey = SettingsManager.KEY_TREBLE;
         } else if (item_name.equals(mContext.getResources().getString(R.string.bass))){
             optionTag = OPTION_BASS;
+            optionKey = SettingsManager.KEY_BASS;
         } else if (item_name.equals(mContext.getResources().getString(R.string.balance))){
             optionTag = OPTION_BALANCE;
+            optionKey = SettingsManager.KEY_BALANCE;
         } else if (item_name.equals(mContext.getResources().getString(R.string.spdif))){
             optionTag = OPTION_SPDIF;
+            optionKey = SettingsManager.KEY_SPDIF;
         } else if (item_name.equals(mContext.getResources().getString(R.string.dialog_clarity))){
             optionTag = OPTION_DIALOG_CLARITY;
+            optionKey = SettingsManager.KEY_DIALOG_CLARITY;
         } else if (item_name.equals(mContext.getResources().getString(R.string.bass_boost))){
             optionTag = OPTION_BASS_BOOST;
+            optionKey = SettingsManager.KEY_BASS_BOOST;
         } else if (item_name.equals(mContext.getResources().getString(R.string.surround))){
             optionTag = OPTION_SURROUND;
+            optionKey = SettingsManager.KEY_SURROUND;
         }
         //Channel
         else if (item_name.equals(mContext.getResources().getString(R.string.current_channel))){
             optionTag = OPTION_CURRENT_CHANNEL;
+            optionKey = SettingsManager.KEY_CURRENT_CHANNEL;
         }else if (item_name.equals(mContext.getResources().getString(R.string.frequency))){
             optionTag = OPTION_FREQUENCY;
+            optionKey = SettingsManager.KEY_FREQUNCY;
         }else if (item_name.equals(mContext.getResources().getString(R.string.color_system))){
             optionTag = OPTION_COLOR_SYSTEM;
+            optionKey = SettingsManager.KEY_COLOR_SYSTEM;
         }else if (item_name.equals(mContext.getResources().getString(R.string.sound_system))){
             optionTag = OPTION_SOUND_SYSTEM;
+            optionKey = SettingsManager.KEY_SOUND_SYSTEM;
         }else if (item_name.equals(mContext.getResources().getString(R.string.volume_compensate))){
             optionTag = OPTION_VOLUME_COMPENSATE;
+            optionKey = SettingsManager.KEY_VOLUME_COMPENSATE;
         }else if (item_name.equals(mContext.getResources().getString(R.string.fine_tune))){
             optionTag = OPTION_FINE_TUNE;
+            optionKey = SettingsManager.KEY_FINE_TUNE;
         }else if (item_name.equals(mContext.getResources().getString(R.string.manual_search))){
             optionTag = OPTION_MANUAL_SEARCH;
+            optionKey = SettingsManager.KEY_MANUAL_SEARCH;
         }else if (item_name.equals(mContext.getResources().getString(R.string.auto_search))){
             optionTag = OPTION_AUTO_SEARCH;
+            optionKey = SettingsManager.KEY_AUTO_SEARCH;
         }else if (item_name.equals(mContext.getResources().getString(R.string.channel_edit))){
             optionTag = OPTION_CHANNEL_EDIT;
+            optionKey = SettingsManager.KEY_CHANNEL_EDIT;
         }else if (item_name.equals(mContext.getResources().getString(R.string.switch_channel))){
             optionTag = OPTION_SWITCH_CHANNEL;
+            optionKey = SettingsManager.KEY_SWITCH_CHANNEL;
         }
         //Settings
         else if (item_name.equals(mContext.getResources().getString(R.string.sleep_timer))){
             optionTag = OPTION_SLEEP_TIMER;
+            optionKey = SettingsManager.KEY_SLEEP_TIMER;
         }else if (item_name.equals(mContext.getResources().getString(R.string.menu_time))){
             optionTag = OPTION_MENU_TIME;
+            optionKey = SettingsManager.KEY_MENU_TIME;
         }else if (item_name.equals(mContext.getResources().getString(R.string.startup_setting))){
             optionTag = OPTION_STARTUP_SETTING;
+            optionKey = SettingsManager.KEY_STARTUP_SETTING;
         }else if (item_name.equals(mContext.getResources().getString(R.string.dynamic_backlight))){
             optionTag = OPTION_DYNAMIC_BACKLIGHT;
+            optionKey = SettingsManager.KEY_DYNAMIC_BACKLIGHT;
         }else if (item_name.equals(mContext.getResources().getString(R.string.restore_factory))){
             optionTag = OPTION_RESTORE_FACTORY;
+            optionKey = SettingsManager.KEY_RESTORE_FACTORY;
         }
     }
 
@@ -532,6 +570,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener {
             default:
                 break;
         }
+
+        ((TvSettingsActivity)mContext).getCurrentFragment().refreshList();
     }
 
     @Override
@@ -542,5 +582,99 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener {
             } else
                 ((TextView)v).setTextColor(mContext.getResources().getColor(R.color.color_text_item));
         }
+    }
+
+    public void initProgressStatus() {
+        int progress = getIntegerFromString(mSettingsManager.getStatus(optionKey));
+
+        if (progress >= 0)
+            setProgress(progress);
+    }
+
+    public void setProgress (int progress) {
+        RelativeLayout progressLayout = null;
+        ViewGroup optionView = (ViewGroup)((TvSettingsActivity)mContext).mOptionLayout.getChildAt(0);
+
+        for (int i = 0; i < optionView.getChildCount(); i++) {
+            View view = optionView.getChildAt(i);
+            if (view instanceof RelativeLayout) {
+                progressLayout = (RelativeLayout)view;
+                break;
+            }
+        }
+
+        if (progressLayout != null) {
+            for (int i = 0; i < progressLayout.getChildCount(); i++) {
+                View child = progressLayout.getChildAt(i);
+                if ( child instanceof TextView) {
+                    ((TextView)child).setText(Integer.toString(progress) + "%");
+                } else if (child instanceof ImageView) {
+                    ((ImageView)child).setImageResource(getProgressResourceId(progress));
+                }
+            }
+        }
+    }
+
+    public int getProgressResourceId (int progress) {
+        if (progress == 0)
+            ;
+
+        switch (progress / 20) {
+            case 0:
+                break;
+            case 1:
+                break;
+            case 2:
+                break;
+            case 3:
+                break;
+            case 4:
+                break;
+            case 5:
+                break;
+            case 6:
+                break;
+            case 7:
+                break;
+            case 8:
+                break;
+            case 9:
+                break;
+            case 10:
+                break;
+            case 11:
+                break;
+            case 12:
+                break;
+            case 13:
+                break;
+            case 14:
+                break;
+            case 15:
+                break;
+            case 16:
+                break;
+            case 17:
+                break;
+            case 18:
+                break;
+            case 19:
+                break;
+            case 20:
+                break;
+            default:
+                break;
+        }
+        return R.drawable.progress_75;
+    }
+
+    private int getIntegerFromString (String str) {
+        String regex = "[0-9\\.]+";
+        Pattern p = Pattern.compile(regex);
+        Matcher m = p.matcher(str);
+        if (m.find())
+            return Integer.valueOf(m.group());
+        else
+            return -1;
     }
 }

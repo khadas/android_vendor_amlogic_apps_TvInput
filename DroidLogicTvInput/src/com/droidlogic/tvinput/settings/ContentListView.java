@@ -3,6 +3,7 @@ package com.droidlogic.tvinput.settings;
 import android.app.Activity;
 
 import android.content.Context;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.view.KeyEvent;
@@ -42,6 +43,12 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
         super(context, attrs, defStyle);
     }
 
+    @Override
+    protected void onDraw (Canvas canvas) {
+        super.onDraw(canvas);
+        setInitialSelection();
+    }
+
     public boolean dispatchKeyEvent (KeyEvent event) {
         View selectedView = getSelectedView();
         if ( selectedView != null) {
@@ -51,10 +58,10 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
         }
 
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
-            if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT)
+            if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP) {
+            } if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT) {
                 selectedPosition = 0;
-
-            if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT) {
+            } else if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT) {
                 setMenuAlpha(false);
             }
         }
@@ -127,6 +134,7 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
         if (layout_option_child > 0) {
             View view = inflater.inflate(layout_option_child, null);
             ((RelativeLayout)option_view).addView(view);
+            oum.initProgressStatus();
             oum.setOptionListener(view);
 
             //set options view's focus
@@ -170,6 +178,12 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
 
         return selectedPosition;
     }*/
+
+    private void setInitialSelection () {
+        String currentTag = ((TvSettingsActivity)mContext).getSettingsManager().getTag();
+        if ((currentTag.equals(SettingsManager.KEY_CHANNEL)))
+            setSelection(2);
+    }
 
     private void setItemTextColor (View view, boolean focused) {
         TextView item_name = (TextView)view.findViewById(R.id.item_name);

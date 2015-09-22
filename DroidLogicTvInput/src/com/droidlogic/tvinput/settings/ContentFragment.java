@@ -95,14 +95,17 @@ public class ContentFragment extends Fragment {
         }
     }
 
+    public static final String ITEM_KEY = "item_key";
     public static final String ITEM_NAME = "item_name";
     public static final String ITEM_STATUS = "item_status";
 
     private Context mContext;
+    private SettingsManager mSettingsManager;
     private int mContentList;
     ArrayList<HashMap<String, Object>> listItem = null;
     private TextView content_title = null;
     private ContentListView content_list = null;
+    ContentAdapter mContentAdapter;
 
     ContentFragment(int xmlList) {
         mContentList = xmlList;
@@ -112,6 +115,7 @@ public class ContentFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         mContext = getActivity();
+        mSettingsManager = ((TvSettingsActivity)mContext).getSettingsManager();
         View view = (View)inflater.inflate(R.layout.layout_content, container, false);
         content_title = (TextView)view.findViewById(R.id.content_title);
         content_list = (ContentListView)view.findViewById(R.id.content_list);
@@ -120,7 +124,7 @@ public class ContentFragment extends Fragment {
         new XmlReader(mContext, mContentList, "PreferenceScreen", "Preference", new PreferenceXmlReaderListener()).read();
 
         Log.d(TAG, "@@@@@@@@@@@@@ size=" + listItem.size());
-        ContentAdapter mContentAdapter = new ContentAdapter(mContext, listItem);
+        mContentAdapter = new ContentAdapter(mContext, listItem);
         content_list.setAdapter(mContentAdapter);
 
         return view;
@@ -143,14 +147,14 @@ public class ContentFragment extends Fragment {
             sa.recycle();
 
             //Log.d(TAG, "@@@@@@@@@@@@@@@@ key=" + key + "  title=" + title);
-            SettingsManager sm = ((TvSettingsActivity)mContext).getSettingsManager();
             if (key.equals(SettingsManager.KEY_CONTENT_TITLE)) {
-                sm.setTag(title);
+                mSettingsManager.setTag(title);
                 content_title.setText(title);
             } else {
                 HashMap<String, Object> map = new HashMap<String, Object>();
+                map.put(ITEM_KEY, key);
                 map.put(ITEM_NAME, title);
-                map.put(ITEM_STATUS, sm.getStatus(key));
+                map.put(ITEM_STATUS, mSettingsManager.getStatus(key));
                 listItem.add(map);
             }
         }
@@ -171,5 +175,22 @@ public class ContentFragment extends Fragment {
 
     public ArrayList<HashMap<String, Object>> getContentList () {
         return listItem;
+    }
+
+    public void refreshList () {
+        ArrayList<HashMap<String, Object>> newList = new ArrayList<HashMap<String,Object>>();
+        for (int i = 0; i < listItem.size(); i++) {
+                HashMap<String, Object> map = new HashMap<String, Object>();
+                String key = listItem.get(i).get(ITEM_KEY).toString();
+                map.put(ITEM_KEY, key);
+                map.put(ITEM_NAME, listItem.get(i).get(ITEM_NAME).toString());
+                map.put(ITEM_STATUS, mSettingsManager.getStatus(key));
+
+                newList.add(map);
+        }
+
+        listItem.clear();
+        listItem.addAll(newList);
+        mContentAdapter.notifyDataSetChanged();
     }
 }
