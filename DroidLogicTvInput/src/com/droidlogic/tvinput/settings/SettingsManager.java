@@ -358,7 +358,19 @@ public class SettingsManager {
     }
 
     private String getVolumeCompensateStatus () {
-        return "0";
+        return "0%";
+    }
+
+    public int getFineTuneProgress () {
+        return 50;
+    }
+
+    public int getAutoSearchProgress () {
+        return 0;
+    }
+
+    public int getAutoSearchSearchedNumber () {
+        return 0;
     }
 
     private String getSwitchChannelStatus () {

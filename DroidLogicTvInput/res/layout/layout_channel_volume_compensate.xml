@@ -10,12 +10,13 @@
         android:layout_marginTop="43dp"
         android:layout_marginLeft="31dp"
         android:paddingLeft="15dp"
-        android:text="@string/bass"
+        android:text="@string/volume_compensate"
         android:textSize="27sp"
         android:textColor="@color/color_text_item"
+        android:singleLine="true"
         />
     <TextView
-        android:id="@+id/bass_increase"
+        android:id="@+id/volume_compensate_increase"
         android:layout_width="262dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
@@ -28,7 +29,7 @@
         android:textColor="@color/color_text_item"
         />
     <TextView
-        android:id="@+id/bass_decrease"
+        android:id="@+id/volume_compensate_decrease"
         android:layout_width="262dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
@@ -41,7 +42,7 @@
         android:textColor="@color/color_text_item"
         />
     <RelativeLayout
-        android:id="@+id/bass_persent"
+        android:id="@+id/volume_compensate_persent"
         android:layout_width="262dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
@@ -62,3 +63,4 @@
 	        />
      </RelativeLayout>
 </LinearLayout>
+

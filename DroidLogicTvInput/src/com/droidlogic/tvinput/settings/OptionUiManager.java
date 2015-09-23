@@ -70,7 +70,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener {
     private static final int OPTION_DYNAMIC_BACKLIGHT              = 403;
     private static final int OPTION_RESTORE_FACTORY                = 404;
 
-    public static final int ALPHA_NO_FOCUS                         = 200;
+    public static final int ALPHA_NO_FOCUS                         = 230;
     public static final int ALPHA_FOCUSED                          = 255;
 
     private Context mContext;
@@ -243,6 +243,14 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener {
                 return R.layout.layout_channel_sound_system;
             case OPTION_SWITCH_CHANNEL:
                 return R.layout.layout_channel_switch_channel;
+            case OPTION_VOLUME_COMPENSATE:
+                return R.layout.layout_channel_volume_compensate;
+            case OPTION_FINE_TUNE:
+                return R.layout.layout_channel_fine_tune;
+            case OPTION_MANUAL_SEARCH:
+                return R.layout.layout_channel_manual_search;
+            case OPTION_AUTO_SEARCH:
+                return R.layout.layout_channel_auto_search;
             //settings
             case OPTION_SLEEP_TIMER:
                 return R.layout.layout_settings_sleep_timer;
@@ -520,7 +528,38 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener {
                 tv.SetAudioSrsTruBass(0);
                 tv.SaveCurAudioSrsTruBass(0);
                 break;
-            //Settings
+            //====Channel====
+            //color system
+            case R.id.color_system_auto:
+                break;
+            case R.id.color_system_pal:
+                break;
+            case R.id.color_system_ntsc:
+                break;
+            //sound system
+            case R.id.sound_system_dk:
+                break;
+            case R.id.sound_system_i:
+                break;
+            case R.id.sound_system_bg:
+                break;
+            case R.id.sound_system_m:
+                break;
+            //volume compensate
+            case R.id.volume_compensate_increase:
+                break;
+            case R.id.volume_compensate_decrease:
+                break;
+            //fine tune
+            case R.id.fine_tune_increase:
+                break;
+            case R.id.fine_tune_decrease:
+                break;
+            //manual search
+            //auto search
+            case R.id.auto_search_start:
+                break;
+            //====Settins====
             //Sleep Timer
             case R.id.sleep_timer_off:
                 SystemProperties.set("tv.sleep_timer", "0");
@@ -565,12 +604,13 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener {
                         tv.FactoryCleanAllTableForProgram();
                         ((PowerManager) mContext.getSystemService(Context.POWER_SERVICE)).reboot(null);
                     }
-                }).setNegativeButton(R.string.cancle, null).show();
+                }).setNegativeButton(R.string.cancel, null).show();
                 break;
             default:
                 break;
         }
 
+        setProgressStatus();
         ((TvSettingsActivity)mContext).getCurrentFragment().refreshList();
     }
 
@@ -584,11 +624,26 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener {
         }
     }
 
-    public void initProgressStatus() {
-        int progress = getIntegerFromString(mSettingsManager.getStatus(optionKey));
+    public void setProgressStatus() {
+        int progress;
 
-        if (progress >= 0)
-            setProgress(progress);
+        switch (optionTag) {
+            case OPTION_FINE_TUNE:
+                progress = mSettingsManager.getFineTuneProgress();
+                setProgress(progress);
+                setFineTuneFrequency(progress);
+                break;
+            case OPTION_AUTO_SEARCH:
+                progress = mSettingsManager.getAutoSearchProgress();
+                setProgress(progress);
+                setAutoSearchFrequency(progress);
+                break;
+            default:
+                progress = getIntegerFromString(mSettingsManager.getStatus(optionKey));
+                if (progress >= 0)
+                    setProgress(progress);
+                break;
+        }
     }
 
     public void setProgress (int progress) {
@@ -668,13 +723,44 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener {
         return R.drawable.progress_75;
     }
 
+    private void setFineTuneFrequency (int progress) {
+        ViewGroup optionView = (ViewGroup)((TvSettingsActivity)mContext).mOptionLayout.getChildAt(0);
+
+        TextView frequency = (TextView)optionView.findViewById(R.id.fine_tune_frequency);
+        TextView frequency_band = (TextView)optionView.findViewById(R.id.fine_tune_frequency_band);
+
+        if (frequency != null && frequency_band != null) {
+            frequency.setText("525.25MHZ");
+            frequency_band.setText("UHF");
+        }
+    }
+
+    private void setAutoSearchFrequency (int progress) {
+        ViewGroup optionView = (ViewGroup)((TvSettingsActivity)mContext).mOptionLayout.getChildAt(0);
+
+        TextView frequency = (TextView)optionView.findViewById(R.id.auto_search_frequency);
+        TextView frequency_band = (TextView)optionView.findViewById(R.id.auto_search_frequency_band);
+        TextView searched_number = (TextView)optionView.findViewById(R.id.auto_search_searched_number);
+        if (frequency != null && frequency_band != null && searched_number != null) {
+            frequency.setText("525.25MHZ");
+            frequency_band.setText("UHF");
+            searched_number.setText(mContext.getResources().getString(R.string.searched_number) + ": "
+                + mSettingsManager.getAutoSearchSearchedNumber());
+        }
+    }
+
     private int getIntegerFromString (String str) {
-        String regex = "[0-9\\.]+";
+        if (str!= null && str.contains("%"))
+            return Integer.valueOf(str.replaceAll("%", ""));
+        else
+            return -1;
+
+        /*String regex = "[0-9\\.]+";
         Pattern p = Pattern.compile(regex);
         Matcher m = p.matcher(str);
         if (m.find())
             return Integer.valueOf(m.group());
         else
-            return -1;
+            return -1;*/
     }
 }

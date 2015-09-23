@@ -126,6 +126,7 @@ public class ContentFragment extends Fragment {
         Log.d(TAG, "@@@@@@@@@@@@@ size=" + listItem.size());
         mContentAdapter = new ContentAdapter(mContext, listItem);
         content_list.setAdapter(mContentAdapter);
+        content_list.setInitialSelection();
 
         return view;
     }

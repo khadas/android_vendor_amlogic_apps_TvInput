@@ -10,12 +10,12 @@
         android:layout_marginTop="43dp"
         android:layout_marginLeft="31dp"
         android:paddingLeft="15dp"
-        android:text="@string/bass"
+        android:text="@string/auto_search"
         android:textSize="27sp"
         android:textColor="@color/color_text_item"
         />
     <TextView
-        android:id="@+id/bass_increase"
+        android:id="@+id/auto_search_start"
         android:layout_width="262dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
@@ -23,25 +23,12 @@
         android:gravity="center"
         android:background="@drawable/item_background"
         android:focusable="true"
-        android:text="@string/increase"
-        android:textSize="26sp"
-        android:textColor="@color/color_text_item"
-        />
-    <TextView
-        android:id="@+id/bass_decrease"
-        android:layout_width="262dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:layout_marginLeft="31dp"
-        android:gravity="center"
-        android:background="@drawable/item_background"
-        android:focusable="true"
-        android:text="@string/decrease"
+        android:text="@string/start_search"
         android:textSize="26sp"
         android:textColor="@color/color_text_item"
         />
     <RelativeLayout
-        android:id="@+id/bass_persent"
+        android:id="@+id/auto_search_persent"
         android:layout_width="262dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
@@ -60,5 +47,38 @@
 	        android:textSize="26sp"
 	        android:textStyle="bold"
 	        />
-     </RelativeLayout>
+    </RelativeLayout>
+    <TextView
+        android:id="@+id/auto_search_frequency"
+        android:layout_width="262dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="31dp"
+        android:gravity="center"
+        android:background="@drawable/item_background"
+        android:textSize="24sp"
+        android:textColor="@color/color_text_prompt"
+        />
+    <TextView
+        android:id="@+id/auto_search_frequency_band"
+        android:layout_width="262dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:layout_marginLeft="31dp"
+        android:gravity="center"
+        android:background="@drawable/item_background"
+        android:textSize="24sp"
+        android:textColor="@color/color_text_prompt"
+        />
+    <TextView
+        android:id="@+id/auto_search_searched_number"
+        android:layout_width="262dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:layout_marginLeft="31dp"
+        android:gravity="center"
+        android:background="@drawable/item_background"
+        android:textSize="24sp"
+        android:textColor="@color/color_text_prompt"
+        />
 </LinearLayout>

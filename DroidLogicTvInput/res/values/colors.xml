@@ -5,4 +5,7 @@
 	<color name="color_text_title">#FF37373C</color>
 	<color name="color_text_item">#FF65686F</color>
 	<color name="color_text_focused">#FFFFFFFF</color>
+	<color name="color_text_prompt">#FF808080</color>
+	<color name="color_text_edit">#FFCC0000</color>
+	<color name="color_text_hint">#FFBFBFBF</color>
 </resources>

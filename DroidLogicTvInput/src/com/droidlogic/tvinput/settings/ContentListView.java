@@ -26,8 +26,6 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
     private static final String TAG = "ContentListView";
     private Context mContext;
     private int selectedPosition = 0;
-    private View firstFocusableChild = null;
-    private View lastFocusableChild = null;
 
     public ContentListView (Context context){
         super(context);
@@ -46,23 +44,25 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
     @Override
     protected void onDraw (Canvas canvas) {
         super.onDraw(canvas);
-        setInitialSelection();
     }
 
     public boolean dispatchKeyEvent (KeyEvent event) {
-        View selectedView = getSelectedView();
-        if ( selectedView != null) {
-            if (event.getAction() == KeyEvent.ACTION_DOWN) {
-                setItemTextColor(selectedView, false);
-            }
-        }
-
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP) {
+                String currentTag = ((TvSettingsActivity)mContext).getSettingsManager().getTag();
+                if ((currentTag.equals(SettingsManager.KEY_CHANNEL)) && selectedPosition == 2)
+                    return true;
             } if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT) {
                 selectedPosition = 0;
             } else if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT) {
                 setMenuAlpha(false);
+            }
+
+            View selectedView = getSelectedView();
+            if ( selectedView != null
+                && !(event.getKeyCode() == KeyEvent.KEYCODE_DPAD_CENTER
+                    || event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
+                setItemTextColor(selectedView, false);
             }
         }
 
@@ -77,7 +77,14 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
             setItemTextColor(view, true);
             createOptionView(position);
         }
-	}
+    }
+
+   /* @Override
+        public boolean performItemClick (View view, int position, long id) {
+        setItemTextColor(view, true);
+
+        return true;
+    }*/
 
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
@@ -111,11 +118,11 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
             lp.leftMargin=rect.right - dipToPx(mContext, 30f);
 
             //set optionview positon, 100f means make option up, 466f means option view backgroud png's height.
-            if (rect.top - dipToPx(mContext, 100f) + dipToPx(mContext, 466f)
+            if (rect.top - dipToPx(mContext, 100f) + dipToPx(mContext, 526f)
                 <= mContext.getResources().getDisplayMetrics().heightPixels) {
                 lp.topMargin = rect.top - dipToPx(mContext, 100f);
             } else {
-                lp.topMargin = mContext.getResources().getDisplayMetrics().heightPixels - dipToPx(mContext, 466f);
+                lp.topMargin = mContext.getResources().getDisplayMetrics().heightPixels - dipToPx(mContext, 526f);
             }
             ((TvSettingsActivity)mContext).mOptionLayout.setLayoutParams(lp);
             ((TvSettingsActivity)mContext).mOptionLayout.setBackgroundResource(R.drawable.background_option);
@@ -134,10 +141,12 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
         if (layout_option_child > 0) {
             View view = inflater.inflate(layout_option_child, null);
             ((RelativeLayout)option_view).addView(view);
-            oum.initProgressStatus();
+            oum.setProgressStatus();
             oum.setOptionListener(view);
 
             //set options view's focus
+            View firstFocusableChild = null;
+            View lastFocusableChild = null;
             for (int i = 0; i < ((ViewGroup)view).getChildCount(); i++) {
                 View child = ((ViewGroup)view).getChildAt(i);
                 if (child != null && child.hasFocusable()) {
@@ -179,7 +188,7 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
         return selectedPosition;
     }*/
 
-    private void setInitialSelection () {
+    public void setInitialSelection () {
         String currentTag = ((TvSettingsActivity)mContext).getSettingsManager().getTag();
         if ((currentTag.equals(SettingsManager.KEY_CHANNEL)))
             setSelection(2);

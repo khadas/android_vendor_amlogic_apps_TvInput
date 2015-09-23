@@ -40,12 +40,25 @@
         android:textSize="26sp"
         android:textColor="@color/color_text_item"
         />
-    <ImageView
+    <RelativeLayout
         android:id="@+id/balance_persent"
         android:layout_width="262dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
         android:layout_marginLeft="31dp"
-        android:src="@drawable/progress"
-        />
+        >
+	    <ImageView
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_centerInParent="true"
+	        />
+	    <TextView
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_centerInParent="true"
+	        android:textColor="@color/color_text_item"
+	        android:textSize="26sp"
+	        android:textStyle="bold"
+	        />
+     </RelativeLayout>
 </LinearLayout>
