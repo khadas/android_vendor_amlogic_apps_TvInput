@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout   xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/content_item"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="horizontal"
+    >
+    <EditText
+        android:id="@+id/manual_search_edit_from"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="24sp"
+        android:textColor="@color/color_text_edit"
+        android:textColorHint="@color/color_text_hint"
+        />
+	<TextView
+		android:id="@+id/favourite"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:text="@string/ok"
+        android:textColor="@color/color_text_item"
+        />
+</LinearLayout>

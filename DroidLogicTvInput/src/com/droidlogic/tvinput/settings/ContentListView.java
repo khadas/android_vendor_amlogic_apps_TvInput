@@ -41,11 +41,6 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
         super(context, attrs, defStyle);
     }
 
-    @Override
-    protected void onDraw (Canvas canvas) {
-        super.onDraw(canvas);
-    }
-
     public boolean dispatchKeyEvent (KeyEvent event) {
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP) {
@@ -144,6 +139,10 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
             oum.setProgressStatus();
             oum.setOptionListener(view);
 
+            if (oum.getOptionTag() == oum.OPTION_CHANNEL_EDIT) {
+                ChannelEdit channelEdit = new ChannelEdit(mContext, view);
+            }
+
             //set options view's focus
             View firstFocusableChild = null;
             View lastFocusableChild = null;
@@ -157,36 +156,12 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
                     lastFocusableChild = child;
                 }
             }
-            firstFocusableChild.setNextFocusUpId(firstFocusableChild.getId());
-            lastFocusableChild.setNextFocusDownId(lastFocusableChild.getId());
-
-        }
-    }
-
-    /*private int getSelectedPosition (KeyEvent event) {
-        if (event != null) {
-            if (event.getAction() == KeyEvent.ACTION_DOWN) {
-                View selectedView = getSelectedView();
-                int current_position = 0;
-                if (selectedView != null) {
-                    current_position = getPositionForView(selectedView);
-                    if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN) {
-                        if (current_position + 1 < getChildCount())
-                            return current_position + 1;
-                        else
-                            return current_position;
-                    } else if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP) {
-                        if (current_position -1 >= 0)
-                            return current_position -1;
-                        else
-                            return current_position;
-                    }
-                }
+            if (firstFocusableChild != null && lastFocusableChild != null) {
+                firstFocusableChild.setNextFocusUpId(firstFocusableChild.getId());
+                lastFocusableChild.setNextFocusDownId(lastFocusableChild.getId());
             }
         }
-
-        return selectedPosition;
-    }*/
+    }
 
     public void setInitialSelection () {
         String currentTag = ((TvSettingsActivity)mContext).getSettingsManager().getTag();

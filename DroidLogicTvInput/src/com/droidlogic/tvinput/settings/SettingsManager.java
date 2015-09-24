@@ -5,6 +5,9 @@ import android.content.res.Resources;
 import android.os.SystemProperties;
 import android.util.Log;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 import com.droidlogic.app.DroidLogicTvUtils;
 import com.droidlogic.app.DroidLogicTvUtils.TvClient;
 
@@ -371,6 +374,20 @@ public class SettingsManager {
 
     public int getAutoSearchSearchedNumber () {
         return 0;
+    }
+
+    public ArrayList<HashMap<String,Object>> geChannelEditList () {
+        ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
+
+        HashMap<String,Object> item = new HashMap<String,Object>();
+        item.put("channel_name", "channel 1");
+        list.add(item);
+
+        item = new HashMap<String,Object>();
+        item.put("channel_name", "channel 2");
+        list.add(item);
+
+        return list;
     }
 
     private String getSwitchChannelStatus () {

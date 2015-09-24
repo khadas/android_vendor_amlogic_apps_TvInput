@@ -16,14 +16,15 @@
         android:layout_width="113dp"
         android:layout_height="match_parent"
         android:layout_marginLeft="20dp"
-        layout="@layout/layout_menu" />
+        layout="@layout/layout_menu"
+        />
 
     <FrameLayout
         android:id="@+id/settings_list"
         android:layout_width="260dp"
         android:layout_height="match_parent"
         android:layout_toRightOf="@id/menubar"
-        android:layout_marginRight="0dp"/>
-
+        android:layout_marginRight="0dp"
+        />
     </RelativeLayout>
 </RelativeLayout>

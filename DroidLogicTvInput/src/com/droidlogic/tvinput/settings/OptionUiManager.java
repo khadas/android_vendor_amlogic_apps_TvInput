@@ -33,42 +33,42 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener {
     private static TvClient client = TvClient.getTvClient();
     private Tv tv = DroidLogicTvUtils.TvClient.getTvInstance();
 
-    private static final int OPTION_PICTURE_MODE                   = 100;
-    private static final int OPTION_BRIGHTNESS                     = 101;
-    private static final int OPTION_CONTRAST                       = 102;
-    private static final int OPTION_COLOR                          = 103;
-    private static final int OPTION_SHARPNESS                      = 104;
-    private static final int OPTION_BACKLIGHT                      = 105;
-    private static final int OPTION_COLOR_TEMPERATURE              = 106;
-    private static final int OPTION_ASPECT_RATIO                   = 107;
-    private static final int OPTION_DNR                            = 108;
-    private static final int OPTION_3D_SETTINGS                    = 109;
+    public static final int OPTION_PICTURE_MODE                   = 100;
+    public static final int OPTION_BRIGHTNESS                     = 101;
+    public static final int OPTION_CONTRAST                       = 102;
+    public static final int OPTION_COLOR                          = 103;
+    public static final int OPTION_SHARPNESS                      = 104;
+    public static final int OPTION_BACKLIGHT                      = 105;
+    public static final int OPTION_COLOR_TEMPERATURE              = 106;
+    public static final int OPTION_ASPECT_RATIO                   = 107;
+    public static final int OPTION_DNR                            = 108;
+    public static final int OPTION_3D_SETTINGS                    = 109;
 
-    private static final int OPTION_SOUND_MODE                     = 200;
-    private static final int OPTION_TREBLE                         = 201;
-    private static final int OPTION_BASS                           = 202;
-    private static final int OPTION_BALANCE                        = 203;
-    private static final int OPTION_SPDIF                          = 204;
-    private static final int OPTION_DIALOG_CLARITY                 = 205;
-    private static final int OPTION_BASS_BOOST                     = 206;
-    private static final int OPTION_SURROUND                       = 207;
+    public static final int OPTION_SOUND_MODE                     = 200;
+    public static final int OPTION_TREBLE                         = 201;
+    public static final int OPTION_BASS                           = 202;
+    public static final int OPTION_BALANCE                        = 203;
+    public static final int OPTION_SPDIF                          = 204;
+    public static final int OPTION_DIALOG_CLARITY                 = 205;
+    public static final int OPTION_BASS_BOOST                     = 206;
+    public static final int OPTION_SURROUND                       = 207;
 
-    private static final int OPTION_CURRENT_CHANNEL                = 300;
-    private static final int OPTION_FREQUENCY                      = 301;
-    private static final int OPTION_COLOR_SYSTEM                   = 302;
-    private static final int OPTION_SOUND_SYSTEM                   = 303;
-    private static final int OPTION_VOLUME_COMPENSATE              = 304;
-    private static final int OPTION_FINE_TUNE                      = 305;
-    private static final int OPTION_MANUAL_SEARCH                  = 306;
-    private static final int OPTION_AUTO_SEARCH                    = 307;
-    private static final int OPTION_CHANNEL_EDIT                   = 308;
-    private static final int OPTION_SWITCH_CHANNEL                 = 309;
+    public static final int OPTION_CURRENT_CHANNEL                = 300;
+    public static final int OPTION_FREQUENCY                      = 301;
+    public static final int OPTION_COLOR_SYSTEM                   = 302;
+    public static final int OPTION_SOUND_SYSTEM                   = 303;
+    public static final int OPTION_VOLUME_COMPENSATE              = 304;
+    public static final int OPTION_FINE_TUNE                      = 305;
+    public static final int OPTION_MANUAL_SEARCH                  = 306;
+    public static final int OPTION_AUTO_SEARCH                    = 307;
+    public static final int OPTION_CHANNEL_EDIT                   = 308;
+    public static final int OPTION_SWITCH_CHANNEL                 = 309;
 
-    private static final int OPTION_SLEEP_TIMER                    = 400;
-    private static final int OPTION_MENU_TIME                      = 401;
-    private static final int OPTION_STARTUP_SETTING                = 402;
-    private static final int OPTION_DYNAMIC_BACKLIGHT              = 403;
-    private static final int OPTION_RESTORE_FACTORY                = 404;
+    public static final int OPTION_SLEEP_TIMER                    = 400;
+    public static final int OPTION_MENU_TIME                      = 401;
+    public static final int OPTION_STARTUP_SETTING                = 402;
+    public static final int OPTION_DYNAMIC_BACKLIGHT              = 403;
+    public static final int OPTION_RESTORE_FACTORY                = 404;
 
     public static final int ALPHA_NO_FOCUS                         = 230;
     public static final int ALPHA_FOCUSED                          = 255;
@@ -196,6 +196,10 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener {
         }
     }
 
+    public int getOptionTag () {
+        return optionTag;
+    }
+
     public int getLayoutId() {
         switch (optionTag) {
             //picture
@@ -251,6 +255,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener {
                 return R.layout.layout_channel_manual_search;
             case OPTION_AUTO_SEARCH:
                 return R.layout.layout_channel_auto_search;
+            case OPTION_CHANNEL_EDIT:
+                return R.layout.layout_channel_channel_edit;
             //settings
             case OPTION_SLEEP_TIMER:
                 return R.layout.layout_settings_sleep_timer;
@@ -672,55 +678,55 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener {
 
     public int getProgressResourceId (int progress) {
         if (progress == 0)
-            ;
+            return R.drawable.progress_0;
 
-        switch (progress / 20) {
+        switch (progress / 5) {
             case 0:
-                break;
+                return R.drawable.progress_1;
             case 1:
-                break;
+                return R.drawable.progress_2;
             case 2:
-                break;
+                return R.drawable.progress_3;
             case 3:
-                break;
+                return R.drawable.progress_4;
             case 4:
-                break;
+                return R.drawable.progress_5;
             case 5:
-                break;
+                return R.drawable.progress_6;
             case 6:
-                break;
+                return R.drawable.progress_7;
             case 7:
-                break;
+                return R.drawable.progress_8;
             case 8:
-                break;
+                return R.drawable.progress_9;
             case 9:
-                break;
+                return R.drawable.progress_10;
             case 10:
-                break;
+                return R.drawable.progress_11;
             case 11:
-                break;
+                return R.drawable.progress_12;
             case 12:
-                break;
+                return R.drawable.progress_13;
             case 13:
-                break;
+                return R.drawable.progress_14;
             case 14:
-                break;
+                return R.drawable.progress_15;
             case 15:
-                break;
+                return R.drawable.progress_16;
             case 16:
-                break;
+                return R.drawable.progress_17;
             case 17:
-                break;
+                return R.drawable.progress_18;
             case 18:
-                break;
+                return R.drawable.progress_19;
             case 19:
-                break;
+                return R.drawable.progress_20;
             case 20:
-                break;
+                return R.drawable.progress_21;
             default:
                 break;
         }
-        return R.drawable.progress_75;
+        return R.drawable.progress_10;
     }
 
     private void setFineTuneFrequency (int progress) {

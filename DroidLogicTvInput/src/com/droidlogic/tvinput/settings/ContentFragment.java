@@ -123,7 +123,6 @@ public class ContentFragment extends Fragment {
         listItem.clear();
         new XmlReader(mContext, mContentList, "PreferenceScreen", "Preference", new PreferenceXmlReaderListener()).read();
 
-        Log.d(TAG, "@@@@@@@@@@@@@ size=" + listItem.size());
         mContentAdapter = new ContentAdapter(mContext, listItem);
         content_list.setAdapter(mContentAdapter);
         content_list.setInitialSelection();

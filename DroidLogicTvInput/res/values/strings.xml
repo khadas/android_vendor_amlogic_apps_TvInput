@@ -88,6 +88,15 @@
     <string name="sound_system_i">I</string>
     <string name="sound_system_bg">B/G</string>
     <string name="sound_system_m">M</string>
+    <string name="confirm">confirm</string>
+    <string name="from">from: </string>
+    <string name="to">to: </string>
+    <string name="edit">edit</string>
+    <string name="swap">swap</string>
+    <string name="move">move</string>
+    <string name="skip">skip</string>
+    <string name="delete">delete</string>
+    <string name="favourite">favourite</string>
     <string name="static_frame">static-frame</string>
     <string name="black_frame">black-frame</string>
     <string name="time_15min">15 min</string>
@@ -103,11 +112,9 @@
     <string name="launcher">launcher</string>
     <string name="tv">TV</string>
     <string name="ensure_restore">ensure restore</string>
+    <string name="ok">OK</string>
     <string name="warning">warning</string>
     <string name="prompt_def_set"> restore default settings will restore the settings menu data to factory condition, determined to restore the default settings? </string>
     <string name="prompt2">restore default settings.</string>
     <string name="cancel">cancel</string>
-    <string name="confirm">confirm</string>
-    <string name="from">from: </string>
-    <string name="to">to: </string>
 </resources>
