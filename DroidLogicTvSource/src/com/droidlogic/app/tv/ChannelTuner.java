@@ -61,10 +61,43 @@ public class ChannelTuner {
                         mChannels.add(channel);
                     }
                 }
+                if (mChannels.size() > 0) {
+                    mCurrentChannel = mChannels.get(0);
+                    mCurrentChannelIndex = 0;
+                }
             } finally {
                 if (cursor != null)
                     cursor.close();
             }
+        }
+    }
+
+    public void updateChannelList() {
+        if (isPassthrough())
+            return;
+        Cursor cursor = null;
+        ContentResolver resolver = mContext.getContentResolver();
+        Uri uri = TvContract.buildChannelsUriForInput(mInputId);
+        try {
+            cursor = resolver.query(uri, Channel.PROJECTION, null, null, null);
+            if (cursor != null)
+                Log.d(TAG, "==== cursor count = " + cursor.getCount());
+            while (cursor != null && cursor.moveToNext()) {
+                Channel channel = Channel.fromCursor(cursor);
+                if (mSourceType == DroidLogicTvUtils.SOURCE_TYPE_DTV
+                        && TextUtils.equals(channel.getServiceType(), Channels.SERVICE_TYPE_AUDIO)) {
+                    mRadioChannels.add(channel);
+                } else {
+                    mChannels.add(channel);
+                }
+            }
+            if (mChannels.size() > 0) {
+                mCurrentChannel = mChannels.get(0);
+                mCurrentChannelIndex = 0;
+            }
+        } finally {
+            if (cursor != null)
+                cursor.close();
         }
     }
 
@@ -217,4 +250,5 @@ public class ChannelTuner {
     public void setChannelServiceType(boolean flag) {
         isVideoType = flag;
     }
+
 }
