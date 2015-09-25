@@ -23,15 +23,14 @@ import android.R.integer;
 import android.amlogic.Tv;
 import android.app.AlertDialog;
 
-import com.droidlogic.app.DroidLogicTvUtils;
-import com.droidlogic.app.DroidLogicTvUtils.TvClient;
+import com.droidlogic.tvclient.TvClient;
 import com.droidlogic.tvinput.R;
 
 public class OptionUiManager implements OnClickListener, OnFocusChangeListener {
     public static final String TAG = "OptionUiManager";
 
     private static TvClient client = TvClient.getTvClient();
-    private Tv tv = DroidLogicTvUtils.TvClient.getTvInstance();
+    private Tv tv = TvClient.getTvInstance();
 
     public static final int OPTION_PICTURE_MODE                   = 100;
     public static final int OPTION_BRIGHTNESS                     = 101;

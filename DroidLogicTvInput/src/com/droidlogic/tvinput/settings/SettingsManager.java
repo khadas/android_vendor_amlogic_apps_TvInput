@@ -8,18 +8,18 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import com.droidlogic.app.DroidLogicTvUtils;
-import com.droidlogic.app.DroidLogicTvUtils.TvClient;
 
 import android.R.integer;
 import android.amlogic.Tv;
+
+import com.droidlogic.tvclient.TvClient;
 import com.droidlogic.tvinput.R;
 
 public class SettingsManager {
     public static final String TAG = "SettingsManager";
 
     private static TvClient client = TvClient.getTvClient();
-    private Tv tv = DroidLogicTvUtils.TvClient.getTvInstance();
+    private Tv tv = TvClient.getTvInstance();
 
     public static final String KEY_CONTENT_TITLE                            = "content_title";
 
