@@ -1,5 +1,6 @@
 package com.droidlogic.ui;
 
+import com.droidlogic.app.tv.ChannelDataManager;
 import com.droidlogic.app.tv.ChannelTuner;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.tv.R;
@@ -53,8 +54,7 @@ public class SourceButton extends Button implements OnClickListener{
 //        }
         initDeviceId();
         initSourceType();
-        mChannelTuner = new ChannelTuner(mContext, mInputInfo);
-        mChannelTuner.initChannelList(mSourceType);
+        initChannelTuner();
         setOnClickListener(this);
     }
 
@@ -102,6 +102,10 @@ public class SourceButton extends Button implements OnClickListener{
         return mChannelTuner.getChannelType();
     }
 
+    public String getChannelNumber() {
+        return mChannelTuner.getChannelNumber();
+    }
+
     public String getChannelName() {
         return mChannelTuner.getChannelName();
     }
@@ -116,6 +120,12 @@ public class SourceButton extends Button implements OnClickListener{
 
     public void setChannelVideoFormat(String format) {
         mChannelTuner.setChannelVideoFormat(format);
+    }
+
+    private void initChannelTuner() {
+        mChannelTuner = new ChannelTuner(mContext, mInputInfo);
+        mChannelTuner.initChannelList(mSourceType);
+        ChannelDataManager.addChannelTuner(mChannelTuner);
     }
 
     private void initDeviceId() {
