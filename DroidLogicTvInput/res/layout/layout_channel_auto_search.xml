@@ -52,33 +52,30 @@
         android:id="@+id/auto_search_frequency"
         android:layout_width="262dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
         android:layout_marginLeft="31dp"
         android:gravity="center"
         android:background="@drawable/item_background"
-        android:textSize="24sp"
+        android:textSize="22sp"
         android:textColor="@color/color_text_prompt"
         />
     <TextView
         android:id="@+id/auto_search_frequency_band"
         android:layout_width="262dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
         android:layout_marginLeft="31dp"
         android:gravity="center"
         android:background="@drawable/item_background"
-        android:textSize="24sp"
+        android:textSize="22sp"
         android:textColor="@color/color_text_prompt"
         />
     <TextView
         android:id="@+id/auto_search_searched_number"
         android:layout_width="262dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
         android:layout_marginLeft="31dp"
         android:gravity="center"
         android:background="@drawable/item_background"
-        android:textSize="24sp"
+        android:textSize="22sp"
         android:textColor="@color/color_text_prompt"
         />
 </LinearLayout>

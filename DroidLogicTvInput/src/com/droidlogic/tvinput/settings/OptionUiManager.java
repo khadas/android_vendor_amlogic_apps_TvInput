@@ -10,7 +10,9 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -26,7 +28,7 @@ import android.app.AlertDialog;
 import com.droidlogic.tvclient.TvClient;
 import com.droidlogic.tvinput.R;
 
-public class OptionUiManager implements OnClickListener, OnFocusChangeListener {
+public class OptionUiManager implements OnClickListener, OnFocusChangeListener, Tv.ScannerEventListener {
     public static final String TAG = "OptionUiManager";
 
     private static TvClient client = TvClient.getTvClient();
@@ -80,6 +82,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener {
     public OptionUiManager (Context context){
         mContext = context;
         mSettingsManager = ((TvSettingsActivity)mContext).getSettingsManager();
+        tv.setScannerListener(this);
     }
 
     public void setOptionTag (int position) {
@@ -561,10 +564,31 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener {
             case R.id.fine_tune_decrease:
                 break;
             //manual search
+            case R.id.manual_search_start:
+                    ViewGroup parent = (ViewGroup)((TvSettingsActivity)mContext).mOptionLayout.getChildAt(0);
+                    EditText begin = (EditText)parent.findViewById(R.id.manual_search_edit_from);
+                    EditText end = (EditText)parent.findViewById(R.id.manual_search_edit_to);
+                    String beginHZ =  begin.getText().toString();
+                    if (beginHZ == null || beginHZ.length() == 0)
+                        beginHZ = (String)begin.getHint();
+
+                    String endHZ =  end.getText().toString();
+                    if (endHZ == null || endHZ.length() == 0)
+                        endHZ = (String)end.getHint();
+                    if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV)
+                        tv.AtvManualScan(Integer.valueOf(beginHZ) * 1000, Integer.valueOf(endHZ) * 1000,
+                            Tv.atv_video_std_e.ATV_VIDEO_STD_PAL, Tv.atv_audio_std_e.ATV_AUDIO_STD_I);
+                    else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV)
+                        tv.DtvManualScan(171000);
+                break;
             //auto search
             case R.id.auto_search_start:
+                if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV)
+                    tv.AtvAutoScan(Tv.atv_video_std_e.ATV_VIDEO_STD_PAL, Tv.atv_audio_std_e.ATV_AUDIO_STD_I, 0);
+                else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV)
+                    tv.DtvAutoScan();
                 break;
-            //====Settins====
+            //====Settings====
             //Sleep Timer
             case R.id.sleep_timer_off:
                 SystemProperties.set("tv.sleep_timer", "0");
@@ -637,6 +661,11 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener {
                 progress = mSettingsManager.getFineTuneProgress();
                 setProgress(progress);
                 setFineTuneFrequency(progress);
+                break;
+            case OPTION_MANUAL_SEARCH:
+                progress = mSettingsManager.getManualSearchProgress();
+                setProgress(progress);
+                setManualSearchFrequency(progress);
                 break;
             case OPTION_AUTO_SEARCH:
                 progress = mSettingsManager.getAutoSearchProgress();
@@ -740,6 +769,33 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener {
         }
     }
 
+    private void startManualSearch () {
+        ViewGroup parent = (ViewGroup)((TvSettingsActivity)mContext).mOptionLayout.getChildAt(0);
+        EditText begin = (EditText)parent.findViewById(R.id.manual_search_edit_from);
+        EditText end = (EditText)parent.findViewById(R.id.manual_search_edit_to);
+        String beginHZ =  begin.getText().toString();
+        if (beginHZ == null || beginHZ.length() == 0)
+            beginHZ = (String)begin.getHint();
+
+        String endHZ =  end.getText().toString();
+        if (endHZ == null || endHZ.length() == 0)
+            endHZ = (String)end.getHint();
+    }
+
+    private void setManualSearchFrequency (int progress) {
+        ViewGroup optionView = (ViewGroup)((TvSettingsActivity)mContext).mOptionLayout.getChildAt(0);
+
+        TextView frequency = (TextView)optionView.findViewById(R.id.manual_search_frequency);
+        TextView frequency_band = (TextView)optionView.findViewById(R.id.manual_search_frequency_band);
+        TextView searched_number = (TextView)optionView.findViewById(R.id.manual_search_searched_number);
+        if (frequency != null && frequency_band != null && searched_number != null) {
+            frequency.setText("525.25MHZ");
+            frequency_band.setText("UHF");
+            searched_number.setText(mContext.getResources().getString(R.string.searched_number) + ": "
+                + mSettingsManager.getManualSearchSearchedNumber());
+        }
+    }
+
     private void setAutoSearchFrequency (int progress) {
         ViewGroup optionView = (ViewGroup)((TvSettingsActivity)mContext).mOptionLayout.getChildAt(0);
 
@@ -767,5 +823,25 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener {
             return Integer.valueOf(m.group());
         else
             return -1;*/
+    }
+
+    @Override
+    public void onEvent(Tv.ScannerEvent event)
+    {
+        Log.d(TAG, "searching---precent = " + event.precent);
+        if (event.lock == 1)//get a channel
+        {
+            Log.d(TAG, "HAHAHAHAHAHAHA search a channel ");
+            //change ui program Number setChannelNum(event.lock);
+        }
+        //change ui progress           setPorgressValue(event.precent);
+        //change ui frequency          setFrequency(event.freq);
+        if (event.precent == 100)
+        {
+            int success = tv.DtvStopScan();
+            if (event.type == 2)// save channel success
+                return;//just for compile
+                //exit                        setAutoExit(event.precent);
+        }
     }
 }

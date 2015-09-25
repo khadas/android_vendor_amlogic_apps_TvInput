@@ -45,9 +45,13 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP) {
                 String currentTag = ((TvSettingsActivity)mContext).getSettingsManager().getTag();
-                if ((currentTag.equals(SettingsManager.KEY_CHANNEL)) && selectedPosition == 2)
+                if ( selectedPosition == 0
+                    || ((currentTag.equals(SettingsManager.KEY_CHANNEL)) && selectedPosition == 2))
                     return true;
-            } if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT) {
+            } else if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN) {
+                if (selectedPosition == getChildCount() -1)
+                    return true;
+            }else if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT) {
                 selectedPosition = 0;
             } else if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT) {
                 setMenuAlpha(false);
@@ -71,15 +75,10 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
         if (hasFocus()) {
             setItemTextColor(view, true);
             createOptionView(position);
+        } else {
+            setItemTextColor(view, false);
         }
     }
-
-   /* @Override
-        public boolean performItemClick (View view, int position, long id) {
-        setItemTextColor(view, true);
-
-        return true;
-    }*/
 
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
@@ -144,6 +143,16 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
             }
 
             //set options view's focus
+            if (oum.getOptionTag() == oum.OPTION_MANUAL_SEARCH) {
+                View edit_from = view.findViewById(R.id.manual_search_edit_from);
+                View edit_to = view.findViewById(R.id.manual_search_edit_to);
+                edit_from.setNextFocusLeftId(R.id.content_list);
+                edit_from.setNextFocusRightId(edit_from.getId());
+                edit_from.setNextFocusUpId(edit_from.getId());
+                edit_to.setNextFocusLeftId(R.id.content_list);
+                edit_to.setNextFocusRightId(edit_to.getId());
+            }
+
             View firstFocusableChild = null;
             View lastFocusableChild = null;
             for (int i = 0; i < ((ViewGroup)view).getChildCount(); i++) {
@@ -165,8 +174,15 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
 
     public void setInitialSelection () {
         String currentTag = ((TvSettingsActivity)mContext).getSettingsManager().getTag();
-        if ((currentTag.equals(SettingsManager.KEY_CHANNEL)))
+        if ((currentTag.equals(SettingsManager.KEY_CHANNEL))) {
             setSelection(2);
+        }
+    }
+
+    public void setContentFocus (View relatedButton) {
+        setNextFocusLeftId(relatedButton.getId());
+        setNextFocusUpId(getId());
+        setNextFocusDownId(getId());
     }
 
     private void setItemTextColor (View view, boolean focused) {

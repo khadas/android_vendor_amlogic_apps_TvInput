@@ -6,8 +6,9 @@ import java.io.IOException;
 import org.xmlpull.v1.XmlPullParserException;
 
 import com.droidlogic.app.tv.DroidLogicTvInputService;
+import com.droidlogic.tvclient.TvClient;
 import com.droidlogic.utils.Utils;
-
+import android.amlogic.Tv;
 import android.content.Context;
 import android.content.pm.ResolveInfo;
 import android.media.tv.TvInputHardwareInfo;
@@ -22,7 +23,7 @@ import android.view.Surface;
 
 public class AVInputService extends DroidLogicTvInputService {
     private static final String TAG = AVInputService.class.getSimpleName();
-
+    private static TvClient client = TvClient.getTvClient();
     private AVInputSession mSession;
 
     @Override
@@ -30,6 +31,7 @@ public class AVInputService extends DroidLogicTvInputService {
         Utils.logd(TAG, "=====onCreateSession====");
         mSession = new AVInputSession(getApplicationContext(), inputId);
         registerInputSession(mSession, inputId);
+        client.curSource = Tv.SourceInput_Type.SOURCE_TYPE_AV;
         return mSession;
     }
 

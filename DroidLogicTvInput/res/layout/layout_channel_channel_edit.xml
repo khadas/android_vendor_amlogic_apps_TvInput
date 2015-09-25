@@ -18,7 +18,7 @@
         android:id="@+id/channnel_edit_list"
         android:layout_width="262dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="30dp"
         android:layout_marginLeft="31dp"
         android:listSelector="@drawable/item_background"
         android:divider="@color/transparent"
@@ -35,7 +35,7 @@
         android:id="@+id/channel_edit_editname"
         android:layout_width="262dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="30dp"
         android:layout_marginLeft="31dp"
         android:visibility="gone"
         layout="@layout/layout_channel_channel_edit_editname" />

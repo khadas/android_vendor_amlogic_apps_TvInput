@@ -14,11 +14,13 @@ import java.util.HashMap;
 import com.droidlogic.tvinput.R;
 
 public class ContentAdapter extends BaseAdapter {
+    private Context mContext;
     private LayoutInflater mInflater;
     ArrayList<HashMap<String, Object>> mlistItem = null;
 
     public ContentAdapter(Context context, ArrayList<HashMap<String, Object>> list) {
-        this.mInflater = LayoutInflater.from(context);
+        mContext = context;
+        this.mInflater = LayoutInflater.from(mContext);
         mlistItem = list;
     }
 
@@ -52,12 +54,23 @@ public class ContentAdapter extends BaseAdapter {
             holder = (ViewHolder)convertView.getTag();
         }
 
-        holder.name.setText(mlistItem.get(position).get(ContentFragment.ITEM_NAME).toString());
+        String item_name = mlistItem.get(position).get(ContentFragment.ITEM_NAME).toString();
+        holder.name.setText(item_name);
         Object status = mlistItem.get(position).get(ContentFragment.ITEM_STATUS);
         if (status != null)
             holder.status.setText(status.toString());
         else
             holder.status.setText("");
+
+        //current channel and current frequency don't need focus
+        String key = mlistItem.get(position).get(ContentFragment.ITEM_KEY).toString();
+        if (((TvSettingsActivity)mContext).getSettingsManager().getTag().equals(SettingsManager.KEY_CHANNEL)) {
+            if (key.equals(SettingsManager.KEY_CURRENT_CHANNEL) || key.equals(SettingsManager.KEY_FREQUNCY)) {
+                holder.name.setTextColor(mContext.getResources().getColor(R.color.color_text_prompt));
+                holder.status.setTextColor(mContext.getResources().getColor(R.color.color_text_prompt));
+            }
+        }
+
         return convertView;
     }
 

@@ -28,6 +28,10 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
     private SettingsManager mSettingsManager;
     private OptionUiManager mOptionUiManager;
 
+    private ImageButton tabPicture;
+    private ImageButton tabSound;
+    private ImageButton tabChannel;
+    private ImageButton tabSettings;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,10 +40,10 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
 
         mSettingsManager = new SettingsManager(this);
 
-        ImageButton tabPicture= (ImageButton) findViewById(R.id.button_picture);
-        ImageButton tabSound= (ImageButton) findViewById(R.id.button_sound);
-        ImageButton tabChannel= (ImageButton) findViewById(R.id.button_channel);
-        ImageButton tabSettings= (ImageButton) findViewById(R.id.button_settings);
+        tabPicture= (ImageButton) findViewById(R.id.button_picture);
+        tabSound= (ImageButton) findViewById(R.id.button_sound);
+        tabChannel= (ImageButton) findViewById(R.id.button_channel);
+        tabSettings= (ImageButton) findViewById(R.id.button_settings);
         tabPicture.setOnClickListener(this);
         tabPicture.setOnFocusChangeListener(this);
         tabSound.setOnClickListener(this);
@@ -58,7 +62,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
     private void setDefaultFragment() {
         FragmentManager fm = getFragmentManager();
         FragmentTransaction transaction = fm.beginTransaction();
-        currentFragment = new ContentFragment(R.xml.list_picture);
+        currentFragment = new ContentFragment(R.xml.list_picture, tabPicture);
         transaction.replace(R.id.settings_list, currentFragment);
         transaction.commit();
     }
@@ -115,19 +119,19 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
 
             switch (v.getId()) {
             case R.id.button_picture:
-                currentFragment = new ContentFragment(R.xml.list_picture);
+                currentFragment = new ContentFragment(R.xml.list_picture, v);
                 transaction.replace(R.id.settings_list, currentFragment);
                 break;
             case R.id.button_sound:
-                currentFragment = new ContentFragment(R.xml.list_sound);
+                currentFragment = new ContentFragment(R.xml.list_sound, v);
                 transaction.replace(R.id.settings_list, currentFragment);
                 break;
             case R.id.button_channel:
-                currentFragment = new ContentFragment(R.xml.list_channel);
+                currentFragment = new ContentFragment(R.xml.list_channel, v);
                 transaction.replace(R.id.settings_list, currentFragment);
                 break;
             case R.id.button_settings:
-                currentFragment = new ContentFragment(R.xml.list_settings);
+                currentFragment = new ContentFragment(R.xml.list_settings, v);
                 transaction.replace(R.id.settings_list, currentFragment);
                 break;
             }

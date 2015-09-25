@@ -101,15 +101,17 @@ public class ContentFragment extends Fragment {
 
     private Context mContext;
     private SettingsManager mSettingsManager;
+    private View relatedButton;
     private int mContentList;
     ArrayList<HashMap<String, Object>> listItem = null;
     private TextView content_title = null;
     private ContentListView content_list = null;
     ContentAdapter mContentAdapter;
 
-    ContentFragment(int xmlList) {
+    ContentFragment(int xmlList, View view) {
         mContentList = xmlList;
         listItem = new ArrayList<HashMap<String,Object>>();
+        relatedButton = view;
     }
 
     @Override
@@ -119,6 +121,7 @@ public class ContentFragment extends Fragment {
         View view = (View)inflater.inflate(R.layout.layout_content, container, false);
         content_title = (TextView)view.findViewById(R.id.content_title);
         content_list = (ContentListView)view.findViewById(R.id.content_list);
+        content_list.setContentFocus(relatedButton);
 
         listItem.clear();
         new XmlReader(mContext, mContentList, "PreferenceScreen", "Preference", new PreferenceXmlReaderListener()).read();

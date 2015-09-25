@@ -368,6 +368,14 @@ public class SettingsManager {
         return 50;
     }
 
+    public int getManualSearchProgress () {
+        return 0;
+    }
+
+    public int getManualSearchSearchedNumber () {
+        return 0;
+    }
+
     public int getAutoSearchProgress () {
         return 0;
     }
@@ -497,4 +505,27 @@ public class SettingsManager {
 
     }
 
+    public void setChannelName (int channer_number, String targetName) {
+
+    }
+
+    public  void swapChannelPosition (int channer_number, int targetNumber) {
+
+    }
+
+    public  void moveChannelPosition (int channer_number, int targetNumber) {
+
+    }
+
+    public  void skipChannel (int channelNumber) {
+
+    }
+
+    public  void deleteChannel (int channelNumber) {
+
+    }
+
+    public  void setFavouriteChannel (int channelNumber) {
+
+    }
 }
