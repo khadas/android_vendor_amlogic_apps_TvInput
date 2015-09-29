@@ -14,7 +14,7 @@
         android:textSize="27sp"
         android:textColor="@color/color_text_item"
         />
-    <ListView
+    <com.droidlogic.tvinput.settings.OptionListView
         android:id="@+id/channnel_edit_list"
         android:layout_width="262dp"
         android:layout_height="wrap_content"

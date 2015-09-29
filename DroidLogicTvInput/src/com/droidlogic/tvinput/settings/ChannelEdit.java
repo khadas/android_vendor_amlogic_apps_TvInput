@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.view.View.OnClickListener;
+import android.view.View.OnFocusChangeListener;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -23,7 +24,7 @@ import java.util.HashMap;
 
 import com.droidlogic.tvinput.R;
 
-public class ChannelEdit implements OnClickListener {
+public class ChannelEdit implements OnClickListener, OnFocusChangeListener {
     private static final String TAG = "ChannelEdit";
 
     private static final int ACTION_INITIAL_STATE             = -1;
@@ -39,7 +40,7 @@ public class ChannelEdit implements OnClickListener {
     private Context mContext;
     private SettingsManager mSettingsManager;
     private View channelEditView = null;
-    private ListView channelListView;
+    private OptionListView channelListView;
     private ViewGroup operationsView;
     private ViewGroup operationsEditView;
     SimpleAdapter ChannelAdapter;
@@ -58,7 +59,7 @@ public class ChannelEdit implements OnClickListener {
     }
 
     private void initChannelEditView () {
-        channelListView = (ListView)channelEditView.findViewById(R.id.channnel_edit_list);
+        channelListView = (OptionListView)channelEditView.findViewById(R.id.channnel_edit_list);
         operationsView = (ViewGroup)channelEditView.findViewById(R.id.channel_edit_operations);
         operationsEditView = (ViewGroup)channelEditView.findViewById(R.id.channel_edit_editname);
 
@@ -95,12 +96,19 @@ public class ChannelEdit implements OnClickListener {
         TextView delete = (TextView)channelEditView.findViewById(R.id.delete);
         TextView favourite = (TextView)channelEditView.findViewById(R.id.favourite);
         edit.setOnClickListener(this);
+        edit.setOnFocusChangeListener(this);
         ensure_edit.setOnClickListener(this);
+        ensure_edit.setOnFocusChangeListener(this);
         swap.setOnClickListener(this);
+        swap.setOnFocusChangeListener(this);
         move.setOnClickListener(this);
+        move.setOnFocusChangeListener(this);
         skip.setOnClickListener(this);
+        skip.setOnFocusChangeListener(this);
         delete.setOnClickListener(this);
+        delete.setOnFocusChangeListener(this);
         favourite.setOnClickListener(this);
+        favourite.setOnFocusChangeListener(this);
     }
 
     private void showListView () {
@@ -211,6 +219,16 @@ public class ChannelEdit implements OnClickListener {
                 setFavouriteChannel();
                 showListView();
                 break;
+        }
+    }
+
+    @Override
+    public void onFocusChange (View v, boolean hasFocus) {
+        if (v instanceof TextView) {
+            if (hasFocus) {
+                ((TextView)v).setTextColor(mContext.getResources().getColor(R.color.color_text_focused));
+            } else
+                ((TextView)v).setTextColor(mContext.getResources().getColor(R.color.color_text_item));
         }
     }
 
