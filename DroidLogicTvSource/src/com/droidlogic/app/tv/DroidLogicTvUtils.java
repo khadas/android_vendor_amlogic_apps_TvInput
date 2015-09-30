@@ -43,7 +43,7 @@ public class DroidLogicTvUtils {
     public static final int DEVICE_ID_HDMI3      = 7;
     public static final int DEVICE_ID_DTV        = 10;
 
-    private static final int RESULT_OK = 0;
-    private static final int RESULT_UPDATE = 1;
-    private static final int RESULT_FAILED = 2;
+    public static final int RESULT_OK = 0;
+    public static final int RESULT_UPDATE = 1;
+    public static final int RESULT_FAILED = 2;
 }
