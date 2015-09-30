@@ -15,6 +15,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.tv.TvInputInfo;
@@ -190,18 +191,20 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     }
 
     /**
-     * get the default source input at first time.
+     * get the default source input after {@code this.onCreate}.
      */
     private void setDefaultChannelInfo(SourceButton sb) {
         int device_id, atv_channel, dtv_channel;
+        boolean is_radio;
         SharedPreferences sp = getSharedPreferences(SHARE_NAME, Context.MODE_PRIVATE);
         device_id = sp.getInt("device_id", 0);
         atv_channel = sp.getInt("atv_channel", -1);
         dtv_channel = sp.getInt("dtv_channel", -1);
+        is_radio = sp.getBoolean("is_radio", false);
         if (sb.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_ATV && atv_channel >= 0) {
-            sb.moveToChannel(atv_channel);
+            sb.moveToChannel(atv_channel, is_radio);
         } else if (sb.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_DTV && dtv_channel >= 0) {
-            sb.moveToChannel(dtv_channel);
+            sb.moveToChannel(dtv_channel, is_radio);
         }
 
         if (device_id == sb.getDeviceId()) {
@@ -210,6 +213,11 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         }
     }
 
+    /**
+     * must be invoked after {@link SourceButton.moveToChannel}.
+     * if there is nothing about channel switching in the tv.db, the {@code channel_uri}
+     * used to tune must be wrong.
+     */
     private void switchToSourceInput() {
         Uri channel_uri = mSourceInput.getUri();
         Utils.logd(TAG, "channelUri switching to is " + channel_uri);
@@ -269,7 +277,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         Utils.logd(TAG, "==== onButtonClick ====" + sb);
         if (!TextUtils.isEmpty(mSigLabel) && mSigLabel.equals(sb.getLabel()))
             return;
-        saveDefaultChannelId(mSourceInput.getChannelId(), mSourceInput.getSourceType());
+        saveDefaultChannelId();
         mSourceInput = sb;
         mSigType = getSigType(sb.getSourceType());
         switchToSourceInput();
@@ -327,7 +335,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
             isSourceMenuShowing = true;
             mSourceMenuLayout.setVisibility(View.VISIBLE);
             mSourceMenuLayout.requestLayout();
-            mSourceMenuLayout.requestFocus();
+            mSourceInput.requestFocus();
             if (isSourceInfoShowing)
                 popupSourceInfo(Utils.HIDE_VIEW);
             if (isNoSignalShowing)
@@ -434,7 +442,11 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         tv_name = (TextView) findViewById(R.id.ad_info_name);
         tv_number = (TextView) findViewById(R.id.ad_info_number);
         tv_val = (TextView) findViewById(R.id.ad_info_value);
-        tv_name.setText(mSourceInput.getLabel());
+        if (mSourceInput.isRadioChannel()) {
+            tv_name.setText(getResources().getString(R.string.radio_label));
+        } else {
+            tv_name.setText(mSourceInput.getLabel());
+        }
         int number = mSourceInput.getChannelId();
         if (number < 0) {
             tv_number.setText("");
@@ -510,19 +522,26 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         if (mSourceInput.getSourceType() != DroidLogicTvUtils.SOURCE_TYPE_OTHER) {
             SharedPreferences sp = getSharedPreferences(SHARE_NAME, Context.MODE_PRIVATE);
             sp.edit().putInt("device_id", mSourceInput.getDeviceId()).commit();
-            saveDefaultChannelId(mSourceInput.getChannelId(), mSourceInput.getSourceType());
+            saveDefaultChannelId();
         }
     }
 
-    private void saveDefaultChannelId(int id, int type) {
+    private void saveDefaultChannelId() {
+        int id = mSourceInput.getChannelId();
+        int type = mSourceInput.getSourceType();
+        boolean is_radio = mSourceInput.isRadioChannel();
+
         if (id < 0)
             return;
 
         SharedPreferences sp = getSharedPreferences(SHARE_NAME, Context.MODE_PRIVATE);
+        Editor edit = sp.edit();
         if (type == DroidLogicTvUtils.SOURCE_TYPE_ATV) {
-            sp.edit().putInt("atv_channel", id).commit();
+            edit.putInt("atv_channel", id).commit();
         } else if (type == DroidLogicTvUtils.SOURCE_TYPE_DTV) {
-            sp.edit().putInt("dtv_channel", id).commit();
+            edit.putInt("dtv_channel", id);
+            edit.putBoolean("is_radio", is_radio);
+            edit.commit();
         }
     }
 

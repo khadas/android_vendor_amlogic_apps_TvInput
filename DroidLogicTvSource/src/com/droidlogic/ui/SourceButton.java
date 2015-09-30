@@ -98,6 +98,10 @@ public class SourceButton extends Button implements OnClickListener{
         return mChannelTuner.getChannelIndex();
     }
 
+    public boolean isRadioChannel() {
+        return mChannelTuner.isRadioChannel();
+    }
+
     public String getChannelType() {
         return mChannelTuner.getChannelType();
     }
@@ -188,12 +192,8 @@ public class SourceButton extends Button implements OnClickListener{
         mChannelTuner.moveToChannel(false);
     }
 
-    public void moveToChannel(String number) {
-        mChannelTuner.moveToChannel(number);
-    }
-
-    public void moveToChannel(int step) {
-        mChannelTuner.moveToChannel(step);
+    public void moveToChannel(int index, boolean isRadio) {
+        mChannelTuner.moveToChannel(index, isRadio);
     }
 
     @Override

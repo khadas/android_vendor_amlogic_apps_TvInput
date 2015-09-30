@@ -19,7 +19,6 @@ public class ChannelTuner {
     private final TvInputInfo mInputInfo;
     private final String mInputId;
     private int mSourceType;
-    private boolean isVideoType = true;
 
     private List<Channel> mChannels = new ArrayList<Channel>();
     private List<Channel> mRadioChannels = new ArrayList<Channel>();
@@ -38,6 +37,18 @@ public class ChannelTuner {
         return mInputInfo.isPassthroughInput();
     }
 
+    private boolean isDTVChannel() {
+        return mSourceType == DroidLogicTvUtils.SOURCE_TYPE_DTV;
+    }
+
+    private boolean isRadioChannel(Channel channel) {
+        return TextUtils.equals(channel.getServiceType(), Channels.SERVICE_TYPE_AUDIO);
+    }
+
+    public boolean isRadioChannel() {
+        return isRadioChannel(mCurrentChannel);
+    }
+
     public void initChannelList(int source_type) {
         mSourceType = source_type;
         if (isPassthrough()) {
@@ -54,8 +65,7 @@ public class ChannelTuner {
                     Log.d(TAG, "==== cursor count = " + cursor.getCount());
                 while (cursor != null && cursor.moveToNext()) {
                     Channel channel = Channel.fromCursor(cursor);
-                    if (source_type == DroidLogicTvUtils.SOURCE_TYPE_DTV
-                            && TextUtils.equals(channel.getServiceType(), Channels.SERVICE_TYPE_AUDIO)) {
+                    if (isDTVChannel() && isRadioChannel(channel)) {
                         mRadioChannels.add(channel);
                     } else {
                         mChannels.add(channel);
@@ -84,8 +94,7 @@ public class ChannelTuner {
                 Log.d(TAG, "==== cursor count = " + cursor.getCount());
             while (cursor != null && cursor.moveToNext()) {
                 Channel channel = Channel.fromCursor(cursor);
-                if (mSourceType == DroidLogicTvUtils.SOURCE_TYPE_DTV
-                        && TextUtils.equals(channel.getServiceType(), Channels.SERVICE_TYPE_AUDIO)) {
+                if (isDTVChannel() && isRadioChannel(channel)) {
                     mRadioChannels.add(channel);
                 } else {
                     mChannels.add(channel);
@@ -101,32 +110,12 @@ public class ChannelTuner {
         }
     }
 
-    public void moveToChannel(String number) {
-        if (TextUtils.isEmpty(number))
-            throw new IllegalArgumentException("param number is empty or null");
-        List<Channel> temp = new ArrayList<Channel>();
-        if (mSourceType == DroidLogicTvUtils.SOURCE_TYPE_DTV && !isVideoType) {
-            temp.addAll(mRadioChannels);
-        } else {
-            temp.addAll(mChannels);
-        }
-        for (int i=0; i<temp.size(); i++) {
-            Log.d(TAG, "====size ="+temp.size() +", number="+number+", disn=" +temp.get(i).getDisplayNumber());
-            if (TextUtils.equals(number, temp.get(i).getDisplayNumber())) {
-                mCurrentChannel = temp.get(i);
-                mCurrentChannelIndex = i;
-               return;
-            }
-        }
-        mCurrentChannel = null;
-    }
-
-    public void moveToChannel(int index) {
+    public void moveToChannel(int index, boolean isRadio) {
         if (isPassthrough() || mChannels.size() <= 0)
             return;
 
         List<Channel> temp = new ArrayList<Channel>();
-        if (mSourceType == DroidLogicTvUtils.SOURCE_TYPE_DTV && !isVideoType) {
+        if (isDTVChannel() && isRadio) {
             temp.addAll(mRadioChannels);
         } else {
             temp.addAll(mChannels);
@@ -139,12 +128,17 @@ public class ChannelTuner {
         }
     }
 
+    /**
+     * for {@link KeyEvent.KEYCODE_CHANNEL_UP} and {@link KeyEvent.KEYCODE_CHANNEL_DOWN}
+     * @param flag {@code true} means {@link KeyEvent.KEYCODE_CHANNEL_UP},
+     * {@code false} means {@link KeyEvent.KEYCODE_CHANNEL_DOWN}
+     */
     public void moveToChannel(boolean flag) {
         if (isPassthrough() || mChannels.size() <= 0)
             return;
 
         List<Channel> temp = new ArrayList<Channel>();
-        if (mSourceType == DroidLogicTvUtils.SOURCE_TYPE_DTV && !isVideoType) {
+        if (isDTVChannel() && isRadioChannel()) {
             temp.addAll(mRadioChannels);
         } else {
             temp.addAll(mChannels);
@@ -157,42 +151,6 @@ public class ChannelTuner {
             mCurrentChannelIndex = 0;
         }
         mCurrentChannel = temp.get(mCurrentChannelIndex);
-    }
-
-    public Channel getChannel() {
-        return mCurrentChannel;
-    }
-
-    public Channel getChannel(int index) {
-        if (index < 0 || index >= mChannels.size())
-            throw new IllegalArgumentException("param index is out of range");
-
-        return mChannels.get(index);
-    }
-
-    public Channel getChannel(long _id) {
-        if (mInputInfo.isPassthroughInput())
-            return mChannels.get(0);
-
-        if (_id < 0)
-            throw new IllegalArgumentException("param id must be a nonnegative number");
-
-        for (Channel channel : mChannels) {
-            if (channel.getId() == _id)
-                return channel;
-        }
-        return null;
-    }
-
-    public Channel getChannel(String number) {
-        if (TextUtils.isEmpty(number))
-            throw new IllegalArgumentException("param number is empty or null");
-
-        for (Channel channel : mChannels) {
-            if (TextUtils.equals(number, channel.getDisplayNumber()))
-                return channel;
-        }
-        return null;
     }
 
     public Uri getUri() {
@@ -242,13 +200,6 @@ public class ChannelTuner {
         if (mCurrentChannel == null)
             return;
         mCurrentChannel.setVideoFormat(format);
-    }
-
-    /**
-     * @param flag {@code true} means {@link TvContract.Channels.SERVICE_TYPE_AUDIO_VIDEO}
-     */
-    public void setChannelServiceType(boolean flag) {
-        isVideoType = flag;
     }
 
 }

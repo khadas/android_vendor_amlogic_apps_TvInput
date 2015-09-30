@@ -95,7 +95,7 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
 
     protected String getTvInputInfoLabel(int device_id) {
         String label = null;
-        String[] labels = getResources().getStringArray(R.array.config_label_name);
+        String[] labels = getResources().getStringArray(R.array.tv_input_labels);
         switch (device_id) {
             case SOURCE_AV1:
                 label = labels[SOURCE_AV1];
