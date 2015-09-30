@@ -72,6 +72,8 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
 
     private static final int START_SETUP = 0;
     private boolean needUpdateSource = true;
+    //if activity has been stopped, source input must be switched again.
+    private boolean hasStopped = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -177,9 +179,11 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     protected void onResume() {
         Utils.logd(TAG, "== onResume ====");
 
-        if (needUpdateSource) {
+        if (hasStopped || needUpdateSource) {
             switchToSourceInput();
         }
+        hasStopped = false;
+        needUpdateSource = true;
 
         popupSourceInfo(Utils.SHOW_VIEW);
         super.onResume();
@@ -224,12 +228,14 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Utils.logd(TAG, "====onActivityResult, requestCode=" + requestCode + ", resultCode=" + resultCode);
 
-        if (resultCode == Activity.RESULT_OK) {
+        if (resultCode == DroidLogicTvUtils.RESULT_OK) {
             needUpdateSource = false;
+        } else if (resultCode == DroidLogicTvUtils.RESULT_UPDATE
+                || resultCode == DroidLogicTvUtils.RESULT_FAILED) {
+            needUpdateSource = true;
         }
-        Utils.logd(TAG, "== needUpdateSource =" + needUpdateSource);
+        Utils.logd(TAG, "====onActivityResult, requestCode=" + requestCode + ", resultCode=" + resultCode);
 
     }
 
@@ -487,6 +493,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     @Override
     protected void onStop() {
         Utils.logd(TAG, "==== onStop ====");
+        hasStopped = true;
         saveDefaultChannelInfo();
         super.onStop();
     }

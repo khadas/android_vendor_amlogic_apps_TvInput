@@ -15,6 +15,7 @@ public class ChannelDataManager {
     private static final String TAG = "ChannelDataManager";
     private final Context mContext;
     private static List<ChannelTuner> mChannelTuners = new ArrayList<ChannelTuner>();
+    private ChannelObserver mChannelObserver;
 
     public ChannelDataManager(Context context) {
         mContext = context;
@@ -22,8 +23,9 @@ public class ChannelDataManager {
     }
 
     private void init() {
-        ContentObserver ob = new ChannelObserver();
-        mContext.getContentResolver().registerContentObserver(Channels.CONTENT_URI, true, ob);
+        if (mChannelObserver == null)
+            mChannelObserver = new ChannelObserver();
+        mContext.getContentResolver().registerContentObserver(Channels.CONTENT_URI, true, mChannelObserver);
     }
 
     public static void addChannelTuner(ChannelTuner ct) {
@@ -31,7 +33,6 @@ public class ChannelDataManager {
     }
 
     private void updateChannelList() {
-        Log.d(TAG, "==== updateChannelList ====");
         for (ChannelTuner ct : mChannelTuners) {
             ct.updateChannelList();
         }
@@ -39,6 +40,10 @@ public class ChannelDataManager {
 
     public void release() {
         mChannelTuners.clear();
+        if (mChannelObserver != null) {
+            mContext.getContentResolver().unregisterContentObserver(mChannelObserver);
+            mChannelObserver = null;
+        }
     }
 
     private final class ChannelObserver extends ContentObserver {
