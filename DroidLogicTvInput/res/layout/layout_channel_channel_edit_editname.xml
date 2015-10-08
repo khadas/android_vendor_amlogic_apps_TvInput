@@ -13,6 +13,7 @@
         android:textSize="26sp"
         android:textColor="@color/color_text_edit"
         android:textColorHint="@color/color_text_hint"
+        android:maxLength="17"
         />
 	<TextView
 		android:id="@+id/ensure_edit"

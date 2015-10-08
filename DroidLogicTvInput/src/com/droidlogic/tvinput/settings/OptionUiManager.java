@@ -5,6 +5,8 @@ import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.os.PowerManager;
 import android.os.SystemProperties;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -15,6 +17,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -565,21 +568,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 break;
             //manual search
             case R.id.manual_search_start:
-                    ViewGroup parent = (ViewGroup)((TvSettingsActivity)mContext).mOptionLayout.getChildAt(0);
-                    EditText begin = (EditText)parent.findViewById(R.id.manual_search_edit_from);
-                    EditText end = (EditText)parent.findViewById(R.id.manual_search_edit_to);
-                    String beginHZ =  begin.getText().toString();
-                    if (beginHZ == null || beginHZ.length() == 0)
-                        beginHZ = (String)begin.getHint();
-
-                    String endHZ =  end.getText().toString();
-                    if (endHZ == null || endHZ.length() == 0)
-                        endHZ = (String)end.getHint();
-                    if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV)
-                        tv.AtvManualScan(Integer.valueOf(beginHZ) * 1000, Integer.valueOf(endHZ) * 1000,
-                            Tv.atv_video_std_e.ATV_VIDEO_STD_PAL, Tv.atv_audio_std_e.ATV_AUDIO_STD_I);
-                    else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV)
-                        tv.DtvManualScan(171000);
+                startManualSearch();
                 break;
             //auto search
             case R.id.auto_search_start:
@@ -773,6 +762,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         ViewGroup parent = (ViewGroup)((TvSettingsActivity)mContext).mOptionLayout.getChildAt(0);
         EditText begin = (EditText)parent.findViewById(R.id.manual_search_edit_from);
         EditText end = (EditText)parent.findViewById(R.id.manual_search_edit_to);
+
         String beginHZ =  begin.getText().toString();
         if (beginHZ == null || beginHZ.length() == 0)
             beginHZ = (String)begin.getHint();
@@ -780,6 +770,25 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         String endHZ =  end.getText().toString();
         if (endHZ == null || endHZ.length() == 0)
             endHZ = (String)end.getHint();
+
+        if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV)
+            tv.AtvManualScan(Integer.valueOf(beginHZ) * 1000, Integer.valueOf(endHZ) * 1000,
+                Tv.atv_video_std_e.ATV_VIDEO_STD_PAL, Tv.atv_audio_std_e.ATV_AUDIO_STD_I);
+        else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV)
+            tv.DtvManualScan(171000);
+    }
+
+    public void setManualSearchEditStyle(View view) {
+        EditText edit_from = (EditText)view.findViewById(R.id.manual_search_edit_from);
+        EditText edit_to = (EditText)view.findViewById(R.id.manual_search_edit_to);
+        edit_from.setNextFocusLeftId(R.id.content_list);
+        edit_from.setNextFocusRightId(edit_from.getId());
+        edit_from.setNextFocusUpId(edit_from.getId());
+        edit_to.setNextFocusLeftId(R.id.content_list);
+        edit_to.setNextFocusRightId(edit_to.getId());
+
+        edit_from.addTextChangedListener(mTextWatcher);
+        edit_to.addTextChangedListener(mTextWatcher);
     }
 
     private void setManualSearchFrequency (int progress) {
@@ -844,4 +853,28 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 //exit                        setAutoExit(event.precent);
         }
     }
+
+    private final TextWatcher mTextWatcher = new TextWatcher() {
+        private Toast toast = null;
+
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+        }
+
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+        }
+
+        public void afterTextChanged(Editable s) {
+            if (s.length() > 0) {
+                int pos = s.length() - 1;
+                char c = s.charAt(pos);
+                if (c < '0' || c > '9') {
+                    s.delete(pos,pos+1);
+                    if (toast == null)
+                        toast = Toast.makeText(mContext, mContext.getResources().getString(R.string.error_not_number), Toast.LENGTH_SHORT);
+
+                    toast.show();
+                }
+            }
+        }
+    };
 }
