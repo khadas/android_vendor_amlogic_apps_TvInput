@@ -46,7 +46,10 @@ public class ChannelTuner {
     }
 
     public boolean isRadioChannel() {
-        return isRadioChannel(mCurrentChannel);
+        if (mCurrentChannel != null) {
+            return isRadioChannel(mCurrentChannel);
+        }
+        return false;
     }
 
     public void initChannelList(int source_type) {
