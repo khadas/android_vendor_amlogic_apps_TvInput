@@ -144,13 +144,7 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
 
             //set options view's focus
             if (oum.getOptionTag() == oum.OPTION_MANUAL_SEARCH) {
-                View edit_from = view.findViewById(R.id.manual_search_edit_from);
-                View edit_to = view.findViewById(R.id.manual_search_edit_to);
-                edit_from.setNextFocusLeftId(R.id.content_list);
-                edit_from.setNextFocusRightId(edit_from.getId());
-                edit_from.setNextFocusUpId(edit_from.getId());
-                edit_to.setNextFocusLeftId(R.id.content_list);
-                edit_to.setNextFocusRightId(edit_to.getId());
+                oum.setManualSearchEditStyle(view);
             }
 
             View firstFocusableChild = null;
