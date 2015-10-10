@@ -65,7 +65,7 @@ public class ChannelTuner {
             try {
                 cursor = resolver.query(uri, Channel.PROJECTION, null, null, null);
                 if (cursor != null)
-                    Log.d(TAG, "==== cursor count = " + cursor.getCount());
+                    Log.d(TAG, "====init cursor count = " + cursor.getCount());
                 while (cursor != null && cursor.moveToNext()) {
                     Channel channel = Channel.fromCursor(cursor);
                     if (isDTVChannel() && isRadioChannel(channel)) {
@@ -85,18 +85,19 @@ public class ChannelTuner {
         }
     }
 
-    public void updateChannelList() {
+    public void updateChannelList(Uri uri) {
         if (isPassthrough())
             return;
         Cursor cursor = null;
         ContentResolver resolver = mContext.getContentResolver();
-        Uri uri = TvContract.buildChannelsUriForInput(mInputId);
         try {
             cursor = resolver.query(uri, Channel.PROJECTION, null, null, null);
             if (cursor != null)
-                Log.d(TAG, "==== cursor count = " + cursor.getCount());
+                Log.d(TAG, "====update cursor count = " + cursor.getCount());
             while (cursor != null && cursor.moveToNext()) {
                 Channel channel = Channel.fromCursor(cursor);
+                if (!TextUtils.equals(channel.getInputId(), mInputId))
+                    return;
                 if (isDTVChannel() && isRadioChannel(channel)) {
                     mRadioChannels.add(channel);
                 } else {
