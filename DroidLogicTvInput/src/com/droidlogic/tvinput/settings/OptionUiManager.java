@@ -30,6 +30,12 @@ import android.app.AlertDialog;
 
 import com.droidlogic.tvclient.TvClient;
 import com.droidlogic.tvinput.R;
+import com.droidlogic.utils.tunerinput.tvutil.Scanner;
+
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Message;
+
 
 public class OptionUiManager implements OnClickListener, OnFocusChangeListener, Tv.ScannerEventListener {
     public static final String TAG = "OptionUiManager";
@@ -81,11 +87,23 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     private SettingsManager mSettingsManager;
     private int optionTag = OPTION_PICTURE_MODE;
     private String optionKey = null;
+    private Handler mUIHandler;
+
+    private static final int MSG_REFRESH = 100;
 
     public OptionUiManager (Context context){
         mContext = context;
         mSettingsManager = ((TvSettingsActivity)mContext).getSettingsManager();
         tv.setScannerListener(this);
+
+        mUIHandler = new Handler(){
+            @Override
+            public void handleMessage(Message msg) {
+                if (msg.what == MSG_REFRESH) {
+                    setProgressStatus();
+                }
+            }
+        };
     }
 
     public void setOptionTag (int position) {
@@ -627,7 +645,6 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             default:
                 break;
         }
-
         setProgressStatus();
         ((TvSettingsActivity)mContext).getCurrentFragment().refreshList();
     }
@@ -758,6 +775,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         }
     }
 
+    private Scanner mScanner=null;
+    private HandlerThread mHandlerThread=null;
+
     private void startManualSearch () {
         ViewGroup parent = (ViewGroup)((TvSettingsActivity)mContext).mOptionLayout.getChildAt(0);
         EditText begin = (EditText)parent.findViewById(R.id.manual_search_edit_from);
@@ -771,11 +791,69 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         if (endHZ == null || endHZ.length() == 0)
             endHZ = (String)end.getHint();
 
-        if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV)
-            tv.AtvManualScan(Integer.valueOf(beginHZ) * 1000, Integer.valueOf(endHZ) * 1000,
-                Tv.atv_video_std_e.ATV_VIDEO_STD_PAL, Tv.atv_audio_std_e.ATV_AUDIO_STD_I);
-        else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV)
-            tv.DtvManualScan(171000);
+        mSettingsManager.setManualSearchProgress(0);
+        mSettingsManager.setManualSearchSearchedNumber(0);
+
+        if (mHandlerThread == null) {
+            mHandlerThread = new HandlerThread(getClass().getSimpleName());
+            mHandlerThread.start();
+        }
+
+        if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV) {
+
+            if (mScanner != null) {
+                mScanner.stop();
+                mScanner = null;
+            }
+            mScanner = new Scanner(mContext, mHandlerThread.getLooper()) {
+                @Override
+                public void onStart(){}
+                @Override
+                public void onStop(){
+                    mHandlerThread.quit();
+                    mHandlerThread = null;
+                    mScanner = null;
+                }
+                @Override
+                public void onProgress(int progress, int para1, int para2, String msg) {
+                    Log.d(TAG, "Progress ["+progress+" "+para1+" "+para2+" "+msg);
+                    mSettingsManager.setManualSearchProgress(progress);
+                    mSettingsManager.setManualSearchSearchedNumber(para2);
+                    mUIHandler.obtainMessage(MSG_REFRESH).sendToTarget();
+                }
+            };
+            mScanner.setInputId(mSettingsManager.getInputId());
+            mScanner.startATV(Integer.valueOf(beginHZ) * 1000, Integer.valueOf(endHZ) * 1000,
+            Tv.atv_video_std_e.ATV_VIDEO_STD_PAL.toInt(), Tv.atv_audio_std_e.ATV_AUDIO_STD_DK.toInt());
+
+        } else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV) {
+
+            if (mScanner != null) {
+                mScanner.stop();
+                mScanner = null;
+            }
+            mScanner = new Scanner(mContext, mHandlerThread.getLooper()) {
+                @Override
+                public void onStart(){}
+
+                @Override
+                public void onStop(){
+                    mHandlerThread.quit();
+                    mHandlerThread = null;
+                    mScanner = null;
+                }
+
+                @Override
+                public void onProgress(int progress, int para1, int para2, String msg) {
+                    Log.d(TAG, "Progress ["+progress+" "+para1+" "+para2+" "+msg);
+                    mSettingsManager.setManualSearchProgress(progress);
+                    mSettingsManager.setManualSearchSearchedNumber(para2);
+                    mUIHandler.obtainMessage(MSG_REFRESH).sendToTarget();
+                }
+            };
+            mScanner.setInputId(mSettingsManager.getInputId());
+            mScanner.startDTV(Integer.valueOf(beginHZ) * 1000);
+        }
     }
 
     public void setManualSearchEditStyle(View view) {

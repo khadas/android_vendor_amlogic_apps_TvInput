@@ -12,6 +12,7 @@ import android.view.Window;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.util.Log;
+import android.media.tv.TvInputInfo;
 
 import com.droidlogic.tvinput.R;
 
@@ -39,6 +40,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
         setContentView(R.layout.layout_main);
 
         mSettingsManager = new SettingsManager(this);
+        mSettingsManager.setInputId(getIntent().getStringExtra(TvInputInfo.EXTRA_INPUT_ID));
 
         tabPicture= (ImageButton) findViewById(R.id.button_picture);
         tabSound= (ImageButton) findViewById(R.id.button_sound);

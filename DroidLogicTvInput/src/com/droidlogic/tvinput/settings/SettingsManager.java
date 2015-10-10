@@ -368,20 +368,53 @@ public class SettingsManager {
         return 50;
     }
 
+    private int mSearchProgress;
+    private int mSearchedNumber;
+    private String mInputId;
+
+    public String setInputId(String id) {
+        mInputId = id;
+        return id;
+    }
+
+    public String getInputId() {
+        return mInputId;
+    }
+
+    public int setManualSearchProgress (int progress) {
+        mSearchProgress = progress;
+        return progress;
+    }
+
+    public int setManualSearchSearchedNumber (int number) {
+        mSearchedNumber = number;
+        return number;
+    }
+
+    public int setAutoSearchProgress (int progress) {
+        mSearchProgress = progress;
+        return progress;
+    }
+
+    public int setAutoSearchSearchedNumber (int number) {
+        mSearchedNumber = number;
+        return number;
+    }
+
     public int getManualSearchProgress () {
-        return 0;
+        return mSearchProgress;
     }
 
     public int getManualSearchSearchedNumber () {
-        return 0;
+        return mSearchedNumber;
     }
 
     public int getAutoSearchProgress () {
-        return 0;
+        return mSearchProgress;
     }
 
     public int getAutoSearchSearchedNumber () {
-        return 0;
+        return mSearchedNumber;
     }
 
     public ArrayList<HashMap<String,Object>> geChannelEditList () {
