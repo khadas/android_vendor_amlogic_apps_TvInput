@@ -674,9 +674,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 setManualSearchFrequency(progress);
                 break;
             case OPTION_AUTO_SEARCH:
-                progress = mSettingsManager.getAutoSearchProgress();
-                setProgress(progress);
-                setAutoSearchFrequency(progress);
+                setProgress(0);
+                setAutoSearchFrequency(SettingsManager.STATUS_DEFAUT_FREQUENCY, 0);
                 break;
             default:
                 progress = getIntegerFromString(mSettingsManager.getStatus(optionKey));
@@ -883,18 +882,31 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         }
     }
 
-    private void setAutoSearchFrequency (int progress) {
+    private void setAutoSearchFrequency (double freq, int number) {
         ViewGroup optionView = (ViewGroup)((TvSettingsActivity)mContext).mOptionLayout.getChildAt(0);
 
         TextView frequency = (TextView)optionView.findViewById(R.id.auto_search_frequency);
         TextView frequency_band = (TextView)optionView.findViewById(R.id.auto_search_frequency_band);
         TextView searched_number = (TextView)optionView.findViewById(R.id.auto_search_searched_number);
         if (frequency != null && frequency_band != null && searched_number != null) {
-            frequency.setText("525.25MHZ");
-            frequency_band.setText("UHF");
+            frequency.setText(Double.toString(freq) + "MHZ");
+            frequency_band.setText(parseFrequencyBand(freq));
             searched_number.setText(mContext.getResources().getString(R.string.searched_number) + ": "
-                + mSettingsManager.getAutoSearchSearchedNumber());
+                + number);
         }
+    }
+
+    public static String parseFrequencyBand(double freq) {
+        freq = freq / 1000000.0;
+        String band = "";
+        if (freq > 44.25 && freq < 143.25) {
+            band = "VHFL";
+        } else if (freq >= 143.25 && freq < 426.25) {
+            band  = "VHFH";
+        } else if (freq >= 426.25 && freq < 868.25) {
+            band  = "UHF";
+        }
+        return band;
     }
 
     private int getIntegerFromString (String str) {
@@ -923,6 +935,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         }
         //change ui progress           setPorgressValue(event.precent);
         //change ui frequency          setFrequency(event.freq);
+        setProgress(event.precent);
+        setAutoSearchFrequency(event.freq, event.lock);
+
         if (event.precent == 100)
         {
             int success = tv.DtvStopScan();
@@ -930,6 +945,10 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 return;//just for compile
                 //exit                        setAutoExit(event.precent);
         }
+    }
+
+    public void stopAllAction () {
+
     }
 
     private final TextWatcher mTextWatcher = new TextWatcher() {

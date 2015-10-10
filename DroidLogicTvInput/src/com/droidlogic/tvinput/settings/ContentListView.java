@@ -43,16 +43,21 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
 
     public boolean dispatchKeyEvent (KeyEvent event) {
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            OptionUiManager oum = ((TvSettingsActivity)mContext).getOptionUiManager();
             if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP) {
                 String currentTag = ((TvSettingsActivity)mContext).getSettingsManager().getTag();
                 if ( selectedPosition == 0
                     || ((currentTag.equals(SettingsManager.KEY_CHANNEL)) && selectedPosition == 2))
                     return true;
+
+                oum.stopAllAction();
             } else if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN) {
                 if (selectedPosition == getChildCount() -1)
                     return true;
+                oum.stopAllAction();
             }else if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT) {
                 selectedPosition = 0;
+                oum.stopAllAction();
             } else if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT) {
                 setMenuAlpha(false);
             }

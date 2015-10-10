@@ -86,6 +86,7 @@ public class SettingsManager {
     public static final String STATUS_3D_TO_2D                      = "3D to 2D";
 
     public static final String STATUS_DEFAULT_PERCENT               = "50%";
+    public static final double STATUS_DEFAUT_FREQUENCY              = 44.25;
     public static final int PERCENT_INCREASE                        = 1;
     public static final int PERCENT_DECREASE                        = -1;
 
