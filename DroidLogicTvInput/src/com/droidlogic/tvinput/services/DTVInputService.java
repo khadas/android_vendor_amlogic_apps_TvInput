@@ -51,7 +51,7 @@ import android.view.accessibility.CaptioningManager;
 import com.droidlogic.utils.tunerinput.tvutil.TvContractUtils;
 import com.droidlogic.utils.tunerinput.tvutil.TVChannelParams;
 import com.droidlogic.utils.tunerinput.tvutil.TVConst;
-import com.droidlogic.utils.tunerinput.tvutil.TVMisc;
+import com.droidlogic.app.tv.DroidLogicTvInputService;
 import com.droidlogic.tvinput.R;
 import com.droidlogic.tvclient.TvClient;
 import com.droidlogic.utils.tunerinput.data.ChannelInfo;
@@ -67,7 +67,7 @@ import java.util.Set;
 import android.media.MediaPlayer;
 import android.amlogic.Tv;
 
-public class DTVInputService extends TvInputService {
+public class DTVInputService extends DroidLogicTvInputService {
 
 	private static final String TAG = "DTVInputService";
 
@@ -95,8 +95,6 @@ public class DTVInputService extends TvInputService {
 		mHandlerThread.start();
 		mDbHandler = new Handler(mHandlerThread.getLooper());
 
-		setTheme(android.R.style.Theme_Holo_Light_NoActionBar);
-
 		IntentFilter intentFilter = new IntentFilter();
 		intentFilter.addAction(TvInputManager.ACTION_BLOCKED_RATINGS_CHANGED);
 		intentFilter.addAction(TvInputManager.ACTION_PARENTAL_CONTROLS_ENABLED_CHANGED);
@@ -116,11 +114,12 @@ public class DTVInputService extends TvInputService {
 	public Session onCreateSession(String inputId) {
 		mSession = new DTVSessionImpl(this, inputId);
 		mSession.setOverlayViewEnabled(true);
+		registerInputSession(mSession, inputId);
 		client.curSource = Tv.SourceInput_Type.SOURCE_TYPE_DTV;
 		return mSession;
 	}
 
-	private class DTVSessionImpl extends TvInputService.Session implements Handler.Callback {
+	public class DTVSessionImpl extends TvInputService.Session implements Handler.Callback {
 		private static final int MSG_PLAY_PROGRAM = 1000;
 		private static final int MSG_DEVICE_EVENT = 2000;
 
@@ -242,8 +241,6 @@ public class DTVInputService extends TvInputService {
 
 			checkContentBlockNeeded();
 
-			notifyVideoAvailable();
-
 			return true;
 		}
 
@@ -257,7 +254,6 @@ public class DTVInputService extends TvInputService {
 				switchToSourceInput();
 			}
 
-			notifyVideoUnavailable(TvInputManager.VIDEO_UNAVAILABLE_REASON_TUNING);
 			mUnblockedRatingSet.clear();
 
 			mDbHandler.removeCallbacks(mPlayCurrentProgramRunnable);
@@ -280,12 +276,6 @@ public class DTVInputService extends TvInputService {
 			Log.d(TAG, "onUnblockContent: rating:" + rating.flattenToString());
 			if (rating != null) {
 				unblockContent(rating);
-			}
-		}
-
-		private void releasePlayer() {
-			if (mTv != null) {
-				mTv.StopPlayProgram();
 			}
 		}
 
@@ -375,7 +365,7 @@ public class DTVInputService extends TvInputService {
 		Log.d(TAG, "=====onHardwareAdded====="+hardwareInfo.toString());
 
 		TvInputInfo info = null;
-		ResolveInfo rInfo = TVMisc.getTvIntputResolveInfo(this, DTVInputService.class.getName());
+		ResolveInfo rInfo = getResolveInfo(DTVInputService.class.getName());
 		if (rInfo != null) {
 			try {
 				info = TvInputInfo.createTvInputInfo(
@@ -384,10 +374,10 @@ public class DTVInputService extends TvInputService {
 						hardwareInfo,
 						"DTV",
 						null);
-				mInfoList.put(hardwareInfo.getDeviceId(), info);
 			} catch (Exception e) {
 			}
 		}
+		updateInfoListIfNeededLocked(hardwareInfo, info, false);
 
 		return info;
 	}
@@ -396,14 +386,14 @@ public class DTVInputService extends TvInputService {
 		if (hardwareInfo.getType() != TvInputHardwareInfo.TV_INPUT_TYPE_TUNER)
 			return null;
 
-		TvInputInfo info = mInfoList.get(hardwareInfo.getDeviceId());
+		TvInputInfo info = getTvInputInfo(hardwareInfo);
 		String id = null;
 		if (info != null)
 			id = info.getId();
 
-		mInfoList.removeAt(hardwareInfo.getDeviceId());
+		updateInfoListIfNeededLocked(hardwareInfo, info, true);
 
-		Log.d(TAG, "=====onHardwareRemoved===== "+id+" hwinfo:"+hardwareInfo.toString());
+		Log.d(TAG, "=====onHardwareRemoved===== "+id);
 		return id;
 	}
 }

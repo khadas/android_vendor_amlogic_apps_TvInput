@@ -52,9 +52,9 @@ import android.view.accessibility.CaptioningManager;
 import com.droidlogic.utils.tunerinput.tvutil.TvContractUtils;
 import com.droidlogic.utils.tunerinput.tvutil.TVChannelParams;
 import com.droidlogic.utils.tunerinput.tvutil.TVConst;
-import com.droidlogic.utils.tunerinput.tvutil.TVMisc;
 import com.droidlogic.utils.tunerinput.data.ChannelInfo;
 
+import com.droidlogic.app.tv.DroidLogicTvInputService;
 import com.droidlogic.tvinput.R;
 import com.droidlogic.tvclient.TvClient;
 
@@ -69,7 +69,7 @@ import java.util.Set;
 import android.media.MediaPlayer;
 import android.amlogic.Tv;
 
-public class ATVInputService extends TvInputService {
+public class ATVInputService extends DroidLogicTvInputService {
 
 	private static final String TAG = "ATVInputService";
 
@@ -97,8 +97,6 @@ public class ATVInputService extends TvInputService {
 		mHandlerThread.start();
 		mDbHandler = new Handler(mHandlerThread.getLooper());
 
-		setTheme(android.R.style.Theme_Holo_Light_NoActionBar);
-
 		IntentFilter intentFilter = new IntentFilter();
 		intentFilter.addAction(TvInputManager.ACTION_BLOCKED_RATINGS_CHANGED);
 		intentFilter.addAction(TvInputManager.ACTION_PARENTAL_CONTROLS_ENABLED_CHANGED);
@@ -118,11 +116,12 @@ public class ATVInputService extends TvInputService {
 	public Session onCreateSession(String inputId) {
 		mSession = new ATVSessionImpl(this, inputId);
 		mSession.setOverlayViewEnabled(true);
+		registerInputSession(mSession, inputId);
 		client.curSource = Tv.SourceInput_Type.SOURCE_TYPE_TV;
 		return mSession;
 	}
 
-	private class ATVSessionImpl extends TvInputService.Session implements Handler.Callback {
+	public class ATVSessionImpl extends TvInputService.Session implements Handler.Callback {
 		private static final int MSG_PLAY_PROGRAM = 1000;
 		private static final int MSG_DEVICE_EVENT = 2000;
 
@@ -241,8 +240,6 @@ public class ATVInputService extends TvInputService {
 
 			checkContentBlockNeeded();
 
-			notifyVideoAvailable();
-
 			return true;
 		}
 
@@ -256,7 +253,6 @@ public class ATVInputService extends TvInputService {
 				switchToSourceInput();
 			}
 
-			notifyVideoUnavailable(TvInputManager.VIDEO_UNAVAILABLE_REASON_TUNING);
 			mUnblockedRatingSet.clear();
 
 			mDbHandler.removeCallbacks(mPlayCurrentProgramRunnable);
@@ -280,11 +276,6 @@ public class ATVInputService extends TvInputService {
 			if (rating != null) {
 				unblockContent(rating);
 			}
-		}
-
-		private void releasePlayer() {
-			//TODO: stop play
-			mTv.StopPlayProgram();
 		}
 
 		private void checkContentBlockNeeded() {
@@ -364,8 +355,6 @@ public class ATVInputService extends TvInputService {
 		}
 	}
 
-	private SparseArray<TvInputInfo> mInfoList = new SparseArray<>();
-
 	public TvInputInfo onHardwareAdded(TvInputHardwareInfo hardwareInfo) {
 		if (hardwareInfo.getDeviceId() != ATV_HW_DEVICE_ID)
 			return null;
@@ -373,7 +362,7 @@ public class ATVInputService extends TvInputService {
 		Log.d(TAG, "=====onHardwareAdded====="+hardwareInfo.toString());
 
 		TvInputInfo info = null;
-		ResolveInfo rInfo = TVMisc.getTvIntputResolveInfo(this, ATVInputService.class.getName());
+		ResolveInfo rInfo = getResolveInfo(ATVInputService.class.getName());
 		if (rInfo != null) {
 			try {
 				info = TvInputInfo.createTvInputInfo(
@@ -382,10 +371,10 @@ public class ATVInputService extends TvInputService {
 						hardwareInfo,
 						"ATV",
 						null);
-				mInfoList.put(hardwareInfo.getDeviceId(), info);
 			} catch (Exception e) {
 			}
 		}
+		updateInfoListIfNeededLocked(hardwareInfo, info, false);
 
 		return info;
 	}
@@ -394,14 +383,14 @@ public class ATVInputService extends TvInputService {
 		if (hardwareInfo.getType() != TvInputHardwareInfo.TV_INPUT_TYPE_TUNER)
 			return null;
 
-		TvInputInfo info = mInfoList.get(hardwareInfo.getDeviceId());
+		TvInputInfo info = getTvInputInfo(hardwareInfo);
 		String id = null;
 		if (info != null)
 			id = info.getId();
 
-		mInfoList.removeAt(hardwareInfo.getDeviceId());
+		updateInfoListIfNeededLocked(hardwareInfo, info, true);
 
-		Log.d(TAG, "=====onHardwareRemoved===== "+id+" hwinfo:"+hardwareInfo.toString());
+		Log.d(TAG, "=====onHardwareRemoved===== "+id);
 		return id;
 	}
 }

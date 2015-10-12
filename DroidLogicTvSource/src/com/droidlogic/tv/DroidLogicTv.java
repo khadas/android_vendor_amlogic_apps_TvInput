@@ -484,13 +484,19 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
 
     private void processSessionEvent(String inputId, String eventType, Bundle eventArgs) {
         if (eventType.equals(DroidLogicTvUtils.SIG_INFO_EVENT)) {//sig_info
-            mSigType = eventArgs.getInt(DroidLogicTvUtils.SIG_INFO_TYPE);
+            mSigType = getSigType(mSourceInput.getSourceType());
             String args = eventArgs.getString(DroidLogicTvUtils.SIG_INFO_ARGS);
-            if (mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_HDMI) {
-                String[] temp = args.split("_");
-                mSourceInput.setChannelVideoFormat(temp[0] + "_" + temp[1]);
-            } else if (mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_AV) {
-                mSourceInput.setChannelType(args);
+
+            switch (mSigType) {
+                case DroidLogicTvUtils.SIG_INFO_TYPE_HDMI:
+                    String[] temp = args.split("_");
+                    mSourceInput.setChannelVideoFormat(temp[0] + "_" + temp[1]);
+                    break;
+                case DroidLogicTvUtils.SIG_INFO_TYPE_AV:
+                    mSourceInput.setChannelType(args);
+                    break;
+                default:
+                    break;
             }
             popupSourceInfo(Utils.SHOW_VIEW);
         }

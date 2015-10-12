@@ -7,7 +7,9 @@ import android.amlogic.Tv;
 import android.amlogic.Tv.tvin_info_t;
 
 import com.droidlogic.tvinput.R;
+import com.droidlogic.tvinput.services.ATVInputService.ATVSessionImpl;
 import com.droidlogic.tvinput.services.AVInputService.AVInputSession;
+import com.droidlogic.tvinput.services.DTVInputService.DTVSessionImpl;
 import com.droidlogic.tvinput.services.HdmiInputService.HdmiInputSession;
 
 import android.content.Context;
@@ -146,6 +148,11 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
         return ret_ri;
     }
 
+    protected void releasePlayer() {
+        Tv tv = Tv.open();
+        tv.StopPlayProgram();
+    }
+
     private String getInfoLabel() {
         TvInputManager tim = (TvInputManager) getSystemService(Context.TV_INPUT_SERVICE);
         return tim.getTvInputInfo(mCurrentInputId).loadLabel(this).toString();
@@ -194,6 +201,16 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
                 bundle.putString(DroidLogicTvUtils.SIG_INFO_LABEL, getInfoLabel());
                 bundle.putString(DroidLogicTvUtils.SIG_INFO_ARGS, strings[4]);
                 mSession.notifySessionEvent(DroidLogicTvUtils.SIG_INFO_EVENT, bundle);
+            } else if (mSession instanceof ATVSessionImpl) {
+                if (DEBUG)
+                    Log.d(TAG, "tmpInfo.fmt.toString() for atv=" + signal_info.fmt.toString());
+
+                mSession.notifySessionEvent(DroidLogicTvUtils.SIG_INFO_EVENT, null);
+            } else if (mSession instanceof DTVSessionImpl) {
+                if (DEBUG)
+                    Log.d(TAG, "tmpInfo.fmt.toString() for dtv=" + signal_info.fmt.toString());
+
+                mSession.notifySessionEvent(DroidLogicTvUtils.SIG_INFO_EVENT, null);
             }
         }
     }
