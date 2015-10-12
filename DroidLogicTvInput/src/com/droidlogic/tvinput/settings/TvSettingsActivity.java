@@ -15,10 +15,14 @@ import android.util.Log;
 import android.media.tv.TvInputInfo;
 
 import com.droidlogic.app.tv.DroidLogicTvUtils;
+import com.droidlogic.tvclient.TvClient;
 import com.droidlogic.tvinput.R;
+import android.amlogic.Tv;
 
 public class TvSettingsActivity extends Activity implements OnClickListener, OnFocusChangeListener {
     private static final String TAG = "MainActivity";
+
+    private Tv tv = TvClient.getTvInstance();
 
     private ContentFragment fragmentImage;
     private ContentFragment fragmentSound;
@@ -158,8 +162,16 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
     public void finish()
     {
         // TODO Auto-generated method stub
-        setResult(DroidLogicTvUtils.finish_result);
-        DroidLogicTvUtils.finish_result = DroidLogicTvUtils.RESULT_OK;
+        setResult(mOptionUiManager.getFinishResult());
         super.finish();
+    }
+
+    public void onStop()
+    {
+        // TODO Auto-generated method stub
+        if (mOptionUiManager.isSearching()) {
+            tv.DtvStopScan();
+        }
+        super.onStop();
     }
 }
