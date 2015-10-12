@@ -14,6 +14,7 @@ import android.widget.RelativeLayout;
 import android.util.Log;
 import android.media.tv.TvInputInfo;
 
+import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.tvinput.R;
 
 public class TvSettingsActivity extends Activity implements OnClickListener, OnFocusChangeListener {
@@ -152,5 +153,13 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
 
     public OptionUiManager getOptionUiManager () {
         return mOptionUiManager;
+    }
+
+    public void finish()
+    {
+        // TODO Auto-generated method stub
+        setResult(DroidLogicTvUtils.finish_result);
+        DroidLogicTvUtils.finish_result = DroidLogicTvUtils.RESULT_OK;
+        super.finish();
     }
 }
