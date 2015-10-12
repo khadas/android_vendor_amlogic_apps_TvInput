@@ -47,4 +47,10 @@ public class DroidLogicTvUtils {
     public static final int RESULT_UPDATE = 2;
     public static final int RESULT_FAILED = 3;
     public static int finish_result = RESULT_OK;
+
+    /**
+     * action for {@link TvInputService.Session.onAppPrivateCommand}
+     */
+    public static final String ACTION_STOP_TV = "stop_tv";
+
 }

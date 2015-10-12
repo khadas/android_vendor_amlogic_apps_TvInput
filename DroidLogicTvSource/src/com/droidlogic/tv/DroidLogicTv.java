@@ -515,6 +515,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         Utils.logd(TAG, "==== onStop ====");
         hasStopped = true;
         saveDefaultChannelInfo();
+        mSourceView.sendAppPrivateCommand(DroidLogicTvUtils.ACTION_STOP_TV, null);
         super.onStop();
     }
 

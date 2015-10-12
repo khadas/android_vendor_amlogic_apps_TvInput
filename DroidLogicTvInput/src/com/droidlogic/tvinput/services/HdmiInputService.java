@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.xmlpull.v1.XmlPullParserException;
 
 import com.droidlogic.app.tv.DroidLogicTvInputService;
+import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.tvclient.TvClient;
 import com.droidlogic.utils.Utils;
 import android.amlogic.Tv;
@@ -18,6 +19,8 @@ import android.media.tv.TvInputManager.HardwareCallback;
 import android.media.tv.TvInputService;
 import android.media.tv.TvStreamConfig;
 import android.net.Uri;
+import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.Surface;
 
 public class HdmiInputService extends DroidLogicTvInputService {
@@ -66,6 +69,13 @@ public class HdmiInputService extends DroidLogicTvInputService {
         public void onRelease() {
             mHardware.setSurface(null, null);
             mTvInputManager.releaseTvInputHardware(getHardwareDeviceId(mInputId), mHardware);
+        }
+
+        @Override
+        public void onAppPrivateCommand(String action, Bundle data) {
+            if (TextUtils.equals(DroidLogicTvUtils.ACTION_STOP_TV, action)) {
+                stopTv();
+            }
         }
 
         @Override

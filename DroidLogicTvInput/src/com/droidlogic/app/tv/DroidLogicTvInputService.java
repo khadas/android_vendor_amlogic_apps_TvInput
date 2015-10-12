@@ -55,8 +55,7 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
     protected void registerInputSession(Session session, String inputId) {
         mSession = session;
         mCurrentInputId = inputId;
-        Tv tv = Tv.open();
-        tv.SetSigInfoChangeListener(this);
+        Tv.open().SetSigInfoChangeListener(this);
     }
 
     /**
@@ -148,9 +147,12 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
         return ret_ri;
     }
 
+    protected void stopTv() {
+        Tv.open().StopTv();
+    }
+
     protected void releasePlayer() {
-        Tv tv = Tv.open();
-        tv.StopPlayProgram();
+        Tv.open().StopPlayProgram();
     }
 
     private String getInfoLabel() {

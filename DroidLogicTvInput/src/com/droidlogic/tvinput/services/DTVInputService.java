@@ -193,6 +193,13 @@ public class DTVInputService extends DroidLogicTvInputService {
 		}
 
 		@Override
+		public void onAppPrivateCommand(String action, Bundle data) {
+		    if (TextUtils.equals(DroidLogicTvUtils.ACTION_STOP_TV, action)) {
+		        stopTv();
+		    }
+		}
+
+		@Override
 		public View onCreateOverlayView() {
 			return null;
 		}
