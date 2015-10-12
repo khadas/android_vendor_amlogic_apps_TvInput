@@ -36,6 +36,7 @@ import android.media.tv.TvTrackInfo;
 import android.media.tv.TvInputInfo;
 import android.media.tv.TvInputHardwareInfo;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
@@ -55,6 +56,7 @@ import com.droidlogic.utils.tunerinput.tvutil.TVConst;
 import com.droidlogic.utils.tunerinput.data.ChannelInfo;
 
 import com.droidlogic.app.tv.DroidLogicTvInputService;
+import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.tvinput.R;
 import com.droidlogic.tvclient.TvClient;
 
