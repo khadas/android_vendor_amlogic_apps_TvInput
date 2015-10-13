@@ -63,16 +63,14 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener {
         operationsView = (ViewGroup)channelEditView.findViewById(R.id.channel_edit_operations);
         operationsEditView = (ViewGroup)channelEditView.findViewById(R.id.channel_edit_editname);
 
-        ChannelListData = ((TvSettingsActivity)mContext).getSettingsManager().geChannelEditList();
-        ChannelAdapter= new SimpleAdapter(mContext, ChannelListData,
-            R.layout.layout_channel_channel_edit_item,
-            new String[]{"channel_name"}, new int[]{R.id.channel_name});
+        ChannelListData = ((TvSettingsActivity)mContext).getSettingsManager().getChannelEditList();
+        ChannelAdapter = new SimpleAdapter(mContext, ChannelListData,
+            R.layout.layout_option_single_text,
+            new String[]{SettingsManager.STRING_NAME}, new int[]{R.id.text_name});
         channelListView.setAdapter(ChannelAdapter);
         channelListView.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick (AdapterView<?> parent, View view, int position, long id) {
-                Log.d(TAG, "@@@@@@@@@@@@@@ click");
-
                 currentChannelPosition = position;
                 if (currentOperation == ACTION_INITIAL_STATE) {
                     showOperationsView();
@@ -118,7 +116,7 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener {
             animaition.start();
         }
 
-        ChannelListData = ((TvSettingsActivity)mContext).getSettingsManager().geChannelEditList();
+        ChannelListData = ((TvSettingsActivity)mContext).getSettingsManager().getChannelEditList();
         ChannelAdapter.notifyDataSetChanged();
         channelListView.setVisibility(View.VISIBLE);
         channelListView.requestFocus();

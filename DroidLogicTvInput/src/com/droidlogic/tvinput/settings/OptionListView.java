@@ -41,6 +41,12 @@ public class OptionListView extends ListView implements OnItemSelectedListener {
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT) {
                 selectedPosition = 0;
+            } else if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP) {
+                if (selectedPosition == 0)
+                    return true;
+            } else if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN) {
+                if (selectedPosition == getChildCount() -1)
+                    return true;
             }
 
             View selectedView = getSelectedView();
@@ -79,13 +85,20 @@ public class OptionListView extends ListView implements OnItemSelectedListener {
 
     private void setItemTextColor (View view, boolean focused) {
         TextView item_name = (TextView)((ViewGroup)view).getChildAt(0);
+        TextView item_status = (TextView)((ViewGroup)view).getChildAt(1);
 
         if (focused) {
             int color_text_focused = mContext.getResources().getColor(R.color.color_text_focused);
-            item_name.setTextColor(color_text_focused);
+            if (item_name != null)
+                item_name.setTextColor(color_text_focused);
+            if (item_status!= null)
+                item_status.setTextColor(color_text_focused);
         } else {
             int color_text_item = mContext.getResources().getColor(R.color.color_text_item);
-            item_name.setTextColor(color_text_item);
+            if (item_name != null)
+                item_name.setTextColor(color_text_item);
+            if (item_status!= null)
+                item_status.setTextColor(color_text_item);
         }
     }
 }

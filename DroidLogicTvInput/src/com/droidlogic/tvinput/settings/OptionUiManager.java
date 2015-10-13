@@ -73,14 +73,17 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
 
     public static final int OPTION_CURRENT_CHANNEL = 300;
     public static final int OPTION_FREQUENCY = 301;
-    public static final int OPTION_COLOR_SYSTEM = 302;
-    public static final int OPTION_SOUND_SYSTEM = 303;
-    public static final int OPTION_VOLUME_COMPENSATE = 304;
-    public static final int OPTION_FINE_TUNE = 305;
-    public static final int OPTION_MANUAL_SEARCH = 306;
-    public static final int OPTION_AUTO_SEARCH = 307;
-    public static final int OPTION_CHANNEL_EDIT = 308;
-    public static final int OPTION_SWITCH_CHANNEL = 309;
+    public static final int OPTION_AUDIO_TRACK = 302;
+    public static final int OPTION_SOUND_CHANNEL = 303;
+    public static final int OPTION_CHANNEL_INFO = 304;
+    public static final int OPTION_COLOR_SYSTEM = 305;
+    public static final int OPTION_SOUND_SYSTEM = 306;
+    public static final int OPTION_VOLUME_COMPENSATE = 307;
+    public static final int OPTION_FINE_TUNE = 308;
+    public static final int OPTION_MANUAL_SEARCH = 309;
+    public static final int OPTION_AUTO_SEARCH = 310;
+    public static final int OPTION_CHANNEL_EDIT = 311;
+    public static final int OPTION_SWITCH_CHANNEL = 312;
 
     public static final int OPTION_SLEEP_TIMER = 400;
     public static final int OPTION_MENU_TIME = 401;
@@ -91,13 +94,10 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     public static final int ALPHA_NO_FOCUS = 230;
     public static final int ALPHA_FOCUSED = 255;
 
-    private static final int MSG_REFRESH = 100;
-
     private Context mContext;
     private SettingsManager mSettingsManager;
     private int optionTag = OPTION_PICTURE_MODE;
     private String optionKey = null;
-    private Handler mUIHandler;
     private int searchedChannelNum = 0;
     List<ChannelInfo> mChannels = new ArrayList<ChannelInfo>();
     private int finish_result = DroidLogicTvUtils.RESULT_OK;
@@ -119,18 +119,6 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         mContext = context;
         mSettingsManager = ((TvSettingsActivity) mContext).getSettingsManager();
         tv.setScannerListener(this);
-
-        mUIHandler = new Handler()
-        {
-            @Override
-            public void handleMessage(Message msg)
-            {
-                if (msg.what == MSG_REFRESH)
-                {
-                    setProgressStatus();
-                }
-            }
-        };
     }
 
     public void setOptionTag(int position)
@@ -139,171 +127,118 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 .toString();
         Log.d(TAG, "@@@@@@@@@ item_name=" + item_name);
         // Picture
-        if (item_name.equals(mContext.getResources().getString(R.string.picture_mode)))
-        {
+        if (item_name.equals(mContext.getResources().getString(R.string.picture_mode))) {
             optionTag = OPTION_PICTURE_MODE;
             optionKey = SettingsManager.KEY_PICTURE_MODE;
-        }
-        else if (item_name.equals(mContext.getResources().getString(R.string.brightness)))
-        {
+        } else if (item_name.equals(mContext.getResources().getString(R.string.brightness))) {
             optionTag = OPTION_BRIGHTNESS;
             optionKey = SettingsManager.KEY_BRIGHTNESS;
-        }
-        else if (item_name.equals(mContext.getResources().getString(R.string.contrast)))
-        {
+        } else if (item_name.equals(mContext.getResources().getString(R.string.contrast))) {
             optionTag = OPTION_CONTRAST;
             optionKey = SettingsManager.KEY_CONTRAST;
-        }
-        else if (item_name.equals(mContext.getResources().getString(R.string.color)))
-        {
+        } else if (item_name.equals(mContext.getResources().getString(R.string.color))) {
             optionTag = OPTION_COLOR;
             optionKey = SettingsManager.KEY_COLOR;
-        }
-        else if (item_name.equals(mContext.getResources().getString(R.string.sharpness)))
-        {
+        } else if (item_name.equals(mContext.getResources().getString(R.string.sharpness))) {
             optionTag = OPTION_SHARPNESS;
             optionKey = SettingsManager.KEY_SHARPNESS;
-        }
-        else if (item_name.equals(mContext.getResources().getString(R.string.backlight)))
-        {
+        } else if (item_name.equals(mContext.getResources().getString(R.string.backlight))) {
             optionTag = OPTION_BACKLIGHT;
             optionKey = SettingsManager.KEY_BACKLIGHT;
-        }
-        else if (item_name.equals(mContext.getResources().getString(R.string.color_temperature)))
-        {
+        } else if (item_name.equals(mContext.getResources().getString(R.string.color_temperature))) {
             optionTag = OPTION_COLOR_TEMPERATURE;
             optionKey = SettingsManager.KEY_COLOR_TEMPERATURE;
-        }
-        else if (item_name.equals(mContext.getResources().getString(R.string.aspect_ratio)))
-        {
+        } else if (item_name.equals(mContext.getResources().getString(R.string.aspect_ratio))) {
             optionTag = OPTION_ASPECT_RATIO;
             optionKey = SettingsManager.KEY_ASPECT_RATIO;
-        }
-        else if (item_name.equals(mContext.getResources().getString(R.string.dnr)))
-        {
+        } else if (item_name.equals(mContext.getResources().getString(R.string.dnr))) {
             optionTag = OPTION_DNR;
             optionKey = SettingsManager.KEY_DNR;
-        }
-        else if (item_name.equals(mContext.getResources().getString(R.string.settings_3d)))
-        {
+        } else if (item_name.equals(mContext.getResources().getString(R.string.settings_3d))) {
             optionTag = OPTION_3D_SETTINGS;
             optionKey = SettingsManager.KEY_3D_SETTINGS;
         }
         // Sound
-        else if (item_name.equals(mContext.getResources().getString(R.string.sound_mode)))
-        {
+        else if (item_name.equals(mContext.getResources().getString(R.string.sound_mode))) {
             optionTag = OPTION_SOUND_MODE;
             optionKey = SettingsManager.KEY_SOUND_MODE;
-        }
-        else if (item_name.equals(mContext.getResources().getString(R.string.treble)))
-        {
+        } else if (item_name.equals(mContext.getResources().getString(R.string.treble))) {
             optionTag = OPTION_TREBLE;
             optionKey = SettingsManager.KEY_TREBLE;
-        }
-        else if (item_name.equals(mContext.getResources().getString(R.string.bass)))
-        {
+        } else if (item_name.equals(mContext.getResources().getString(R.string.bass))) {
             optionTag = OPTION_BASS;
             optionKey = SettingsManager.KEY_BASS;
-        }
-        else if (item_name.equals(mContext.getResources().getString(R.string.balance)))
-        {
+        } else if (item_name.equals(mContext.getResources().getString(R.string.balance))) {
             optionTag = OPTION_BALANCE;
             optionKey = SettingsManager.KEY_BALANCE;
-        }
-        else if (item_name.equals(mContext.getResources().getString(R.string.spdif)))
-        {
+        } else if (item_name.equals(mContext.getResources().getString(R.string.spdif))) {
             optionTag = OPTION_SPDIF;
             optionKey = SettingsManager.KEY_SPDIF;
-        }
-        else if (item_name.equals(mContext.getResources().getString(R.string.dialog_clarity)))
-        {
+        } else if (item_name.equals(mContext.getResources().getString(R.string.dialog_clarity))) {
             optionTag = OPTION_DIALOG_CLARITY;
             optionKey = SettingsManager.KEY_DIALOG_CLARITY;
-        }
-        else if (item_name.equals(mContext.getResources().getString(R.string.bass_boost)))
-        {
+        } else if (item_name.equals(mContext.getResources().getString(R.string.bass_boost))) {
             optionTag = OPTION_BASS_BOOST;
             optionKey = SettingsManager.KEY_BASS_BOOST;
-        }
-        else if (item_name.equals(mContext.getResources().getString(R.string.surround)))
-        {
+        } else if (item_name.equals(mContext.getResources().getString(R.string.surround))) {
             optionTag = OPTION_SURROUND;
             optionKey = SettingsManager.KEY_SURROUND;
         }
         // Channel
-        else if (item_name.equals(mContext.getResources().getString(R.string.current_channel)))
-        {
+        else if (item_name.equals(mContext.getResources().getString(R.string.current_channel))) {
             optionTag = OPTION_CURRENT_CHANNEL;
             optionKey = SettingsManager.KEY_CURRENT_CHANNEL;
-        }
-        else if (item_name.equals(mContext.getResources().getString(R.string.frequency)))
-        {
+        } else if (item_name.equals(mContext.getResources().getString(R.string.frequency))) {
             optionTag = OPTION_FREQUENCY;
             optionKey = SettingsManager.KEY_FREQUNCY;
-        }
-        else if (item_name.equals(mContext.getResources().getString(R.string.color_system)))
-        {
+        } else if (item_name.equals(mContext.getResources().getString(R.string.audio_track))) {
+            optionTag = OPTION_AUDIO_TRACK;
+            optionKey = SettingsManager.KEY_AUIDO_TRACK;
+        } else if (item_name.equals(mContext.getResources().getString(R.string.sound_channel))) {
+            optionTag = OPTION_SOUND_CHANNEL;
+            optionKey = SettingsManager.KEY_SOUND_CHANNEL;
+        } else if (item_name.equals(mContext.getResources().getString(R.string.channel_info))) {
+            optionTag = OPTION_CHANNEL_INFO;
+            optionKey = SettingsManager.KEY_CHANNEL_INFO;
+        } else if (item_name.equals(mContext.getResources().getString(R.string.color_system))) {
             optionTag = OPTION_COLOR_SYSTEM;
             optionKey = SettingsManager.KEY_COLOR_SYSTEM;
-        }
-        else if (item_name.equals(mContext.getResources().getString(R.string.sound_system)))
-        {
+        } else if (item_name.equals(mContext.getResources().getString(R.string.sound_system))) {
             optionTag = OPTION_SOUND_SYSTEM;
             optionKey = SettingsManager.KEY_SOUND_SYSTEM;
-        }
-        else if (item_name.equals(mContext.getResources().getString(R.string.volume_compensate)))
-        {
+        } else if (item_name.equals(mContext.getResources().getString(R.string.volume_compensate))) {
             optionTag = OPTION_VOLUME_COMPENSATE;
             optionKey = SettingsManager.KEY_VOLUME_COMPENSATE;
-        }
-        else if (item_name.equals(mContext.getResources().getString(R.string.fine_tune)))
-        {
+        } else if (item_name.equals(mContext.getResources().getString(R.string.fine_tune))) {
             optionTag = OPTION_FINE_TUNE;
             optionKey = SettingsManager.KEY_FINE_TUNE;
-        }
-        else if (item_name.equals(mContext.getResources().getString(R.string.manual_search)))
-        {
+        } else if (item_name.equals(mContext.getResources().getString(R.string.manual_search))) {
             optionTag = OPTION_MANUAL_SEARCH;
             optionKey = SettingsManager.KEY_MANUAL_SEARCH;
-        }
-        else if (item_name.equals(mContext.getResources().getString(R.string.auto_search)))
-        {
+        } else if (item_name.equals(mContext.getResources().getString(R.string.auto_search))) {
             optionTag = OPTION_AUTO_SEARCH;
             optionKey = SettingsManager.KEY_AUTO_SEARCH;
-        }
-        else if (item_name.equals(mContext.getResources().getString(R.string.channel_edit)))
-        {
+        } else if (item_name.equals(mContext.getResources().getString(R.string.channel_edit))) {
             optionTag = OPTION_CHANNEL_EDIT;
             optionKey = SettingsManager.KEY_CHANNEL_EDIT;
-        }
-        else if (item_name.equals(mContext.getResources().getString(R.string.switch_channel)))
-        {
+        } else if (item_name.equals(mContext.getResources().getString(R.string.switch_channel))) {
             optionTag = OPTION_SWITCH_CHANNEL;
             optionKey = SettingsManager.KEY_SWITCH_CHANNEL;
         }
         // Settings
-        else if (item_name.equals(mContext.getResources().getString(R.string.sleep_timer)))
-        {
+        else if (item_name.equals(mContext.getResources().getString(R.string.sleep_timer))) {
             optionTag = OPTION_SLEEP_TIMER;
             optionKey = SettingsManager.KEY_SLEEP_TIMER;
-        }
-        else if (item_name.equals(mContext.getResources().getString(R.string.menu_time)))
-        {
+        } else if (item_name.equals(mContext.getResources().getString(R.string.menu_time))) {
             optionTag = OPTION_MENU_TIME;
             optionKey = SettingsManager.KEY_MENU_TIME;
-        }
-        else if (item_name.equals(mContext.getResources().getString(R.string.startup_setting)))
-        {
+        } else if (item_name.equals(mContext.getResources().getString(R.string.startup_setting))) {
             optionTag = OPTION_STARTUP_SETTING;
             optionKey = SettingsManager.KEY_STARTUP_SETTING;
-        }
-        else if (item_name.equals(mContext.getResources().getString(R.string.dynamic_backlight)))
-        {
+        } else if (item_name.equals(mContext.getResources().getString(R.string.dynamic_backlight))) {
             optionTag = OPTION_DYNAMIC_BACKLIGHT;
             optionKey = SettingsManager.KEY_DYNAMIC_BACKLIGHT;
-        }
-        else if (item_name.equals(mContext.getResources().getString(R.string.restore_factory)))
-        {
+        } else if (item_name.equals(mContext.getResources().getString(R.string.restore_factory))) {
             optionTag = OPTION_RESTORE_FACTORY;
             optionKey = SettingsManager.KEY_RESTORE_FACTORY;
         }
@@ -357,6 +292,10 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             case OPTION_BASS_BOOST:
                 return R.layout.layout_sound_bass_boost;
                 // channel
+            case OPTION_CHANNEL_INFO:
+            case OPTION_AUDIO_TRACK:
+            case OPTION_SOUND_CHANNEL:
+                return R.layout.layout_option_list;
             case OPTION_COLOR_SYSTEM:
                 return R.layout.layout_channel_color_system;
             case OPTION_SOUND_SYSTEM:
