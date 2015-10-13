@@ -148,6 +148,7 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
     }
 
     protected void stopTv() {
+        Log.d(TAG, "==== stop tv ====" + mCurrentInputId);
         Tv.open().StopTv();
     }
 
