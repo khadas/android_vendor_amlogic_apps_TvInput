@@ -6,7 +6,6 @@ import java.util.List;
 import android.amlogic.Tv;
 import android.amlogic.Tv.tvin_info_t;
 
-import com.droidlogic.tvinput.R;
 import com.droidlogic.tvinput.services.ATVInputService.ATVSessionImpl;
 import com.droidlogic.tvinput.services.AVInputService.AVInputSession;
 import com.droidlogic.tvinput.services.DTVInputService.DTVSessionImpl;
@@ -29,12 +28,6 @@ import android.util.SparseArray;
 public class DroidLogicTvInputService extends TvInputService implements Tv.SigInfoChangeListener {
     private static final String TAG = DroidLogicTvInputService.class.getSimpleName();
     private static final boolean DEBUG = true;
-
-    private static final int SOURCE_AV1 = 1;
-    private static final int SOURCE_AV2 = 2;
-    private static final int SOURCE_HDMI1 = 5;
-    private static final int SOURCE_HDMI2 = 6;
-    private static final int SOURCE_HDMI3 = 7;
 
     private SparseArray<TvInputInfo> mInfoList = new SparseArray<>();
 
@@ -96,22 +89,27 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
 
     protected String getTvInputInfoLabel(int device_id) {
         String label = null;
-        String[] labels = getResources().getStringArray(R.array.tv_input_labels);
         switch (device_id) {
-            case SOURCE_AV1:
-                label = labels[SOURCE_AV1];
+            case DroidLogicTvUtils.DEVICE_ID_ATV:
+                label = "ATV";
                 break;
-            case SOURCE_AV2:
-                label = labels[SOURCE_AV2];
+            case DroidLogicTvUtils.DEVICE_ID_DTV:
+                label = "DTV";
                 break;
-            case SOURCE_HDMI1:
-                label = labels[SOURCE_HDMI1];
+            case DroidLogicTvUtils.DEVICE_ID_AV1:
+                label = "AV1";
                 break;
-            case SOURCE_HDMI2:
-                label = labels[SOURCE_HDMI2];
+            case DroidLogicTvUtils.DEVICE_ID_AV2:
+                label = "AV2";
                 break;
-            case SOURCE_HDMI3:
-                label = labels[SOURCE_HDMI3];
+            case DroidLogicTvUtils.DEVICE_ID_HDMI1:
+                label = "HDMI1";
+                break;
+            case DroidLogicTvUtils.DEVICE_ID_HDMI2:
+                label = "HDMI2";
+                break;
+            case DroidLogicTvUtils.DEVICE_ID_HDMI3:
+                label = "HDMI3";
                 break;
             default:
                 break;

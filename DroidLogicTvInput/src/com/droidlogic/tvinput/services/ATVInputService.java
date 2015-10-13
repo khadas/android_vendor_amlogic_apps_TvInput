@@ -307,7 +307,7 @@ public class ATVInputService extends DroidLogicTvInputService {
 						this,
 						rInfo,
 						hardwareInfo,
-						"ATV",
+						getTvInputInfoLabel(hardwareInfo.getDeviceId()),
 						null);
 			} catch (Exception e) {
 			}

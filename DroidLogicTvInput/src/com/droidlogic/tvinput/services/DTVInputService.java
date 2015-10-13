@@ -311,7 +311,7 @@ public class DTVInputService extends DroidLogicTvInputService {
 						this,
 						rInfo,
 						hardwareInfo,
-						"DTV",
+						getTvInputInfoLabel(hardwareInfo.getDeviceId()),
 						null);
 			} catch (Exception e) {
 			}

@@ -9,6 +9,7 @@ import com.droidlogic.tv.Utils;
 import android.content.Context;
 import android.media.tv.TvInputInfo;
 import android.net.Uri;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -39,19 +40,15 @@ public class SourceButton extends Button implements OnClickListener{
 
     private void init() {
         ensureValidField(mInputInfo);
+        if (isHidden()) {
+            this.setVisibility(View.GONE);
+            return;
+        }
 
         setText(getLabel());
         setTextAppearance(mContext, R.style.tv_source_button);
         setBackgroundResource(R.drawable.bg_source_bt);
-//        if(mInputInfo.isHidden(mContext)) {
-//            if (getResources().getBoolean(R.bool.source_need_gone)) {
-//                setVisibility(View.GONE);
-//            }else {
-//                setSelected(false);
-//                setFocusable(false);
-//                setClickable(false);
-//            }
-//        }
+
         initDeviceId();
         initSourceType();
         initChannelTuner();
@@ -78,8 +75,15 @@ public class SourceButton extends Button implements OnClickListener{
         return mHardwareDeviceId;
     }
 
-    public String getLabel() {
-        return mInputInfo.loadLabel(mContext).toString();
+    public CharSequence getLabel() {
+        if (!TextUtils.isEmpty(mInputInfo.loadCustomLabel(mContext))) {
+            return mInputInfo.loadCustomLabel(mContext);
+        }
+        return mInputInfo.loadLabel(mContext);
+    }
+
+    private boolean isHidden() {
+        return mInputInfo.isHidden(mContext);
     }
 
     public boolean isHardware() {
