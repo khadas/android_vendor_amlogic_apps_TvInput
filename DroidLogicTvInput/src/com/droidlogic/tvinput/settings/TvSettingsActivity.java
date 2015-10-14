@@ -22,6 +22,7 @@ import android.amlogic.Tv;
 public class TvSettingsActivity extends Activity implements OnClickListener, OnFocusChangeListener {
     private static final String TAG = "MainActivity";
 
+    private TvClient client = TvClient.getTvClient();
     private Tv tv = TvClient.getTvInstance();
 
     private ContentFragment fragmentImage;
@@ -59,6 +60,12 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
         tabChannel.setOnFocusChangeListener(this);
         tabSettings.setOnClickListener(this);
         tabSettings.setOnFocusChangeListener(this);
+
+        if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_HDMI ||
+            client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_AV) {
+            tabChannel.setVisibility(View.GONE);
+            findViewById(R.id.title_channel).setVisibility(View.GONE);
+        }
 
         if (savedInstanceState == null)
             setDefaultFragment();
@@ -134,7 +141,10 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
                 transaction.replace(R.id.settings_list, currentFragment);
                 break;
             case R.id.button_channel:
-                currentFragment = new ContentFragment(R.xml.list_channel, v);
+                if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV)
+                    currentFragment = new ContentFragment(R.xml.list_channel_atv, v);
+                else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV)
+                    currentFragment = new ContentFragment(R.xml.list_channel_dtv, v);
                 transaction.replace(R.id.settings_list, currentFragment);
                 break;
             case R.id.button_settings:

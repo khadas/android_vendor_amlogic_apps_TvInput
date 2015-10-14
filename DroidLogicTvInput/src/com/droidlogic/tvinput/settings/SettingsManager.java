@@ -48,6 +48,9 @@ public class SettingsManager {
     public static final String KEY_CHANNEL                          = "Channel";
     public static final String KEY_CURRENT_CHANNEL                  = "current_channel";
     public static final String KEY_FREQUNCY                         = "frequency";
+    public static final String KEY_AUIDO_TRACK                         = "audio_track";
+    public static final String KEY_SOUND_CHANNEL                        = "sound_channel";
+    public static final String KEY_CHANNEL_INFO                         = "channel_info";
     public static final String KEY_COLOR_SYSTEM                     = "color_system";
     public static final String KEY_SOUND_SYSTEM                     = "sound_system";
     public static final String KEY_VOLUME_COMPENSATE                = "volume_compensate";
@@ -90,6 +93,8 @@ public class SettingsManager {
     public static final int PERCENT_INCREASE                        = 1;
     public static final int PERCENT_DECREASE                        = -1;
 
+    public static final String STRING_NAME               = "name";
+    public static final String STRING_STATUS              = "status";
     public static String currentTag = null;
 
     private Context mContext;
@@ -333,6 +338,10 @@ public class SettingsManager {
             return getCurrentChannelStatus();
         } else if (key.equals(KEY_FREQUNCY)) {
             return getFrequencyStatus();
+        } else if (key.equals(KEY_AUIDO_TRACK)) {
+            return getAudioTrackStatus();
+        } else if (key.equals(KEY_SOUND_CHANNEL)) {
+            return getSoundChannelStatus();
         } else if (key.equals(KEY_COLOR_SYSTEM)) {
             return getColorSystemStatus();
         } else if (key.equals(KEY_SOUND_SYSTEM)) {
@@ -351,6 +360,83 @@ public class SettingsManager {
 
     private String getFrequencyStatus () {
         return null;
+    }
+
+    private String getAudioTrackStatus () {
+        return "audio 1";
+    }
+
+    private String getSoundChannelStatus () {
+        return "channel 1";
+    }
+
+    public ArrayList<HashMap<String,Object>> getChannelInfo () {
+        ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
+
+        HashMap<String,Object> item = new HashMap<String,Object>();
+        item.put(STRING_NAME, "channel");
+        item.put(STRING_STATUS, "2");
+        list.add(item);
+
+        item = new HashMap<String,Object>();
+        item.put(STRING_NAME, "frequency");
+        item.put(STRING_STATUS, "586.0MHz");
+        list.add(item);
+
+        item = new HashMap<String,Object>();
+        item.put(STRING_NAME, "quality");
+        item.put(STRING_STATUS, "18dB");
+        list.add(item);
+
+        item = new HashMap<String,Object>();
+        item.put(STRING_NAME, "strength");
+        item.put(STRING_STATUS, "0%");
+        list.add(item);
+
+        item = new HashMap<String,Object>();
+        item.put(STRING_NAME, "type");
+        item.put(STRING_STATUS, "1");
+        list.add(item);
+
+        item = new HashMap<String,Object>();
+        item.put(STRING_NAME, "service ID");
+        item.put(STRING_STATUS, "83");
+        list.add(item);
+
+        item = new HashMap<String,Object>();
+        item.put(STRING_NAME, "Pcr ID");
+        item.put(STRING_STATUS, "831");
+        list.add(item);
+
+        return list;
+    }
+
+    public ArrayList<HashMap<String,Object>> getAudioTrackList () {
+        ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
+
+        HashMap<String,Object> item = new HashMap<String,Object>();
+        item.put(STRING_NAME, "audio 1");
+        list.add(item);
+
+        item = new HashMap<String,Object>();
+        item.put(STRING_NAME, "audio 2");
+        list.add(item);
+
+        return list;
+    }
+
+    public ArrayList<HashMap<String,Object>> getSoundChannelList () {
+        ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
+
+        HashMap<String,Object> item = new HashMap<String,Object>();
+        item.put(STRING_NAME, "sound channel 1");
+        list.add(item);
+
+        item = new HashMap<String,Object>();
+        item.put(STRING_NAME, "sound channel 2");
+        list.add(item);
+
+        return list;
     }
 
     private String getColorSystemStatus () {
@@ -418,15 +504,15 @@ public class SettingsManager {
         return mSearchedNumber;
     }
 
-    public ArrayList<HashMap<String,Object>> geChannelEditList () {
+    public ArrayList<HashMap<String,Object>> getChannelEditList () {
         ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
 
         HashMap<String,Object> item = new HashMap<String,Object>();
-        item.put("channel_name", "channel 1");
+        item.put(STRING_NAME, "channel 1");
         list.add(item);
 
         item = new HashMap<String,Object>();
-        item.put("channel_name", "channel 2");
+        item.put(STRING_NAME, "channel 2");
         list.add(item);
 
         return list;
