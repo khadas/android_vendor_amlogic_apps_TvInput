@@ -95,14 +95,14 @@ public class TvContractUtils
         resolver.delete(channelsUri, Channels._ID + "!=-1", null);
     }
 
-    public static void insertDtvChannel(Context context, String inputId, ChannelInfo channel)
+    public static void insertDtvChannel(Context context, String inputId, ChannelInfo channel, int channelNumber)
     {
         Uri channelsUri = TvContract.buildChannelsUriForInput(inputId);
         ContentResolver resolver = context.getContentResolver();
         ContentValues values = new ContentValues();
         values.put(Channels.COLUMN_INPUT_ID, inputId);
         Map<Uri, String> logos = new HashMap<Uri, String>();
-        values.put(Channels.COLUMN_DISPLAY_NUMBER, channel.number);
+        values.put(Channels.COLUMN_DISPLAY_NUMBER, channelNumber);
         values.put(Channels.COLUMN_DISPLAY_NAME, channel.name);
         values.put(Channels.COLUMN_ORIGINAL_NETWORK_ID, channel.originalNetworkId);
         values.put(Channels.COLUMN_TRANSPORT_STREAM_ID, channel.transportStreamId);
@@ -147,12 +147,13 @@ public class TvContractUtils
         String[] projection = {Channels._ID, Channels.COLUMN_SERVICE_ID};
 
         Cursor cursor = null;
-
+        int i = 0;// for new channelNumber
         try
         {
             cursor = resolver.query(channelsUri, projection, null, null, null);
             while (cursor != null && cursor.moveToNext())
             {
+                i++;
                 long rowId = cursor.getLong(0);
                 int serviceId = cursor.getInt(1);
                 if (serviceId == channel.serviceId)
@@ -160,7 +161,6 @@ public class TvContractUtils
                     ContentValues values = new ContentValues();
                     values.put(Channels.COLUMN_INPUT_ID, inputId);
                     Map<Uri, String> logos = new HashMap<Uri, String>();
-                    values.put(Channels.COLUMN_DISPLAY_NUMBER, channel.number);
                     values.put(Channels.COLUMN_DISPLAY_NAME, channel.name);
                     values.put(Channels.COLUMN_ORIGINAL_NETWORK_ID, channel.originalNetworkId);
                     values.put(Channels.COLUMN_TRANSPORT_STREAM_ID, channel.transportStreamId);
@@ -212,17 +212,17 @@ public class TvContractUtils
             }
         }
 
-        insertDtvChannel(context, inputId, channel);
+        insertDtvChannel(context, inputId, channel, ++i);
     }
 
-    public static void insertAtvChannel(Context context, String inputId, ChannelInfo channel)
+    public static void insertAtvChannel(Context context, String inputId, ChannelInfo channel, int channelNumber)
     {
         Uri channelsUri = TvContract.buildChannelsUriForInput(inputId);
         ContentResolver resolver = context.getContentResolver();
         ContentValues values = new ContentValues();
         values.put(Channels.COLUMN_INPUT_ID, inputId);
         Map<Uri, String> logos = new HashMap<Uri, String>();
-        values.put(Channels.COLUMN_DISPLAY_NUMBER, channel.number);
+        values.put(Channels.COLUMN_DISPLAY_NUMBER, channelNumber);
         values.put(Channels.COLUMN_DISPLAY_NAME, channel.name);
         values.put(Channels.COLUMN_TYPE, Channels.TYPE_PAL);// TODO: channel.type -> COLUMN_TYPE (PAL/NTSC/SECAM)?
         if (channel.serviceType == 1)
@@ -262,11 +262,13 @@ public class TvContractUtils
         ContentResolver resolver = context.getContentResolver();
         String[] projection = {Channels._ID, Channels.COLUMN_INTERNAL_PROVIDER_DATA};
         Cursor cursor = null;
+        int i = 0;// for new channelNumber
         try
         {
             cursor = resolver.query(channelsUri, projection, null, null, null);
             while (cursor != null && cursor.moveToNext())
             {
+                i++;
                 long rowId = cursor.getLong(0);
                 Map<String, String> parsedMap = parseInternalProviderData(cursor.getString(1));
                 int frequency = Integer.parseInt(parsedMap.get("freq"));
@@ -322,7 +324,42 @@ public class TvContractUtils
                 cursor.close();
             }
         }
-        insertAtvChannel(context, inputId, channel);
+        insertAtvChannel(context, inputId, channel, ++i);
+    }
+
+    public static void swap2channel(Context context, ChannelInfo channel1, ChannelInfo channel2)
+    {
+        ContentResolver resolver = context.getContentResolver();
+        String[] projection = {Channels._ID};
+        Cursor cursor = resolver.query(TvContract.Channels.CONTENT_URI, projection, Channels._ID + "=?", new String[]{channel1.number}, null);
+        long rowId = cursor.getLong(0);
+
+        ContentValues values = new ContentValues();
+        values.put(Channels.COLUMN_DISPLAY_NUMBER, channel2.number);
+        Uri uri = TvContract.buildChannelUri(rowId);
+        resolver.update(uri, values, null, null);
+
+        cursor = resolver.query(TvContract.Channels.CONTENT_URI, projection, Channels._ID + "=?", new String[]{channel2.number}, null);
+        rowId = cursor.getLong(0);
+        ContentValues values2 = new ContentValues();
+        values2.put(Channels.COLUMN_DISPLAY_NUMBER, channel1.number);
+        uri = TvContract.buildChannelUri(rowId);
+        resolver.update(uri, values, null, null);
+
+        cursor.close();
+    }
+
+    public static void changeChannelName(Context context, ChannelInfo channel, String newName) {
+        ContentResolver resolver = context.getContentResolver();
+        String[] projection = {Channels._ID};
+        Cursor cursor = resolver.query(TvContract.Channels.CONTENT_URI, projection, Channels._ID + "=?", new String[]{channel.number}, null);
+        long rowId = cursor.getLong(0);
+
+        ContentValues values = new ContentValues();
+        values.put(Channels.COLUMN_DISPLAY_NAME, newName);
+        Uri uri = TvContract.buildChannelUri(rowId);
+        resolver.update(uri, values, null, null);
+        cursor.close();
     }
 
     private static String getVideoFormat(int videoHeight)

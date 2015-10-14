@@ -99,6 +99,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     private int optionTag = OPTION_PICTURE_MODE;
     private String optionKey = null;
     private int searchedChannelNum = 0;
+    private int channelNumber = 0;//for db store channel's channelNumber
     List<ChannelInfo> mChannels = new ArrayList<ChannelInfo>();
     private int finish_result = DroidLogicTvUtils.RESULT_OK;
     private boolean isSearching = false;
@@ -955,6 +956,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         {
             case Tv.EVENT_DTV_PROG_DATA:
             {
+                channelNumber++;
                 try
                 {
                     String composedName = new String(event.programName);
@@ -970,18 +972,13 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                     name = "????";
                 }
 
-                // collect channels .
-                int number = event.serviceID;
-                if (number == 0)
-                    number = searchedChannelNum;
-
-                ChannelInfo channel = new ChannelInfo(String.valueOf(number), name, null, event.orig_net_id, event.ts_id, event.serviceID, 0, 0,
+                ChannelInfo channel = new ChannelInfo(String.valueOf(channelNumber), name, null, event.orig_net_id, event.ts_id, event.serviceID, 0, 0,
                         event.mode, event.srvType, event.freq, event.bandwidth, event.vid, event.vfmt, event.aids, event.afmts, event.pcr, 0, 0, 0, 0);
 
                 if (isManualSearch)
                     TvContractUtils.updateOrinsertDtvChannel(mContext, mSettingsManager.getInputId(), channel);
                 else
-                    TvContractUtils.insertDtvChannel(mContext, mSettingsManager.getInputId(), channel);
+                    TvContractUtils.insertDtvChannel(mContext, mSettingsManager.getInputId(), channel, channelNumber);
                 Log.d(TAG, "STORE_SERVICE: " + channel.toString());
             }
                 break;
@@ -1016,6 +1013,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
 
             case Tv.EVENT_ATV_PROG_DATA:
             {
+                channelNumber++;
                 ChannelInfo channel = new ChannelInfo("A " + String.valueOf(searchedChannelNum), event.programName, null, 0, 0, 0, 0, 0, 3,
                         event.srvType, event.freq, 0,// bandwidth
                         0,// videoPID
@@ -1024,13 +1022,10 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                         null,// audioFormats[],
                         0,// pcrPID,
                         event.videoStd, event.audioStd, event.isAutoStd, 0);
-//                mChannels.clear();
-//                mChannels.add(channel);
-//                TvContractUtils.updateChannelsATV(mContext, mSettingsManager.getInputId(), mChannels);
                 if (isManualSearch)
                     TvContractUtils.updateOrinsertAtvChannel(mContext, mSettingsManager.getInputId(), channel);
                 else
-                    TvContractUtils.insertAtvChannel(mContext, mSettingsManager.getInputId(), channel);
+                    TvContractUtils.insertAtvChannel(mContext, mSettingsManager.getInputId(), channel, channelNumber);
             }
                 break;
 
