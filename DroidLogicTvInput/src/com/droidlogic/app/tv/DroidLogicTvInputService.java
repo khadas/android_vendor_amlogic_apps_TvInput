@@ -60,7 +60,7 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
     protected void updateInfoListIfNeededLocked(TvInputHardwareInfo hInfo,
             TvInputInfo info, boolean isRemoved) {
         if (isRemoved) {
-            mInfoList.removeAt(hInfo.getDeviceId());
+            mInfoList.remove(hInfo.getDeviceId());
         }else {
             mInfoList.put(hInfo.getDeviceId(), info);
         }
