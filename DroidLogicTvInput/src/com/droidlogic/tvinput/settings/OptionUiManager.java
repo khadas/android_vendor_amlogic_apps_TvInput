@@ -642,6 +642,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                     tv.AtvAutoScan(Tv.atv_video_std_e.ATV_VIDEO_STD_PAL, Tv.atv_audio_std_e.ATV_AUDIO_STD_I, 0);
                 else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV)
                     tv.DtvAutoScan();
+                TvContractUtils.deleteChannels(mContext, mSettingsManager.getInputId());
                 break;
             // ====Settings====
             // Sleep Timer
@@ -977,8 +978,10 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 ChannelInfo channel = new ChannelInfo(String.valueOf(number), name, null, event.orig_net_id, event.ts_id, event.serviceID, 0, 0,
                         event.mode, event.srvType, event.freq, event.bandwidth, event.vid, event.vfmt, event.aids, event.afmts, event.pcr, 0, 0, 0, 0);
 
-                mChannels.add(channel);
-
+                if (isManualSearch)
+                    TvContractUtils.updateOrinsertDtvChannel(mContext, mSettingsManager.getInputId(), channel);
+                else
+                    TvContractUtils.insertDtvChannel(mContext, mSettingsManager.getInputId(), channel);
                 Log.d(TAG, "STORE_SERVICE: " + channel.toString());
             }
                 break;
@@ -1021,9 +1024,13 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                         null,// audioFormats[],
                         0,// pcrPID,
                         event.videoStd, event.audioStd, event.isAutoStd, 0);
-                mChannels.clear();
-                mChannels.add(channel);
-                TvContractUtils.updateChannelsATV(mContext, mSettingsManager.getInputId(), mChannels);
+//                mChannels.clear();
+//                mChannels.add(channel);
+//                TvContractUtils.updateChannelsATV(mContext, mSettingsManager.getInputId(), mChannels);
+                if (isManualSearch)
+                    TvContractUtils.updateOrinsertAtvChannel(mContext, mSettingsManager.getInputId(), channel);
+                else
+                    TvContractUtils.insertAtvChannel(mContext, mSettingsManager.getInputId(), channel);
             }
                 break;
 
@@ -1031,7 +1038,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 Log.d(TAG, "Store end");
                 if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV)
                     // update channels found.
-                    TvContractUtils.updateChannelsDTV(mContext, mSettingsManager.getInputId(), mChannels);
+                    //TvContractUtils.updateChannelsDTV(mContext, mSettingsManager.getInputId(), mChannels);
                 break;
 
             default:
