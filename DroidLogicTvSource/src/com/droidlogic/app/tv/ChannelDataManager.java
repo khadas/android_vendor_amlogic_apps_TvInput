@@ -57,9 +57,15 @@ public class ChannelDataManager {
         mChannelTuners.add(ct);
     }
 
-    private void updateChannelList(Uri uri) {
+    private void changeRowChannel(Uri uri) {
         for (ChannelTuner ct : mChannelTuners) {
-            ct.updateChannelList(uri);
+            ct.changeRowChannel(uri);
+        }
+    }
+
+    private void changeChannels(Uri uri) {
+        for (ChannelTuner ct : mChannelTuners) {
+            ct.changeChannels(uri);
         }
     }
 
@@ -68,9 +74,10 @@ public class ChannelDataManager {
             Log.d(TAG, "==== uri =" + uri);
         switch (sUriMatcher.match(uri)) {
             case MATCH_CHANNEL:
+                changeChannels(uri);
                 break;
             case MATCH_CHANNEL_ID:
-                updateChannelList(uri);
+                changeRowChannel(uri);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown URI " + uri);

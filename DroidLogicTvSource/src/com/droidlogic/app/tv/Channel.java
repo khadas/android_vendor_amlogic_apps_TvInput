@@ -4,7 +4,6 @@ import android.database.Cursor;
 import android.media.tv.TvContract;
 import android.media.tv.TvContract.Channels;
 import android.net.Uri;
-import android.text.TextUtils;
 
 public class Channel {
     public static final String[] PROJECTION = {
@@ -12,6 +11,7 @@ public class Channel {
         Channels.COLUMN_INPUT_ID,
         Channels.COLUMN_TYPE,
         Channels.COLUMN_SERVICE_TYPE,
+        Channels.COLUMN_SERVICE_ID,
         Channels.COLUMN_DISPLAY_NUMBER,
         Channels.COLUMN_DISPLAY_NAME,
         Channels.COLUMN_VIDEO_FORMAT,
@@ -22,6 +22,7 @@ public class Channel {
     private String mInputId;
     private String mType;
     private String mServiceType;
+    private int mServiceId;
     private String mDisplayNumber;
     private String mDisplayName;
     private String mVideoFormat;
@@ -56,6 +57,9 @@ public class Channel {
         index = cursor.getColumnIndex(Channels.COLUMN_SERVICE_TYPE);
         if (index >= 0)
             builder.setServiceType(cursor.getString(index));
+        index = cursor.getColumnIndex(Channels.COLUMN_SERVICE_ID);
+        if (index >= 0)
+            builder.setServiceId(cursor.getInt(index));
         index = cursor.getColumnIndex(Channels.COLUMN_DISPLAY_NUMBER);
         if (index >= 0)
             builder.setDisplayNumber(cursor.getString(index));
@@ -76,21 +80,6 @@ public class Channel {
         return builder.build();
     }
 
-    public boolean equals(Object obj) {
-        if (!(obj instanceof Channel))
-            return false;
-
-        boolean ret = false;
-        Channel channel = (Channel)obj;
-
-        if (TextUtils.equals(this.mInputId, channel.getInputId())
-                && this.mIsPassthrough
-                && channel.isPassthrough()) {
-            ret = true;
-        }
-        return ret;
-    }
-
     public long getId() {
         return this.mId;
     }
@@ -105,6 +94,10 @@ public class Channel {
 
     public String getServiceType() {
         return this.mServiceType;
+    }
+
+    public int getServiceId() {
+        return this.mServiceId;
     }
 
     public String getDisplayNumber() {
@@ -150,6 +143,38 @@ public class Channel {
         this.mDisplayName = name;
     }
 
+    public void copyFrom(Channel channel) {
+        if (this == channel)
+            return;
+        this.mId = channel.mId;
+        this.mInputId = channel.mInputId;
+        this.mType = channel.mType;
+        this.mServiceType = channel.mServiceType;
+        this.mServiceId = channel.mServiceId;
+        this.mDisplayNumber = channel.mDisplayNumber;
+        this.mDisplayName = channel.mDisplayName;
+        this.mVideoFormat = channel.mVideoFormat;
+        this.mBrowsable = channel.mBrowsable;
+        this.mLocked = channel.mLocked;
+        this.mIsPassthrough = channel.mIsPassthrough;
+    }
+
+    /**
+     * {@link Channels.COLUMN_SERVICE_ID} must be equal
+     */
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Channel))
+            return false;
+
+        boolean ret = false;
+        Channel channel = (Channel)obj;
+
+        if (this.mServiceId == channel.mServiceId) {
+            ret = true;
+        }
+        return ret;
+    }
+
     public static final class Builder {
         private final Channel mChannel = new Channel();
 
@@ -182,6 +207,11 @@ public class Channel {
 
         public Builder setServiceType(String type) {
             mChannel.mServiceType = type;
+            return this;
+        }
+
+        public Builder setServiceId(int id) {
+            mChannel.mServiceId = id;
             return this;
         }
 
