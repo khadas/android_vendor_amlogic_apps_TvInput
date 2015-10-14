@@ -204,7 +204,8 @@ public class DTVInputService extends DroidLogicTvInputService {
 			if (info.type == TVChannelParams.MODE_DTMB)
 				mTv.PlayDTVProgram(info.type, info.frequency, info.bandwidth, 0,
 						info.videoPID, info.videoFormat,
-						info.audioPIDs[0], info.audioFormats[0],
+						(info.audioPIDs != null)? info.audioPIDs[0] : -1,
+						(info.audioFormats != null)? info.audioFormats[0] : -1,
 						info.pcrPID);
 			else
 				Log.d(TAG, "channel type["+info.type+"] not supported yet.");
