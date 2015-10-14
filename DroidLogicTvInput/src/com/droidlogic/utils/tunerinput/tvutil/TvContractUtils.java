@@ -97,6 +97,7 @@ public class TvContractUtils
 
     public static void insertDtvChannel(Context context, String inputId, ChannelInfo channel, int channelNumber)
     {
+        Log.d("fuhao", "insert channelNumber = " + channelNumber);
         Uri channelsUri = TvContract.buildChannelsUriForInput(inputId);
         ContentResolver resolver = context.getContentResolver();
         ContentValues values = new ContentValues();
@@ -147,13 +148,19 @@ public class TvContractUtils
         String[] projection = {Channels._ID, Channels.COLUMN_SERVICE_ID};
 
         Cursor cursor = null;
-        int i = 0;// for new channelNumber
         try
         {
-            cursor = resolver.query(channelsUri, projection, null, null, null);
+            String srvType = "";
+            if (channel.serviceType == 1)
+                srvType = Channels.SERVICE_TYPE_AUDIO_VIDEO;
+            else if (channel.serviceType == 2)
+                srvType = Channels.SERVICE_TYPE_AUDIO;
+            else
+                srvType = Channels.SERVICE_TYPE_OTHER;
+            cursor = resolver.query(channelsUri, projection, Channels.COLUMN_SERVICE_TYPE + "=?", new String[]{srvType}, null);
+            Log.d("fuhao", "channel.serviceType = " + channel.serviceType + ",cursor.moveToNext() = " + cursor.moveToNext());
             while (cursor != null && cursor.moveToNext())
             {
-                i++;
                 long rowId = cursor.getLong(0);
                 int serviceId = cursor.getInt(1);
                 if (serviceId == channel.serviceId)
@@ -196,6 +203,7 @@ public class TvContractUtils
                     {
                         new InsertLogosTask(context).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, logos);
                     }
+                    cursor.close();
                     return;
                 }
             }
@@ -204,15 +212,8 @@ public class TvContractUtils
         {
             // TODO: handle exception
         }
-        finally
-        {
-            if (cursor != null)
-            {
-                cursor.close();
-            }
-        }
-
-        insertDtvChannel(context, inputId, channel, ++i);
+        insertDtvChannel(context, inputId, channel, cursor.getCount());
+        cursor.close();
     }
 
     public static void insertAtvChannel(Context context, String inputId, ChannelInfo channel, int channelNumber)
@@ -262,13 +263,11 @@ public class TvContractUtils
         ContentResolver resolver = context.getContentResolver();
         String[] projection = {Channels._ID, Channels.COLUMN_INTERNAL_PROVIDER_DATA};
         Cursor cursor = null;
-        int i = 0;// for new channelNumber
         try
         {
             cursor = resolver.query(channelsUri, projection, null, null, null);
             while (cursor != null && cursor.moveToNext())
             {
-                i++;
                 long rowId = cursor.getLong(0);
                 Map<String, String> parsedMap = parseInternalProviderData(cursor.getString(1));
                 int frequency = Integer.parseInt(parsedMap.get("freq"));
@@ -309,6 +308,7 @@ public class TvContractUtils
                     {
                         new InsertLogosTask(context).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, logos);
                     }
+                    cursor.close();
                     return;
                 }
             }
@@ -317,21 +317,16 @@ public class TvContractUtils
         {
 
         }
-        finally
-        {
-            if (cursor != null)
-            {
-                cursor.close();
-            }
-        }
-        insertAtvChannel(context, inputId, channel, ++i);
+        insertAtvChannel(context, inputId, channel, cursor.getCount());
+        cursor.close();
     }
 
-    public static void swap2channel(Context context, ChannelInfo channel1, ChannelInfo channel2)
+    public static void swap2channel(Context context, String inputId, ChannelInfo channel1, ChannelInfo channel2)
     {
+        Uri channelsUri = TvContract.buildChannelsUriForInput(inputId);
         ContentResolver resolver = context.getContentResolver();
         String[] projection = {Channels._ID};
-        Cursor cursor = resolver.query(TvContract.Channels.CONTENT_URI, projection, Channels._ID + "=?", new String[]{channel1.number}, null);
+        Cursor cursor = resolver.query(channelsUri, projection, Channels.COLUMN_DISPLAY_NUMBER + "=?", new String[]{channel1.number}, null);
         long rowId = cursor.getLong(0);
 
         ContentValues values = new ContentValues();
@@ -339,7 +334,7 @@ public class TvContractUtils
         Uri uri = TvContract.buildChannelUri(rowId);
         resolver.update(uri, values, null, null);
 
-        cursor = resolver.query(TvContract.Channels.CONTENT_URI, projection, Channels._ID + "=?", new String[]{channel2.number}, null);
+        cursor = resolver.query(TvContract.Channels.CONTENT_URI, projection, Channels.COLUMN_DISPLAY_NUMBER + "=?", new String[]{channel2.number}, null);
         rowId = cursor.getLong(0);
         ContentValues values2 = new ContentValues();
         values2.put(Channels.COLUMN_DISPLAY_NUMBER, channel1.number);
@@ -352,7 +347,7 @@ public class TvContractUtils
     public static void changeChannelName(Context context, ChannelInfo channel, String newName) {
         ContentResolver resolver = context.getContentResolver();
         String[] projection = {Channels._ID};
-        Cursor cursor = resolver.query(TvContract.Channels.CONTENT_URI, projection, Channels._ID + "=?", new String[]{channel.number}, null);
+        Cursor cursor = resolver.query(TvContract.Channels.CONTENT_URI, projection, Channels.COLUMN_DISPLAY_NUMBER + "=?", new String[]{channel.number}, null);
         long rowId = cursor.getLong(0);
 
         ContentValues values = new ContentValues();

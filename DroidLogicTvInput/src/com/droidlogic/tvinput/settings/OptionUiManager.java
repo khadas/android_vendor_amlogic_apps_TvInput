@@ -99,7 +99,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     private int optionTag = OPTION_PICTURE_MODE;
     private String optionKey = null;
     private int searchedChannelNum = 0;
-    private int channelNumber = 0;//for db store channel's channelNumber
+    private int channelNumber = -1;//for db store TV channel's channelNumber
+    private int radioNumber = -1;//for db store Radio channel's channelNumber
     List<ChannelInfo> mChannels = new ArrayList<ChannelInfo>();
     private int finish_result = DroidLogicTvUtils.RESULT_OK;
     private boolean isSearching = false;
@@ -956,7 +957,6 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         {
             case Tv.EVENT_DTV_PROG_DATA:
             {
-                channelNumber++;
                 try
                 {
                     String composedName = new String(event.programName);
@@ -977,8 +977,16 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
 
                 if (isManualSearch)
                     TvContractUtils.updateOrinsertDtvChannel(mContext, mSettingsManager.getInputId(), channel);
-                else
-                    TvContractUtils.insertDtvChannel(mContext, mSettingsManager.getInputId(), channel, channelNumber);
+                else {
+                    if (event.srvType == 1) {
+                        channelNumber++;
+                        TvContractUtils.insertDtvChannel(mContext, mSettingsManager.getInputId(), channel, channelNumber);
+                    }
+                    else {
+                        radioNumber++;
+                        TvContractUtils.insertDtvChannel(mContext, mSettingsManager.getInputId(), channel, radioNumber);
+                    }
+                }
                 Log.d(TAG, "STORE_SERVICE: " + channel.toString());
             }
                 break;
