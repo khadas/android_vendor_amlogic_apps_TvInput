@@ -422,12 +422,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         tv_number = (TextView) findViewById(R.id.ad_info_number);
         tv_val = (TextView) findViewById(R.id.ad_info_value);
         tv_name.setText(mSourceInput.getLabel());
-        int number = mSourceInput.getChannelId();
-        if (number < 0) {
-            tv_number.setText("");
-        } else {
-            tv_number.setText(Integer.toString(mSourceInput.getChannelId()));
-        }
+        tv_number.setText(mSourceInput.getChannelNumber());
         tv_val.setText(mSourceInput.getChannelType());
     }
 
@@ -447,12 +442,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         } else {
             tv_name.setText(mSourceInput.getLabel());
         }
-        int number = mSourceInput.getChannelId();
-        if (number < 0) {
-            tv_number.setText("");
-        } else {
-            tv_number.setText(Integer.toString(mSourceInput.getChannelId()));
-        }
+        tv_number.setText(mSourceInput.getChannelNumber());
         tv_val.setText(mSourceInput.getChannelName());
     }
 

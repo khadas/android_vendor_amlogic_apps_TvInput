@@ -1,8 +1,5 @@
 package com.droidlogic.app.tv;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
@@ -12,6 +9,7 @@ import android.media.tv.TvInputInfo;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.SparseArray;
 
 public class ChannelTuner {
     private static final String TAG = "ChannelTuner";
@@ -20,8 +18,8 @@ public class ChannelTuner {
     private final String mInputId;
     private int mSourceType;
 
-    private List<Channel> mVideoChannels = new ArrayList<Channel>();
-    private List<Channel> mRadioChannels = new ArrayList<Channel>();
+    private SparseArray<Channel> mVideoChannels = new SparseArray<>();
+    private SparseArray<Channel> mRadioChannels = new SparseArray<>();
 
     private Channel mCurrentChannel;
     private static final int DEFAULT_CHANNEL_IDDEX = -1;
@@ -70,9 +68,9 @@ public class ChannelTuner {
     public void initChannelList(int source_type) {
         mSourceType = source_type;
         if (isPassthrough()) {
-            mVideoChannels.add(Channel.createPassthroughChannel(mInputId));
-            mCurrentChannel = mVideoChannels.get(0);
             mCurrentChannelIndex = 0;
+            mCurrentChannel = Channel.createPassthroughChannel(mInputId);
+            mVideoChannels.put(mCurrentChannelIndex, mCurrentChannel);
         } else {
             Cursor cursor = null;
             ContentResolver resolver = mContext.getContentResolver();
@@ -84,14 +82,14 @@ public class ChannelTuner {
                 while (cursor != null && cursor.moveToNext()) {
                     Channel channel = Channel.fromCursor(cursor);
                     if (isDTVChannel() && isRadioChannel(channel)) {
-                        mRadioChannels.add(channel);
+                        mRadioChannels.put(channel.getChannelNumber(), channel);
                     } else if (isVideoChannel(channel)) {
-                        mVideoChannels.add(channel);
+                        mVideoChannels.put(channel.getChannelNumber(), channel);
                     }
                 }
                 if (mVideoChannels.size() > 0) {
-                    mCurrentChannel = mVideoChannels.get(0);
                     mCurrentChannelIndex = 0;
+                    mCurrentChannel = mVideoChannels.valueAt(mCurrentChannelIndex);
                 }
             } finally {
                 if (cursor != null)
@@ -110,32 +108,32 @@ public class ChannelTuner {
             if (isRadioChannel() && mRadioChannels.size() > 0) {
                 if (mCurrentChannelIndex == -1) {
                     mCurrentChannelIndex = 0;
-                    mCurrentChannel = mRadioChannels.get(mCurrentChannelIndex);
+                    mCurrentChannel = mRadioChannels.valueAt(mCurrentChannelIndex);
                 } else if (mCurrentChannelIndex <= mRadioChannels.size()) {
-                    mCurrentChannel = mRadioChannels.get(mCurrentChannelIndex);
+                    mCurrentChannel = mRadioChannels.valueAt(mCurrentChannelIndex);
                 } else {
                     mCurrentChannelIndex = mRadioChannels.size() - 1;
-                    mCurrentChannel = mRadioChannels.get(mCurrentChannelIndex);
+                    mCurrentChannel = mRadioChannels.valueAt(mCurrentChannelIndex);
                 }
             } else if (mVideoChannels.size() > 0){
                 if (mCurrentChannelIndex == -1) {
                     mCurrentChannelIndex = 0;
-                    mCurrentChannel = mVideoChannels.get(mCurrentChannelIndex);
+                    mCurrentChannel = mVideoChannels.valueAt(mCurrentChannelIndex);
                 } else if (mCurrentChannelIndex <= mVideoChannels.size()-1) {
-                    mCurrentChannel = mVideoChannels.get(mCurrentChannelIndex);
+                    mCurrentChannel = mVideoChannels.valueAt(mCurrentChannelIndex);
                 } else {
                     mCurrentChannelIndex = mVideoChannels.size() - 1;
-                    mCurrentChannel = mVideoChannels.get(mCurrentChannelIndex);
+                    mCurrentChannel = mVideoChannels.valueAt(mCurrentChannelIndex);
                 }
             } else {
                 mCurrentChannel = null;
                 mCurrentChannelIndex = -1;
             }
         } else if (isRadioChannel(channel)) {
-            mCurrentChannelIndex = mRadioChannels.indexOf(channel);
+            mCurrentChannelIndex = mRadioChannels.indexOfValue(channel);
             mCurrentChannel = channel;
         } else if (isVideoChannel(channel)) {
-            mCurrentChannelIndex = mVideoChannels.indexOf(channel);
+            mCurrentChannelIndex = mVideoChannels.indexOfValue(channel);
             mCurrentChannel = channel;
         } else {
             //service type is other.
@@ -144,23 +142,22 @@ public class ChannelTuner {
 
     private void deleteRowChannel(long id) {
         if (isDTVChannel()) {
-            for (Channel c : mRadioChannels) {
-                if (c.getId() == id) {
-                    mRadioChannels.remove(c);
+            for (int i=0; i<mRadioChannels.size(); i++) {
+                if (mRadioChannels.valueAt(i).getId() == id) {
+                    mRadioChannels.removeAt(i);
                     return;
                 }
             }
         }
-        for (Channel c : mVideoChannels) {
-            if (c.getId() == id) {
-                mVideoChannels.remove(c);
+        for (int i=0; i<mVideoChannels.size(); i++) {
+            if (mVideoChannels.valueAt(i).getId() == id) {
+                mVideoChannels.removeAt(i);
                 return;
             }
         }
     }
 
     public void changeRowChannel(Uri uri) {
-        Log.d(TAG, "==== changeRowChannel inputId = " + mInputId);
         if (isPassthrough()) 
             return;
 
@@ -181,30 +178,26 @@ public class ChannelTuner {
             if (cursor != null)
                 cursor.close();
         }
-        Log.d(TAG, "==== channel inputId = " + channel.getInputId()
-                + ", service_id = " + channel.getServiceId());
         if (!TextUtils.equals(mInputId, channel.getInputId()))
             return;
+        Log.d(TAG, "==== channel inputId = " + channel.getInputId()
+                + ", service_id = " + channel.getServiceId());
         if (isDTVChannel() && isRadioChannel(channel)) {
-            for (Channel c : mRadioChannels) {
-                if (c.equals(channel)) {
-                    c.copyFrom(channel);
-                    updateCurrentChannel(channel);
-                    return;
+            for (int i=0; i<mRadioChannels.size(); i++) {
+                if (channel.equals(mRadioChannels.valueAt(i))) {
+                    break;
                 }
             }
-            mRadioChannels.add(channel);
+            mRadioChannels.put(channel.getChannelNumber(), channel);
             updateCurrentChannel(channel);
             return;
         } else if (isVideoChannel(channel)) {
-            for (Channel c : mVideoChannels) {
-                if (c.equals(channel)) {
-                    c.copyFrom(channel);
-                    updateCurrentChannel(channel);
-                    return;
+            for (int i=0; i<mRadioChannels.size(); i++) {
+                if (channel.equals(mRadioChannels.valueAt(i))) {
+                    break;
                 }
             }
-            mVideoChannels.add(channel);
+            mVideoChannels.put(channel.getChannelNumber(), channel);
             updateCurrentChannel(channel);
         } else {
             //channel's service type is other.
@@ -230,14 +223,14 @@ public class ChannelTuner {
             while (cursor != null && cursor.moveToNext()) {
                 Channel channel = Channel.fromCursor(cursor);
                 if (isDTVChannel() && isRadioChannel(channel)) {
-                    mRadioChannels.add(channel);
+                    mRadioChannels.put(channel.getChannelNumber(), channel);
                 } else if (isVideoChannel(channel)) {
-                    mVideoChannels.add(channel);
+                    mVideoChannels.put(channel.getChannelNumber(), channel);
                 }
             }
             if (mVideoChannels.size() > 0) {
-                mCurrentChannel = mVideoChannels.get(0);
                 mCurrentChannelIndex = 0;
+                mCurrentChannel = mVideoChannels.valueAt(mCurrentChannelIndex);
             }
         } finally {
             if (cursor != null)
@@ -253,20 +246,17 @@ public class ChannelTuner {
     }
 
     public void moveToChannel(int index, boolean isRadio) {
-        if (isPassthrough() || mVideoChannels.size() <= 0)
+        if (isPassthrough())
             return;
 
-        List<Channel> temp = new ArrayList<Channel>();
-        if (isDTVChannel() && isRadio) {
-            temp.addAll(mRadioChannels);
-        } else {
-            temp.addAll(mVideoChannels);
-        }
-        if (index < 0 || index >= temp.size()) {
+        int total_size = 0;
+        total_size = isRadio ? mRadioChannels.size() : mVideoChannels.size();
+        if (index < 0 || index >= total_size) {
+            mCurrentChannelIndex = DEFAULT_CHANNEL_IDDEX;
             mCurrentChannel = null;
         } else {
             mCurrentChannelIndex = index;
-            mCurrentChannel = temp.get(mCurrentChannelIndex);
+            mCurrentChannel = isRadio ? mRadioChannels.valueAt(index) : mVideoChannels.valueAt(index);
         }
     }
 
@@ -276,23 +266,19 @@ public class ChannelTuner {
      * {@code false} means {@link KeyEvent.KEYCODE_CHANNEL_DOWN}
      */
     public void moveToChannel(boolean flag) {
-        if (isPassthrough() || mVideoChannels.size() <= 0)
+        if (isPassthrough())
             return;
 
-        List<Channel> temp = new ArrayList<Channel>();
-        if (isDTVChannel() && isRadioChannel()) {
-            temp.addAll(mRadioChannels);
-        } else {
-            temp.addAll(mVideoChannels);
-        }
+        int total_size = isRadioChannel() ? mRadioChannels.size() : mVideoChannels.size();
         int step = flag ? 1 : -1;
         mCurrentChannelIndex += step;
         if (mCurrentChannelIndex < 0) {
-            mCurrentChannelIndex = temp.size() - 1;
-        }else if (mCurrentChannelIndex >= temp.size()) {
+            mCurrentChannelIndex = total_size - 1;
+        }else if (mCurrentChannelIndex >= total_size) {
             mCurrentChannelIndex = 0;
         }
-        mCurrentChannel = temp.get(mCurrentChannelIndex);
+        mCurrentChannel = isRadioChannel() ? mRadioChannels.valueAt(mCurrentChannelIndex)
+                : mVideoChannels.valueAt(mCurrentChannelIndex);
     }
 
     public Uri getUri() {
