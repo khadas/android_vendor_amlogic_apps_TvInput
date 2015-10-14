@@ -82,7 +82,16 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
     }
 
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        Log.d(TAG, "@@@@@@@@@ focus=" + getCurrentFocus());
+        Log.d(TAG, "==== focus =" + getCurrentFocus() + ", keycode =" + keyCode);
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_BACK:
+                if (mOptionUiManager.isSearching()) {
+                    tv.DtvStopScan();
+                }
+                return true;
+            default:
+                break;
+        }
         return super.onKeyDown(keyCode, event);
     }
 
@@ -169,19 +178,14 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
         return mOptionUiManager;
     }
 
-    public void finish()
-    {
-        // TODO Auto-generated method stub
+    @Override
+    public void finish() {
         setResult(mOptionUiManager.getFinishResult());
         super.finish();
     }
 
     public void onStop()
     {
-        // TODO Auto-generated method stub
-        if (mOptionUiManager.isSearching()) {
-            tv.DtvStopScan();
-        }
         super.onStop();
     }
 }

@@ -1036,19 +1036,20 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
 
             case Tv.EVENT_STORE_END:
                 Log.d(TAG, "Store end");
-                if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV)
-                    // update channels found.
-                    //TvContractUtils.updateChannelsDTV(mContext, mSettingsManager.getInputId(), mChannels);
+                ((TvSettingsActivity) mContext).finish();
                 break;
-
+            case Tv.EVENT_SCAN_END:
+                Log.d(TAG, "Scan end");
+                tv.DtvStopScan();
+                break;
+            case Tv.EVENT_SCAN_EXIT:
+                Log.d(TAG, "Scan exit.");
+                if (searchedChannelNum == 0) {
+                    ((TvSettingsActivity) mContext).finish();
+                }
+                break;
             default:
                 break;
-        }
-
-        if (event.precent == 100)
-        {
-            int success = tv.DtvStopScan();
-            ((TvSettingsActivity) mContext).finish();
         }
     }
 
