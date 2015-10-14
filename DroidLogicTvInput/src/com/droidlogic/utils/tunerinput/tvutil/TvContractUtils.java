@@ -393,18 +393,27 @@ public class TvContractUtils
                 Map<String, String> parsedMap = parseInternalProviderData(cursor.getString(5));
                 String[] aidStrings = parsedMap.get("aids").replace("[", "").replace("]", "").split(", ");
                 String[] afmtStrings = parsedMap.get("afmts").replace("[", "").replace("]", "").split(", ");
-                int number = cursor.getInt(6);
-                int[] aids = new int[aidStrings.length];
-                int[] afmts = new int[afmtStrings.length];
-                for (int i = 0; i < aidStrings.length; i++)
-                {
-                    aids[i] = Integer.parseInt(aidStrings[i]);
-                    afmts[i] = Integer.parseInt(afmtStrings[i]);
+                int anum = (aidStrings[0].compareTo("null") == 0)? 0 : aidStrings.length;
+                int[] aids = null;
+                int[] afmts = null;
+                if (anum > 0) {
+                    aids = new int[anum];
+                    afmts = new int[afmtStrings.length];
+                    for (int i=0; i<aidStrings.length; i++) {
+                        aids[i] = Integer.parseInt(aidStrings[i]);
+                        afmts[i] = Integer.parseInt(afmtStrings[i]);
+                    }
                 }
+                int number = cursor.getInt(6);
                 info = new ChannelInfo(String.valueOf(number), name, null, originalNetworkId, transportStreamId, serviceId, 0, 0,
-                        getChannelType(cursor.getString(7)), Integer.parseInt(parsedMap.get("type")), Integer.parseInt(parsedMap.get("freq")),
-                        Integer.parseInt(parsedMap.get("bw")), Integer.parseInt(parsedMap.get("vid")), Integer.parseInt(parsedMap.get("vfmt")), aids,
-                        afmts, Integer.parseInt(parsedMap.get("pcr")), 0, 0, 0, 0);
+                            getChannelType(cursor.getString(7)),
+                            Integer.parseInt(parsedMap.get("type")),
+                            Integer.parseInt(parsedMap.get("freq")), Integer.parseInt(parsedMap.get("bw")),
+                            Integer.parseInt(parsedMap.get("vid")), Integer.parseInt(parsedMap.get("vfmt")),
+                            aids, afmts,
+                            Integer.parseInt(parsedMap.get("pcr")),
+                            0,0,0,0
+                            );
             }
         }
         catch (Exception e)
