@@ -87,8 +87,9 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
             case KeyEvent.KEYCODE_BACK:
                 if (mOptionUiManager.isSearching()) {
                     tv.DtvStopScan();
+                    return true;
                 }
-                return true;
+                break;
             default:
                 break;
         }
