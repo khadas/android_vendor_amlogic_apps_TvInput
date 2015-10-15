@@ -48,30 +48,39 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
     public boolean dispatchKeyEvent (KeyEvent event) {
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             OptionUiManager oum = ((TvSettingsActivity)mContext).getOptionUiManager();
-            if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP) {
-                String currentTag = ((TvSettingsActivity)mContext).getSettingsManager().getTag();
-                if (selectedPosition == 0
-                    || (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV
-                        && currentTag.equals(SettingsManager.KEY_CHANNEL) && selectedPosition == 2))
-                    return true;
+            switch (event.getKeyCode()) {
+                case KeyEvent.KEYCODE_DPAD_UP:
+                    String currentTag = ((TvSettingsActivity)mContext).getSettingsManager().getTag();
+                    if (selectedPosition == 0
+                        || (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV
+                            && currentTag.equals(SettingsManager.KEY_CHANNEL) && selectedPosition == 2))
+                        return true;
 
-                oum.stopAllAction();
-            } else if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN) {
-                if (selectedPosition == getChildCount() -1)
-                    return true;
-                oum.stopAllAction();
-            }else if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT) {
-                selectedPosition = 0;
-                oum.stopAllAction();
-            } else if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT) {
-                setMenuAlpha(false);
+                    oum.stopAllAction();
+                    break;
+                case KeyEvent.KEYCODE_DPAD_DOWN:
+                    if (selectedPosition == getChildCount() -1)
+                        return true;
+                    oum.stopAllAction();
+                    break;
+                case KeyEvent.KEYCODE_DPAD_LEFT:
+                    selectedPosition = 0;
+                    oum.stopAllAction();
+                    break;
+                case KeyEvent.KEYCODE_DPAD_RIGHT:
+                    setMenuAlpha(false);
+                    break;
             }
 
-            View selectedView = getSelectedView();
-            if ( selectedView != null
-                && !(event.getKeyCode() == KeyEvent.KEYCODE_DPAD_CENTER
-                    || event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
-                setItemTextColor(selectedView, false);
+            switch (event.getKeyCode()) {
+                case KeyEvent.KEYCODE_DPAD_UP:
+                case KeyEvent.KEYCODE_DPAD_DOWN:
+                case KeyEvent.KEYCODE_DPAD_LEFT:
+                case KeyEvent.KEYCODE_DPAD_RIGHT:
+                    View selectedView = getSelectedView();
+                    if ( selectedView != null)
+                        setItemTextColor(selectedView, false);
+                    break;
             }
         }
 

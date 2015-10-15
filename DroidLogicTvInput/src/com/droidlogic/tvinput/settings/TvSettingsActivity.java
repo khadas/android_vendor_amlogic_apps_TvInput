@@ -81,6 +81,24 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
         transaction.commit();
     }
 
+    public boolean dispatchKeyEvent (KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            switch (event.getKeyCode()) {
+                case KeyEvent.KEYCODE_DPAD_UP:
+                case KeyEvent.KEYCODE_DPAD_DOWN:
+                case KeyEvent.KEYCODE_DPAD_LEFT:
+                case KeyEvent.KEYCODE_DPAD_RIGHT:
+                case KeyEvent.KEYCODE_DPAD_CENTER:
+                case KeyEvent.KEYCODE_ENTER:
+                    if (mOptionUiManager.isSearching())
+                        return true;
+                    break;
+            }
+        }
+
+        return super.dispatchKeyEvent(event);
+    }
+
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         Log.d(TAG, "==== focus =" + getCurrentFocus() + ", keycode =" + keyCode);
         switch (keyCode) {
