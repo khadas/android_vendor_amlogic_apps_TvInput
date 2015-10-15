@@ -104,6 +104,10 @@ public class Channel {
         return this.mDisplayNumber;
     }
 
+    public int getChannelNumber() {
+        return Integer.parseInt(mDisplayNumber);
+    }
+
     public String getDisplayName() {
         return this.mDisplayName;
     }
