@@ -5,12 +5,12 @@
     android:orientation="vertical"
     >
     <TextView
+        android:id="@+id/option_title"
         android:layout_width="262dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="43dp"
         android:layout_marginLeft="31dp"
         android:paddingLeft="15dp"
-        android:text="@string/audio_track"
         android:textSize="27sp"
         android:textColor="@color/color_text_item"
         />

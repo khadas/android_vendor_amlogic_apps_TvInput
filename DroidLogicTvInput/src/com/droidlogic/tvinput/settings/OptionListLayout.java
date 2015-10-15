@@ -24,9 +24,6 @@ public class OptionListLayout {
     private SettingsManager mSettingsManager;
     private int mTag = -1;
     private View optionView = null;
-    private OptionListView optionListView;
-    SimpleAdapter optionAdapter;
-    ArrayList<HashMap<String,Object>> optionListData;
 
     public OptionListLayout (Context context, View view, int tag) {
         mContext = context;
@@ -38,10 +35,14 @@ public class OptionListLayout {
     }
 
     private void initOptionListView () {
-        optionListView = (OptionListView)optionView.findViewById(R.id.option_list);
+        SimpleAdapter optionAdapter = null;
+        ArrayList<HashMap<String,Object>> optionListData = null;
+        TextView title = (TextView)optionView.findViewById(R.id.option_title);
+        OptionListView optionListView = (OptionListView)optionView.findViewById(R.id.option_list);
 
         switch (mTag) {
             case OptionUiManager.OPTION_CHANNEL_INFO:
+                title.setText(mContext.getResources().getString(R.string.channel_info));
                 optionListData = ((TvSettingsActivity)mContext).getSettingsManager().getChannelInfo();
                 optionAdapter = new SimpleAdapter(mContext, optionListData,
                     R.layout.layout_option_double_text,
@@ -49,24 +50,21 @@ public class OptionListLayout {
                     new int[] {R.id.text_name, R.id.text_status});
                 break;
             case OptionUiManager.OPTION_AUDIO_TRACK:
+                title.setText(mContext.getResources().getString(R.string.audio_track));
                 optionListData = ((TvSettingsActivity)mContext).getSettingsManager().getAudioTrackList();
                 optionAdapter = new SimpleAdapter(mContext, optionListData,
                     R.layout.layout_option_single_text,
                     new String[]{SettingsManager.STRING_NAME}, new int[]{R.id.text_name});
                 break;
             case OptionUiManager.OPTION_SOUND_CHANNEL:
+                title.setText(mContext.getResources().getString(R.string.sound_channel));
                 optionListData = ((TvSettingsActivity)mContext).getSettingsManager().getSoundChannelList();
                 optionAdapter = new SimpleAdapter(mContext, optionListData,
                     R.layout.layout_option_single_text,
                     new String[]{SettingsManager.STRING_NAME}, new int[]{R.id.text_name});
                 break;
         }
-        optionListView.setAdapter(optionAdapter);
-        optionListView.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick (AdapterView<?> parent, View view, int position, long id) {
-
-            }
-        });
+        if (optionAdapter != null)
+            optionListView.setAdapter(optionAdapter);
     }
 }

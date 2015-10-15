@@ -85,9 +85,9 @@ public class OptionListView extends ListView implements OnItemSelectedListener {
             return;
 
         if (gainFocus) {
-            setItemTextColor(getChildAt(selectedPosition), true);
+            setItemTextColor(item, true);
         } else {
-            setItemTextColor(getChildAt(selectedPosition), false);
+            setItemTextColor(item, false);
         }
     }
 
