@@ -9,6 +9,7 @@ public final class ChannelInfo {
 	public final String logoUrl;
 	public final int originalNetworkId;
 	public final int transportStreamId;
+	public final String inputId;
 	public final int serviceId;
 	public final int videoWidth;
 	public final int videoHeight;
@@ -27,7 +28,7 @@ public final class ChannelInfo {
 	public final int fineTune;
 
 	public ChannelInfo(String number, String name, String logoUrl, int originalNetworkId,
-						int transportStreamId, int serviceId, int videoWidth, int videoHeight,
+						int transportStreamId, String inputId, int serviceId, int videoWidth, int videoHeight,
 						int type,
 						int serviceType, int frequency, int bandwidth,
 						int videoPID, int videoFormat,
@@ -42,6 +43,7 @@ public final class ChannelInfo {
 		this.logoUrl = logoUrl;
 		this.originalNetworkId = originalNetworkId;
 		this.transportStreamId = transportStreamId;
+		this.inputId = inputId;
 		this.serviceId = serviceId;
 		this.videoWidth = videoWidth;
 		this.videoHeight = videoHeight;

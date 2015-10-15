@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 
 import android.R.integer;
 import android.amlogic.Tv;
+import android.amlogic.Tv.FreqList;
 import android.app.AlertDialog;
 
 import com.droidlogic.app.tv.DroidLogicTvUtils;
@@ -618,22 +619,23 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 break;
             // manual search
             case R.id.manual_search_start:
+            case R.id.manual_search_start_dtv:
+                startManualSearch();
                 isSearching = true;
                 searchedChannelNum = 0;
                 finish_result = DroidLogicTvUtils.RESULT_UPDATE;
-                startManualSearch();
                 break;
             // auto search
             case R.id.auto_search_start_atv:
             case R.id.auto_search_start_dtv:
-                isSearching = true;
-                searchedChannelNum = 0;
-                finish_result = DroidLogicTvUtils.RESULT_UPDATE;
+                TvContractUtils.deleteChannels(mContext, mSettingsManager.getInputId());
                 if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV)
                     tv.AtvAutoScan(Tv.atv_video_std_e.ATV_VIDEO_STD_PAL, Tv.atv_audio_std_e.ATV_AUDIO_STD_I, 0);
                 else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV)
                     tv.DtvAutoScan();
-                TvContractUtils.deleteChannels(mContext, mSettingsManager.getInputId());
+                isSearching = true;
+                searchedChannelNum = 0;
+                finish_result = DroidLogicTvUtils.RESULT_UPDATE;
                 break;
             // ====Settings====
             // Sleep Timer
@@ -812,6 +814,20 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         }
     }
 
+    private int get_dvb_freq_bypd(int pd_number) {// KHz
+        int the_freq = 706000000;
+        ArrayList<FreqList> m_fList = tv.DTVGetScanFreqList();
+        int size = m_fList.size();
+        for (int i = 0; i < size; i++) {
+            if (pd_number == m_fList.get(i).ID) {
+                the_freq = m_fList.get(i).freq;
+                break;
+            }
+        }
+        Log.d("fuhao", "the_freq = " + the_freq);
+        return the_freq;
+    }
+
     private void startManualSearch() {
         ViewGroup parent = (ViewGroup) ((TvSettingsActivity) mContext).mOptionLayout.getChildAt(0);
         if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV) {
@@ -833,9 +849,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 Tv.atv_video_std_e.ATV_VIDEO_STD_PAL, Tv.atv_audio_std_e.ATV_AUDIO_STD_DK);
         } else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV) {
             EditText edit = (EditText) parent.findViewById(R.id.manual_search_dtv_channel);
-            String  channel = edit.getText().toString();
-
-            tv.DtvManualScan(Integer.valueOf(channel) * 1000);
+            String channel = edit.getText().toString();
+            tv.DtvManualScan(get_dvb_freq_bypd(Integer.parseInt(channel)));
         }
     }
 
@@ -1072,19 +1087,19 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                     name = "????";
                 }
 
-                channel = new ChannelInfo(String.valueOf(channelNumber), name, null, event.orig_net_id, event.ts_id, event.serviceID, 0, 0,
+                channel = new ChannelInfo(String.valueOf(channelNumber), name, null, event.orig_net_id, event.ts_id, mSettingsManager.getInputId(), event.serviceID, 0, 0,
                         event.mode, event.srvType, event.freq, event.bandwidth, event.vid, event.vfmt, event.aids, event.afmts, event.pcr, 0, 0, 0, 0);
 
                 if (optionTag == OPTION_MANUAL_SEARCH)
-                    TvContractUtils.updateOrinsertDtvChannel(mContext, mSettingsManager.getInputId(), channel);
+                    TvContractUtils.updateOrinsertDtvChannel(mContext, channel);
                 else {
                     if (event.srvType == 1) {
                         channelNumber++;
-                        TvContractUtils.insertDtvChannel(mContext, mSettingsManager.getInputId(), channel, channelNumber);
+                        TvContractUtils.insertDtvChannel(mContext, channel, channelNumber);
                     }
                     else {
                         radioNumber++;
-                        TvContractUtils.insertDtvChannel(mContext, mSettingsManager.getInputId(), channel, radioNumber);
+                        TvContractUtils.insertDtvChannel(mContext, channel, radioNumber);
                     }
                 }
                 Log.d(TAG, "STORE_SERVICE: " + channel.toString());
@@ -1112,7 +1127,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 break;
             case Tv.EVENT_ATV_PROG_DATA:
                 channelNumber++;
-                channel = new ChannelInfo("A " + String.valueOf(searchedChannelNum), event.programName, null, 0, 0, 0, 0, 0, 3,
+                channel = new ChannelInfo("A " + String.valueOf(searchedChannelNum), event.programName, null, 0, 0, mSettingsManager.getInputId(), 0, 0, 0, 3,
                         event.srvType, event.freq, 0,// bandwidth
                         0,// videoPID
                         0,// videoFormat,
@@ -1121,9 +1136,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                         0,// pcrPID,
                         event.videoStd, event.audioStd, event.isAutoStd, 0);
                 if (optionTag == OPTION_MANUAL_SEARCH)
-                    TvContractUtils.updateOrinsertAtvChannel(mContext, mSettingsManager.getInputId(), channel);
+                    TvContractUtils.updateOrinsertAtvChannel(mContext, channel);
                 else
-                    TvContractUtils.insertAtvChannel(mContext, mSettingsManager.getInputId(), channel, channelNumber);
+                    TvContractUtils.insertAtvChannel(mContext, channel, channelNumber);
                 break;
             case Tv.EVENT_STORE_END:
                 Log.d(TAG, "Store end");
@@ -1135,6 +1150,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 break;
             case Tv.EVENT_SCAN_EXIT:
                 Log.d(TAG, "Scan exit.");
+                isSearching = false;
                 if (searchedChannelNum == 0) {
                     ((TvSettingsActivity) mContext).finish();
                 }

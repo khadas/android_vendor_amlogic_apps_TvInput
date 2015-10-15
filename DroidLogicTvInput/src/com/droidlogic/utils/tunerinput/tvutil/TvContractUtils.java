@@ -13,6 +13,7 @@
 
 package com.droidlogic.utils.tunerinput.tvutil;
 
+import android.R.integer;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -52,6 +53,7 @@ public class TvContractUtils
 {
     private static final String TAG = "TvContractUtils";
     private static final boolean DEBUG = true;
+    private static final int UPDATE_SUCCESS = -1;
 
     private static final SparseArray<String> VIDEO_HEIGHT_TO_FORMAT_MAP = new SparseArray<String>();
 
@@ -88,20 +90,156 @@ public class TvContractUtils
         CHANNEL_TYPE_TO_MODE_MAP.put(Channels.TYPE_PAL, TVChannelParams.MODE_ANALOG);
     }
 
-    public static void deleteChannels(Context context, String inputId)
-    {
+    public static void deleteChannels(Context context, String inputId) {
         Uri channelsUri = TvContract.buildChannelsUriForInput(inputId);
         ContentResolver resolver = context.getContentResolver();
-        resolver.delete(channelsUri, Channels._ID + "!=-1", null);
+        try {
+            resolver.delete(channelsUri, Channels._ID + "!=-1", null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    public static void insertDtvChannel(Context context, String inputId, ChannelInfo channel, int channelNumber)
+    private static int updateDtvChannel(Context context, ChannelInfo channel) {
+        int ret = 0;
+        Uri channelsUri = TvContract.buildChannelsUriForInput(channel.inputId);
+        ContentResolver resolver = context.getContentResolver();
+        String[] projection = {Channels._ID, Channels.COLUMN_SERVICE_ID};
+
+        Cursor cursor = null;
+        try
+        {
+            String srvType = "";
+            if (channel.serviceType == 1)
+                srvType = Channels.SERVICE_TYPE_AUDIO_VIDEO;
+            else if (channel.serviceType == 2)
+                srvType = Channels.SERVICE_TYPE_AUDIO;
+            else
+                srvType = Channels.SERVICE_TYPE_OTHER;
+            cursor = resolver.query(channelsUri, projection, Channels.COLUMN_SERVICE_TYPE + "=?", new String[]{srvType}, null);
+            while (cursor != null && cursor.moveToNext())
+            {
+                long rowId = cursor.getLong(0);
+                int serviceId = cursor.getInt(1);
+                if (serviceId == channel.serviceId)
+                {
+                    ContentValues values = new ContentValues();
+                    values.put(Channels.COLUMN_INPUT_ID, channel.inputId);
+                    Map<Uri, String> logos = new HashMap<Uri, String>();
+                    values.put(Channels.COLUMN_DISPLAY_NAME, channel.name);
+                    values.put(Channels.COLUMN_ORIGINAL_NETWORK_ID, channel.originalNetworkId);
+                    values.put(Channels.COLUMN_TRANSPORT_STREAM_ID, channel.transportStreamId);
+                    values.put(Channels.COLUMN_SERVICE_ID, channel.serviceId);
+                    values.putNull(Channels.COLUMN_VIDEO_FORMAT);
+                    values.put(Channels.COLUMN_TYPE, getChannelType(channel.type));
+
+                    if (channel.serviceType == 1)
+                        values.put(Channels.COLUMN_SERVICE_TYPE, Channels.SERVICE_TYPE_AUDIO_VIDEO);
+                    else if (channel.serviceType == 2)
+                        values.put(Channels.COLUMN_SERVICE_TYPE, Channels.SERVICE_TYPE_AUDIO);
+                    else
+                        values.put(Channels.COLUMN_SERVICE_TYPE, Channels.SERVICE_TYPE_OTHER);
+
+                    Map<String, String> map = new HashMap<String, String>();
+                    map.put("freq", String.valueOf(channel.frequency));
+                    map.put("bw", String.valueOf(channel.bandwidth));
+                    map.put("type", String.valueOf(channel.serviceType));
+                    map.put("vid", String.valueOf(channel.videoPID));
+                    map.put("vfmt", String.valueOf(channel.videoFormat));
+                    map.put("aids", Arrays.toString(channel.audioPIDs));
+                    map.put("afmts", Arrays.toString(channel.audioFormats));
+                    map.put("pcr", String.valueOf(channel.pcrPID));
+                    String output = MapUtil.mapToString(map);
+                    values.put(TvContract.Channels.COLUMN_INTERNAL_PROVIDER_DATA, output);
+                    Uri uri = TvContract.buildChannelUri(rowId);
+                    resolver.update(uri, values, null, null);
+                    if (!TextUtils.isEmpty(channel.logoUrl))
+                    {
+                        logos.put(TvContract.buildChannelLogoUri(uri), channel.logoUrl);
+                    }
+                    if (!logos.isEmpty())
+                    {
+                        new InsertLogosTask(context).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, logos);
+                    }
+                    ret = UPDATE_SUCCESS;
+                } else {
+                    ret = cursor.getCount();
+                }
+            }
+            cursor.close();
+        }
+        catch (Exception e) {}
+        return ret;
+    }
+
+    private static int updateAtvChannel(Context context, ChannelInfo channel) {
+        int ret = 0;
+        Uri channelsUri = TvContract.buildChannelsUriForInput(channel.inputId);
+        ContentResolver resolver = context.getContentResolver();
+        String[] projection = {Channels._ID, Channels.COLUMN_INTERNAL_PROVIDER_DATA};
+        Cursor cursor = null;
+        try
+        {
+            cursor = resolver.query(channelsUri, projection, null, null, null);
+            while (cursor != null && cursor.moveToNext())
+            {
+                long rowId = cursor.getLong(0);
+                Map<String, String> parsedMap = parseInternalProviderData(cursor.getString(1));
+                int frequency = Integer.parseInt(parsedMap.get("freq"));
+                if (frequency == channel.frequency)
+                {
+                    ContentValues values = new ContentValues();
+                    values.put(Channels.COLUMN_INPUT_ID, channel.inputId);
+                    Map<Uri, String> logos = new HashMap<Uri, String>();
+                    values.put(Channels.COLUMN_DISPLAY_NUMBER, channel.number);
+                    values.put(Channels.COLUMN_DISPLAY_NAME, channel.name);
+                    values.put(Channels.COLUMN_TYPE, Channels.TYPE_PAL);// TODO: channel.type -> COLUMN_TYPE
+                                                                        // (PAL/NTSC/SECAM)?
+                    if (channel.serviceType == 1)
+                    {
+                        values.put(Channels.COLUMN_SERVICE_TYPE, Channels.SERVICE_TYPE_AUDIO_VIDEO);
+                    }
+                    else if (channel.serviceType == 2)
+                    {
+                        values.put(Channels.COLUMN_SERVICE_TYPE, Channels.SERVICE_TYPE_AUDIO);
+                    }
+                    Map<String, String> map = new HashMap<String, String>();
+                    map.put("type", String.valueOf(channel.type));
+                    map.put("stype", String.valueOf(channel.serviceType));
+                    map.put("freq", String.valueOf(channel.frequency));
+                    map.put("vstd", String.valueOf(channel.videoStd));
+                    map.put("astd", String.valueOf(channel.audioStd));
+                    map.put("auto", String.valueOf(channel.isAutoStd));
+                    map.put("fine", String.valueOf(channel.fineTune));
+                    String output = MapUtil.mapToString(map);
+                    values.put(TvContract.Channels.COLUMN_INTERNAL_PROVIDER_DATA, output);
+                    Uri uri = TvContract.buildChannelUri(rowId);
+                    resolver.update(uri, values, null, null);
+                    if (!TextUtils.isEmpty(channel.logoUrl))
+                    {
+                        logos.put(TvContract.buildChannelLogoUri(uri), channel.logoUrl);
+                    }
+                    if (!logos.isEmpty())
+                    {
+                        new InsertLogosTask(context).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, logos);
+                    }
+                    ret = UPDATE_SUCCESS;
+                } else {
+                    ret = cursor.getCount();
+                }
+            }
+            cursor.close();
+        }
+        catch (Exception e) {}
+        return ret;
+    }
+
+    public static void insertDtvChannel(Context context, ChannelInfo channel, int channelNumber)
     {
-        Log.d("fuhao", "insert channelNumber = " + channelNumber);
-        Uri channelsUri = TvContract.buildChannelsUriForInput(inputId);
+        Uri channelsUri = TvContract.buildChannelsUriForInput(channel.inputId);
         ContentResolver resolver = context.getContentResolver();
         ContentValues values = new ContentValues();
-        values.put(Channels.COLUMN_INPUT_ID, inputId);
+        values.put(Channels.COLUMN_INPUT_ID, channel.inputId);
         Map<Uri, String> logos = new HashMap<Uri, String>();
         values.put(Channels.COLUMN_DISPLAY_NUMBER, channelNumber);
         values.put(Channels.COLUMN_DISPLAY_NAME, channel.name);
@@ -141,87 +279,20 @@ public class TvContractUtils
     }
 
     // If a channel exists, update it. If not, insert a new one.
-    public static void updateOrinsertDtvChannel(Context context, String inputId, ChannelInfo channel)
+    public static void updateOrinsertDtvChannel(Context context, ChannelInfo channel)
     {
-        Uri channelsUri = TvContract.buildChannelsUriForInput(inputId);
-        ContentResolver resolver = context.getContentResolver();
-        String[] projection = {Channels._ID, Channels.COLUMN_SERVICE_ID};
-
-        Cursor cursor = null;
-        try
-        {
-            String srvType = "";
-            if (channel.serviceType == 1)
-                srvType = Channels.SERVICE_TYPE_AUDIO_VIDEO;
-            else if (channel.serviceType == 2)
-                srvType = Channels.SERVICE_TYPE_AUDIO;
-            else
-                srvType = Channels.SERVICE_TYPE_OTHER;
-            cursor = resolver.query(channelsUri, projection, Channels.COLUMN_SERVICE_TYPE + "=?", new String[]{srvType}, null);
-            Log.d("fuhao", "channel.serviceType = " + channel.serviceType + ",cursor.moveToNext() = " + cursor.moveToNext());
-            while (cursor != null && cursor.moveToNext())
-            {
-                long rowId = cursor.getLong(0);
-                int serviceId = cursor.getInt(1);
-                if (serviceId == channel.serviceId)
-                {
-                    ContentValues values = new ContentValues();
-                    values.put(Channels.COLUMN_INPUT_ID, inputId);
-                    Map<Uri, String> logos = new HashMap<Uri, String>();
-                    values.put(Channels.COLUMN_DISPLAY_NAME, channel.name);
-                    values.put(Channels.COLUMN_ORIGINAL_NETWORK_ID, channel.originalNetworkId);
-                    values.put(Channels.COLUMN_TRANSPORT_STREAM_ID, channel.transportStreamId);
-                    values.put(Channels.COLUMN_SERVICE_ID, channel.serviceId);
-                    values.putNull(Channels.COLUMN_VIDEO_FORMAT);
-                    values.put(Channels.COLUMN_TYPE, getChannelType(channel.type));
-
-                    if (channel.serviceType == 1)
-                        values.put(Channels.COLUMN_SERVICE_TYPE, Channels.SERVICE_TYPE_AUDIO_VIDEO);
-                    else if (channel.serviceType == 2)
-                        values.put(Channels.COLUMN_SERVICE_TYPE, Channels.SERVICE_TYPE_AUDIO);
-                    else
-                        values.put(Channels.COLUMN_SERVICE_TYPE, Channels.SERVICE_TYPE_OTHER);
-
-                    Map<String, String> map = new HashMap<String, String>();
-                    map.put("freq", String.valueOf(channel.frequency));
-                    map.put("bw", String.valueOf(channel.bandwidth));
-                    map.put("type", String.valueOf(channel.serviceType));
-                    map.put("vid", String.valueOf(channel.videoPID));
-                    map.put("vfmt", String.valueOf(channel.videoFormat));
-                    map.put("aids", Arrays.toString(channel.audioPIDs));
-                    map.put("afmts", Arrays.toString(channel.audioFormats));
-                    map.put("pcr", String.valueOf(channel.pcrPID));
-                    String output = MapUtil.mapToString(map);
-                    values.put(TvContract.Channels.COLUMN_INTERNAL_PROVIDER_DATA, output);
-                    Uri uri = TvContract.buildChannelUri(rowId);
-                    resolver.update(uri, values, null, null);
-                    if (!TextUtils.isEmpty(channel.logoUrl))
-                    {
-                        logos.put(TvContract.buildChannelLogoUri(uri), channel.logoUrl);
-                    }
-                    if (!logos.isEmpty())
-                    {
-                        new InsertLogosTask(context).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, logos);
-                    }
-                    cursor.close();
-                    return;
-                }
-            }
+        int updateRet = updateDtvChannel(context, channel);
+        if (updateRet != UPDATE_SUCCESS) {
+            insertDtvChannel(context, channel, updateRet);
         }
-        catch (Exception e)
-        {
-            // TODO: handle exception
-        }
-        insertDtvChannel(context, inputId, channel, cursor.getCount());
-        cursor.close();
     }
 
-    public static void insertAtvChannel(Context context, String inputId, ChannelInfo channel, int channelNumber)
+    public static void insertAtvChannel(Context context, ChannelInfo channel, int channelNumber)
     {
-        Uri channelsUri = TvContract.buildChannelsUriForInput(inputId);
+        Uri channelsUri = TvContract.buildChannelsUriForInput(channel.inputId);
         ContentResolver resolver = context.getContentResolver();
         ContentValues values = new ContentValues();
-        values.put(Channels.COLUMN_INPUT_ID, inputId);
+        values.put(Channels.COLUMN_INPUT_ID, channel.inputId);
         Map<Uri, String> logos = new HashMap<Uri, String>();
         values.put(Channels.COLUMN_DISPLAY_NUMBER, channelNumber);
         values.put(Channels.COLUMN_DISPLAY_NAME, channel.name);
@@ -256,105 +327,40 @@ public class TvContractUtils
         }
     }
 
+    public static void updateChannelInfo(Context context, ChannelInfo channel) {
+        if (channel.inputId.contains("ATV")) {
+            updateAtvChannel(context, channel);
+        } else if (channel.inputId.contains("DTV")) {
+            updateDtvChannel(context, channel);
+        }
+    }
+
+    public static void deleteChannel(Context context, ChannelInfo channel) {
+        Uri channelsUri = TvContract.buildChannelsUriForInput(channel.inputId);
+        ContentResolver resolver = context.getContentResolver();
+        if (channel.inputId.contains("ATV")) {
+            Map<String, String> map = new HashMap<String, String>();
+            map.put("type", String.valueOf(channel.type));
+            map.put("stype", String.valueOf(channel.serviceType));
+            map.put("freq", String.valueOf(channel.frequency));
+            map.put("vstd", String.valueOf(channel.videoStd));
+            map.put("astd", String.valueOf(channel.audioStd));
+            map.put("auto", String.valueOf(channel.isAutoStd));
+            map.put("fine", String.valueOf(channel.fineTune));
+            String output = MapUtil.mapToString(map);
+            resolver.delete(channelsUri, Channels.COLUMN_INTERNAL_PROVIDER_DATA + "=?", new String[]{output});
+        } else if (channel.inputId.contains("DTV")) {
+            resolver.delete(channelsUri, Channels.COLUMN_SERVICE_ID + "=?", new String[]{channel.serviceId + ""});
+        }
+    }
+
     // If a channel exists, update it. If not, insert a new one.
-    public static void updateOrinsertAtvChannel(Context context, String inputId, ChannelInfo channel)
+    public static void updateOrinsertAtvChannel(Context context, ChannelInfo channel)
     {
-        Uri channelsUri = TvContract.buildChannelsUriForInput(inputId);
-        ContentResolver resolver = context.getContentResolver();
-        String[] projection = {Channels._ID, Channels.COLUMN_INTERNAL_PROVIDER_DATA};
-        Cursor cursor = null;
-        try
-        {
-            cursor = resolver.query(channelsUri, projection, null, null, null);
-            while (cursor != null && cursor.moveToNext())
-            {
-                long rowId = cursor.getLong(0);
-                Map<String, String> parsedMap = parseInternalProviderData(cursor.getString(1));
-                int frequency = Integer.parseInt(parsedMap.get("freq"));
-                if (frequency == channel.frequency)
-                {
-                    ContentValues values = new ContentValues();
-                    values.put(Channels.COLUMN_INPUT_ID, inputId);
-                    Map<Uri, String> logos = new HashMap<Uri, String>();
-                    values.put(Channels.COLUMN_DISPLAY_NUMBER, channel.number);
-                    values.put(Channels.COLUMN_DISPLAY_NAME, channel.name);
-                    values.put(Channels.COLUMN_TYPE, Channels.TYPE_PAL);// TODO: channel.type -> COLUMN_TYPE
-                                                                        // (PAL/NTSC/SECAM)?
-                    if (channel.serviceType == 1)
-                    {
-                        values.put(Channels.COLUMN_SERVICE_TYPE, Channels.SERVICE_TYPE_AUDIO_VIDEO);
-                    }
-                    else if (channel.serviceType == 2)
-                    {
-                        values.put(Channels.COLUMN_SERVICE_TYPE, Channels.SERVICE_TYPE_AUDIO);
-                    }
-                    Map<String, String> map = new HashMap<String, String>();
-                    map.put("type", String.valueOf(channel.type));
-                    map.put("stype", String.valueOf(channel.serviceType));
-                    map.put("freq", String.valueOf(channel.frequency));
-                    map.put("vstd", String.valueOf(channel.videoStd));
-                    map.put("astd", String.valueOf(channel.audioStd));
-                    map.put("auto", String.valueOf(channel.isAutoStd));
-                    map.put("fine", String.valueOf(channel.fineTune));
-                    String output = MapUtil.mapToString(map);
-                    values.put(TvContract.Channels.COLUMN_INTERNAL_PROVIDER_DATA, output);
-                    Uri uri = TvContract.buildChannelUri(rowId);
-                    resolver.update(uri, values, null, null);
-                    if (!TextUtils.isEmpty(channel.logoUrl))
-                    {
-                        logos.put(TvContract.buildChannelLogoUri(uri), channel.logoUrl);
-                    }
-                    if (!logos.isEmpty())
-                    {
-                        new InsertLogosTask(context).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, logos);
-                    }
-                    cursor.close();
-                    return;
-                }
-            }
+        int updateRet = updateAtvChannel(context, channel);
+        if (updateRet != UPDATE_SUCCESS) {
+            insertAtvChannel(context, channel, updateRet);
         }
-        catch (Exception e)
-        {
-
-        }
-        insertAtvChannel(context, inputId, channel, cursor.getCount());
-        cursor.close();
-    }
-
-    public static void swap2channel(Context context, String inputId, ChannelInfo channel1, ChannelInfo channel2)
-    {
-        Uri channelsUri = TvContract.buildChannelsUriForInput(inputId);
-        ContentResolver resolver = context.getContentResolver();
-        String[] projection = {Channels._ID};
-        Cursor cursor = resolver.query(channelsUri, projection, Channels.COLUMN_DISPLAY_NUMBER + "=?", new String[]{channel1.number}, null);
-        long rowId = cursor.getLong(0);
-
-        ContentValues values = new ContentValues();
-        values.put(Channels.COLUMN_DISPLAY_NUMBER, channel2.number);
-        Uri uri = TvContract.buildChannelUri(rowId);
-        resolver.update(uri, values, null, null);
-
-        cursor = resolver.query(TvContract.Channels.CONTENT_URI, projection, Channels.COLUMN_DISPLAY_NUMBER + "=?", new String[]{channel2.number}, null);
-        rowId = cursor.getLong(0);
-        ContentValues values2 = new ContentValues();
-        values2.put(Channels.COLUMN_DISPLAY_NUMBER, channel1.number);
-        uri = TvContract.buildChannelUri(rowId);
-        resolver.update(uri, values, null, null);
-
-        cursor.close();
-    }
-
-    public static void changeChannelName(Context context, ChannelInfo channel, String newName) {
-        ContentResolver resolver = context.getContentResolver();
-        String[] projection = {Channels._ID};
-        Cursor cursor = resolver.query(TvContract.Channels.CONTENT_URI, projection, Channels.COLUMN_DISPLAY_NUMBER + "=?", new String[]{channel.number}, null);
-        long rowId = cursor.getLong(0);
-
-        ContentValues values = new ContentValues();
-        values.put(Channels.COLUMN_DISPLAY_NAME, newName);
-        Uri uri = TvContract.buildChannelUri(rowId);
-        resolver.update(uri, values, null, null);
-        cursor.close();
     }
 
     private static String getVideoFormat(int videoHeight)
@@ -404,25 +410,23 @@ public class TvContractUtils
 		return channelMap;
 	}
 
-    public static ChannelInfo getChannelInfoDTV(ContentResolver resolver, Uri channelUri)
-    {
-        Uri uri = channelUri;
-        String[] projection = {Channels.COLUMN_DISPLAY_NAME, Channels.COLUMN_ORIGINAL_NETWORK_ID, Channels.COLUMN_TRANSPORT_STREAM_ID,
+    public static ArrayList<ChannelInfo> getDtvChannelList(Context context, String curInputId, int srvType) {
+        ArrayList<ChannelInfo> channelList = new ArrayList<ChannelInfo>();
+        Uri channelsUri = TvContract.buildChannelsUriForInput(curInputId);
+        ContentResolver resolver = context.getContentResolver();
+        String[] projection = {Channels.COLUMN_INPUT_ID, Channels.COLUMN_DISPLAY_NAME, Channels.COLUMN_ORIGINAL_NETWORK_ID, Channels.COLUMN_TRANSPORT_STREAM_ID,
                 Channels.COLUMN_SERVICE_ID, Channels.COLUMN_SERVICE_TYPE, Channels.COLUMN_INTERNAL_PROVIDER_DATA, Channels.COLUMN_DISPLAY_NUMBER,
                 Channels.COLUMN_TYPE};
-        Cursor cursor = null;
-        ChannelInfo info = null;
-        try
-        {
-            cursor = resolver.query(uri, projection, null, null, null);
-            cursor.moveToNext();
-            {
-                String name = cursor.getString(0);
-                int originalNetworkId = cursor.getInt(1);
-                int transportStreamId = cursor.getInt(2);
-                int serviceId = cursor.getInt(3);
-                int serviceType = cursor.getInt(4);
-                Map<String, String> parsedMap = parseInternalProviderData(cursor.getString(5));
+        try {
+            Cursor cursor = resolver.query(channelsUri, projection, null, null, null);
+            while (cursor != null && cursor.moveToNext()) {
+                String inputId = cursor.getString(0);
+                String name = cursor.getString(1);
+                int originalNetworkId = cursor.getInt(2);
+                int transportStreamId = cursor.getInt(3);
+                int serviceId = cursor.getInt(4);
+                int serviceType = cursor.getInt(5);
+                Map<String, String> parsedMap = parseInternalProviderData(cursor.getString(6));
                 String[] aidStrings = parsedMap.get("aids").replace("[", "").replace("]", "").split(", ");
                 String[] afmtStrings = parsedMap.get("afmts").replace("[", "").replace("]", "").split(", ");
                 int anum = (aidStrings[0].compareTo("null") == 0)? 0 : aidStrings.length;
@@ -436,9 +440,98 @@ public class TvContractUtils
                         afmts[i] = Integer.parseInt(afmtStrings[i]);
                     }
                 }
-                int number = cursor.getInt(6);
-                info = new ChannelInfo(String.valueOf(number), name, null, originalNetworkId, transportStreamId, serviceId, 0, 0,
-                            getChannelType(cursor.getString(7)),
+                int number = cursor.getInt(7);
+                ChannelInfo info = new ChannelInfo(String.valueOf(number), name, null, originalNetworkId, transportStreamId, inputId, serviceId, 0, 0,
+                        getChannelType(cursor.getString(8)),
+                        Integer.parseInt(parsedMap.get("type")),
+                        Integer.parseInt(parsedMap.get("freq")), Integer.parseInt(parsedMap.get("bw")),
+                        Integer.parseInt(parsedMap.get("vid")), Integer.parseInt(parsedMap.get("vfmt")),
+                        aids, afmts,
+                        Integer.parseInt(parsedMap.get("pcr")),
+                        0,0,0,0
+                        );
+                if (srvType == serviceType) {
+                    channelList.add(info);
+                } else {
+                    channelList.add(info);
+                }
+            }
+            cursor.close();
+        } catch (Exception e) {
+            // TODO: handle exception
+        }
+        return channelList;
+    }
+
+    public static ArrayList<ChannelInfo> getAtvChannelList(Context context, String curInputId) {
+        ArrayList<ChannelInfo> channelList = new ArrayList<ChannelInfo>();
+        Uri channelsUri = TvContract.buildChannelsUriForInput(curInputId);
+        ContentResolver resolver = context.getContentResolver();
+        String[] projection = {Channels.COLUMN_INPUT_ID, Channels.COLUMN_DISPLAY_NAME, Channels.COLUMN_SERVICE_TYPE, Channels.COLUMN_INTERNAL_PROVIDER_DATA,
+                Channels.COLUMN_DISPLAY_NUMBER,};
+        try {
+            Cursor cursor = resolver.query(channelsUri, projection, null, null, null);
+            while (cursor != null && cursor.moveToNext()) {
+                String inputId = cursor.getString(0);
+                String name = cursor.getString(1);
+                int serviceType = cursor.getInt(2);
+                Map<String, String> parsedMap = parseInternalProviderData(cursor.getString(3));
+                String number = cursor.getString(4);
+                ChannelInfo info = new ChannelInfo(number, name, null, 0, 0, inputId, 0, 0, 0, 0, Integer.parseInt(parsedMap.get("stype")), Integer.parseInt(parsedMap
+                        .get("freq")),
+                        0,// bandwidth
+                        0,// videoPID
+                        0,// videoFormat,
+                        null,// audioPIDs[],
+                        null,// audioFormats[],
+                        0,// pcrPID,
+                        Integer.parseInt(parsedMap.get("vstd")), Integer.parseInt(parsedMap.get("astd")), Integer.parseInt(parsedMap.get("auto")),
+                        Integer.parseInt(parsedMap.get("fine")));
+                channelList.add(info);
+            }
+            cursor.close();
+        } catch (Exception e) {
+            // TODO: handle exception
+        }
+        return channelList;
+    }
+
+    public static ChannelInfo getChannelInfoDTV(ContentResolver resolver, Uri channelUri)
+    {
+        Uri uri = channelUri;
+        String[] projection = {Channels.COLUMN_INPUT_ID, Channels.COLUMN_DISPLAY_NAME, Channels.COLUMN_ORIGINAL_NETWORK_ID, Channels.COLUMN_TRANSPORT_STREAM_ID,
+                Channels.COLUMN_SERVICE_ID, Channels.COLUMN_SERVICE_TYPE, Channels.COLUMN_INTERNAL_PROVIDER_DATA, Channels.COLUMN_DISPLAY_NUMBER,
+                Channels.COLUMN_TYPE};
+        Cursor cursor = null;
+        ChannelInfo info = null;
+        try
+        {
+            cursor = resolver.query(uri, projection, null, null, null);
+            cursor.moveToNext();
+            {
+                String inputId = cursor.getString(0);
+                String name = cursor.getString(1);
+                int originalNetworkId = cursor.getInt(2);
+                int transportStreamId = cursor.getInt(3);
+                int serviceId = cursor.getInt(4);
+                int serviceType = cursor.getInt(5);
+                Map<String, String> parsedMap = parseInternalProviderData(cursor.getString(6));
+                String[] aidStrings = parsedMap.get("aids").replace("[", "").replace("]", "").split(", ");
+                String[] afmtStrings = parsedMap.get("afmts").replace("[", "").replace("]", "").split(", ");
+                int anum = (aidStrings[0].compareTo("null") == 0)? 0 : aidStrings.length;
+                int[] aids = null;
+                int[] afmts = null;
+                if (anum > 0) {
+                    aids = new int[anum];
+                    afmts = new int[afmtStrings.length];
+                    for (int i=0; i<aidStrings.length; i++) {
+                        aids[i] = Integer.parseInt(aidStrings[i]);
+                        afmts[i] = Integer.parseInt(afmtStrings[i]);
+                    }
+                }
+                int number = cursor.getInt(7);
+                info = new ChannelInfo(String.valueOf(number), name, null, originalNetworkId, transportStreamId, inputId, serviceId, 0, 0,
+                            getChannelType(cursor.getString(8)),
                             Integer.parseInt(parsedMap.get("type")),
                             Integer.parseInt(parsedMap.get("freq")), Integer.parseInt(parsedMap.get("bw")),
                             Integer.parseInt(parsedMap.get("vid")), Integer.parseInt(parsedMap.get("vfmt")),
@@ -468,7 +561,7 @@ public class TvContractUtils
         // TODO: build atv's channelinfo which player needed.
 
         Uri uri = channelUri;
-        String[] projection = {Channels.COLUMN_DISPLAY_NAME, Channels.COLUMN_SERVICE_TYPE, Channels.COLUMN_INTERNAL_PROVIDER_DATA,
+        String[] projection = {Channels.COLUMN_INPUT_ID, Channels.COLUMN_DISPLAY_NAME, Channels.COLUMN_SERVICE_TYPE, Channels.COLUMN_INTERNAL_PROVIDER_DATA,
                 Channels.COLUMN_DISPLAY_NUMBER,};
         Cursor cursor = null;
         ChannelInfo info = null;
@@ -477,11 +570,12 @@ public class TvContractUtils
             cursor = resolver.query(uri, projection, null, null, null);
             cursor.moveToNext();
             {
-                String name = cursor.getString(0);
-                int serviceType = cursor.getInt(1);
-                Map<String, String> parsedMap = parseInternalProviderData(cursor.getString(2));
-                String number = cursor.getString(3);
-                info = new ChannelInfo(number, name, null, 0, 0, 0, 0, 0, 0, Integer.parseInt(parsedMap.get("stype")), Integer.parseInt(parsedMap
+                String inputId = cursor.getString(0);
+                String name = cursor.getString(1);
+                int serviceType = cursor.getInt(2);
+                Map<String, String> parsedMap = parseInternalProviderData(cursor.getString(3));
+                String number = cursor.getString(4);
+                info = new ChannelInfo(number, name, null, 0, 0, inputId, 0, 0, 0, 0, Integer.parseInt(parsedMap.get("stype")), Integer.parseInt(parsedMap
                         .get("freq")),
                         0,// bandwidth
                         0,// videoPID
