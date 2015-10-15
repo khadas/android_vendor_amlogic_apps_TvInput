@@ -67,10 +67,12 @@ public class OptionListView extends ListView implements OnItemSelectedListener {
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
         selectedPosition = position;
-        if (hasFocus()) {
-            setItemTextColor(view, true);
-        } else {
-            setItemTextColor(view, false);
+        if (view != null) {
+            if (hasFocus()) {
+                setItemTextColor(view, true);
+            } else {
+                setItemTextColor(view, false);
+            }
         }
     }
 
@@ -81,13 +83,13 @@ public class OptionListView extends ListView implements OnItemSelectedListener {
     @Override
     protected void onFocusChanged (boolean gainFocus, int direction, Rect previouslyFocusedRect) {
         View item = getChildAt(selectedPosition);
-        if (item == null)
-            return;
 
-        if (gainFocus) {
-            setItemTextColor(item, true);
-        } else {
-            setItemTextColor(item, false);
+        if (item != null) {
+            if (gainFocus) {
+                setItemTextColor(item, true);
+            } else {
+                setItemTextColor(item, false);
+            }
         }
     }
 
