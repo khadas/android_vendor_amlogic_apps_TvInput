@@ -14,6 +14,32 @@
         android:textSize="27sp"
         android:textColor="@color/color_text_item"
         />
+    <TextView
+        android:id="@+id/channel_edit_tv"
+        android:layout_width="262dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:layout_marginLeft="31dp"
+        android:paddingLeft="50dp"
+        android:background="@drawable/item_background"
+        android:focusable="true"
+        android:text="@string/tv"
+        android:textSize="26sp"
+        android:textColor="@color/color_text_item"
+        />
+    <TextView
+        android:id="@+id/channel_edit_radio"
+        android:layout_width="262dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="31dp"
+        android:paddingLeft="50dp"
+        android:background="@drawable/item_background"
+        android:focusable="true"
+        android:text="@string/radio"
+        android:textSize="26sp"
+        android:textColor="@color/color_text_item"
+        />
     <com.droidlogic.tvinput.settings.OptionListView
         android:id="@+id/channnel_edit_list"
         android:layout_width="262dp"
@@ -29,7 +55,6 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
         android:layout_marginLeft="31dp"
-        android:visibility="gone"
         layout="@layout/layout_channel_channel_edit_operations" />
     <include
         android:id="@+id/channel_edit_editname"
@@ -37,6 +62,5 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
         android:layout_marginLeft="31dp"
-        android:visibility="gone"
         layout="@layout/layout_channel_channel_edit_editname" />
 </LinearLayout>

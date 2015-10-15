@@ -23,9 +23,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import com.droidlogic.tvinput.R;
+import com.droidlogic.tvclient.TvClient;
+import android.amlogic.Tv;
 
 public class ChannelEdit implements OnClickListener, OnFocusChangeListener {
     private static final String TAG = "ChannelEdit";
+
+    public static final int TYPE_ATV                           = 0;
+    public static final int TYPE_DTV_TV                        = 1;
+    public static final int TYPE_DTV_RATIO                     = 2;
 
     private static final int ACTION_INITIAL_STATE             = -1;
     private static final int ACTION_SHOW_LIST                 = 0;
@@ -40,14 +46,20 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener {
     private Context mContext;
     private SettingsManager mSettingsManager;
     private View channelEditView = null;
+    private TextView button_tv = null;
+    private TextView button_radio = null;
     private OptionListView channelListView;
     private ViewGroup operationsView;
     private ViewGroup operationsEditView;
     SimpleAdapter ChannelAdapter;
     ArrayList<HashMap<String,Object>> ChannelListData;
+
+    private int channelType = TYPE_ATV;
     private int currentChannelPosition = ACTION_INITIAL_STATE;
     private int needOperateChannelPosition = ACTION_INITIAL_STATE;
     private int currentOperation = ACTION_INITIAL_STATE;
+
+    private TvClient client = TvClient.getTvClient();
 
     public ChannelEdit (Context context, View view) {
         mContext = context;
@@ -59,11 +71,22 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener {
     }
 
     private void initChannelEditView () {
+        button_tv = (TextView)channelEditView.findViewById(R.id.channel_edit_tv);
+        button_radio = (TextView)channelEditView.findViewById(R.id.channel_edit_radio);
+        button_tv.setOnClickListener(this);
+        button_tv.setOnFocusChangeListener(this);
+        button_radio.setOnClickListener(this);
+        button_radio.setOnFocusChangeListener(this);
+
         channelListView = (OptionListView)channelEditView.findViewById(R.id.channnel_edit_list);
         operationsView = (ViewGroup)channelEditView.findViewById(R.id.channel_edit_operations);
         operationsEditView = (ViewGroup)channelEditView.findViewById(R.id.channel_edit_editname);
 
-        ChannelListData = ((TvSettingsActivity)mContext).getSettingsManager().getChannelEditList();
+        if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV)
+            ChannelListData = ((TvSettingsActivity)mContext).getSettingsManager().getAtvChannelList();
+        else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV)
+            ChannelListData = ((TvSettingsActivity)mContext).getSettingsManager().getDtvTvChannelList();
+
         ChannelAdapter = new SimpleAdapter(mContext, ChannelListData,
             R.layout.layout_option_single_text,
             new String[]{SettingsManager.STRING_NAME}, new int[]{R.id.text_name});
@@ -81,10 +104,22 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener {
                         moveChannelPosition();
 
                     channelListView.setSelector(R.drawable.item_background);
+                    freshChannelList();
                 }
                 recoverActionState();
             }
         });
+
+        if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV) {
+            button_tv.setVisibility(View.GONE);
+            button_radio.setVisibility(View.GONE);
+            operationsView.setVisibility(View.GONE);
+            operationsEditView.setVisibility(View.GONE);
+        } else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV) {
+            channelListView.setVisibility(View.GONE);
+            operationsView.setVisibility(View.GONE);
+            operationsEditView.setVisibility(View.GONE);
+        }
 
         TextView edit = (TextView)channelEditView.findViewById(R.id.edit);
         TextView ensure_edit = (TextView)channelEditView.findViewById(R.id.ensure_edit);
@@ -109,6 +144,16 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener {
         favourite.setOnFocusChangeListener(this);
     }
 
+    private void showDtvMainView () {
+        button_tv.setVisibility(View.VISIBLE);
+        button_tv.requestFocus();
+        button_radio.setVisibility(View.VISIBLE);
+
+        channelListView.setVisibility(View.GONE);
+        operationsView.setVisibility(View.GONE);
+        operationsEditView.setVisibility(View.GONE);
+    }
+
     private void showListView () {
         if (currentOperation != ACTION_INITIAL_STATE) {
             channelListView.setSelector(R.anim.flicker_background);
@@ -116,10 +161,13 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener {
             animaition.start();
         }
 
-        ChannelListData = ((TvSettingsActivity)mContext).getSettingsManager().getChannelEditList();
-        ChannelAdapter.notifyDataSetChanged();
+        freshChannelList();
         channelListView.setVisibility(View.VISIBLE);
         channelListView.requestFocus();
+        channelListView.setNextFocusLeftId(R.id.content_list);
+
+        button_tv.setVisibility(View.GONE);
+        button_radio.setVisibility(View.GONE);
         operationsView.setVisibility(View.GONE);
         operationsEditView.setVisibility(View.GONE);
     }
@@ -162,32 +210,40 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener {
 
     private void setChannelName () {
         EditText edit_name = (EditText)channelEditView.findViewById(R.id.edit_name);
-        mSettingsManager.setChannelName(currentChannelPosition, edit_name.getText().toString());
+        mSettingsManager.setChannelName(channelType, currentChannelPosition, edit_name.getText().toString());
     }
 
     private void swapChannelPosition () {
-        mSettingsManager.swapChannelPosition(needOperateChannelPosition, currentChannelPosition);
+        mSettingsManager.swapChannelPosition(channelType, needOperateChannelPosition, currentChannelPosition);
     }
 
     private void moveChannelPosition () {
-        mSettingsManager.moveChannelPosition(needOperateChannelPosition, currentChannelPosition);
+        mSettingsManager.moveChannelPosition(channelType, needOperateChannelPosition, currentChannelPosition);
     }
 
     private void skipChannel () {
-        mSettingsManager.skipChannel(currentChannelPosition);
+        mSettingsManager.skipChannel(channelType, currentChannelPosition);
     }
 
     private void deleteChannel () {
-        mSettingsManager.deleteChannel(currentChannelPosition);
+        mSettingsManager.deleteChannel(channelType, currentChannelPosition);
     }
 
     private void setFavouriteChannel () {
-
+        mSettingsManager.setFavouriteChannel(channelType, currentChannelPosition);
     }
 
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
+            case R.id.channel_edit_tv:
+                channelType = TYPE_DTV_TV;
+                showListView();
+                break;
+            case R.id.channel_edit_radio:
+                channelType = TYPE_DTV_RATIO;
+                showListView();
+                break;
             case R.id.edit:
                 showEditView();
                 break;
@@ -228,6 +284,17 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener {
             } else
                 ((TextView)v).setTextColor(mContext.getResources().getColor(R.color.color_text_item));
         }
+    }
+
+    private void freshChannelList () {
+        ChannelListData.clear();
+        if (channelType == TYPE_ATV)
+            ChannelListData.addAll(((TvSettingsActivity)mContext).getSettingsManager().getAtvChannelList());
+        else if (channelType == TYPE_DTV_TV)
+            ChannelListData.addAll(((TvSettingsActivity)mContext).getSettingsManager().getDtvTvChannelList());
+        else if (channelType == TYPE_DTV_RATIO)
+            ChannelListData.addAll(((TvSettingsActivity)mContext).getSettingsManager().getDtvRadioChannelList());
+        ChannelAdapter.notifyDataSetChanged();
     }
 
     private void recoverActionState () {

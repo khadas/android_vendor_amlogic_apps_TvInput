@@ -15,7 +15,7 @@
         android:textColor="@color/color_text_item"
         />
     <TextView
-        android:id="@+id/auto_search_start"
+        android:id="@+id/auto_search_start_dtv"
         android:layout_width="262dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
@@ -28,15 +28,15 @@
         android:textColor="@color/color_text_item"
         />
     <RelativeLayout
-        android:id="@+id/auto_search_persent"
+        android:id="@+id/manual_search_persent"
         android:layout_width="262dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
+        android:layout_height="100dp"
+        android:layout_marginTop="10dp"
         android:layout_marginLeft="31dp"
         >
 	    <ImageView
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
+	        android:layout_width="100dp"
+	        android:layout_height="100dp"
 	        android:layout_centerInParent="true"
 	        />
 	    <TextView
@@ -48,34 +48,13 @@
 	        android:textStyle="bold"
 	        />
     </RelativeLayout>
-    <TextView
-        android:id="@+id/auto_search_frequency"
+    <com.droidlogic.tvinput.settings.OptionListView
+        android:id="@+id/auto_search_dtv_info"
         android:layout_width="262dp"
-        android:layout_height="wrap_content"
+        android:layout_height="180dp"
+        android:layout_marginTop="10dp"
         android:layout_marginLeft="31dp"
-        android:gravity="center"
-        android:background="@drawable/item_background"
-        android:textSize="22sp"
-        android:textColor="@color/color_text_prompt"
-        />
-    <TextView
-        android:id="@+id/auto_search_frequency_band"
-        android:layout_width="262dp"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="31dp"
-        android:gravity="center"
-        android:background="@drawable/item_background"
-        android:textSize="22sp"
-        android:textColor="@color/color_text_prompt"
-        />
-    <TextView
-        android:id="@+id/auto_search_searched_number"
-        android:layout_width="262dp"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="31dp"
-        android:gravity="center"
-        android:background="@drawable/item_background"
-        android:textSize="22sp"
-        android:textColor="@color/color_text_prompt"
+        android:listSelector="@drawable/item_background"
+        android:divider="@color/transparent"
         />
 </LinearLayout>

@@ -23,8 +23,9 @@ import android.util.Log;
 import com.droidlogic.tvinput.R;
 
 public class OptionListView extends ListView implements OnItemSelectedListener {
-    private static final String TAG = "ContentListView";
+    private static final String TAG = "OptionListView";
     private Context mContext;
+    private OptionUiManager mOptionUiManager;
     private int selectedPosition = 0;
 
     public OptionListView (Context context){
@@ -34,6 +35,7 @@ public class OptionListView extends ListView implements OnItemSelectedListener {
         super(context, attrs);
 
         mContext = context;
+        mOptionUiManager = ((TvSettingsActivity)mContext).getOptionUiManager();
         setOnItemSelectedListener(this);
     }
 
@@ -42,7 +44,9 @@ public class OptionListView extends ListView implements OnItemSelectedListener {
             if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT) {
                 selectedPosition = 0;
             } else if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP) {
-                if (selectedPosition == 0)
+                if (selectedPosition == 0 &&
+                    (mOptionUiManager.getOptionTag() != OptionUiManager.OPTION_AUTO_SEARCH
+                    && mOptionUiManager.getOptionTag() != OptionUiManager.OPTION_MANUAL_SEARCH))
                     return true;
             } else if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN) {
                 if (selectedPosition == getChildCount() -1)
@@ -76,6 +80,10 @@ public class OptionListView extends ListView implements OnItemSelectedListener {
 
     @Override
     protected void onFocusChanged (boolean gainFocus, int direction, Rect previouslyFocusedRect) {
+        View item = getChildAt(selectedPosition);
+        if (item == null)
+            return;
+
         if (gainFocus) {
             setItemTextColor(getChildAt(selectedPosition), true);
         } else {

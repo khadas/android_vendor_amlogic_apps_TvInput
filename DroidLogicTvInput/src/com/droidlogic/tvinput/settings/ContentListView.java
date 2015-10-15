@@ -132,7 +132,6 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
 
             main_view.addView(((TvSettingsActivity)mContext).mOptionLayout);
             createOptionChildView(((TvSettingsActivity)mContext).mOptionLayout, position);
-
     }
 
     private void createOptionChildView (View option_view, int position) {

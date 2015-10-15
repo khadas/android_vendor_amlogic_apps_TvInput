@@ -17,6 +17,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,8 +45,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
 
-public class OptionUiManager implements OnClickListener, OnFocusChangeListener, Tv.ScannerEventListener
-{
+public class OptionUiManager implements OnClickListener, OnFocusChangeListener, Tv.ScannerEventListener {
     public static final String TAG = "OptionUiManager";
 
     private static TvClient client = TvClient.getTvClient();
@@ -104,27 +104,22 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     List<ChannelInfo> mChannels = new ArrayList<ChannelInfo>();
     private int finish_result = DroidLogicTvUtils.RESULT_OK;
     private boolean isSearching = false;
-    private boolean isManualSearch = false;
 
-    public int getFinishResult()
-    {
+    public int getFinishResult() {
         return finish_result;
     }
 
-    public boolean isSearching()
-    {
+    public boolean isSearching() {
         return isSearching;
     }
 
-    public OptionUiManager(Context context)
-    {
+    public OptionUiManager(Context context) {
         mContext = context;
         mSettingsManager = ((TvSettingsActivity) mContext).getSettingsManager();
         tv.setScannerListener(this);
     }
 
-    public void setOptionTag(int position)
-    {
+    public void setOptionTag(int position) {
         String item_name = ((TvSettingsActivity) mContext).getCurrentFragment().getContentList().get(position).get(ContentFragment.ITEM_NAME)
                 .toString();
         Log.d(TAG, "@@@@@@@@@ item_name=" + item_name);
@@ -246,15 +241,12 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         }
     }
 
-    public int getOptionTag()
-    {
+    public int getOptionTag() {
         return optionTag;
     }
 
-    public int getLayoutId()
-    {
-        switch (optionTag)
-        {
+    public int getLayoutId() {
+        switch (optionTag) {
         // picture
             case OPTION_PICTURE_MODE:
                 return R.layout.layout_picture_picture_mode;
@@ -309,9 +301,15 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             case OPTION_FINE_TUNE:
                 return R.layout.layout_channel_fine_tune;
             case OPTION_MANUAL_SEARCH:
-                return R.layout.layout_channel_manual_search;
+                if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV)
+                    return R.layout.layout_channel_manual_search_atv;
+                else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV)
+                    return R.layout.layout_channel_manual_search_dtv;
             case OPTION_AUTO_SEARCH:
-                return R.layout.layout_channel_auto_search;
+                if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV)
+                    return R.layout.layout_channel_auto_search_atv;
+                else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV)
+                    return R.layout.layout_channel_auto_search_dtv;
             case OPTION_CHANNEL_EDIT:
                 return R.layout.layout_channel_channel_edit;
                 // settings
@@ -331,13 +329,10 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         return 0;
     }
 
-    public void setOptionListener(View view)
-    {
-        for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++)
-        {
+    public void setOptionListener(View view) {
+        for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++) {
             View child = ((ViewGroup) view).getChildAt(i);
-            if (child != null && child.hasFocusable())
-            {
+            if (child != null && child.hasFocusable() && child instanceof TextView) {
                 child.setOnClickListener(this);
                 child.setOnFocusChangeListener(this);
             }
@@ -345,11 +340,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     }
 
     @Override
-    public void onClick(View view)
-    {
+    public void onClick(View view) {
         Resources res = mContext.getResources();
-        switch (view.getId())
-        {
+        switch (view.getId()) {
         // ====Picture====
         // picture mode
             case R.id.picture_mode_standard:
@@ -428,29 +421,25 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 break;
             // aspect ratio
             case R.id.apect_ratio_auto:
-                if (tv.Get3DMode() == 0)
-                {
+                if (tv.Get3DMode() == 0) {
                     tv.SetDisplayMode(Tv.Display_Mode.DISPLAY_MODE_NORMAL, client.curSource, tv.GetCurrentSignalInfo().fmt, 1);
                 }
                 mSettingsManager.setAspectRatio(SettingsManager.STATUS_AUTO);
                 break;
             case R.id.apect_ratio_four2three:
-                if (tv.Get3DMode() == 0)
-                {
+                if (tv.Get3DMode() == 0) {
                     tv.SetDisplayMode(Tv.Display_Mode.DISPLAY_MODE_MODE43, client.curSource, tv.GetCurrentSignalInfo().fmt, 1);
                 }
                 mSettingsManager.setAspectRatio(SettingsManager.STATUS_4_TO_3);
                 break;
             case R.id.apect_ratio_panorama:
-                if (tv.Get3DMode() == 0)
-                {
+                if (tv.Get3DMode() == 0) {
                     tv.SetDisplayMode(Tv.Display_Mode.DISPLAY_MODE_FULL, client.curSource, tv.GetCurrentSignalInfo().fmt, 1);
                 }
                 mSettingsManager.setAspectRatio(SettingsManager.STATUS_PANORAMA);
                 break;
             case R.id.apect_ratio_full_screen:
-                if (tv.Get3DMode() == 0)
-                {
+                if (tv.Get3DMode() == 0) {
                     tv.SetDisplayMode(Tv.Display_Mode.DISPLAY_MODE_169, client.curSource, tv.GetCurrentSignalInfo().fmt, 1);
                 }
                 mSettingsManager.setAspectRatio(SettingsManager.STATUS_FULL_SCREEN);
@@ -629,14 +618,14 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 break;
             // manual search
             case R.id.manual_search_start:
-                isManualSearch = true;
                 isSearching = true;
                 searchedChannelNum = 0;
                 finish_result = DroidLogicTvUtils.RESULT_UPDATE;
                 startManualSearch();
                 break;
             // auto search
-            case R.id.auto_search_start:
+            case R.id.auto_search_start_atv:
+            case R.id.auto_search_start_dtv:
                 isSearching = true;
                 searchedChannelNum = 0;
                 finish_result = DroidLogicTvUtils.RESULT_UPDATE;
@@ -679,11 +668,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             // Restore Factory Settings
             case R.id.restore_factory:
                 new AlertDialog.Builder(mContext).setTitle(R.string.warning).setMessage(R.string.prompt_def_set)
-                        .setPositiveButton(R.string.confirm, new DialogInterface.OnClickListener()
-                        {
+                        .setPositiveButton(R.string.confirm, new DialogInterface.OnClickListener() {
                             @Override
-                            public void onClick(DialogInterface dialog, int which)
-                            {
+                            public void onClick(DialogInterface dialog, int which) {
                                 // TODO Auto-generated method stub
                                 tv.stopAutoBacklight();
                                 SystemProperties.set("tv.sleep_timer", "0");
@@ -701,25 +688,19 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     }
 
     @Override
-    public void onFocusChange(View v, boolean hasFocus)
-    {
-        if (v instanceof TextView)
-        {
-            if (hasFocus)
-            {
+    public void onFocusChange(View v, boolean hasFocus) {
+        if (v instanceof TextView) {
+            if (hasFocus) {
                 ((TextView) v).setTextColor(mContext.getResources().getColor(R.color.color_text_focused));
-            }
-            else
+            } else
                 ((TextView) v).setTextColor(mContext.getResources().getColor(R.color.color_text_item));
         }
     }
 
-    public void setProgressStatus()
-    {
+    public void setProgressStatus() {
         int progress;
 
-        switch (optionTag)
-        {
+        switch (optionTag) {
             case OPTION_FINE_TUNE:
                 progress = mSettingsManager.getFineTuneProgress();
                 setProgress(progress);
@@ -728,7 +709,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             case OPTION_MANUAL_SEARCH:
                 progress = mSettingsManager.getManualSearchProgress();
                 setProgress(progress);
-                setManualSearchFrequency(535250000, 0);
+                setManualSearchInfo(535250000, 0);
                 break;
             case OPTION_AUTO_SEARCH:
                 setProgress(0);
@@ -742,45 +723,35 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         }
     }
 
-    public void setProgress(int progress)
-    {
+    public void setProgress(int progress) {
         RelativeLayout progressLayout = null;
         ViewGroup optionView = (ViewGroup) ((TvSettingsActivity) mContext).mOptionLayout.getChildAt(0);
 
-        for (int i = 0; i < optionView.getChildCount(); i++)
-        {
+        for (int i = 0; i < optionView.getChildCount(); i++) {
             View view = optionView.getChildAt(i);
-            if (view instanceof RelativeLayout)
-            {
+            if (view instanceof RelativeLayout) {
                 progressLayout = (RelativeLayout) view;
                 break;
             }
         }
 
-        if (progressLayout != null)
-        {
-            for (int i = 0; i < progressLayout.getChildCount(); i++)
-            {
+        if (progressLayout != null) {
+            for (int i = 0; i < progressLayout.getChildCount(); i++) {
                 View child = progressLayout.getChildAt(i);
-                if (child instanceof TextView)
-                {
+                if (child instanceof TextView) {
                     ((TextView) child).setText(Integer.toString(progress) + "%");
-                }
-                else if (child instanceof ImageView)
-                {
+                } else if (child instanceof ImageView) {
                     ((ImageView) child).setImageResource(getProgressResourceId(progress));
                 }
             }
         }
     }
 
-    public int getProgressResourceId(int progress)
-    {
+    public int getProgressResourceId(int progress) {
         if (progress == 0)
             return R.drawable.progress_0;
 
-        switch (progress / 5)
-        {
+        switch (progress / 5) {
             case 0:
                 return R.drawable.progress_1;
             case 1:
@@ -829,115 +800,249 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         return R.drawable.progress_10;
     }
 
-    private void setFineTuneFrequency(int progress)
-    {
+    private void setFineTuneFrequency(int progress) {
         ViewGroup optionView = (ViewGroup) ((TvSettingsActivity) mContext).mOptionLayout.getChildAt(0);
 
         TextView frequency = (TextView) optionView.findViewById(R.id.fine_tune_frequency);
         TextView frequency_band = (TextView) optionView.findViewById(R.id.fine_tune_frequency_band);
 
-        if (frequency != null && frequency_band != null)
-        {
+        if (frequency != null && frequency_band != null) {
             frequency.setText("535.25MHZ");
             frequency_band.setText("UHF");
         }
     }
 
-    private void startManualSearch()
-    {
+    private void startManualSearch() {
         ViewGroup parent = (ViewGroup) ((TvSettingsActivity) mContext).mOptionLayout.getChildAt(0);
-        EditText begin = (EditText) parent.findViewById(R.id.manual_search_edit_from);
-        EditText end = (EditText) parent.findViewById(R.id.manual_search_edit_to);
+        if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV) {
+            EditText begin = (EditText) parent.findViewById(R.id.manual_search_edit_from);
+            EditText end = (EditText) parent.findViewById(R.id.manual_search_edit_to);
 
-        String beginHZ = begin.getText().toString();
-        if (beginHZ == null || beginHZ.length() == 0)
-            beginHZ = (String) begin.getHint();
+            String beginHZ = begin.getText().toString();
+            if (beginHZ == null || beginHZ.length() == 0)
+                beginHZ = (String) begin.getHint();
 
-        String endHZ = end.getText().toString();
-        if (endHZ == null || endHZ.length() == 0)
-            endHZ = (String) end.getHint();
+            String endHZ = end.getText().toString();
+            if (endHZ == null || endHZ.length() == 0)
+                endHZ = (String) end.getHint();
 
-        mSettingsManager.setManualSearchProgress(0);
-        mSettingsManager.setManualSearchSearchedNumber(0);
+            mSettingsManager.setManualSearchProgress(0);
+            mSettingsManager.setManualSearchSearchedNumber(0);
 
-        if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV)
-        {
-            tv.AtvManualScan(Integer.valueOf(beginHZ) * 1000, Integer.valueOf(endHZ) * 1000, Tv.atv_video_std_e.ATV_VIDEO_STD_PAL,
-                    Tv.atv_audio_std_e.ATV_AUDIO_STD_DK);
-        }
-        else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV)
-        {
-            tv.DtvManualScan(Integer.valueOf(beginHZ) * 1000);
+            tv.AtvManualScan(Integer.valueOf(beginHZ) * 1000, Integer.valueOf(endHZ) * 1000,
+                Tv.atv_video_std_e.ATV_VIDEO_STD_PAL, Tv.atv_audio_std_e.ATV_AUDIO_STD_DK);
+        } else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV) {
+            EditText edit = (EditText) parent.findViewById(R.id.manual_search_dtv_channel);
+            String  channel = edit.getText().toString();
+
+            tv.DtvManualScan(Integer.valueOf(channel) * 1000);
         }
     }
 
-    public void setManualSearchEditStyle(View view)
-    {
-        EditText edit_from = (EditText) view.findViewById(R.id.manual_search_edit_from);
-        EditText edit_to = (EditText) view.findViewById(R.id.manual_search_edit_to);
-        edit_from.setNextFocusLeftId(R.id.content_list);
-        edit_from.setNextFocusRightId(edit_from.getId());
-        edit_from.setNextFocusUpId(edit_from.getId());
-        edit_to.setNextFocusLeftId(R.id.content_list);
-        edit_to.setNextFocusRightId(edit_to.getId());
+    public void setManualSearchEditStyle(View view) {
+        if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV) {
+            EditText edit_from = (EditText) view.findViewById(R.id.manual_search_edit_from);
+            EditText edit_to = (EditText) view.findViewById(R.id.manual_search_edit_to);
+            edit_from.setNextFocusLeftId(R.id.content_list);
+            edit_from.setNextFocusRightId(edit_from.getId());
+            edit_from.setNextFocusUpId(edit_from.getId());
+            edit_to.setNextFocusLeftId(R.id.content_list);
+            edit_to.setNextFocusRightId(edit_to.getId());
 
-        edit_from.addTextChangedListener(mTextWatcher);
-        edit_to.addTextChangedListener(mTextWatcher);
+            TextWatcher textWatcher = new TextWatcher() {
+                private Toast toast = null;
+
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                }
+
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                }
+
+                public void afterTextChanged(Editable s) {
+                    if (s.length() > 0) {
+                        int pos = s.length() - 1;
+                        char c = s.charAt(pos);
+                        if (c < '0' || c > '9') {
+                            s.delete(pos, pos + 1);
+                            if (toast == null)
+                                toast = Toast.makeText(mContext, mContext.getResources().getString(R.string.error_not_number), Toast.LENGTH_SHORT);
+
+                            toast.show();
+                        }
+                    }
+                }
+            };
+            edit_from.addTextChangedListener(textWatcher);
+            edit_to.addTextChangedListener(textWatcher);
+        } else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV) {
+            final EditText edit = (EditText) view.findViewById(R.id.manual_search_dtv_channel);
+            edit.setNextFocusLeftId(R.id.content_list);
+            edit.setNextFocusRightId(edit.getId());
+            edit.setNextFocusUpId(edit.getId());
+            final TextView start_frequency = (TextView)view.findViewById(R.id.manual_search_dtv_start_frequency);
+
+            TextWatcher textWatcher = new TextWatcher() {
+                private Toast toast = null;
+
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                }
+
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                }
+
+                public void afterTextChanged(Editable s) {
+                    if (s.length() > 0) {
+                        int pos = s.length() - 1;
+                        char c = s.charAt(pos);
+                        if (c < '0' || c > '9') {
+                            s.delete(pos, pos + 1);
+                            if (toast == null)
+                                toast = Toast.makeText(mContext, mContext.getResources().getString(R.string.error_not_number), Toast.LENGTH_SHORT);
+
+                            toast.show();
+                        } else
+                            start_frequency.setText(parseChannelFrequency(Integer.valueOf(edit.getText().toString())));
+                    }
+                }
+            };
+            edit.addTextChangedListener(textWatcher);
+        }
     }
 
-    private void setManualSearchFrequency(double freq, int number)
-    {
-        freq /= 1000 * 1000;// HZ to MHZ
+    private String parseChannelFrequency(int number) {
+        String frequency = mContext.getResources().getString(R.string.start_frequency);
+        if (number == 1) {
+            frequency += "11111KHz";
+        } else if (number == 2) {
+            frequency += "22222KHz";
+        } else if (number == 3) {
+            frequency += "33333KHz";
+        }
+        return frequency;
+    }
+    private void setManualSearchInfo(double freq, int number) {
         ViewGroup optionView = (ViewGroup) ((TvSettingsActivity) mContext).mOptionLayout.getChildAt(0);
+        if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV) {
+            freq /= 1000 * 1000;// HZ to MHZ
 
-        TextView frequency = (TextView) optionView.findViewById(R.id.manual_search_frequency);
-        TextView frequency_band = (TextView) optionView.findViewById(R.id.manual_search_frequency_band);
-        TextView searched_number = (TextView) optionView.findViewById(R.id.manual_search_searched_number);
-        if (frequency != null && frequency_band != null && searched_number != null)
-        {
-            frequency.setText(Double.toString(freq) + "MHZ");
-            frequency_band.setText(parseFrequencyBand(freq));
-            searched_number.setText(mContext.getResources().getString(R.string.searched_number) + ": " + number);
+            TextView frequency = (TextView) optionView.findViewById(R.id.manual_search_frequency);
+            TextView frequency_band = (TextView) optionView.findViewById(R.id.manual_search_frequency_band);
+            TextView searched_number = (TextView) optionView.findViewById(R.id.manual_search_searched_number);
+            if (frequency != null && frequency_band != null && searched_number != null) {
+                frequency.setText(Double.toString(freq) + "MHZ");
+                frequency_band.setText(parseFrequencyBand(freq));
+                searched_number.setText(mContext.getResources().getString(R.string.searched_number) + ": " + number);
+            }
+        } else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV) {
+            OptionListView listView = (OptionListView)optionView.findViewById(R.id.manual_search_dtv_info);
+             ArrayList<HashMap<String,Object>> dataList = getManualSearchDtvInfo();
+             SimpleAdapter adapter = new SimpleAdapter(mContext, dataList,
+                    R.layout.layout_option_double_text,
+                    new String[] {SettingsManager.STRING_NAME, SettingsManager.STRING_STATUS},
+                    new int[] {R.id.text_name, R.id.text_status});
+             listView.setAdapter(adapter);
         }
     }
 
-    private void setAutoSearchFrequency(double freq, int number)
-    {
-        freq /= 1000 * 1000;// HZ to MHZ
+    public ArrayList<HashMap<String,Object>> getManualSearchDtvInfo () {
+        ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
+
+        HashMap<String,Object> item = new HashMap<String,Object>();
+        item.put(SettingsManager.STRING_NAME, "frequncy:");
+        item.put(SettingsManager.STRING_STATUS, "80.0MHz");
+        list.add(item);
+
+        item = new HashMap<String,Object>();
+        item.put(SettingsManager.STRING_NAME, "quality:");
+        item.put(SettingsManager.STRING_STATUS, "0dB");
+        list.add(item);
+
+        item = new HashMap<String,Object>();
+        item.put(SettingsManager.STRING_NAME, "strength:");
+        item.put(SettingsManager.STRING_STATUS, "0%");
+        list.add(item);
+
+        item = new HashMap<String,Object>();
+        item.put(SettingsManager.STRING_NAME, "TV channel:");
+        item.put(SettingsManager.STRING_STATUS, "2");
+        list.add(item);
+
+        item = new HashMap<String,Object>();
+        item.put(SettingsManager.STRING_NAME, "radio channel:");
+        item.put(SettingsManager.STRING_STATUS, "3");
+        list.add(item);
+
+        return list;
+    }
+
+    private void setAutoSearchFrequency(double freq, int number) {
         ViewGroup optionView = (ViewGroup) ((TvSettingsActivity) mContext).mOptionLayout.getChildAt(0);
-
-        TextView frequency = (TextView) optionView.findViewById(R.id.auto_search_frequency);
-        TextView frequency_band = (TextView) optionView.findViewById(R.id.auto_search_frequency_band);
-        TextView searched_number = (TextView) optionView.findViewById(R.id.auto_search_searched_number);
-        if (frequency != null && frequency_band != null && searched_number != null)
-        {
-            frequency.setText(Double.toString(freq) + "MHZ");
-            frequency_band.setText(parseFrequencyBand(freq));
-            searched_number.setText(mContext.getResources().getString(R.string.searched_number) + ": " + number);
+        if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV) {
+            freq /= 1000 * 1000;// HZ to MHZ
+            TextView frequency = (TextView) optionView.findViewById(R.id.auto_search_frequency_atv);
+            TextView frequency_band = (TextView) optionView.findViewById(R.id.auto_search_frequency_band_atv);
+            TextView searched_number = (TextView) optionView.findViewById(R.id.auto_search_searched_number_atv);
+            if (frequency != null && frequency_band != null && searched_number != null) {
+                frequency.setText(Double.toString(freq) + "MHZ");
+                frequency_band.setText(parseFrequencyBand(freq));
+                searched_number.setText(mContext.getResources().getString(R.string.searched_number) + ": " + number);
+            }
+        } else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV) {
+            OptionListView listView = (OptionListView)optionView.findViewById(R.id.auto_search_dtv_info);
+             ArrayList<HashMap<String,Object>> dataList = getAutoSearchDtvInfo();
+             SimpleAdapter adapter = new SimpleAdapter(mContext, dataList,
+                    R.layout.layout_option_double_text,
+                    new String[] {SettingsManager.STRING_NAME, SettingsManager.STRING_STATUS},
+                    new int[] {R.id.text_name, R.id.text_status});
+             listView.setAdapter(adapter);
         }
     }
 
-    public static String parseFrequencyBand(double freq)
-    {
+    public ArrayList<HashMap<String,Object>> getAutoSearchDtvInfo () {
+        ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
+
+        HashMap<String,Object> item = new HashMap<String,Object>();
+        item.put(SettingsManager.STRING_NAME, "frequncy:");
+        item.put(SettingsManager.STRING_STATUS, "80.0MHz");
+        list.add(item);
+
+        item = new HashMap<String,Object>();
+        item.put(SettingsManager.STRING_NAME, "quality:");
+        item.put(SettingsManager.STRING_STATUS, "0dB");
+        list.add(item);
+
+        item = new HashMap<String,Object>();
+        item.put(SettingsManager.STRING_NAME, "strength:");
+        item.put(SettingsManager.STRING_STATUS, "0%");
+        list.add(item);
+
+        item = new HashMap<String,Object>();
+        item.put(SettingsManager.STRING_NAME, "TV channel:");
+        item.put(SettingsManager.STRING_STATUS, "2");
+        list.add(item);
+
+        item = new HashMap<String,Object>();
+        item.put(SettingsManager.STRING_NAME, "radio channel:");
+        item.put(SettingsManager.STRING_STATUS, "3");
+        list.add(item);
+
+        return list;
+    }
+
+    private String parseFrequencyBand(double freq) {
         freq /= 1000 * 1000;// HZ to MHZ
         String band = "";
-        if (freq > 44.25 && freq < 143.25)
-        {
+        if (freq > 44.25 && freq < 143.25) {
             band = "VHFL";
-        }
-        else if (freq >= 143.25 && freq < 426.25)
-        {
+        } else if (freq >= 143.25 && freq < 426.25) {
             band = "VHFH";
-        }
-        else if (freq >= 426.25 && freq < 868.25)
-        {
+        } else if (freq >= 426.25 && freq < 868.25) {
             band = "UHF";
         }
         return band;
     }
 
-    private int getIntegerFromString(String str)
-    {
+    private int getIntegerFromString(String str) {
         if (str != null && str.contains("%"))
             return Integer.valueOf(str.replaceAll("%", ""));
         else
@@ -945,37 +1050,32 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     }
 
     @Override
-    public void onEvent(Tv.ScannerEvent event)
-    {
+    public void onEvent(Tv.ScannerEvent event) {
         Log.d(TAG, "searching---precent = " + event.precent);
+        ChannelInfo channel = null;
         String name = null;
-        if (event.lock == 1)// get a channel
-        {
+        if (event.lock == 1) {
+            // get a channel
             searchedChannelNum++;
         }
-        switch (event.type)
-        {
+        switch (event.type) {
             case Tv.EVENT_DTV_PROG_DATA:
-            {
-                try
-                {
+                try {
                     String composedName = new String(event.programName);
                     name = TVMultilingualText.getText(composedName);
-                    if (name == null || name.isEmpty())
-                    {
+                    if (name == null || name.isEmpty()) {
                         name = TVMultilingualText.getText(composedName, "first");
                     }
                 }
-                catch (Exception e)
-                {
+                catch (Exception e) {
                     e.printStackTrace();
                     name = "????";
                 }
 
-                ChannelInfo channel = new ChannelInfo(String.valueOf(channelNumber), name, null, event.orig_net_id, event.ts_id, event.serviceID, 0, 0,
+                channel = new ChannelInfo(String.valueOf(channelNumber), name, null, event.orig_net_id, event.ts_id, event.serviceID, 0, 0,
                         event.mode, event.srvType, event.freq, event.bandwidth, event.vid, event.vfmt, event.aids, event.afmts, event.pcr, 0, 0, 0, 0);
 
-                if (isManualSearch)
+                if (optionTag == OPTION_MANUAL_SEARCH)
                     TvContractUtils.updateOrinsertDtvChannel(mContext, mSettingsManager.getInputId(), channel);
                 else {
                     if (event.srvType == 1) {
@@ -988,41 +1088,31 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                     }
                 }
                 Log.d(TAG, "STORE_SERVICE: " + channel.toString());
-            }
                 break;
-
             case Tv.EVENT_SCAN_PROGRESS:
-            {
-                if (event.programName != null)
-                {
-                    try
-                    {
+                if (event.programName != null) {
+                    try {
                         String composedName = new String(event.programName);
                         name = TVMultilingualText.getText(composedName);
-                        if (name == null || name.isEmpty())
-                        {
+                        if (name == null || name.isEmpty()) {
                             name = TVMultilingualText.getText(composedName, "first");
                         }
                         Log.d(TAG, "New Program : " + name + ", type " + event.srvType);
                     }
-                    catch (Exception e)
-                    {
+                    catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
 
                 setProgress(event.precent);
-                if (isManualSearch)
-                    setManualSearchFrequency(event.freq, searchedChannelNum);
+                if (optionTag == OPTION_MANUAL_SEARCH)
+                    setManualSearchInfo(event.freq, searchedChannelNum);
                 else
                     setAutoSearchFrequency(event.freq, searchedChannelNum);
-            }
                 break;
-
             case Tv.EVENT_ATV_PROG_DATA:
-            {
                 channelNumber++;
-                ChannelInfo channel = new ChannelInfo("A " + String.valueOf(searchedChannelNum), event.programName, null, 0, 0, 0, 0, 0, 3,
+                channel = new ChannelInfo("A " + String.valueOf(searchedChannelNum), event.programName, null, 0, 0, 0, 0, 0, 3,
                         event.srvType, event.freq, 0,// bandwidth
                         0,// videoPID
                         0,// videoFormat,
@@ -1030,13 +1120,11 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                         null,// audioFormats[],
                         0,// pcrPID,
                         event.videoStd, event.audioStd, event.isAutoStd, 0);
-                if (isManualSearch)
+                if (optionTag == OPTION_MANUAL_SEARCH)
                     TvContractUtils.updateOrinsertAtvChannel(mContext, mSettingsManager.getInputId(), channel);
                 else
                     TvContractUtils.insertAtvChannel(mContext, mSettingsManager.getInputId(), channel, channelNumber);
-            }
                 break;
-
             case Tv.EVENT_STORE_END:
                 Log.d(TAG, "Store end");
                 ((TvSettingsActivity) mContext).finish();
@@ -1056,38 +1144,6 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         }
     }
 
-    public void stopAllAction()
-    {
-
+    public void stopAllAction(){
     }
-
-    private final TextWatcher mTextWatcher = new TextWatcher()
-    {
-        private Toast toast = null;
-
-        public void beforeTextChanged(CharSequence s, int start, int count, int after)
-        {
-        }
-
-        public void onTextChanged(CharSequence s, int start, int before, int count)
-        {
-        }
-
-        public void afterTextChanged(Editable s)
-        {
-            if (s.length() > 0)
-            {
-                int pos = s.length() - 1;
-                char c = s.charAt(pos);
-                if (c < '0' || c > '9')
-                {
-                    s.delete(pos, pos + 1);
-                    if (toast == null)
-                        toast = Toast.makeText(mContext, mContext.getResources().getString(R.string.error_not_number), Toast.LENGTH_SHORT);
-
-                    toast.show();
-                }
-            }
-        }
-    };
 }

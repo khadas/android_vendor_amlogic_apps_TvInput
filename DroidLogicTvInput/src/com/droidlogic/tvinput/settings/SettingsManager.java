@@ -504,15 +504,43 @@ public class SettingsManager {
         return mSearchedNumber;
     }
 
-    public ArrayList<HashMap<String,Object>> getChannelEditList () {
+    public ArrayList<HashMap<String,Object>> getAtvChannelList () {
         ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
 
         HashMap<String,Object> item = new HashMap<String,Object>();
-        item.put(STRING_NAME, "channel 1");
+        item.put(STRING_NAME, "ATV channel 1");
         list.add(item);
 
         item = new HashMap<String,Object>();
-        item.put(STRING_NAME, "channel 2");
+        item.put(STRING_NAME, "ATV channel 2");
+        list.add(item);
+
+        return list;
+    }
+
+    public ArrayList<HashMap<String,Object>> getDtvTvChannelList () {
+        ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
+
+        HashMap<String,Object> item = new HashMap<String,Object>();
+        item.put(STRING_NAME, "TV channel 1");
+        list.add(item);
+
+        item = new HashMap<String,Object>();
+        item.put(STRING_NAME, "TV channel 2");
+        list.add(item);
+
+        return list;
+    }
+
+    public ArrayList<HashMap<String,Object>> getDtvRadioChannelList () {
+        ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
+
+        HashMap<String,Object> item = new HashMap<String,Object>();
+        item.put(STRING_NAME, "Radio channel 1");
+        list.add(item);
+
+        item = new HashMap<String,Object>();
+        item.put(STRING_NAME, "Rdaio channel 2");
         list.add(item);
 
         return list;
@@ -625,27 +653,34 @@ public class SettingsManager {
 
     }
 
-    public void setChannelName (int channer_number, String targetName) {
+    public void setChannelName (int type, int channer_number, String targetName) {
+        switch (type) {
+            case ChannelEdit.TYPE_ATV:
+                break;
+            case ChannelEdit.TYPE_DTV_TV:
+                break;
+            case ChannelEdit.TYPE_DTV_RATIO:
+                break;
+        }
+    }
+
+    public  void swapChannelPosition (int type, int channer_number, int targetNumber) {
 
     }
 
-    public  void swapChannelPosition (int channer_number, int targetNumber) {
+    public  void moveChannelPosition (int type, int channer_number, int targetNumber) {
 
     }
 
-    public  void moveChannelPosition (int channer_number, int targetNumber) {
+    public  void skipChannel (int type, int channelNumber) {
 
     }
 
-    public  void skipChannel (int channelNumber) {
+    public  void deleteChannel (int type, int channelNumber) {
 
     }
 
-    public  void deleteChannel (int channelNumber) {
-
-    }
-
-    public  void setFavouriteChannel (int channelNumber) {
+    public  void setFavouriteChannel (int type, int channelNumber) {
 
     }
 }
