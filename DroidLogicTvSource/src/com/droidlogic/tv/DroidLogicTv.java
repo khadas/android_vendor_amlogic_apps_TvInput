@@ -312,12 +312,12 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
                 }
                 break;
             case DroidLogicKeyEvent.KEYCODE_CHANNEL_UP:
-                mSourceInput.channelUp();
-                switchToSourceInput();
+                if (mSourceInput.channelUp())
+                    switchToSourceInput();
                 break;
             case DroidLogicKeyEvent.KEYCODE_CHANNEL_DOWN:
-                mSourceInput.channelDown();
-                switchToSourceInput();
+                if (mSourceInput.channelDown())
+                    switchToSourceInput();
                 break;
             default:
                 break;

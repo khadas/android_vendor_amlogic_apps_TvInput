@@ -78,7 +78,7 @@ public class ChannelTuner {
             try {
                 cursor = resolver.query(uri, Channel.PROJECTION, null, null, null);
                 if (cursor != null)
-                    Log.d(TAG, "====init cursor count = " + cursor.getCount());
+                    Log.d(TAG, "==== initChannelList, cursor count = " + cursor.getCount());
                 while (cursor != null && cursor.moveToNext()) {
                     Channel channel = Channel.fromCursor(cursor);
                     if (isDTVChannel() && isRadioChannel(channel)) {
@@ -265,13 +265,16 @@ public class ChannelTuner {
      * @param flag {@code true} means {@link KeyEvent.KEYCODE_CHANNEL_UP},
      * {@code false} means {@link KeyEvent.KEYCODE_CHANNEL_DOWN}
      */
-    public void moveToChannel(boolean flag) {
+    public boolean moveToChannel(boolean flag) {
         if (isPassthrough())
-            return;
+            return false;
 
         int total_size = isRadioChannel() ? mRadioChannels.size() : mVideoChannels.size();
         int step = flag ? 1 : -1;
         mCurrentChannelIndex += step;
+        if (total_size <= 0)
+            return false;
+
         if (mCurrentChannelIndex < 0) {
             mCurrentChannelIndex = total_size - 1;
         }else if (mCurrentChannelIndex >= total_size) {
@@ -279,6 +282,7 @@ public class ChannelTuner {
         }
         mCurrentChannel = isRadioChannel() ? mRadioChannels.valueAt(mCurrentChannelIndex)
                 : mVideoChannels.valueAt(mCurrentChannelIndex);
+        return true;
     }
 
     public Uri getUri() {
