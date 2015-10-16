@@ -711,11 +711,10 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             case OPTION_MANUAL_SEARCH:
                 progress = mSettingsManager.getManualSearchProgress();
                 setProgress(progress);
-                setManualSearchInfo(535250000, 0);
+                setManualSearchInfo(null);
                 break;
             case OPTION_AUTO_SEARCH:
                 setProgress(0);
-                setAutoSearchFrequency(SettingsManager.STATUS_DEFAUT_FREQUENCY, 0);
                 break;
             default:
                 progress = getIntegerFromString(mSettingsManager.getStatus(optionKey));
@@ -935,22 +934,31 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         }
         return frequency;
     }
-    private void setManualSearchInfo(double freq, int number) {
-        ViewGroup optionView = (ViewGroup) ((TvSettingsActivity) mContext).mOptionLayout.getChildAt(0);
+    private void setManualSearchInfo(Tv.ScannerEvent event) {
+        ViewGroup optionView = (ViewGroup)((TvSettingsActivity) mContext).mOptionLayout.getChildAt(0);
         if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV) {
-            freq /= 1000 * 1000;// HZ to MHZ
+            EditText begin = (EditText)optionView.findViewById(R.id.manual_search_edit_from);
+            TextView frequency = (TextView)optionView.findViewById(R.id.manual_search_frequency);
+            TextView frequency_band = (TextView)optionView.findViewById(R.id.manual_search_frequency_band);
+            TextView searched_number = (TextView)optionView.findViewById(R.id.manual_search_searched_number);
+            double freq = 0.0;
 
-            TextView frequency = (TextView) optionView.findViewById(R.id.manual_search_frequency);
-            TextView frequency_band = (TextView) optionView.findViewById(R.id.manual_search_frequency_band);
-            TextView searched_number = (TextView) optionView.findViewById(R.id.manual_search_searched_number);
+            if (event == null) {
+                freq = Double.valueOf((String)begin.getHint()).doubleValue();
+                freq /= 1000;// KHZ to MHZ
+            } else {
+                freq = event.freq;
+                freq /= 1000 * 1000;// HZ to MHZ
+            }
+
             if (frequency != null && frequency_band != null && searched_number != null) {
                 frequency.setText(Double.toString(freq) + "MHZ");
                 frequency_band.setText(parseFrequencyBand(freq));
-                searched_number.setText(mContext.getResources().getString(R.string.searched_number) + ": " + number);
+                searched_number.setText(mContext.getResources().getString(R.string.searched_number) + ": " + channelNumber);
             }
-        } else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV) {
+        } else if (event != null && client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV) {
             OptionListView listView = (OptionListView)optionView.findViewById(R.id.manual_search_dtv_info);
-             ArrayList<HashMap<String,Object>> dataList = getManualSearchDtvInfo();
+             ArrayList<HashMap<String,Object>> dataList = getSearchedDtvInfo(event);
              SimpleAdapter adapter = new SimpleAdapter(mContext, dataList,
                     R.layout.layout_option_double_text,
                     new String[] {SettingsManager.STRING_NAME, SettingsManager.STRING_STATUS},
@@ -959,52 +967,51 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         }
     }
 
-    public ArrayList<HashMap<String,Object>> getManualSearchDtvInfo () {
+    public ArrayList<HashMap<String,Object>> getSearchedDtvInfo (Tv.ScannerEvent event) {
         ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
 
         HashMap<String,Object> item = new HashMap<String,Object>();
         item.put(SettingsManager.STRING_NAME, "frequncy:");
-        item.put(SettingsManager.STRING_STATUS, "80.0MHz");
+        item.put(SettingsManager.STRING_STATUS, Double.toString(event.freq/(1000 * 1000)) + "MHz");
         list.add(item);
 
         item = new HashMap<String,Object>();
         item.put(SettingsManager.STRING_NAME, "quality:");
-        item.put(SettingsManager.STRING_STATUS, "0dB");
+        item.put(SettingsManager.STRING_STATUS, event.quality + "dB");
         list.add(item);
 
         item = new HashMap<String,Object>();
         item.put(SettingsManager.STRING_NAME, "strength:");
-        item.put(SettingsManager.STRING_STATUS, "0%");
+        item.put(SettingsManager.STRING_STATUS, "%" + event.strength);
         list.add(item);
 
         item = new HashMap<String,Object>();
         item.put(SettingsManager.STRING_NAME, "TV channel:");
-        item.put(SettingsManager.STRING_STATUS, "2");
+        item.put(SettingsManager.STRING_STATUS, channelNumber);
         list.add(item);
 
         item = new HashMap<String,Object>();
         item.put(SettingsManager.STRING_NAME, "radio channel:");
-        item.put(SettingsManager.STRING_STATUS, "3");
+        item.put(SettingsManager.STRING_STATUS, radioNumber);
         list.add(item);
 
         return list;
     }
 
-    private void setAutoSearchFrequency(double freq, int number) {
+    private void setAutoSearchFrequency(Tv.ScannerEvent event) {
         ViewGroup optionView = (ViewGroup) ((TvSettingsActivity) mContext).mOptionLayout.getChildAt(0);
         if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV) {
-            freq /= 1000 * 1000;// HZ to MHZ
             TextView frequency = (TextView) optionView.findViewById(R.id.auto_search_frequency_atv);
             TextView frequency_band = (TextView) optionView.findViewById(R.id.auto_search_frequency_band_atv);
             TextView searched_number = (TextView) optionView.findViewById(R.id.auto_search_searched_number_atv);
             if (frequency != null && frequency_band != null && searched_number != null) {
-                frequency.setText(Double.toString(freq) + "MHZ");
-                frequency_band.setText(parseFrequencyBand(freq));
-                searched_number.setText(mContext.getResources().getString(R.string.searched_number) + ": " + number);
+                frequency.setText(Double.toString(event.freq/(1000 * 1000)) + "MHZ");
+                frequency_band.setText(parseFrequencyBand(event.freq));
+                searched_number.setText(mContext.getResources().getString(R.string.searched_number) + ": " + channelNumber);
             }
         } else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV) {
             OptionListView listView = (OptionListView)optionView.findViewById(R.id.auto_search_dtv_info);
-             ArrayList<HashMap<String,Object>> dataList = getAutoSearchDtvInfo();
+             ArrayList<HashMap<String,Object>> dataList = getSearchedDtvInfo(event);
              SimpleAdapter adapter = new SimpleAdapter(mContext, dataList,
                     R.layout.layout_option_double_text,
                     new String[] {SettingsManager.STRING_NAME, SettingsManager.STRING_STATUS},
@@ -1013,39 +1020,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         }
     }
 
-    public ArrayList<HashMap<String,Object>> getAutoSearchDtvInfo () {
-        ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
-
-        HashMap<String,Object> item = new HashMap<String,Object>();
-        item.put(SettingsManager.STRING_NAME, "frequncy:");
-        item.put(SettingsManager.STRING_STATUS, "80.0MHz");
-        list.add(item);
-
-        item = new HashMap<String,Object>();
-        item.put(SettingsManager.STRING_NAME, "quality:");
-        item.put(SettingsManager.STRING_STATUS, "0dB");
-        list.add(item);
-
-        item = new HashMap<String,Object>();
-        item.put(SettingsManager.STRING_NAME, "strength:");
-        item.put(SettingsManager.STRING_STATUS, "0%");
-        list.add(item);
-
-        item = new HashMap<String,Object>();
-        item.put(SettingsManager.STRING_NAME, "TV channel:");
-        item.put(SettingsManager.STRING_STATUS, "2");
-        list.add(item);
-
-        item = new HashMap<String,Object>();
-        item.put(SettingsManager.STRING_NAME, "radio channel:");
-        item.put(SettingsManager.STRING_STATUS, "3");
-        list.add(item);
-
-        return list;
-    }
-
     private String parseFrequencyBand(double freq) {
-        freq /= 1000 * 1000;// HZ to MHZ
         String band = "";
         if (freq > 44.25 && freq < 143.25) {
             band = "VHFL";
@@ -1121,9 +1096,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
 
                 setProgress(event.precent);
                 if (optionTag == OPTION_MANUAL_SEARCH)
-                    setManualSearchInfo(event.freq, searchedChannelNum);
+                    setManualSearchInfo(event);
                 else
-                    setAutoSearchFrequency(event.freq, searchedChannelNum);
+                    setAutoSearchFrequency(event);
                 break;
             case Tv.EVENT_ATV_PROG_DATA:
                 channelNumber++;
