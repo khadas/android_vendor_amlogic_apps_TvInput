@@ -192,14 +192,14 @@ public class SourceButton extends Button implements OnClickListener{
      * @return {@code true} move successfully, otherwise, the input is pass through or move failed.
      */
     public boolean channelUp() {
-        return mChannelTuner.moveToChannel(true);
+        return mChannelTuner.moveToChannel(1);
     }
 
     /**
      * @return {@code true} move successfully, otherwise, the input is pass through or move failed.
      */
     public boolean channelDown() {
-        return mChannelTuner.moveToChannel(false);
+        return mChannelTuner.moveToChannel(-1);
     }
 
     public void moveToChannel(int index, boolean isRadio) {

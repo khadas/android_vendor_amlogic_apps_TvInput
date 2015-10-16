@@ -31,6 +31,10 @@ import android.media.tv.TvInputInfo;
 import android.media.tv.TvInputHardwareInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Handler.Callback;
+import android.os.HandlerThread;
+import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Surface;
@@ -50,290 +54,328 @@ import android.amlogic.Tv;
 
 public class DTVInputService extends DroidLogicTvInputService {
 
-	private static final String TAG = "DTVInputService";
+    private static final String TAG = "DTVInputService";
 
-	public static final int DTV_HW_DEVICE_ID = 10;
+    public static final int DTV_HW_DEVICE_ID = 10;
 
-	private static TvClient client = TvClient.getTvClient();
+    private static TvClient client = TvClient.getTvClient();
+    private HandlerThread mHandlerThread;
+    private Handler mDbHandler;
 
-	private DTVSessionImpl mSession;
+    private DTVSessionImpl mSession;
 
-	private final BroadcastReceiver mParentalControlsBroadcastReceiver = new BroadcastReceiver() {
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			if (mSession != null) {
-				mSession.checkContentBlockNeeded();
-			}
-		}
-	};
+    private final BroadcastReceiver mParentalControlsBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (mSession != null) {
+                mSession.checkContentBlockNeeded();
+            }
+        }
+    };
 
-	@Override
-	public void onCreate() {
-		super.onCreate();
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        mHandlerThread = new HandlerThread(getClass().getSimpleName());
+        mHandlerThread.start();
+        mDbHandler = new Handler(mHandlerThread.getLooper());
 
-		IntentFilter intentFilter = new IntentFilter();
-		intentFilter.addAction(TvInputManager.ACTION_BLOCKED_RATINGS_CHANGED);
-		intentFilter.addAction(TvInputManager.ACTION_PARENTAL_CONTROLS_ENABLED_CHANGED);
-		registerReceiver(mParentalControlsBroadcastReceiver, intentFilter);
-	}
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(TvInputManager.ACTION_BLOCKED_RATINGS_CHANGED);
+        intentFilter
+                .addAction(TvInputManager.ACTION_PARENTAL_CONTROLS_ENABLED_CHANGED);
+        registerReceiver(mParentalControlsBroadcastReceiver, intentFilter);
+    }
 
-	@Override
-	public void onDestroy() {
-		super.onDestroy();
-		unregisterReceiver(mParentalControlsBroadcastReceiver);
-	}
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(mParentalControlsBroadcastReceiver);
+        mHandlerThread.quit();
+        mHandlerThread = null;
+        mDbHandler = null;
+    }
 
-	@Override
-	public Session onCreateSession(String inputId) {
-		mSession = new DTVSessionImpl(this, inputId);
-		mSession.setOverlayViewEnabled(true);
-		registerInputSession(mSession, inputId);
-		client.curSource = Tv.SourceInput_Type.SOURCE_TYPE_DTV;
-		return mSession;
-	}
+    @Override
+    public Session onCreateSession(String inputId) {
+        mSession = new DTVSessionImpl(this, inputId);
+        mSession.setOverlayViewEnabled(true);
+        registerInputSession(mSession, inputId);
+        client.curSource = Tv.SourceInput_Type.SOURCE_TYPE_DTV;
+        return mSession;
+    }
 
-	public class DTVSessionImpl extends TvInputService.Session {
-		private final Context mContext;
-		private final String mInputId;
-		private TvInputManager mTvInputManager;
-		private Hardware mHardware;
-		private TvStreamConfig[] mConfigs;
-		private Surface mSurface;
-		private float mVolume;
-		private ChannelInfo mCurrentChannelInfo;
-		private TvContentRating mLastBlockedRating;
-		private TvContentRating mCurrentContentRating;
-		private String mSelectedSubtitleTrackId;
-		private boolean mEpgSyncRequested;
-		private final Set<TvContentRating> mUnblockedRatingSet = new HashSet<>();
-		private Uri mChannelUri;
+    public class DTVSessionImpl extends TvInputService.Session implements Callback {
+        private final Context mContext;
+        private TvInputManager mTvInputManager;
+        private Hardware mHardware;
+        private TvStreamConfig[] mConfigs;
+        private Surface mSurface;
+        private float mVolume;
+        private ChannelInfo mCurrentChannelInfo;
+        private TvContentRating mLastBlockedRating;
+        private TvContentRating mCurrentContentRating;
+        private String mSelectedSubtitleTrackId;
+        private boolean mEpgSyncRequested;
+        private final Set<TvContentRating> mUnblockedRatingSet = new HashSet<>();
+        private Tv mTv = TvClient.getTvInstance();
+        private Uri mChannelUri;
+        private Handler mHandler;
+        private PlayCurrentProgramRunnable mPlayCurrentProgramRunnable;
+        private static final int MSG_PLAY_PROGRAM = 1000;
+        private HardwareCallback mHardwareCallback = new HardwareCallback() {
+            @Override
+            public void onReleased() {
+                Log.d(TAG, "====onReleased===");
+            }
 
-		private Tv mTv = null;
+            @Override
+            public void onStreamConfigChanged(TvStreamConfig[] configs) {
+                Log.d(TAG, "===onStreamConfigChanged==");
+                mConfigs = configs;
+            }
+        };
+        private boolean isTuneNotReady = false;
 
-		private HardwareCallback mHardwareCallback = new HardwareCallback(){
-			@Override
-				public void onReleased() {
-				Log.d(TAG, "====onReleased===");
-			}
+        protected DTVSessionImpl(Context context, String inputId) {
+            super(context);
 
-			@Override
-			public void onStreamConfigChanged(TvStreamConfig[] configs) {
-				Log.d(TAG, "===onStreamConfigChanged==");
-				mConfigs = configs;
-			}
-		};
-		private boolean isTuneNotReady = false;
+            mContext = context;
+            mTvInputManager = (TvInputManager) context.getSystemService(Context.TV_INPUT_SERVICE);
+            mHardware = mTvInputManager.acquireTvInputHardware(
+                    DTV_HW_DEVICE_ID, mHardwareCallback,
+                    mTvInputManager.getTvInputInfo(inputId));
+            mHandler = new Handler(this);
 
-		protected DTVSessionImpl(Context context, String inputId) {
-			super(context);
+            mLastBlockedRating = null;
+        }
 
-			mContext = context;
-			mInputId = inputId;
-			mTvInputManager = (TvInputManager) context.getSystemService(Context.TV_INPUT_SERVICE);
-			mHardware = mTvInputManager.acquireTvInputHardware(DTV_HW_DEVICE_ID,
-					mHardwareCallback, mTvInputManager.getTvInputInfo(inputId));
+        @Override
+        public void onRelease() {
+            Log.d(TAG, "onRelease");
+            releasePlayer();
+            if (mDbHandler != null) {
+                mDbHandler.removeCallbacks(mPlayCurrentProgramRunnable);
+            }
 
-			mLastBlockedRating = null;
-			mTv = TvClient.getTvInstance();
-		}
+            mHardware.setSurface(null, null);
+            mTvInputManager.releaseTvInputHardware(DTV_HW_DEVICE_ID, mHardware);
+        }
 
-		@Override
-		public void onRelease() {
-			Log.d(TAG, "onRelease");
-			releasePlayer();
+        @Override
+        public void onAppPrivateCommand(String action, Bundle data) {
+            if (TextUtils.equals(DroidLogicTvUtils.ACTION_STOP_TV, action)) {
+                stopTv();
+            }
+        }
 
-			mHardware.setSurface(null, null);
-			mTvInputManager.releaseTvInputHardware(DTV_HW_DEVICE_ID, mHardware);
-		}
+        @Override
+        public View onCreateOverlayView() {
+            return null;
+        }
 
-		@Override
-		public void onAppPrivateCommand(String action, Bundle data) {
-		    if (TextUtils.equals(DroidLogicTvUtils.ACTION_STOP_TV, action)) {
-		        stopTv();
-		    }
-		}
+        @Override
+        public boolean onSetSurface(Surface surface) {
+            Log.d(TAG, "onSetSurface: surface[" + surface + "]");
 
-		@Override
-		public View onCreateOverlayView() {
-			return null;
-		}
+            mSurface = surface;
 
-		@Override
-		public boolean onSetSurface(Surface surface) {
-			Log.d(TAG, "onSetSurface: surface["+surface+"]");
+            return true;
+        }
 
-			mSurface = surface;
+        @Override
+        public void onSurfaceChanged(int format, int width, int height) {
+            Log.d(TAG, "onSurfaceChanged [fmt:" + format + ", w:" + width + ", h:" + height + "]");
 
-			return true;
-		}
+            if (isTuneNotReady) {
+                switchToSourceInput();
+                isTuneNotReady = false;
+            }
+        }
 
-		@Override
-		public void onSurfaceChanged(int format, int width, int height) {
-			Log.d(TAG, "onSurfaceChanged [fmt:"+format+", w:"+width+", h:"+height+"]");
+        @Override
+        public void onSetStreamVolume(float volume) {
+            mVolume = volume;
+        }
 
-			if (isTuneNotReady) {
-				switchToSourceInput();
-				isTuneNotReady = false;
-			}
-		}
+        @Override
+        public boolean handleMessage(Message msg) {
+            switch (msg.what) {
+            case MSG_PLAY_PROGRAM:
+                playProgram((ChannelInfo) msg.obj);
+                break;
+            default:
+                break;
+            }
+            return false;
+        }
 
-		@Override
-		public void onSetStreamVolume(float volume) {
-			mVolume = volume;
-		}
+        private class PlayCurrentProgramRunnable implements Runnable {
+            private Uri mChannelUri;
 
-		private void switchToSourceInput() {
-			mHardware.setSurface(mSurface, mConfigs[0]);
-			mUnblockedRatingSet.clear();
+            public PlayCurrentProgramRunnable(Uri uri) {
+                mChannelUri = uri;
+            }
 
-			ChannelInfo ch = TvContractUtils.getChannelInfoDTV(
-			        mContext.getContentResolver(), mChannelUri);
-			if (ch != null) {
-			    playProgram(ch);
-			} else {
-			    Log.w(TAG, "Failed to get channel info for " + mChannelUri);
-			}
-		}
+            @Override
+            public void run() {
+                ChannelInfo ch = TvContractUtils.getChannelInfoDTV(
+                        mContext.getContentResolver(), mChannelUri);
+                if (ch != null) {
+                    mHandler.removeMessages(MSG_PLAY_PROGRAM);
+                    mHandler.obtainMessage(MSG_PLAY_PROGRAM, ch).sendToTarget();
+                } else {
+                    Log.w(TAG, "Failed to get channel info for " + mChannelUri);
+                }
+            }
+        }
 
-		private boolean playProgram(ChannelInfo info) {
-			Log.d(TAG, "play ch: " + info.number+"-"+info.name);
-			Log.d(TAG, "["+info.toString()+"]");
+        private void switchToSourceInput() {
+            mHardware.setSurface(mSurface, mConfigs[0]);
+            mUnblockedRatingSet.clear();
 
-			mCurrentChannelInfo = info;
+            mDbHandler.removeCallbacks(mPlayCurrentProgramRunnable);
+            mPlayCurrentProgramRunnable = new PlayCurrentProgramRunnable(mChannelUri);
+            mDbHandler.post(mPlayCurrentProgramRunnable);
+        }
 
-			if (info.type == TVChannelParams.MODE_DTMB)
-				mTv.PlayDTVProgram(info.type, info.frequency, info.bandwidth, 0,
-						info.videoPID, info.videoFormat,
-						(info.audioPIDs != null)? info.audioPIDs[0] : -1,
-						(info.audioFormats != null)? info.audioFormats[0] : -1,
-						info.pcrPID);
-			else
-				Log.d(TAG, "channel type["+info.type+"] not supported yet.");
+        private boolean playProgram(ChannelInfo info) {
+            mCurrentChannelInfo = info;
 
-			checkContentBlockNeeded();
+            if (info.type == TVChannelParams.MODE_DTMB)
+                mTv.PlayDTVProgram(
+                        info.type,
+                        info.frequency,
+                        info.bandwidth,
+                        0,
+                        info.videoPID,
+                        info.videoFormat,
+                        (info.audioPIDs != null) ? info.audioPIDs[0] : -1,
+                        (info.audioFormats != null) ? info.audioFormats[0] : -1,
+                        info.pcrPID);
+            else
+                Log.d(TAG, "channel type[" + info.type + "] not supported yet.");
 
-			return true;
-		}
+            checkContentBlockNeeded();
 
-		@Override
-		public boolean onTune(Uri channelUri) {
-			Log.d(TAG, "onTune: url:" + channelUri.toString());
-			mChannelUri = channelUri;
+            return true;
+        }
 
-			if (mSurface == null) {//TvView is not ready
-				isTuneNotReady = true;
-			} else {
-				switchToSourceInput();
-			}
-			return false;
-		}
+        @Override
+        public boolean onTune(Uri channelUri) {
+            Log.d(TAG, "onTune: url:" + channelUri.toString());
+            mChannelUri = channelUri;
 
-		@Override
-		public void onSetCaptionEnabled(boolean enabled) {
-		}
+            if (mSurface == null) {// TvView is not ready
+                isTuneNotReady = true;
+            } else {
+                switchToSourceInput();
+            }
+            return false;
+        }
 
-		@Override
-		public boolean onSelectTrack(int type, String trackId) {
-			return true;
-		}
+        @Override
+        public void onSetCaptionEnabled(boolean enabled) {
+        }
 
-		@Override
-		public void onUnblockContent(TvContentRating rating) {
-			Log.d(TAG, "onUnblockContent: rating:" + rating.flattenToString());
-			if (rating != null) {
-				unblockContent(rating);
-			}
-		}
+        @Override
+        public boolean onSelectTrack(int type, String trackId) {
+            return true;
+        }
 
-		private void checkContentBlockNeeded() {
-			if (mCurrentContentRating == null || !mTvInputManager.isParentalControlsEnabled()
-					|| !mTvInputManager.isRatingBlocked(mCurrentContentRating)
-					|| mUnblockedRatingSet.contains(mCurrentContentRating)) {
-				// Content rating is changed so we don't need to block anymore.
-				// Unblock content here explicitly to resume playback.
-				unblockContent(null);
-				return;
-			}
+        @Override
+        public void onUnblockContent(TvContentRating rating) {
+            Log.d(TAG, "onUnblockContent: rating:" + rating.flattenToString());
+            if (rating != null) {
+                unblockContent(rating);
+            }
+        }
 
-			mLastBlockedRating = mCurrentContentRating;
-			// Children restricted content might be blocked by TV app as well,
-			// but TIS should do its best not to show any single frame of blocked content.
-			releasePlayer();
+        private void checkContentBlockNeeded() {
+            if (mCurrentContentRating == null
+                    || !mTvInputManager.isParentalControlsEnabled()
+                    || !mTvInputManager.isRatingBlocked(mCurrentContentRating)
+                    || mUnblockedRatingSet.contains(mCurrentContentRating)) {
+                // Content rating is changed so we don't need to block anymore.
+                // Unblock content here explicitly to resume playback.
+                unblockContent(null);
+                return;
+            }
 
-			Log.d(TAG, "notifyContentBlocked [rating:"+mCurrentContentRating+"]");
-			notifyContentBlocked(mCurrentContentRating);
-		}
+            mLastBlockedRating = mCurrentContentRating;
+            // Children restricted content might be blocked by TV app as well,
+            // but TIS should do its best not to show any single frame of
+            // blocked content.
+            releasePlayer();
 
-		private void unblockContent(TvContentRating rating) {
-			// TIS should unblock content only if unblock request is legitimate.
-			if (rating == null || mLastBlockedRating == null
-					|| (mLastBlockedRating != null && rating.equals(mLastBlockedRating))) {
-				mLastBlockedRating = null;
-				if (rating != null) {
-					mUnblockedRatingSet.add(rating);
-				}
-				Log.d(TAG, "notifyContentAllowed");
-				notifyContentAllowed();
-			}
-		}
-	}
+            Log.d(TAG, "notifyContentBlocked [rating:" + mCurrentContentRating + "]");
+            notifyContentBlocked(mCurrentContentRating);
+        }
 
-	public static final class TvInput {
-		public final String displayName;
-		public final String name;
-		public final String description;
-		public final String logoThumbUrl;
-		public final String logoBackgroundUrl;
+        private void unblockContent(TvContentRating rating) {
+            // TIS should unblock content only if unblock request is legitimate.
+            if (rating == null
+                    || mLastBlockedRating == null
+                    || (mLastBlockedRating != null && rating.equals(mLastBlockedRating))) {
+                mLastBlockedRating = null;
+                if (rating != null) {
+                    mUnblockedRatingSet.add(rating);
+                }
+                Log.d(TAG, "notifyContentAllowed");
+                notifyContentAllowed();
+            }
+        }
+    }
 
-		public TvInput(String displayName,
-						String name,
-						String description,
-						String logoThumbUrl,
-						String logoBackgroundUrl) {
-			this.displayName = displayName;
-			this.name = name;
-			this.description = description;
-			this.logoThumbUrl = logoThumbUrl;
-			this.logoBackgroundUrl = logoBackgroundUrl;
-		}
-	}
+    public static final class TvInput {
+        public final String displayName;
+        public final String name;
+        public final String description;
+        public final String logoThumbUrl;
+        public final String logoBackgroundUrl;
 
-	public TvInputInfo onHardwareAdded(TvInputHardwareInfo hardwareInfo) {
-		if (hardwareInfo.getDeviceId() != DTV_HW_DEVICE_ID)
-			return null;
+        public TvInput(String displayName, String name, String description,
+                String logoThumbUrl, String logoBackgroundUrl) {
+            this.displayName = displayName;
+            this.name = name;
+            this.description = description;
+            this.logoThumbUrl = logoThumbUrl;
+            this.logoBackgroundUrl = logoBackgroundUrl;
+        }
+    }
 
-		Log.d(TAG, "=====onHardwareAdded====="+hardwareInfo.toString());
+    public TvInputInfo onHardwareAdded(TvInputHardwareInfo hardwareInfo) {
+        if (hardwareInfo.getDeviceId() != DTV_HW_DEVICE_ID)
+            return null;
 
-		TvInputInfo info = null;
-		ResolveInfo rInfo = getResolveInfo(DTVInputService.class.getName());
-		if (rInfo != null) {
-			try {
-				info = TvInputInfo.createTvInputInfo(
-						this,
-						rInfo,
-						hardwareInfo,
-						getTvInputInfoLabel(hardwareInfo.getDeviceId()),
-						null);
-			} catch (Exception e) {
-			}
-		}
-		updateInfoListIfNeededLocked(hardwareInfo, info, false);
+        Log.d(TAG, "=====onHardwareAdded=====" + hardwareInfo.toString());
 
-		return info;
-	}
+        TvInputInfo info = null;
+        ResolveInfo rInfo = getResolveInfo(DTVInputService.class.getName());
+        if (rInfo != null) {
+            try {
+                info = TvInputInfo.createTvInputInfo(this, rInfo, hardwareInfo,
+                        getTvInputInfoLabel(hardwareInfo.getDeviceId()), null);
+            } catch (Exception e) {
+            }
+        }
+        updateInfoListIfNeededLocked(hardwareInfo, info, false);
 
-	public String onHardwareRemoved(TvInputHardwareInfo hardwareInfo) {
-		if (hardwareInfo.getType() != TvInputHardwareInfo.TV_INPUT_TYPE_TUNER)
-			return null;
+        return info;
+    }
 
-		TvInputInfo info = getTvInputInfo(hardwareInfo);
-		String id = null;
-		if (info != null)
-			id = info.getId();
+    public String onHardwareRemoved(TvInputHardwareInfo hardwareInfo) {
+        if (hardwareInfo.getType() != TvInputHardwareInfo.TV_INPUT_TYPE_TUNER)
+            return null;
 
-		updateInfoListIfNeededLocked(hardwareInfo, info, true);
+        TvInputInfo info = getTvInputInfo(hardwareInfo);
+        String id = null;
+        if (info != null)
+            id = info.getId();
 
-		Log.d(TAG, "=====onHardwareRemoved===== "+id);
-		return id;
-	}
+        updateInfoListIfNeededLocked(hardwareInfo, info, true);
+
+        Log.d(TAG, "=====onHardwareRemoved===== " + id);
+        return id;
+    }
 }
