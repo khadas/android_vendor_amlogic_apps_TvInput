@@ -320,7 +320,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_VIEWMODE:
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_VOICEMODE:
             case DroidLogicKeyEvent.KEYCODE_TV_SLEEP:
-            case DroidLogicKeyEvent.KEYCODE_TV_SOUND_CHANNEL:
+            case DroidLogicKeyEvent.KEYCODE_MEDIA_AUDIO_CONTROL:
             case DroidLogicKeyEvent.KEYCODE_GUIDE:
                 startSettingActivity(keyCode);
                 return true;

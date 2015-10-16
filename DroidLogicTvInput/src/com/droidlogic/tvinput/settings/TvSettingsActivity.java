@@ -23,7 +23,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
     private static final String TAG = "MainActivity";
 
     private TvClient client = TvClient.getTvClient();
-    private Tv tv = TvClient.getTvInstance();
+    private Tv tv = Tv.open();
 
     private ContentFragment fragmentImage;
     private ContentFragment fragmentSound;

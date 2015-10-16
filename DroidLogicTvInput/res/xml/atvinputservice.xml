@@ -14,4 +14,5 @@
      limitations under the License.
 -->
 <tv-input xmlns:android="http://schemas.android.com/apk/res/android"
-    android:setupActivity="com.droidlogic.tvinput.settings.TvSettingsActivity" />
+    android:setupActivity="com.droidlogic.tvinput.settings.TvSettingsActivity"
+    android:settingsActivity="com.droidlogic.tvinput.shortcut.ShortCutActivity" />
