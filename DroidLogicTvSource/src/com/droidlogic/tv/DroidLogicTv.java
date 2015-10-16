@@ -72,6 +72,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     private static final int MSG_SOURCE_DELAY_TIME = 5;
 
     private static final int START_SETUP = 0;
+    private static final int START_SETTING = 1;
     private boolean needUpdateSource = true;
     //if activity has been stopped, source input must be switched again.
     private boolean hasStopped = false;
@@ -228,23 +229,35 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     }
 
     private void startSetupActivity () {
-        TvInputInfo info = mTvInputManager.getTvInputInfo(mSourceInput.getInputId());
+        TvInputInfo info = mSourceInput.geTvInputInfo();
         Intent intent = info.createSetupIntent();
         startActivityForResult(intent, START_SETUP);
+    }
+
+    private void startSettingActivity (int keycode) {
+        TvInputInfo info = mSourceInput.geTvInputInfo();
+        Intent intent = info.createSettingsIntent();
+        if (intent != null) {
+            intent.putExtra(DroidLogicTvUtils.EXTRA_KEY_CODE, keycode);
+            startActivityForResult(intent, START_SETTING);
+        }
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        Utils.logd(TAG, "====onActivityResult, requestCode=" + requestCode + ", resultCode=" + resultCode);
 
+        if (requestCode == START_SETTING) {
+            needUpdateSource = false;
+            return;
+        }
         if (resultCode == DroidLogicTvUtils.RESULT_OK) {
             needUpdateSource = false;
         } else if (resultCode == DroidLogicTvUtils.RESULT_UPDATE
                 || resultCode == DroidLogicTvUtils.RESULT_FAILED) {
             needUpdateSource = true;
         }
-        Utils.logd(TAG, "====onActivityResult, requestCode=" + requestCode + ", resultCode=" + resultCode);
-
     }
 
     private int getSigType(int source_type) {
@@ -294,14 +307,27 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_SOURCE_LIST:
                 popupSourceMenu(isSourceMenuShowing ? Utils.HIDE_VIEW : Utils.SHOW_VIEW);
                 return true;
-            case DroidLogicKeyEvent.KEYCODE_MENU:
+            case DroidLogicKeyEvent.KEYCODE_MENU://show setup activity
                 if (isSourceMenuShowing) {
                     popupSourceMenu(Utils.HIDE_VIEW);
                 } else if (isSourceInfoShowing) {
                     popupSourceInfo(Utils.HIDE_VIEW);
                 }
                 startSetupActivity();
-                break;
+                return true;
+            case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_DISPAYMODE:
+            case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_3DMODE:
+            case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_VIEWMODE:
+            case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_VOICEMODE:
+            case DroidLogicKeyEvent.KEYCODE_TV_SLEEP:
+            case DroidLogicKeyEvent.KEYCODE_TV_SOUND_CHANNEL:
+            case DroidLogicKeyEvent.KEYCODE_GUIDE:
+                startSettingActivity(keyCode);
+                return true;
+            case DroidLogicKeyEvent.KEYCODE_FAV:
+                return true;
+            case DroidLogicKeyEvent.KEYCODE_LIST:
+                return true;
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_TVINFO:
                 popupSourceInfo(Utils.SHOW_VIEW);
                 return true;
