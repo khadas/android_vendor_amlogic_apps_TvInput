@@ -100,8 +100,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     private int optionTag = OPTION_PICTURE_MODE;
     private String optionKey = null;
     private int searchedChannelNum = 0;
-    private int channelNumber = -1;//for db store TV channel's channelNumber
-    private int radioNumber = -1;//for db store Radio channel's channelNumber
+    private int channelNumber = 0;//for db store TV channel's channelNumber
+    private int radioNumber = 0;//for db store Radio channel's channelNumber
     List<ChannelInfo> mChannels = new ArrayList<ChannelInfo>();
     private int finish_result = DroidLogicTvUtils.RESULT_OK;
     private boolean isSearching = false;
@@ -347,19 +347,15 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         // ====Picture====
         // picture mode
             case R.id.picture_mode_standard:
-                tv.SetPQMode(Tv.Pq_Mode.PQ_MODE_STANDARD, client.curSource, 1);
                 mSettingsManager.setPictureMode(SettingsManager.STATUS_STANDARD);
                 break;
             case R.id.picture_mode_vivid:
-                tv.SetPQMode(Tv.Pq_Mode.PQ_MODE_BRIGHT, client.curSource, 1);
                 mSettingsManager.setPictureMode(SettingsManager.STATUS_VIVID);
                 break;
             case R.id.picture_mode_soft:
-                tv.SetPQMode(Tv.Pq_Mode.PQ_MODE_SOFTNESS, client.curSource, 1);
                 mSettingsManager.setPictureMode(SettingsManager.STATUS_SOFT);
                 break;
             case R.id.picture_mode_user:
-                tv.SetPQMode(Tv.Pq_Mode.PQ_MODE_USER, client.curSource, 1);
                 mSettingsManager.setPictureMode(SettingsManager.STATUS_USER);
                 break;
             // brightness
@@ -422,27 +418,15 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 break;
             // aspect ratio
             case R.id.apect_ratio_auto:
-                if (tv.Get3DMode() == 0) {
-                    tv.SetDisplayMode(Tv.Display_Mode.DISPLAY_MODE_NORMAL, client.curSource, tv.GetCurrentSignalInfo().fmt, 1);
-                }
                 mSettingsManager.setAspectRatio(SettingsManager.STATUS_AUTO);
                 break;
             case R.id.apect_ratio_four2three:
-                if (tv.Get3DMode() == 0) {
-                    tv.SetDisplayMode(Tv.Display_Mode.DISPLAY_MODE_MODE43, client.curSource, tv.GetCurrentSignalInfo().fmt, 1);
-                }
                 mSettingsManager.setAspectRatio(SettingsManager.STATUS_4_TO_3);
                 break;
             case R.id.apect_ratio_panorama:
-                if (tv.Get3DMode() == 0) {
-                    tv.SetDisplayMode(Tv.Display_Mode.DISPLAY_MODE_FULL, client.curSource, tv.GetCurrentSignalInfo().fmt, 1);
-                }
                 mSettingsManager.setAspectRatio(SettingsManager.STATUS_PANORAMA);
                 break;
             case R.id.apect_ratio_full_screen:
-                if (tv.Get3DMode() == 0) {
-                    tv.SetDisplayMode(Tv.Display_Mode.DISPLAY_MODE_169, client.curSource, tv.GetCurrentSignalInfo().fmt, 1);
-                }
                 mSettingsManager.setAspectRatio(SettingsManager.STATUS_FULL_SCREEN);
                 break;
             // dnr
@@ -498,24 +482,19 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             // ====Sound====
             // sound mode
             case R.id.sound_mode_standard:
-                tv.SetAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_STD);
-                tv.SaveCurAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_STD.toInt());
+                mSettingsManager.setSoundMode(SettingsManager.STATUS_STANDARD);
                 break;
             case R.id.sound_mode_music:
-                tv.SetAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_MUSIC);
-                tv.SaveCurAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_MUSIC.toInt());
+                mSettingsManager.setSoundMode(SettingsManager.STATUS_MUSIC);
                 break;
             case R.id.sound_mode_news:
-                tv.SetAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_NEWS);
-                tv.SaveCurAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_NEWS.toInt());
+                mSettingsManager.setSoundMode(SettingsManager.STATUS_NEWS);
                 break;
             case R.id.sound_mode_movie:
-                tv.SetAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_THEATER);
-                tv.SaveCurAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_THEATER.toInt());
+                mSettingsManager.setSoundMode(SettingsManager.STATUS_MOVIE);
                 break;
             case R.id.sound_mode_user:
-                tv.SetAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_USER);
-                tv.SaveCurAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_USER.toInt());
+                mSettingsManager.setSoundMode(SettingsManager.STATUS_USER);
                 break;
             // Treble
             case R.id.treble_increase:
@@ -640,25 +619,25 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             // ====Settings====
             // Sleep Timer
             case R.id.sleep_timer_off:
-                SystemProperties.set("tv.sleep_timer", "0");
+                mSettingsManager.setSleepTime(0);
                 break;
             case R.id.sleep_timer_15min:
-                SystemProperties.set("tv.sleep_timer", "900000");
+                mSettingsManager.setSleepTime(15);
                 break;
             case R.id.sleep_timer_30min:
-                SystemProperties.set("tv.sleep_timer", "1800000");
+                mSettingsManager.setSleepTime(30);
                 break;
             case R.id.sleep_timer_45min:
-                SystemProperties.set("tv.sleep_timer", "2700000");
+                mSettingsManager.setSleepTime(45);
                 break;
             case R.id.sleep_timer_60min:
-                SystemProperties.set("tv.sleep_timer", "3600000");
+                mSettingsManager.setSleepTime(60);
                 break;
             case R.id.sleep_timer_90min:
-                SystemProperties.set("tv.sleep_timer", "5400000");
+                mSettingsManager.setSleepTime(90);
                 break;
             case R.id.sleep_timer_120min:
-                SystemProperties.set("tv.sleep_timer", "7200000");
+                mSettingsManager.setSleepTime(120);
                 break;
             // Dynamic Backlight
             case R.id.dynamic_backlight_on:
@@ -813,20 +792,6 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         }
     }
 
-    private int get_dvb_freq_bypd(int pd_number) {// KHz
-        int the_freq = 706000000;
-        ArrayList<FreqList> m_fList = tv.DTVGetScanFreqList();
-        int size = m_fList.size();
-        for (int i = 0; i < size; i++) {
-            if (pd_number == m_fList.get(i).ID) {
-                the_freq = m_fList.get(i).freq;
-                break;
-            }
-        }
-        Log.d("fuhao", "the_freq = " + the_freq);
-        return the_freq;
-    }
-
     private void startManualSearch() {
         ViewGroup parent = (ViewGroup) ((TvSettingsActivity) mContext).mOptionLayout.getChildAt(0);
         if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV) {
@@ -849,7 +814,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         } else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV) {
             EditText edit = (EditText) parent.findViewById(R.id.manual_search_dtv_channel);
             String channel = edit.getText().toString();
-            tv.DtvManualScan(get_dvb_freq_bypd(Integer.parseInt(channel)));
+            if (channel == null)
+                channel = (String)edit.getHint();
+            tv.DtvManualScan(getDvbFrequencyByPd(Integer.parseInt(channel)));
         }
     }
 
@@ -914,8 +881,12 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                                 toast = Toast.makeText(mContext, mContext.getResources().getString(R.string.error_not_number), Toast.LENGTH_SHORT);
 
                             toast.show();
-                        } else
-                            start_frequency.setText(parseChannelFrequency(Integer.valueOf(edit.getText().toString())));
+                        } else{
+                            String number = edit.getText().toString();
+                            if (number == null)
+                                number = (String)edit.getHint();
+                            start_frequency.setText(parseChannelFrequency(getDvbFrequencyByPd(Integer.valueOf(number))));
+                        }
                     }
                 }
             };
@@ -923,17 +894,26 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         }
     }
 
-    private String parseChannelFrequency(int number) {
+    private String parseChannelFrequency(double freq) {
         String frequency = mContext.getResources().getString(R.string.start_frequency);
-        if (number == 1) {
-            frequency += "11111KHz";
-        } else if (number == 2) {
-            frequency += "22222KHz";
-        } else if (number == 3) {
-            frequency += "33333KHz";
-        }
+        frequency += Double.toString(freq / (1000 * 1000)) + mContext.getResources().getString(R.string.mhz);
         return frequency;
     }
+
+    private int getDvbFrequencyByPd(int pd_number) {// KHz
+        int the_freq = 706000000;
+        ArrayList<FreqList> m_fList = tv.DTVGetScanFreqList();
+        int size = m_fList.size();
+        for (int i = 0; i < size; i++) {
+            if (pd_number == m_fList.get(i).ID) {
+                the_freq = m_fList.get(i).freq;
+                break;
+            }
+        }
+        Log.d("fuhao", "the_freq = " + the_freq);
+        return the_freq;
+    }
+
     private void setManualSearchInfo(Tv.ScannerEvent event) {
         ViewGroup optionView = (ViewGroup)((TvSettingsActivity) mContext).mOptionLayout.getChildAt(0);
         if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV) {
