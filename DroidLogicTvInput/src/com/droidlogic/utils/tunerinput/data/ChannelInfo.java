@@ -21,6 +21,7 @@ public final class ChannelInfo {
 	public final int videoFormat;
 	public final int audioPIDs[];
 	public final int audioFormats[];
+	public final String audioLangs[];
 	public final int pcrPID;
 	public final int videoStd;
 	public final int audioStd;
@@ -33,6 +34,7 @@ public final class ChannelInfo {
 						int serviceType, int frequency, int bandwidth,
 						int videoPID, int videoFormat,
 						int audioPIDs[], int audioFormats[],
+						String audioLangs[],
 						int pcrPID,
 						int vStd,
 						int aStd,
@@ -55,6 +57,7 @@ public final class ChannelInfo {
 		this.videoFormat = videoFormat;
 		this.audioFormats = audioFormats;
 		this.audioPIDs = audioPIDs;
+		this.audioLangs = audioLangs;
 		this.pcrPID = pcrPID;
 		this.videoStd = vStd;
 		this.audioStd = aStd;
@@ -68,6 +71,7 @@ public final class ChannelInfo {
 			+" freq:"+frequency+" bw:"+bandwidth
 			+" vid:"+videoPID+" vfmt:"+videoFormat
 			+" aids:"+Arrays.toString(audioPIDs)+" afmts:"+Arrays.toString(audioFormats)
+			+" alangs:"+Arrays.toString(audioLangs)
 			+" pcr:"+pcrPID;
 	}
 }

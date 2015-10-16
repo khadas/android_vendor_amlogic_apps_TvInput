@@ -147,6 +147,7 @@ public class TvContractUtils
                     map.put("vfmt", String.valueOf(channel.videoFormat));
                     map.put("aids", Arrays.toString(channel.audioPIDs));
                     map.put("afmts", Arrays.toString(channel.audioFormats));
+                    map.put("alangs", Arrays.toString(channel.audioLangs));
                     map.put("pcr", String.valueOf(channel.pcrPID));
                     String output = MapUtil.mapToString(map);
                     values.put(TvContract.Channels.COLUMN_INTERNAL_PROVIDER_DATA, output);
@@ -263,6 +264,7 @@ public class TvContractUtils
         map.put("vfmt", String.valueOf(channel.videoFormat));
         map.put("aids", Arrays.toString(channel.audioPIDs));
         map.put("afmts", Arrays.toString(channel.audioFormats));
+        map.put("alangs", Arrays.toString(channel.audioLangs));
         map.put("pcr", String.valueOf(channel.pcrPID));
         String output = MapUtil.mapToString(map);
         values.put(TvContract.Channels.COLUMN_INTERNAL_PROVIDER_DATA, output);
@@ -431,6 +433,7 @@ public class TvContractUtils
                 int anum = (aidStrings[0].compareTo("null") == 0)? 0 : aidStrings.length;
                 int[] aids = null;
                 int[] afmts = null;
+                String[] alangs = null;
                 if (anum > 0) {
                     aids = new int[anum];
                     afmts = new int[afmtStrings.length];
@@ -438,6 +441,7 @@ public class TvContractUtils
                         aids[i] = Integer.parseInt(aidStrings[i]);
                         afmts[i] = Integer.parseInt(afmtStrings[i]);
                     }
+                    alangs = parsedMap.get("alangs").replace("[", "").replace("]", "").split(", ");
                 }
                 int number = cursor.getInt(7);
                 ChannelInfo info = new ChannelInfo(String.valueOf(number), name, null, originalNetworkId, transportStreamId, inputId, serviceId, 0, 0,
@@ -445,7 +449,7 @@ public class TvContractUtils
                         Integer.parseInt(parsedMap.get("type")),
                         Integer.parseInt(parsedMap.get("freq")), Integer.parseInt(parsedMap.get("bw")),
                         Integer.parseInt(parsedMap.get("vid")), Integer.parseInt(parsedMap.get("vfmt")),
-                        aids, afmts,
+                        aids, afmts, alangs,
                         Integer.parseInt(parsedMap.get("pcr")),
                         0,0,0,0
                         );
@@ -483,6 +487,7 @@ public class TvContractUtils
                         0,// videoFormat,
                         null,// audioPIDs[],
                         null,// audioFormats[],
+                        null,// audioLangs[],
                         0,// pcrPID,
                         Integer.parseInt(parsedMap.get("vstd")), Integer.parseInt(parsedMap.get("astd")), Integer.parseInt(parsedMap.get("auto")),
                         Integer.parseInt(parsedMap.get("fine")));
@@ -520,13 +525,16 @@ public class TvContractUtils
                 int anum = (aidStrings[0].compareTo("null") == 0)? 0 : aidStrings.length;
                 int[] aids = null;
                 int[] afmts = null;
+                String[] alangs = null;
                 if (anum > 0) {
                     aids = new int[anum];
-                    afmts = new int[afmtStrings.length];
+                    afmts = new int[anum];
+                    alangs = new String[anum];
                     for (int i=0; i<aidStrings.length; i++) {
                         aids[i] = Integer.parseInt(aidStrings[i]);
                         afmts[i] = Integer.parseInt(afmtStrings[i]);
                     }
+                    alangs = parsedMap.get("alangs").replace("[", "").replace("]", "").split(", ");
                 }
                 int number = cursor.getInt(7);
                 info = new ChannelInfo(String.valueOf(number), name, null, originalNetworkId, transportStreamId, inputId, serviceId, 0, 0,
@@ -534,7 +542,7 @@ public class TvContractUtils
                             Integer.parseInt(parsedMap.get("type")),
                             Integer.parseInt(parsedMap.get("freq")), Integer.parseInt(parsedMap.get("bw")),
                             Integer.parseInt(parsedMap.get("vid")), Integer.parseInt(parsedMap.get("vfmt")),
-                            aids, afmts,
+                            aids, afmts, alangs,
                             Integer.parseInt(parsedMap.get("pcr")),
                             0,0,0,0
                             );
@@ -581,6 +589,7 @@ public class TvContractUtils
                         0,// videoFormat,
                         null,// audioPIDs[],
                         null,// audioFormats[],
+                        null,// audioLangs[],
                         0,// pcrPID,
                         Integer.parseInt(parsedMap.get("vstd")), Integer.parseInt(parsedMap.get("astd")), Integer.parseInt(parsedMap.get("auto")),
                         Integer.parseInt(parsedMap.get("fine")));
