@@ -482,7 +482,11 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         tv_name = (TextView) findViewById(R.id.ha_info_name);
         tv_val = (TextView) findViewById(R.id.ha_info_value);
         tv_name.setText(mSourceInput.getLabel());
-        tv_val.setText(mSourceInput.getChannelType());
+        if (isNoSignal) {
+            tv_val.setText("");
+        } else {
+            tv_val.setText(mSourceInput.getChannelType());
+        }
     }
 
     private void initHmdiInfo() {
@@ -495,7 +499,11 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         tv_type = (TextView) findViewById(R.id.ha_info_name);
         tv_val = (TextView) findViewById(R.id.ha_info_value);
         tv_type.setText(mSourceInput.getLabel());
-        tv_val.setText(mSourceInput.getChannelVideoFormat());
+        if (isNoSignal) {
+            tv_val.setText("");
+        } else {
+            tv_val.setText(mSourceInput.getChannelVideoFormat());
+        }
     }
 
     private void processSessionEvent(String inputId, String eventType, Bundle eventArgs) {
