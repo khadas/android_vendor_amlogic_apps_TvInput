@@ -45,10 +45,12 @@
     <string name="auto_search">Auto Search</string>
     <string name="start_search">start searching</string>
     <string name="start_frequency">start frequency: </string>
+    <string name="start_frequency_default">start frequency: 706MHz</string>
     <string name="khz">KHz</string>
+    <string name="mhz">MHz</string>
     <string name="default_begin_frequency">535250</string>
     <string name="default_end_frequency">868250</string>
-    <string name="default_begin_channel">1</string>
+    <string name="default_begin_channel">0</string>
     <string name="searched_number">program number</string>
     <string name="channel_edit">Channel Edit</string>
     <string name="switch_channel">Switch Channel</string>

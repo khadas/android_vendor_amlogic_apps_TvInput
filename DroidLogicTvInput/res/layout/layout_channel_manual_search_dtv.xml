@@ -35,10 +35,11 @@
 		        />
 		    <EditText
                 android:id="@+id/manual_search_dtv_channel"
-		        android:layout_width="wrap_content"
+		        android:layout_width="100dp"
 		        android:layout_height="wrap_content"
 		        android:layout_marginLeft="5dp"
 		        android:layout_marginRight="5dp"
+		        android:gravity="center"
 		        android:textSize="24sp"
 		        android:textColor="@color/color_text_edit"
 		        android:textColorHint="@color/color_text_hint"
@@ -54,7 +55,7 @@
         android:layout_marginLeft="31dp"
         android:paddingLeft="50dp"
         android:background="@drawable/item_background"
-        android:text="@string/start_frequency"
+        android:text="@string/start_frequency_default"
         android:textColor="@color/color_text_item"
         />
     <TextView

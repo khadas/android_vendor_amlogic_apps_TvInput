@@ -72,6 +72,9 @@ public class SettingsManager {
     public static final String STATUS_SOFT                          = "soft";
     public static final String STATUS_USER                          = "user";
     public static final String STATUS_WARM                          = "warm";
+    public static final String STATUS_MUSIC                          = "music";
+    public static final String STATUS_NEWS                          = "news";
+    public static final String STATUS_MOVIE                          = "movie";
     public static final String STATUS_COOL                          = "cool";
     public static final String STATUS_ON                            = "on";
     public static final String STATUS_OFF                           = "off";
@@ -111,6 +114,14 @@ public class SettingsManager {
 
     public String getTag () {
         return currentTag;
+    }
+
+    public TvClient getTvClient () {
+        return client;
+    }
+
+    public Tv getTvInstance () {
+        return tv;
     }
 
     public String getStatus (String key) {
@@ -154,16 +165,20 @@ public class SettingsManager {
         return null;
     }
 
-    private String getPictureModeStatus () {
+    public  String getPictureModeStatus () {
         int pictureModeIndex = tv.GetPQMode(client.curSource);
-        if (pictureModeIndex == 0)
-            return STATUS_STANDARD;
-        else if (pictureModeIndex == 1)
-            return STATUS_VIVID;
-        else if (pictureModeIndex == 2)
-            return STATUS_SOFT;
-        else
-            return STATUS_USER;
+        switch (pictureModeIndex) {
+            case 0:
+                return STATUS_STANDARD;
+            case 1:
+                return STATUS_VIVID;
+            case 2:
+                return STATUS_SOFT;
+            case 3:
+                return STATUS_USER;
+            default:
+                return STATUS_STANDARD;
+        }
     }
 
     private String getBrightnessStatus () {
@@ -196,7 +211,7 @@ public class SettingsManager {
             return mResources.getString(R.string.cool);
     }
 
-    private String getAspectRatioStatus () {
+    public String getAspectRatioStatus () {
         int itemPosition = tv.GetDisplayMode(client.curSource);
         if (itemPosition == 0)
             return mResources.getString(R.string.full_screen);
@@ -222,7 +237,7 @@ public class SettingsManager {
             return mResources.getString(R.string.auto);
     }
 
-    private String get3dSettingsStatus () {
+    public  String get3dSettingsStatus () {
         if (tv.Get3DTo2DMode() != 0)
             return mResources.getString(R.string.mode_3d_to_2d);
         int threeD_mode = tv.Get3DMode();
@@ -268,7 +283,7 @@ public class SettingsManager {
     }
 
 
-    private String getSoundModeStatus () {
+    public  String getSoundModeStatus () {
         int itemPosition = tv.GetCurAudioSoundMode();
         if (itemPosition == 0)
             return mResources.getString(R.string.standard);
@@ -564,7 +579,7 @@ public class SettingsManager {
         return null;
     }
 
-    private String getSleepTimerStatus () {
+    public String getSleepTimerStatus () {
         String ret = "";
         int time = SystemProperties.getInt("tv.sleep_timer", 0);
         switch (time)
@@ -614,7 +629,16 @@ public class SettingsManager {
     }
 
     public void setPictureMode (String mode) {
-
+        Log.d(TAG, "@@@@@@@@@@ setpicture="+mode);
+        if (mode.equals(STATUS_STANDARD)) {
+            tv.SetPQMode(Tv.Pq_Mode.PQ_MODE_STANDARD, client.curSource, 1);
+        } else if (mode.equals(STATUS_VIVID)) {
+            tv.SetPQMode(Tv.Pq_Mode.PQ_MODE_BRIGHT, client.curSource, 1);
+        } else if (mode.equals(STATUS_SOFT)) {
+            tv.SetPQMode(Tv.Pq_Mode.PQ_MODE_SOFTNESS, client.curSource, 1);
+        } else if (mode.equals(STATUS_USER)) {
+            tv.SetPQMode(Tv.Pq_Mode.PQ_MODE_USER, client.curSource, 1);
+        }
     }
 
     public void setBrightness (int step) {
@@ -642,7 +666,17 @@ public class SettingsManager {
     }
 
     public void setAspectRatio(String mode) {
-
+        if (tv.Get3DMode() == 0) {
+            if (mode.equals(STATUS_AUTO)) {
+                tv.SetDisplayMode(Tv.Display_Mode.DISPLAY_MODE_NORMAL, client.curSource, tv.GetCurrentSignalInfo().fmt, 1);
+            } else if (mode.equals(STATUS_4_TO_3)) {
+                tv.SetDisplayMode(Tv.Display_Mode.DISPLAY_MODE_MODE43, client.curSource, tv.GetCurrentSignalInfo().fmt, 1);
+            } else if (mode.equals(STATUS_PANORAMA)) {
+                tv.SetDisplayMode(Tv.Display_Mode.DISPLAY_MODE_FULL, client.curSource, tv.GetCurrentSignalInfo().fmt, 1);
+            } else if (mode.equals(STATUS_FULL_SCREEN)) {
+                tv.SetDisplayMode(Tv.Display_Mode.DISPLAY_MODE_169, client.curSource, tv.GetCurrentSignalInfo().fmt, 1);
+            }
+        }
     }
 
     public void setDnr (String mode) {
@@ -651,6 +685,26 @@ public class SettingsManager {
 
     public void set3dSettings (String mode) {
 
+    }
+
+    public void setSoundMode (String mode) {
+        Log.d(TAG, "@@@@@@@@@@ setsound="+mode);
+        if (mode.equals(STATUS_STANDARD)) {
+            tv.SetAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_STD);
+            tv.SaveCurAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_STD.toInt());
+        } else if (mode.equals(STATUS_MUSIC)) {
+            tv.SetAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_MUSIC);
+            tv.SaveCurAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_MUSIC.toInt());
+        } else if (mode.equals(STATUS_NEWS)) {
+            tv.SetAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_NEWS);
+            tv.SaveCurAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_NEWS.toInt());
+        } else if (mode.equals(STATUS_MOVIE)) {
+            tv.SetAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_THEATER);
+            tv.SaveCurAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_THEATER.toInt());
+        } else if (mode.equals(STATUS_USER)) {
+            tv.SetAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_USER);
+            tv.SaveCurAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_USER.toInt());
+        }
     }
 
     public void setChannelName (int type, int channer_number, String targetName) {
@@ -682,5 +736,9 @@ public class SettingsManager {
 
     public  void setFavouriteChannel (int type, int channelNumber) {
 
+    }
+
+    public void setSleepTime (int mins) {
+        SystemProperties.set("tv.sleep_timer", Integer.toString(mins * 60 * 1000));
     }
 }
