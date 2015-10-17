@@ -646,6 +646,13 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             case R.id.dynamic_backlight_off:
                 tv.stopAutoBacklight();
                 break;
+            // Switch Channel
+            case R.id.switch_channel_static_frame:
+                tv.setBlackoutEnable(0);
+                break;
+            case R.id.switch_channel_black_frame:
+                tv.setBlackoutEnable(1);
+                break;
             // Restore Factory Settings
             case R.id.restore_factory:
                 new AlertDialog.Builder(mContext).setTitle(R.string.warning).setMessage(R.string.prompt_def_set)

@@ -562,7 +562,10 @@ public class SettingsManager {
     }
 
     private String getSwitchChannelStatus () {
-        return mResources.getString(R.string.static_frame);
+        if (tv.SSMReadBlackoutEnalbe() == 0)
+            return mResources.getString(R.string.static_frame);
+        else
+            return mResources.getString(R.string.black_frame);
     }
 
     //Settings
