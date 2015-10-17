@@ -17,6 +17,6 @@
 
     <dimen name="ad_info_margin_top">10dp</dimen>
     <dimen name="text_size_info_ad_name">30sp</dimen>
-    <dimen name="text_size_info_ad_number">60sp</dimen>
+    <dimen name="text_size_info_ad_number">65sp</dimen>
     <dimen name="text_size_info_ad_value">30sp</dimen>
 </resources>

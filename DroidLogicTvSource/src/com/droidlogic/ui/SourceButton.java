@@ -86,6 +86,10 @@ public class SourceButton extends Button implements OnClickListener{
         return mInputInfo.isHidden(mContext);
     }
 
+    public boolean isPassthrough() {
+        return mInputInfo.isPassthroughInput();
+    }
+
     public boolean isHardware() {
         return mIsHardware == -1 ? false : true;
     }
@@ -188,22 +192,19 @@ public class SourceButton extends Button implements OnClickListener{
         init();
     }
 
-    /**
-     * @return {@code true} move successfully, otherwise, the input is pass through or move failed.
-     */
-    public boolean channelUp() {
-        return mChannelTuner.moveToChannel(1);
-    }
-
-    /**
-     * @return {@code true} move successfully, otherwise, the input is pass through or move failed.
-     */
-    public boolean channelDown() {
-        return mChannelTuner.moveToChannel(-1);
-    }
-
-    public void moveToChannel(int index, boolean isRadio) {
+    public void initChannelInfo(int index, boolean isRadio) {
         mChannelTuner.moveToChannel(index, isRadio);
+    }
+
+    /**
+     * @return {@code true} move successfully, otherwise, move failed.
+     */
+    public boolean moveToOffset(int offset) {
+        return isPassthrough() ? false : mChannelTuner.moveToOffset(offset);
+    }
+
+    public boolean moveToIndex(int index) {
+        return isPassthrough() ? false : mChannelTuner.moveToIndex(index);
     }
 
     @Override

@@ -64,11 +64,14 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
 
     private Timer delayTimer = null;
     private int delayCounter = 0;
+    private Timer channelSwitchTimer = null;
 
     private Handler mHandler;
     private static final int MSG_INFO_DELAY = 0;
-    private static final int MSG_INFO_DELAY_TIME = 5;
     private static final int MSG_SOURCE_DELAY = 1;
+    private static final int MSG_CHANNEL_KEY_SWITCH = 2;
+    private static final int MSG_CHANNEL_NUM_SWITCH = 3;
+    private static final int MSG_INFO_DELAY_TIME = 5;
     private static final int MSG_SOURCE_DELAY_TIME = 5;
 
     private static final int START_SETUP = 0;
@@ -76,6 +79,15 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     private boolean needUpdateSource = true;
     //if activity has been stopped, source input must be switched again.
     private boolean hasStopped = false;
+
+    //info
+    private TextView mInfoLabel;
+    private TextView mInfoName;
+    private TextView mInfoNumber;
+    private int mPreSigType = -1;
+    private boolean isSwitchingChannel = false;
+    private boolean isNumberSwitching = false;
+    private String keyInputNumber = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -203,14 +215,13 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         dtv_channel = sp.getInt("dtv_channel", -1);
         is_radio = sp.getBoolean("is_radio", false);
         if (sb.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_ATV && atv_channel >= 0) {
-            sb.moveToChannel(atv_channel, is_radio);
+            sb.initChannelInfo(atv_channel, false);
         } else if (sb.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_DTV && dtv_channel >= 0) {
-            sb.moveToChannel(dtv_channel, is_radio);
+            sb.initChannelInfo(dtv_channel, is_radio);
         }
 
         if (device_id == sb.getDeviceId()) {
             mSourceInput = sb;
-            mSigType = getSigType(sb.getSourceType());
         }
     }
 
@@ -220,6 +231,8 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
      * used to tune must be wrong.
      */
     private void switchToSourceInput() {
+        mPreSigType = mSigType;
+        mSigType = getSigType(mSourceInput.getSourceType());
         Uri channel_uri = mSourceInput.getUri();
         Utils.logd(TAG, "channelUri switching to is " + channel_uri);
 
@@ -292,7 +305,6 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
             return;
         saveDefaultChannelId();
         mSourceInput = sb;
-        mSigType = getSigType(sb.getSourceType());
         switchToSourceInput();
     }
 
@@ -338,17 +350,74 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
                 }
                 break;
             case DroidLogicKeyEvent.KEYCODE_CHANNEL_UP:
-                if (mSourceInput.channelUp())
-                    switchToSourceInput();
-                break;
+                processKeyInputChannel(1);
+                return true;
             case DroidLogicKeyEvent.KEYCODE_CHANNEL_DOWN:
-                if (mSourceInput.channelDown())
-                    switchToSourceInput();
+                processKeyInputChannel(-1);
+                return true;
+            case DroidLogicKeyEvent.KEYCODE_0:
+            case DroidLogicKeyEvent.KEYCODE_1:
+            case DroidLogicKeyEvent.KEYCODE_2:
+            case DroidLogicKeyEvent.KEYCODE_3:
+            case DroidLogicKeyEvent.KEYCODE_4:
+            case DroidLogicKeyEvent.KEYCODE_5:
+            case DroidLogicKeyEvent.KEYCODE_6:
+            case DroidLogicKeyEvent.KEYCODE_7:
+            case DroidLogicKeyEvent.KEYCODE_8:
+            case DroidLogicKeyEvent.KEYCODE_9:
+                processNumberInputChannel(keyCode);
                 break;
             default:
                 break;
         }
         return super.onKeyDown(keyCode, event);
+    }
+
+    private void processKeyInputChannel(int offset) {
+        if (mSourceInput.isPassthrough())
+            return;
+
+        destroyChannelSwitchTimer();
+        if (mSourceInput.moveToOffset(offset)) {
+            isSwitchingChannel = true;
+            popupSourceInfo(Utils.SHOW_VIEW);
+        }
+        channelSwitch(MSG_CHANNEL_KEY_SWITCH, 500);
+    }
+
+    private void processNumberInputChannel(int keyCode) {
+        if (mSourceInput.isPassthrough())
+            return;
+
+        destroyChannelSwitchTimer();
+        isNumberSwitching = true;
+        int val = keyCode - DroidLogicKeyEvent.KEYCODE_0;
+        if (keyInputNumber.length() <= 8)
+            keyInputNumber = keyInputNumber + val;
+        popupSourceInfo(Utils.SHOW_VIEW);
+        isSwitchingChannel = mSourceInput.moveToIndex(Integer.parseInt(keyInputNumber));
+        channelSwitch(MSG_CHANNEL_NUM_SWITCH, 2000);
+    }
+
+    private void destroyChannelSwitchTimer() {
+        if (channelSwitchTimer != null) {
+            channelSwitchTimer.cancel();
+            channelSwitchTimer = null;
+            isSwitchingChannel = false;
+        }
+    }
+
+    private void channelSwitch(final int what, final int delay) {
+        destroyChannelSwitchTimer();
+        channelSwitchTimer = new Timer();
+        TimerTask task = new TimerTask(){
+            @Override
+            public void run() {
+                mHandler.removeMessages(what);
+                mHandler.sendMessageDelayed(mHandler.obtainMessage(what), delay);
+            }
+        };
+        channelSwitchTimer.schedule(task, 0);
     }
 
     private void popupSourceMenu(boolean show_or_hide) {//ture:show
@@ -390,7 +459,6 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
             isSourceInfoShowing = false;
             mSourceInfoLayout.setVisibility(View.INVISIBLE);
         } else {
-            mSourceInfoLayout.removeAllViews();
             switch (mSigType) {
                 case DroidLogicTvUtils.SIG_INFO_TYPE_ATV:
                     initATVInfo();
@@ -420,89 +488,90 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         }
     }
 
-    private void initOtherInfo() {
-        TextView tv_name;
-        TextView tv_number;
-        TextView tv_val;
-        if (mSourceInfoLayout.getChildCount() == 0) {
-            LayoutInflater inflate = LayoutInflater.from(mContext);
-            mSourceInfoLayout.addView(inflate.inflate(R.layout.atv_dtv_info, mSourceInfoLayout, false));
+    private void inflatCurrentInfoLayout() {
+        if (!(mSourceInfoLayout.getChildCount() == 0 || mPreSigType != mSigType))
+            return;
+        mSourceInfoLayout.removeAllViews();
+        mInfoNumber = null;
+        LayoutInflater inflate = LayoutInflater.from(mContext);
+        switch (mSigType) {
+            case DroidLogicTvUtils.SIG_INFO_TYPE_ATV:
+            case DroidLogicTvUtils.SIG_INFO_TYPE_DTV:
+                mSourceInfoLayout.addView(inflate.inflate(R.layout.atv_dtv_info,
+                        mSourceInfoLayout, false));
+                mInfoLabel = (TextView) findViewById(R.id.ad_info_name);
+                mInfoNumber = (TextView) findViewById(R.id.ad_info_number);
+                mInfoName = (TextView) findViewById(R.id.ad_info_value);
+                break;
+            case DroidLogicTvUtils.SIG_INFO_TYPE_AV:
+            case DroidLogicTvUtils.SIG_INFO_TYPE_HDMI:
+                mSourceInfoLayout.addView(inflate.inflate(R.layout.hdmi_av_info,
+                        mSourceInfoLayout, false));
+                mInfoLabel = (TextView) findViewById(R.id.ha_info_name);
+                mInfoName = (TextView) findViewById(R.id.ha_info_value);
+                break;
+            default:
+                mSourceInfoLayout.addView(inflate.inflate(R.layout.atv_dtv_info,
+                        mSourceInfoLayout, false));
+                mInfoLabel = (TextView) findViewById(R.id.ad_info_name);
+                mInfoNumber = (TextView) findViewById(R.id.ad_info_number);
+                mInfoName = (TextView) findViewById(R.id.ad_info_value);
+                break;
         }
-        tv_name = (TextView) findViewById(R.id.ad_info_name);
-        tv_number = (TextView) findViewById(R.id.ad_info_number);
-        tv_val = (TextView) findViewById(R.id.ad_info_value);
-        tv_name.setText(mSourceInput.getLabel());
-        tv_number.setText(mSourceInput.getChannelNumber());
-        tv_val.setText(mSourceInput.getChannelName());
+    }
+
+    private void initOtherInfo() {
+        inflatCurrentInfoLayout();
+        mInfoLabel.setText(mSourceInput.getLabel());
+        mInfoNumber.setText(mSourceInput.getChannelNumber());
+        mInfoName.setText(mSourceInput.getChannelName());
     }
 
     private void initATVInfo() {
-        TextView tv_name;
-        TextView tv_number;
-        TextView tv_val;
-        if (mSourceInfoLayout.getChildCount() == 0) {
-            LayoutInflater inflate = LayoutInflater.from(mContext);
-            mSourceInfoLayout.addView(inflate.inflate(R.layout.atv_dtv_info, mSourceInfoLayout, false));
+        inflatCurrentInfoLayout();
+        mInfoLabel.setText(mSourceInput.getLabel());
+        if (isNumberSwitching) {
+            mInfoNumber.setText(keyInputNumber);
+            mInfoName.setText("");
+        } else {
+            mInfoNumber.setText(mSourceInput.getChannelNumber());
+            mInfoName.setText(mSourceInput.getChannelType());
         }
-        tv_name = (TextView) findViewById(R.id.ad_info_name);
-        tv_number = (TextView) findViewById(R.id.ad_info_number);
-        tv_val = (TextView) findViewById(R.id.ad_info_value);
-        tv_name.setText(mSourceInput.getLabel());
-        tv_number.setText(mSourceInput.getChannelNumber());
-        tv_val.setText(mSourceInput.getChannelType());
     }
 
     private void initDTVInfo() {
-        TextView tv_name;
-        TextView tv_number;
-        TextView tv_val;
-        if (mSourceInfoLayout.getChildCount() == 0) {
-            LayoutInflater inflate = LayoutInflater.from(mContext);
-            mSourceInfoLayout.addView(inflate.inflate(R.layout.atv_dtv_info, mSourceInfoLayout, false));
-        }
-        tv_name = (TextView) findViewById(R.id.ad_info_name);
-        tv_number = (TextView) findViewById(R.id.ad_info_number);
-        tv_val = (TextView) findViewById(R.id.ad_info_value);
+        inflatCurrentInfoLayout();
         if (mSourceInput.isRadioChannel()) {
-            tv_name.setText(getResources().getString(R.string.radio_label));
+            mInfoLabel.setText(getResources().getString(R.string.radio_label));
         } else {
-            tv_name.setText(mSourceInput.getLabel());
+            mInfoLabel.setText(mSourceInput.getLabel());
         }
-        tv_number.setText(mSourceInput.getChannelNumber());
-        tv_val.setText(mSourceInput.getChannelName());
+        if (isNumberSwitching) {
+            mInfoNumber.setText(keyInputNumber);
+            mInfoName.setText("");
+        } else {
+            mInfoNumber.setText(mSourceInput.getChannelNumber());
+            mInfoName.setText(mSourceInput.getChannelName());
+        }
     }
 
     private void initAVInfo() {
-        TextView tv_name;
-        TextView tv_val;
-        if (mSourceInfoLayout.getChildCount() == 0) {
-            LayoutInflater inflate = LayoutInflater.from(mContext);
-            mSourceInfoLayout.addView(inflate.inflate(R.layout.hdmi_av_info, mSourceInfoLayout, false));
-        }
-        tv_name = (TextView) findViewById(R.id.ha_info_name);
-        tv_val = (TextView) findViewById(R.id.ha_info_value);
-        tv_name.setText(mSourceInput.getLabel());
+        inflatCurrentInfoLayout();
+        mInfoLabel.setText(mSourceInput.getLabel());
         if (isNoSignal) {
-            tv_val.setText("");
+            mInfoName.setText("");
         } else {
-            tv_val.setText(mSourceInput.getChannelType());
+            mInfoName.setText(mSourceInput.getChannelType());
         }
     }
 
     private void initHmdiInfo() {
-        TextView tv_type;
-        TextView tv_val;
-        if (mSourceInfoLayout.getChildCount() == 0) {
-            LayoutInflater inflate = LayoutInflater.from(mContext);
-            mSourceInfoLayout.addView(inflate.inflate(R.layout.hdmi_av_info, mSourceInfoLayout, false));
-        }
-        tv_type = (TextView) findViewById(R.id.ha_info_name);
-        tv_val = (TextView) findViewById(R.id.ha_info_value);
-        tv_type.setText(mSourceInput.getLabel());
+        inflatCurrentInfoLayout();
+        mInfoLabel.setText(mSourceInput.getLabel());
         if (isNoSignal) {
-            tv_val.setText("");
+            mInfoName.setText("");
         } else {
-            tv_val.setText(mSourceInput.getChannelVideoFormat());
+            mInfoName.setText(mSourceInput.getChannelVideoFormat());
         }
     }
 
@@ -619,6 +688,19 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
                 if (delayCounter > max_counter) {
                     popupSourceMenu(Utils.HIDE_VIEW);
                 }
+                break;
+            case MSG_CHANNEL_KEY_SWITCH:
+                if (isSwitchingChannel)
+                    switchToSourceInput();
+                isSwitchingChannel = false;
+                break;
+            case MSG_CHANNEL_NUM_SWITCH:
+                if (isSwitchingChannel)
+                    switchToSourceInput();
+                isSwitchingChannel = false;
+                isNumberSwitching = false;
+                keyInputNumber = "";
+                popupSourceInfo(Utils.SHOW_VIEW);
                 break;
             default:
                 break;

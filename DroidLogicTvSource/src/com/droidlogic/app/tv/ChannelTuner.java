@@ -100,7 +100,8 @@ public class ChannelTuner {
 
     /**
      * update channel lists after {@link TvProvider.notifyChange}
-     * @param channel {@link Channel} has been changed. {@code null} means the channel has been delete.
+     * @param channel {@link Channel} has been changed.
+     * {@code null} means the channel has been delete.
      * Otherwise, the channel has been inserted or updated.
      */
     private void updateCurrentChannel(Channel channel) {
@@ -263,12 +264,26 @@ public class ChannelTuner {
         }
     }
 
+    public boolean moveToIndex(int index) {
+        if (isPassthrough())
+            return false;
+
+        int total_size = 0;
+        total_size = isRadioChannel() ? mRadioChannels.size() : mVideoChannels.size();
+        if (index < 0 || index >= total_size) {
+            return false;
+        }
+        mCurrentChannelIndex = index;
+        mCurrentChannel = isRadioChannel() ? mRadioChannels.valueAt(index) : mVideoChannels.valueAt(index);
+        return true;
+    }
+
     /**
      * @param step offset from current channel index.
      * @return {@code true} indicates to get a channel successfully.
      * {@code false} indicates channel is null.
      */
-    public boolean moveToChannel(int step) {
+    public boolean moveToOffset(int offset) {
         if (isPassthrough())
             return false;
 
@@ -276,11 +291,11 @@ public class ChannelTuner {
         if (total_size <= 0)
             return false;
 
-        mCurrentChannelIndex += step;
+        mCurrentChannelIndex += offset;
         if (mCurrentChannelIndex < 0) {
-            mCurrentChannelIndex = total_size - 1;
+            mCurrentChannelIndex = total_size + mCurrentChannelIndex;
         }else if (mCurrentChannelIndex >= total_size) {
-            mCurrentChannelIndex = 0;
+            mCurrentChannelIndex = mCurrentChannelIndex - total_size;
         }
         mCurrentChannel = isRadioChannel() ? mRadioChannels.valueAt(mCurrentChannelIndex)
                 : mVideoChannels.valueAt(mCurrentChannelIndex);
