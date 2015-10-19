@@ -1086,12 +1086,12 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                     TvContractUtils.updateOrinsertDtvChannel(mContext, channel);
                 else {
                     if (event.srvType == 1) {
-                        channelNumber++;
                         TvContractUtils.insertDtvChannel(mContext, channel, channelNumber);
+                        channelNumber++;
                     }
                     else {
-                        radioNumber++;
                         TvContractUtils.insertDtvChannel(mContext, channel, radioNumber);
+                        radioNumber++;
                     }
                 }
                 Log.d(TAG, "STORE_SERVICE: " + channel.toString());

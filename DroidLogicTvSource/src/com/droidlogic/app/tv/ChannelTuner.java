@@ -101,8 +101,8 @@ public class ChannelTuner {
     /**
      * update channel lists after {@link TvProvider.notifyChange}
      * @param channel {@link Channel} has been changed.
-     * {@code null} means the channel has been delete.
-     * Otherwise, the channel has been inserted or updated.
+     * {@code null} indicates the channel has been delete.
+     * Otherwise, indicates the channel has been inserted.
      */
     private void updateCurrentChannel(Channel channel) {
         if (channel == null) {//has delete a channel
@@ -130,14 +130,24 @@ public class ChannelTuner {
                 mCurrentChannel = null;
                 mCurrentChannelIndex = -1;
             }
-        } else if (isRadioChannel(channel)) {
-            mCurrentChannelIndex = mRadioChannels.indexOfValue(channel);
-            mCurrentChannel = channel;
-        } else if (isVideoChannel(channel)) {
-            mCurrentChannelIndex = mVideoChannels.indexOfValue(channel);
-            mCurrentChannel = channel;
         } else {
-            //service type is other.
+            if (mCurrentChannelIndex < 0
+                    && mVideoChannels.size() >= 0 && mVideoChannels.keyAt(0) == 0) {
+                mCurrentChannelIndex = 0;
+                mCurrentChannel = mVideoChannels.valueAt(mCurrentChannelIndex);
+            } else if (TextUtils.equals(mCurrentChannel.getServiceType(), channel.getServiceType())) {
+                if (isRadioChannel()) {
+                    if (mRadioChannels.indexOfValue(channel) <= mCurrentChannelIndex) {
+                        mCurrentChannelIndex = mVideoChannels.indexOfValue(channel);
+                        mCurrentChannel = channel;
+                    }
+                } else {
+                    if (mVideoChannels.indexOfValue(channel) <= mCurrentChannelIndex) {
+                        mCurrentChannelIndex = mVideoChannels.indexOfValue(channel);
+                        mCurrentChannel = channel;
+                    }
+                }
+            }
         }
     }
 
@@ -158,6 +168,11 @@ public class ChannelTuner {
         }
     }
 
+    /**
+     * invoked when delete/insert/update a channel.
+     * if delete/insert a channel, must invoke the method {@link #updateCurrentChannel(Channel)}.
+     * if update a channel, replace the old one.
+     */
     public void changeRowChannel(Uri uri) {
         if (isPassthrough()) 
             return;
@@ -186,16 +201,18 @@ public class ChannelTuner {
         if (isDTVChannel() && isRadioChannel(channel)) {
             for (int i=0; i<mRadioChannels.size(); i++) {
                 if (channel.equals(mRadioChannels.valueAt(i))) {
-                    break;
+                    mRadioChannels.setValueAt(i, channel);
+                    return;
                 }
             }
             mRadioChannels.put(channel.getChannelNumber(), channel);
             updateCurrentChannel(channel);
             return;
         } else if (isVideoChannel(channel)) {
-            for (int i=0; i<mRadioChannels.size(); i++) {
-                if (channel.equals(mRadioChannels.valueAt(i))) {
-                    break;
+            for (int i=0; i<mVideoChannels.size(); i++) {
+                if (channel.equals(mVideoChannels.valueAt(i))) {
+                    mVideoChannels.setValueAt(i, channel);
+                    return;
                 }
             }
             mVideoChannels.put(channel.getChannelNumber(), channel);
