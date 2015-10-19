@@ -213,11 +213,11 @@ public class SettingsManager {
 
     public String getAspectRatioStatus () {
         int itemPosition = tv.GetDisplayMode(client.curSource);
-        if (itemPosition == 0)
+        if (itemPosition == Tv.Display_Mode.DISPLAY_MODE_169.toInt())
             return mResources.getString(R.string.full_screen);
-        else if (itemPosition == 1)
+        else if (itemPosition == Tv.Display_Mode.DISPLAY_MODE_MODE43.toInt())
             return mResources.getString(R.string.four2three);
-        else if (itemPosition == 2)
+        else if (itemPosition == Tv.Display_Mode.DISPLAY_MODE_FULL.toInt())
             return mResources.getString(R.string.panorama);
         else
             return mResources.getString(R.string.auto);
