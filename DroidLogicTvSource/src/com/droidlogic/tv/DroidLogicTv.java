@@ -298,12 +298,29 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         return ret;
     }
 
+    /**
+     * save channel number and clear something about pass through input.
+     */
+    private void preSwitchSourceInput() {
+        saveDefaultChannelId();
+        switch (mSigType) {
+            case DroidLogicTvUtils.SIG_INFO_TYPE_HDMI:
+                mSourceInput.setChannelVideoFormat("");
+                break;
+            case DroidLogicTvUtils.SIG_INFO_TYPE_AV:
+                mSourceInput.setChannelType("");
+                break;
+            default:
+                break;
+        }
+    }
+
     @Override
     public void onButtonClick(SourceButton sb) {
         Utils.logd(TAG, "==== onButtonClick ====" + sb);
         if (!TextUtils.isEmpty(mSigLabel) && mSigLabel.equals(sb.getLabel()))
             return;
-        saveDefaultChannelId();
+        preSwitchSourceInput();
         mSourceInput = sb;
         switchToSourceInput();
     }
