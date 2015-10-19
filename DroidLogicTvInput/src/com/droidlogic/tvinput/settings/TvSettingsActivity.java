@@ -3,7 +3,10 @@ package com.droidlogic.tvinput.settings;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.provider.Settings;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.view.View;
 import android.view.KeyEvent;
 import android.view.View.OnClickListener;
@@ -22,8 +25,8 @@ import android.amlogic.Tv;
 public class TvSettingsActivity extends Activity implements OnClickListener, OnFocusChangeListener {
     private static final String TAG = "MainActivity";
 
-    private TvClient client = TvClient.getTvClient();
-    private Tv tv = Tv.open();
+    private TvClient client;
+    private Tv tv;
 
     private ContentFragment fragmentImage;
     private ContentFragment fragmentSound;
@@ -47,6 +50,8 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
 
         mSettingsManager = new SettingsManager(this);
         mSettingsManager.setInputId(getIntent().getStringExtra(TvInputInfo.EXTRA_INPUT_ID));
+        client = mSettingsManager.getTvClient();
+        tv = mSettingsManager.getTvInstance();
 
         tabPicture= (ImageButton) findViewById(R.id.button_picture);
         tabSound= (ImageButton) findViewById(R.id.button_sound);
@@ -71,6 +76,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
             setDefaultFragment();
 
         mOptionUiManager = new OptionUiManager(this);
+        startShowActivityTimer();
     }
 
     private void setDefaultFragment() {
@@ -207,4 +213,18 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
     {
         super.onStop();
     }
+
+    public void startShowActivityTimer () {
+        handler.removeMessages(0);
+
+        int seconds = Settings.System.getInt(getContentResolver(), SettingsManager.KEY_MENU_TIME, 10);
+        handler.sendEmptyMessageDelayed(0, seconds * 1000);
+    }
+
+    Handler handler = new Handler() {
+        public void handleMessage(Message msg) {
+            if (msg.what == 0)
+                finish();
+        }
+    };
 }

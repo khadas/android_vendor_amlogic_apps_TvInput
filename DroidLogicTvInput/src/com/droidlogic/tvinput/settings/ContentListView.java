@@ -27,9 +27,11 @@ import android.amlogic.Tv;
 public class ContentListView extends ListView implements OnItemSelectedListener {
     private static final String TAG = "ContentListView";
     private Context mContext;
-    private int selectedPosition = 0;
+    private SettingsManager mSettingsManager;
+    private OptionUiManager mOptionUiManager;
+    private TvClient client;
 
-    private TvClient client = TvClient.getTvClient();
+    private int selectedPosition = 0;
 
     public ContentListView (Context context){
         super(context);
@@ -38,6 +40,9 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
         super(context, attrs);
 
         mContext = context;
+        mSettingsManager = ((TvSettingsActivity)mContext).getSettingsManager();
+        mOptionUiManager = ((TvSettingsActivity)mContext).getOptionUiManager();
+        client = mSettingsManager.getTvClient();
         setOnItemSelectedListener(this);
     }
 
@@ -47,25 +52,24 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
 
     public boolean dispatchKeyEvent (KeyEvent event) {
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
-            OptionUiManager oum = ((TvSettingsActivity)mContext).getOptionUiManager();
             switch (event.getKeyCode()) {
                 case KeyEvent.KEYCODE_DPAD_UP:
-                    String currentTag = ((TvSettingsActivity)mContext).getSettingsManager().getTag();
+                    String currentTag = mSettingsManager.getTag();
                     if (selectedPosition == 0
                         || (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV
                             && currentTag.equals(SettingsManager.KEY_CHANNEL) && selectedPosition == 2))
                         return true;
 
-                    oum.stopAllAction();
+                    mOptionUiManager.stopAllAction();
                     break;
                 case KeyEvent.KEYCODE_DPAD_DOWN:
                     if (selectedPosition == getChildCount() -1)
                         return true;
-                    oum.stopAllAction();
+                    mOptionUiManager.stopAllAction();
                     break;
                 case KeyEvent.KEYCODE_DPAD_LEFT:
                     selectedPosition = 0;
-                    oum.stopAllAction();
+                    mOptionUiManager.stopAllAction();
                     break;
                 case KeyEvent.KEYCODE_DPAD_RIGHT:
                     setMenuAlpha(false);
@@ -144,28 +148,27 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
     }
 
     private void createOptionChildView (View option_view, int position) {
-        OptionUiManager oum = ((TvSettingsActivity)mContext).getOptionUiManager();
         LayoutInflater inflater =(LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-        oum.setOptionTag(position);
-        int layout_option_child = oum.getLayoutId();
+        mOptionUiManager.setOptionTag(position);
+        int layout_option_child = mOptionUiManager.getLayoutId();
         if (layout_option_child > 0) {
             View view = inflater.inflate(layout_option_child, null);
             ((RelativeLayout)option_view).addView(view);
-            oum.setProgressStatus();
-            oum.setOptionListener(view);
+            mOptionUiManager.setProgressStatus();
+            mOptionUiManager.setOptionListener(view);
 
-            if (oum.getOptionTag() == OptionUiManager.OPTION_CHANNEL_INFO
-                || oum.getOptionTag() == OptionUiManager.OPTION_AUDIO_TRACK
-                || oum.getOptionTag() == OptionUiManager.OPTION_SOUND_CHANNEL) {
-                OptionListLayout optionListLayout = new OptionListLayout(mContext, view, oum.getOptionTag());
-            } else if (oum.getOptionTag() == OptionUiManager.OPTION_CHANNEL_EDIT) {
+            if (mOptionUiManager.getOptionTag() == OptionUiManager.OPTION_CHANNEL_INFO
+                || mOptionUiManager.getOptionTag() == OptionUiManager.OPTION_AUDIO_TRACK
+                || mOptionUiManager.getOptionTag() == OptionUiManager.OPTION_SOUND_CHANNEL) {
+                OptionListLayout optionListLayout = new OptionListLayout(mContext, view, mOptionUiManager.getOptionTag());
+            } else if (mOptionUiManager.getOptionTag() == OptionUiManager.OPTION_CHANNEL_EDIT) {
                 ChannelEdit channelEdit = new ChannelEdit(mContext, view);
             }
 
             //set options view's focus
-            if (oum.getOptionTag() == oum.OPTION_MANUAL_SEARCH) {
-                oum.setManualSearchEditStyle(view);
+            if (mOptionUiManager.getOptionTag() == OptionUiManager.OPTION_MANUAL_SEARCH) {
+                mOptionUiManager.setManualSearchEditStyle(view);
             }
             View firstFocusableChild = null;
             View lastFocusableChild = null;
@@ -187,7 +190,7 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
     }
 
     public void setInitialSelection () {
-        String currentTag = ((TvSettingsActivity)mContext).getSettingsManager().getTag();
+        String currentTag = mSettingsManager.getTag();
         if ((client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV
             && currentTag.equals(SettingsManager.KEY_CHANNEL))) {
             setSelection(2);

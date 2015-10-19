@@ -30,7 +30,7 @@
 		        android:layout_width="wrap_content"
 		        android:layout_height="wrap_content"
 		        android:text="@string/channel"
-		        android:textSize="24sp"
+		        android:textSize="20sp"
 		        android:textColor="@color/color_text_prompt"
 		        />
 		    <EditText
@@ -40,7 +40,7 @@
 		        android:layout_marginLeft="5dp"
 		        android:layout_marginRight="5dp"
 		        android:gravity="center"
-		        android:textSize="24sp"
+		        android:textSize="22sp"
 		        android:textColor="@color/color_text_edit"
 		        android:textColorHint="@color/color_text_hint"
 		        android:hint="@string/default_begin_channel"

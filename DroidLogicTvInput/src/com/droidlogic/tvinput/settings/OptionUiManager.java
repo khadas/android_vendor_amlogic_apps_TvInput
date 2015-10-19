@@ -10,8 +10,10 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.view.KeyEvent;
 import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
+import android.view.View.OnKeyListener;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -42,15 +44,11 @@ import com.droidlogic.utils.tunerinput.tvutil.TVMultilingualText;
 import com.droidlogic.utils.tunerinput.tvutil.MapUtil;
 import com.droidlogic.utils.tunerinput.data.ChannelInfo;
 
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.Message;
-
-public class OptionUiManager implements OnClickListener, OnFocusChangeListener, Tv.ScannerEventListener {
+public class OptionUiManager implements OnClickListener, OnFocusChangeListener, OnKeyListener, Tv.ScannerEventListener {
     public static final String TAG = "OptionUiManager";
 
-    private static TvClient client = TvClient.getTvClient();
-    private Tv tv = TvClient.getTvInstance();
+    private TvClient client;
+    private Tv tv;
 
     public static final int OPTION_PICTURE_MODE = 100;
     public static final int OPTION_BRIGHTNESS = 101;
@@ -117,13 +115,14 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     public OptionUiManager(Context context) {
         mContext = context;
         mSettingsManager = ((TvSettingsActivity) mContext).getSettingsManager();
+        client = mSettingsManager.getTvClient();
+        tv = mSettingsManager.getTvInstance();
         tv.setScannerListener(this);
     }
 
     public void setOptionTag(int position) {
         String item_name = ((TvSettingsActivity) mContext).getCurrentFragment().getContentList().get(position).get(ContentFragment.ITEM_NAME)
                 .toString();
-        Log.d(TAG, "@@@@@@@@@ item_name=" + item_name);
         // Picture
         if (item_name.equals(mContext.getResources().getString(R.string.picture_mode))) {
             optionTag = OPTION_PICTURE_MODE;
@@ -334,8 +333,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++) {
             View child = ((ViewGroup) view).getChildAt(i);
             if (child != null && child.hasFocusable() && child instanceof TextView) {
-                child.setOnClickListener(this);
+                //child.setOnClickListener(this);
                 child.setOnFocusChangeListener(this);
+                child.setOnKeyListener(this);
             }
         }
     }
@@ -639,6 +639,19 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             case R.id.sleep_timer_120min:
                 mSettingsManager.setSleepTime(120);
                 break;
+            //menu time
+            case R.id.menu_time_10s:
+                mSettingsManager.setMenuTime(10);
+                break;
+            case R.id.menu_time_20s:
+                mSettingsManager.setMenuTime(20);
+                break;
+            case R.id.menu_time_40s:
+                mSettingsManager.setMenuTime(40);
+                break;
+            case R.id.menu_time_60s:
+                mSettingsManager.setMenuTime(60);
+                break;
             // Dynamic Backlight
             case R.id.dynamic_backlight_on:
                 tv.startAutoBacklight();
@@ -684,6 +697,22 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 ((TextView) v).setTextColor(mContext.getResources().getColor(R.color.color_text_item));
         }
     }
+
+
+    @Override
+    public  boolean onKey (View v, int keyCode, KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            switch (event.getKeyCode()) {
+                case KeyEvent.KEYCODE_DPAD_CENTER:
+                case KeyEvent.KEYCODE_ENTER:
+                    onClick(v);
+                    break;
+            }
+        } else if (event.getAction() == KeyEvent.ACTION_UP) {
+        }
+        return false;
+    }
+
 
     public void setProgressStatus() {
         int progress;
@@ -939,7 +968,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             }
 
             if (frequency != null && frequency_band != null && searched_number != null) {
-                frequency.setText(Double.toString(freq) + "MHZ");
+                frequency.setText(Double.toString(freq) + mContext.getResources().getString(R.string.mhz));
                 frequency_band.setText(parseFrequencyBand(freq));
                 searched_number.setText(mContext.getResources().getString(R.string.searched_number) + ": " + channelNumber);
             }
@@ -958,27 +987,28 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
 
         HashMap<String,Object> item = new HashMap<String,Object>();
-        item.put(SettingsManager.STRING_NAME, "frequncy:");
-        item.put(SettingsManager.STRING_STATUS, Double.toString(event.freq/(1000 * 1000)) + "MHz");
+        item.put(SettingsManager.STRING_NAME, mContext.getResources().getString(R.string.frequency_l) + ":");
+        item.put(SettingsManager.STRING_STATUS, Double.toString(event.freq/(1000 * 1000)) +
+            mContext.getResources().getString(R.string.mhz));
         list.add(item);
 
         item = new HashMap<String,Object>();
-        item.put(SettingsManager.STRING_NAME, "quality:");
-        item.put(SettingsManager.STRING_STATUS, event.quality + "dB");
+        item.put(SettingsManager.STRING_NAME, mContext.getResources().getString(R.string.quality) + ":");
+        item.put(SettingsManager.STRING_STATUS, event.quality + mContext.getResources().getString(R.string.db));
         list.add(item);
 
         item = new HashMap<String,Object>();
-        item.put(SettingsManager.STRING_NAME, "strength:");
+        item.put(SettingsManager.STRING_NAME, mContext.getResources().getString(R.string.strength) + ":");
         item.put(SettingsManager.STRING_STATUS, "%" + event.strength);
         list.add(item);
 
         item = new HashMap<String,Object>();
-        item.put(SettingsManager.STRING_NAME, "TV channel:");
+        item.put(SettingsManager.STRING_NAME, mContext.getResources().getString(R.string.tv_channel) + ":");
         item.put(SettingsManager.STRING_STATUS, channelNumber);
         list.add(item);
 
         item = new HashMap<String,Object>();
-        item.put(SettingsManager.STRING_NAME, "radio channel:");
+        item.put(SettingsManager.STRING_NAME, mContext.getResources().getString(R.string.radio_channel) + ":");
         item.put(SettingsManager.STRING_STATUS, radioNumber);
         list.add(item);
 
@@ -992,7 +1022,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             TextView frequency_band = (TextView) optionView.findViewById(R.id.auto_search_frequency_band_atv);
             TextView searched_number = (TextView) optionView.findViewById(R.id.auto_search_searched_number_atv);
             if (frequency != null && frequency_band != null && searched_number != null) {
-                frequency.setText(Double.toString(event.freq/(1000 * 1000)) + "MHZ");
+                frequency.setText(Double.toString(event.freq/(1000 * 1000)) + mContext.getResources().getString(R.string.mhz));
                 frequency_band.setText(parseFrequencyBand(event.freq));
                 searched_number.setText(mContext.getResources().getString(R.string.searched_number) + ": " + channelNumber);
             }

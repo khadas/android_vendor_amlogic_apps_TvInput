@@ -59,11 +59,12 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener {
     private int needOperateChannelPosition = ACTION_INITIAL_STATE;
     private int currentOperation = ACTION_INITIAL_STATE;
 
-    private TvClient client = TvClient.getTvClient();
+    private TvClient client;
 
     public ChannelEdit (Context context, View view) {
         mContext = context;
         mSettingsManager = ((TvSettingsActivity)mContext).getSettingsManager();
+        client = mSettingsManager.getTvClient();
         channelEditView = view;
 
         initChannelEditView();

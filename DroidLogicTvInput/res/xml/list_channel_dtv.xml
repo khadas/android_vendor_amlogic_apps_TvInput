@@ -27,11 +27,6 @@
     </Preference>
 
     <Preference
-        android:key="fine_tune"
-        android:title="@string/fine_tune" >
-    </Preference>
-
-    <Preference
         android:key="manual_search"
         android:title="@string/manual_search" >
     </Preference>

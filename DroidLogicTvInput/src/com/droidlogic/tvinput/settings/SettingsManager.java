@@ -2,6 +2,7 @@ package com.droidlogic.tvinput.settings;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.provider.Settings;
 import android.os.SystemProperties;
 import android.util.Log;
 
@@ -18,8 +19,8 @@ import com.droidlogic.tvinput.R;
 public class SettingsManager {
     public static final String TAG = "SettingsManager";
 
-    private static TvClient client = TvClient.getTvClient();
-    private Tv tv = TvClient.getTvInstance();
+    private TvClient client;
+    private Tv tv;
 
     public static final String KEY_CONTENT_TITLE                            = "content_title";
 
@@ -105,6 +106,8 @@ public class SettingsManager {
 
     public SettingsManager (Context context) {
         mContext = context;
+        client = TvClient.getTvClient();
+        tv = TvClient.getTvInstance();
         mResources = mContext.getResources();
     }
 
@@ -616,7 +619,19 @@ public class SettingsManager {
     }
 
     private String getMenuTimeStatus () {
-        return mResources.getString(R.string.time_10s);
+        int seconds = Settings.System.getInt(mContext.getContentResolver(), KEY_MENU_TIME, 10);
+        switch (seconds) {
+            case 10:
+                return mResources.getString(R.string.time_10s);
+            case 20:
+                return mResources.getString(R.string.time_20s);
+            case 40:
+                return mResources.getString(R.string.time_40s);
+            case 60:
+                return mResources.getString(R.string.time_60s);
+            default:
+                return mResources.getString(R.string.time_10s);
+        }
     }
 
     private String getStartupSettingStatus () {
@@ -743,5 +758,10 @@ public class SettingsManager {
 
     public void setSleepTime (int mins) {
         SystemProperties.set("tv.sleep_timer", Integer.toString(mins * 60 * 1000));
+    }
+
+    public void setMenuTime (int seconds) {
+        Settings.System.putInt(mContext.getContentResolver(), KEY_MENU_TIME, seconds);
+        ((TvSettingsActivity)mContext).startShowActivityTimer();
     }
 }
