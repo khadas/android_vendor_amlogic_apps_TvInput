@@ -27,7 +27,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Handler.Callback;
 import android.os.Message;
-import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.SurfaceHolder;
@@ -55,7 +54,6 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     private int maxHardwareIndex = 0;
 
     private int mSigType;
-    private String mSigLabel;
 
     private boolean isNoSignal;
     private boolean isNoSignalShowing;
@@ -215,9 +213,9 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         dtv_channel = sp.getInt("dtv_channel", -1);
         is_radio = sp.getBoolean("is_radio", false);
         if (sb.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_ATV && atv_channel >= 0) {
-            sb.initChannelInfo(atv_channel, false);
+            sb.moveToChannel(atv_channel, false);
         } else if (sb.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_DTV && dtv_channel >= 0) {
-            sb.initChannelInfo(dtv_channel, is_radio);
+            sb.moveToChannel(dtv_channel, is_radio);
         }
 
         if (device_id == sb.getDeviceId()) {
@@ -318,8 +316,10 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     @Override
     public void onButtonClick(SourceButton sb) {
         Utils.logd(TAG, "==== onButtonClick ====" + sb);
-        if (!TextUtils.isEmpty(mSigLabel) && mSigLabel.equals(sb.getLabel()))
+        if (mSourceInput.getSourceType() == sb.getSourceType()) {
+            popupSourceMenu(Utils.HIDE_VIEW);
             return;
+        }
         preSwitchSourceInput();
         mSourceInput = sb;
         switchToSourceInput();
@@ -539,14 +539,14 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
 
     private void initOtherInfo() {
         inflatCurrentInfoLayout();
-        mInfoLabel.setText(mSourceInput.getLabel());
+        mInfoLabel.setText(mSourceInput.getSourceLabel());
         mInfoNumber.setText(mSourceInput.getChannelNumber());
         mInfoName.setText(mSourceInput.getChannelName());
     }
 
     private void initATVInfo() {
         inflatCurrentInfoLayout();
-        mInfoLabel.setText(mSourceInput.getLabel());
+        mInfoLabel.setText(mSourceInput.getSourceLabel());
         if (isNumberSwitching) {
             mInfoNumber.setText(keyInputNumber);
             mInfoName.setText("");
@@ -558,11 +558,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
 
     private void initDTVInfo() {
         inflatCurrentInfoLayout();
-        if (mSourceInput.isRadioChannel()) {
-            mInfoLabel.setText(getResources().getString(R.string.radio_label));
-        } else {
-            mInfoLabel.setText(mSourceInput.getLabel());
-        }
+        mInfoLabel.setText(mSourceInput.getSourceLabel());
         if (isNumberSwitching) {
             mInfoNumber.setText(keyInputNumber);
             mInfoName.setText("");
@@ -574,7 +570,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
 
     private void initAVInfo() {
         inflatCurrentInfoLayout();
-        mInfoLabel.setText(mSourceInput.getLabel());
+        mInfoLabel.setText(mSourceInput.getSourceLabel());
         if (isNoSignal) {
             mInfoName.setText("");
         } else {
@@ -584,7 +580,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
 
     private void initHmdiInfo() {
         inflatCurrentInfoLayout();
-        mInfoLabel.setText(mSourceInput.getLabel());
+        mInfoLabel.setText(mSourceInput.getSourceLabel());
         if (isNoSignal) {
             mInfoName.setText("");
         } else {

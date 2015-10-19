@@ -23,12 +23,13 @@ public class ChannelTuner {
 
     private Channel mCurrentChannel;
     private static final int DEFAULT_CHANNEL_IDDEX = -1;
-    private int mCurrentChannelIndex = DEFAULT_CHANNEL_IDDEX;
+    private int mCurrentChannelIndex;
 
     public ChannelTuner(Context context, TvInputInfo input_info) {
         mContext = context;
         mInputInfo = input_info;
         mInputId = mInputInfo.getId();
+        reset();
     }
 
     private boolean isPassthrough() {
@@ -266,19 +267,19 @@ public class ChannelTuner {
     /**
      * usually, method is used to initialize this object.
      */
-    public void moveToChannel(int index, boolean isRadio) {
+    public boolean moveToChannel(int index, boolean isRadio) {
         if (isPassthrough())
-            return;
+            return false;
 
         int total_size = 0;
         total_size = isRadio ? mRadioChannels.size() : mVideoChannels.size();
         if (index < 0 || index >= total_size) {
-            mCurrentChannelIndex = DEFAULT_CHANNEL_IDDEX;
-            mCurrentChannel = null;
-        } else {
-            mCurrentChannelIndex = index;
-            mCurrentChannel = isRadio ? mRadioChannels.valueAt(index) : mVideoChannels.valueAt(index);
+            throw new IllegalArgumentException("wrong argument index...");
         }
+
+        mCurrentChannelIndex = index;
+        mCurrentChannel = isRadio ? mRadioChannels.valueAt(index) : mVideoChannels.valueAt(index);
+        return true;
     }
 
     public boolean moveToIndex(int index) {

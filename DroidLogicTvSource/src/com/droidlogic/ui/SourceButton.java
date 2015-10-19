@@ -75,11 +75,17 @@ public class SourceButton extends Button implements OnClickListener{
         return mHardwareDeviceId;
     }
 
-    public CharSequence getLabel() {
+    private CharSequence getLabel() {
         if (!TextUtils.isEmpty(mInputInfo.loadCustomLabel(mContext))) {
             return mInputInfo.loadCustomLabel(mContext);
         }
         return mInputInfo.loadLabel(mContext);
+    }
+
+    public String getSourceLabel() {
+        if (isRadioChannel())
+            return getResources().getString(R.string.radio_label);
+        return getLabel().toString();
     }
 
     private boolean isHidden() {
@@ -192,8 +198,8 @@ public class SourceButton extends Button implements OnClickListener{
         init();
     }
 
-    public void initChannelInfo(int index, boolean isRadio) {
-        mChannelTuner.moveToChannel(index, isRadio);
+    public boolean moveToChannel(int index, boolean isRadio) {
+        return mChannelTuner.moveToChannel(index, isRadio);
     }
 
     /**
@@ -218,7 +224,7 @@ public class SourceButton extends Button implements OnClickListener{
         return "SourceButton {"
                 + "inputId=" + getInputId()
                 + ", isHardware=" + isHardware()
-                + ", label=" + getLabel()
+                + ", label=" + getSourceLabel()
                 + ", sourceType=" + getSourceType()
                 + "}";
     }
