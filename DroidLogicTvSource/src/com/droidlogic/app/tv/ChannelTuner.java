@@ -245,6 +245,9 @@ public class ChannelTuner {
         mCurrentChannelIndex = -1;
     }
 
+    /**
+     * usually, method is used to initialize this object.
+     */
     public void moveToChannel(int index, boolean isRadio) {
         if (isPassthrough())
             return;
@@ -261,20 +264,19 @@ public class ChannelTuner {
     }
 
     /**
-     * for {@link KeyEvent.KEYCODE_CHANNEL_UP} and {@link KeyEvent.KEYCODE_CHANNEL_DOWN}
-     * @param flag {@code true} means {@link KeyEvent.KEYCODE_CHANNEL_UP},
-     * {@code false} means {@link KeyEvent.KEYCODE_CHANNEL_DOWN}
+     * @param step offset from current channel index.
+     * @return {@code true} indicates to get a channel successfully.
+     * {@code false} indicates channel is null.
      */
-    public boolean moveToChannel(boolean flag) {
+    public boolean moveToChannel(int step) {
         if (isPassthrough())
             return false;
 
         int total_size = isRadioChannel() ? mRadioChannels.size() : mVideoChannels.size();
-        int step = flag ? 1 : -1;
-        mCurrentChannelIndex += step;
         if (total_size <= 0)
             return false;
 
+        mCurrentChannelIndex += step;
         if (mCurrentChannelIndex < 0) {
             mCurrentChannelIndex = total_size - 1;
         }else if (mCurrentChannelIndex >= total_size) {
