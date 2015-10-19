@@ -30,11 +30,15 @@
 
     <!-- Channel -->
     <string name="channel">Channel</string>
+    <string name="channel_l">channel</string>
     <string name="current_channel">Current Channel</string>
     <string name="frequency">Frequency</string>
     <string name="frequency_l">frequency</string>
     <string name="quality">quality</string>
     <string name="strength">strength</string>
+    <string name="type">type</string>
+    <string name="service_id">service ID</string>
+    <string name="pcr_id">Pcr ID</string>
     <string name="tv_channel">TV Channel</string>
     <string name="radio_channel">radio channel</string>
     <string name="frequency_band">frequency band</string>
