@@ -223,8 +223,12 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
 
     Handler handler = new Handler() {
         public void handleMessage(Message msg) {
-            if (msg.what == 0)
+            if (msg.what == 0 && !mOptionUiManager.isSearching())
                 finish();
+            else if (mOptionUiManager.isSearching()) {
+                int seconds = Settings.System.getInt(getContentResolver(), SettingsManager.KEY_MENU_TIME, 10);
+                sendEmptyMessageDelayed(0, seconds * 1000);
+            }
         }
     };
 }

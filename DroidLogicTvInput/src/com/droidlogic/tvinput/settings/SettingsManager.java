@@ -381,7 +381,7 @@ public class SettingsManager {
     }
 
     private String getAudioTrackStatus () {
-        return "audio 1";
+        return Integer.toString(tv.DtvGetAudioChannleMod());
     }
 
     private String getSoundChannelStatus () {
@@ -392,37 +392,37 @@ public class SettingsManager {
         ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
 
         HashMap<String,Object> item = new HashMap<String,Object>();
-        item.put(STRING_NAME, "channel");
+        item.put(STRING_NAME, mResources.getString(R.string.channel_l));
         item.put(STRING_STATUS, "2");
         list.add(item);
 
         item = new HashMap<String,Object>();
-        item.put(STRING_NAME, "frequency");
+        item.put(STRING_NAME, mResources.getString(R.string.frequency_l));
         item.put(STRING_STATUS, "586.0MHz");
         list.add(item);
 
         item = new HashMap<String,Object>();
-        item.put(STRING_NAME, "quality");
+        item.put(STRING_NAME, mResources.getString(R.string.quality));
         item.put(STRING_STATUS, "18dB");
         list.add(item);
 
         item = new HashMap<String,Object>();
-        item.put(STRING_NAME, "strength");
+        item.put(STRING_NAME, mResources.getString(R.string.strength));
         item.put(STRING_STATUS, "0%");
         list.add(item);
 
         item = new HashMap<String,Object>();
-        item.put(STRING_NAME, "type");
+        item.put(STRING_NAME, mResources.getString(R.string.type));
         item.put(STRING_STATUS, "1");
         list.add(item);
 
         item = new HashMap<String,Object>();
-        item.put(STRING_NAME, "service ID");
+        item.put(STRING_NAME, mResources.getString(R.string.service_id));
         item.put(STRING_STATUS, "83");
         list.add(item);
 
         item = new HashMap<String,Object>();
-        item.put(STRING_NAME, "Pcr ID");
+        item.put(STRING_NAME, mResources.getString(R.string.pcr_id));
         item.put(STRING_STATUS, "831");
         list.add(item);
 
@@ -647,7 +647,6 @@ public class SettingsManager {
     }
 
     public void setPictureMode (String mode) {
-        Log.d(TAG, "@@@@@@@@@@ setpicture="+mode);
         if (mode.equals(STATUS_STANDARD)) {
             tv.SetPQMode(Tv.Pq_Mode.PQ_MODE_STANDARD, client.curSource, 1);
         } else if (mode.equals(STATUS_VIVID)) {
@@ -706,7 +705,6 @@ public class SettingsManager {
     }
 
     public void setSoundMode (String mode) {
-        Log.d(TAG, "@@@@@@@@@@ setsound="+mode);
         if (mode.equals(STATUS_STANDARD)) {
             tv.SetAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_STD);
             tv.SaveCurAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_STD.toInt());
