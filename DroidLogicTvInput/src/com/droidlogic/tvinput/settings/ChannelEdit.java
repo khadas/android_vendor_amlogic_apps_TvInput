@@ -92,24 +92,28 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener {
             R.layout.layout_option_single_text,
             new String[]{SettingsManager.STRING_NAME}, new int[]{R.id.text_name});
         channelListView.setAdapter(ChannelAdapter);
-        channelListView.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick (AdapterView<?> parent, View view, int position, long id) {
-                currentChannelPosition = position;
-                if (currentOperation == ACTION_INITIAL_STATE) {
-                    showOperationsView();
-                } else {
-                    if (currentOperation == ACTION_OPERATIONS_SWAP)
-                        swapChannelPosition();
-                    else if (currentOperation == ACTION_OPERATIONS_MOVE)
-                        moveChannelPosition();
 
-                    channelListView.setSelector(R.drawable.item_background);
-                    freshChannelList();
+        if (!ChannelListData.get(0).get(SettingsManager.STRING_NAME).toString()
+            .equals(mContext.getResources().getString(R.string.error_no_channel))) {
+            channelListView.setOnItemClickListener(new OnItemClickListener() {
+                @Override
+                public void onItemClick (AdapterView<?> parent, View view, int position, long id) {
+                    currentChannelPosition = position;
+                    if (currentOperation == ACTION_INITIAL_STATE) {
+                        showOperationsView();
+                    } else {
+                        if (currentOperation == ACTION_OPERATIONS_SWAP)
+                            swapChannelPosition();
+                        else if (currentOperation == ACTION_OPERATIONS_MOVE)
+                            moveChannelPosition();
+
+                        channelListView.setSelector(R.drawable.item_background);
+                        freshChannelList();
+                    }
+                    recoverActionState();
                 }
-                recoverActionState();
-            }
-        });
+            });
+        }
 
         if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV) {
             button_tv.setVisibility(View.GONE);

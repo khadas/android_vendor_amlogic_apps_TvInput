@@ -850,9 +850,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         } else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV) {
             EditText edit = (EditText) parent.findViewById(R.id.manual_search_dtv_channel);
             String channel = edit.getText().toString();
-            if (channel == null)
+            if (channel == null || channel.length() == 0)
                 channel = (String)edit.getHint();
-            tv.DtvManualScan(getDvbFrequencyByPd(Integer.parseInt(channel)));
+            tv.DtvManualScan(getDvbFrequencyByPd(Integer.valueOf(channel)));
         }
     }
 
@@ -919,7 +919,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                             toast.show();
                         } else{
                             String number = edit.getText().toString();
-                            if (number == null)
+                            if (number == null || number.length() == 0)
                                 number = (String)edit.getHint();
                             start_frequency.setText(parseChannelFrequency(getDvbFrequencyByPd(Integer.valueOf(number))));
                         }
@@ -1022,8 +1022,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             TextView frequency_band = (TextView) optionView.findViewById(R.id.auto_search_frequency_band_atv);
             TextView searched_number = (TextView) optionView.findViewById(R.id.auto_search_searched_number_atv);
             if (frequency != null && frequency_band != null && searched_number != null) {
-                frequency.setText(Double.toString(event.freq/(1000 * 1000)) + mContext.getResources().getString(R.string.mhz));
-                frequency_band.setText(parseFrequencyBand(event.freq));
+                double freq = event.freq/(1000 * 1000);
+                frequency.setText(Double.toString(freq) + mContext.getResources().getString(R.string.mhz));
+                frequency_band.setText(parseFrequencyBand(freq));
                 searched_number.setText(mContext.getResources().getString(R.string.searched_number) + ": " + channelNumber);
             }
         } else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV) {
