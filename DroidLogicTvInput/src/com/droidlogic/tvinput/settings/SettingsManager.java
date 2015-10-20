@@ -9,10 +9,12 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-
 import android.R.integer;
 import android.amlogic.Tv;
 
+import android.media.tv.TvContract.Channels;
+import com.droidlogic.utils.tunerinput.data.ChannelInfo;
+import com.droidlogic.utils.tunerinput.tvutil.TvContractUtils;
 import com.droidlogic.tvclient.TvClient;
 import com.droidlogic.tvinput.R;
 
@@ -109,6 +111,7 @@ public class SettingsManager {
         client = TvClient.getTvClient();
         tv = TvClient.getTvInstance();
         mResources = mContext.getResources();
+        Log.d(TAG, " @@@@@@@@@@@@@ client.curSource = " + client.curSource);
     }
 
     public void setTag (String tag) {
@@ -524,42 +527,57 @@ public class SettingsManager {
 
     public ArrayList<HashMap<String,Object>> getAtvChannelList () {
         ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
+        ArrayList<ChannelInfo> channelList = TvContractUtils.getAtvChannelList(mContext, mInputId);
 
-        HashMap<String,Object> item = new HashMap<String,Object>();
-        item.put(STRING_NAME, "ATV channel 1");
-        list.add(item);
-
-        item = new HashMap<String,Object>();
-        item.put(STRING_NAME, "ATV channel 2");
-        list.add(item);
+        if (channelList.size() > 0) {
+            for (int i = 0 ; i < channelList.size(); i++) {
+                HashMap<String,Object> item = new HashMap<String,Object>();
+                item.put(STRING_NAME, channelList.get(i).name);
+                list.add(item);
+            }
+        } else {
+            HashMap<String,Object> item = new HashMap<String,Object>();
+            item.put(STRING_NAME, mResources.getString(R.string.error_no_channel));
+            list.add(item);
+        }
 
         return list;
     }
 
     public ArrayList<HashMap<String,Object>> getDtvTvChannelList () {
         ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
+        ArrayList<ChannelInfo> channelList = TvContractUtils.getDtvChannelList(mContext, mInputId, 1);
 
-        HashMap<String,Object> item = new HashMap<String,Object>();
-        item.put(STRING_NAME, "TV channel 1");
-        list.add(item);
-
-        item = new HashMap<String,Object>();
-        item.put(STRING_NAME, "TV channel 2");
-        list.add(item);
+        if (channelList.size() > 0) {
+            for (int i = 0 ; i < channelList.size(); i++) {
+                HashMap<String,Object> item = new HashMap<String,Object>();
+                item.put(STRING_NAME, channelList.get(i).name);
+                list.add(item);
+            }
+        } else {
+            HashMap<String,Object> item = new HashMap<String,Object>();
+            item.put(STRING_NAME, mResources.getString(R.string.error_no_channel));
+            list.add(item);
+        }
 
         return list;
     }
 
     public ArrayList<HashMap<String,Object>> getDtvRadioChannelList () {
         ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
+        ArrayList<ChannelInfo> channelList = TvContractUtils.getDtvChannelList(mContext, mInputId, 2);
 
-        HashMap<String,Object> item = new HashMap<String,Object>();
-        item.put(STRING_NAME, "Radio channel 1");
-        list.add(item);
-
-        item = new HashMap<String,Object>();
-        item.put(STRING_NAME, "Rdaio channel 2");
-        list.add(item);
+        if (channelList.size() > 0) {
+            for (int i = 0 ; i < channelList.size(); i++) {
+                HashMap<String,Object> item = new HashMap<String,Object>();
+                item.put(STRING_NAME, channelList.get(i).name);
+                list.add(item);
+            }
+        } else {
+            HashMap<String,Object> item = new HashMap<String,Object>();
+            item.put(STRING_NAME, mResources.getString(R.string.error_no_channel));
+            list.add(item);
+        }
 
         return list;
     }

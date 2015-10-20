@@ -98,6 +98,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
                 case KeyEvent.KEYCODE_ENTER:
                     if (mOptionUiManager.isSearching())
                         return true;
+                    startShowActivityTimer();
                     break;
             }
         }

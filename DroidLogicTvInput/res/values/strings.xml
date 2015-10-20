@@ -135,4 +135,5 @@
     <string name="prompt2">restore default settings.</string>
     <string name="cancel">cancel</string>
     <string name="error_not_number">Please input number!</string>
+    <string name="error_no_channel">No channel !</string>
 </resources>
