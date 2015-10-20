@@ -327,6 +327,12 @@ public class ChannelTuner {
         return mCurrentChannel.getUri();
     }
 
+    public long getChannelId() {
+        if (mCurrentChannel == null)
+            return -1;
+        return mCurrentChannel.getId();
+    }
+
     public int getChannelIndex() {
         if (mCurrentChannel == null)
             return DEFAULT_CHANNEL_IDDEX;

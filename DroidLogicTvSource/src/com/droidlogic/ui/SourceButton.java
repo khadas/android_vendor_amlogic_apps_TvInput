@@ -108,7 +108,11 @@ public class SourceButton extends Button implements OnClickListener{
         return mChannelTuner.getUri();
     }
 
-    public int getChannelId() {
+    public long getChannelId() {
+        return mChannelTuner.getChannelId();
+    }
+
+    public int getChannelIndex() {
         return mChannelTuner.getChannelIndex();
     }
 

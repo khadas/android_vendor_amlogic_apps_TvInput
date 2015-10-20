@@ -242,7 +242,10 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     private void startSetupActivity () {
         TvInputInfo info = mSourceInput.geTvInputInfo();
         Intent intent = info.createSetupIntent();
-        startActivityForResult(intent, START_SETUP);
+        if (intent != null) {
+            intent.putExtra(DroidLogicTvUtils.EXTRA_TV_CHANNEL_ID, mSourceInput.getChannelId());
+            startActivityForResult(intent, START_SETUP);
+        }
     }
 
     private void startSettingActivity (int keycode) {
@@ -642,19 +645,19 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     }
 
     private void saveDefaultChannelId() {
-        int id = mSourceInput.getChannelId();
+        int index = mSourceInput.getChannelIndex();
         int type = mSourceInput.getSourceType();
         boolean is_radio = mSourceInput.isRadioChannel();
 
-        if (id < 0)
+        if (index < 0)
             return;
 
         SharedPreferences sp = getSharedPreferences(SHARE_NAME, Context.MODE_PRIVATE);
         Editor edit = sp.edit();
         if (type == DroidLogicTvUtils.SOURCE_TYPE_ATV) {
-            edit.putInt("atv_channel", id).commit();
+            edit.putInt("atv_channel", index).commit();
         } else if (type == DroidLogicTvUtils.SOURCE_TYPE_DTV) {
-            edit.putInt("dtv_channel", id);
+            edit.putInt("dtv_channel", index);
             edit.putBoolean("is_radio", is_radio);
             edit.commit();
         }

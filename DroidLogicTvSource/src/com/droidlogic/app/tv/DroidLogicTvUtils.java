@@ -53,6 +53,11 @@ public class DroidLogicTvUtils {
     public static final String ACTION_STOP_TV = "stop_tv";
 
     /**
+     * Other extra names for {@link TvInputInfo.createSetupIntent#intent} except for input id.
+     */
+    public static final String EXTRA_TV_CHANNEL_ID = "tv_channel_id";
+
+    /**
      * Other extra names for {@link TvInputInfo.createSettingsIntent#intent} except for input id.
      */
     public static final String EXTRA_KEY_CODE = "key_code";
