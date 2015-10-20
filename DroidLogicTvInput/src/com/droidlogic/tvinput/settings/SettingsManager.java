@@ -388,7 +388,16 @@ public class SettingsManager {
     }
 
     private String getSoundChannelStatus () {
-        return "channel 1";
+        switch (tv.DtvGetAudioChannleMod()) {
+            case 0:
+                return mResources.getString(R.string.stereo);
+            case 1:
+                return mResources.getString(R.string.left_channel);
+            case 2:
+                return mResources.getString(R.string.right_channel);
+            default:
+                return mResources.getString(R.string.stereo);
+        }
     }
 
     public ArrayList<HashMap<String,Object>> getChannelInfo () {
@@ -450,11 +459,15 @@ public class SettingsManager {
         ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
 
         HashMap<String,Object> item = new HashMap<String,Object>();
-        item.put(STRING_NAME, "sound channel 1");
+        item.put(STRING_NAME, mResources.getString(R.string.stereo));
         list.add(item);
 
         item = new HashMap<String,Object>();
-        item.put(STRING_NAME, "sound channel 2");
+        item.put(STRING_NAME, mResources.getString(R.string.left_channel));
+        list.add(item);
+
+        item = new HashMap<String,Object>();
+        item.put(STRING_NAME, mResources.getString(R.string.right_channel));
         list.add(item);
 
         return list;
@@ -738,6 +751,20 @@ public class SettingsManager {
         } else if (mode.equals(STATUS_USER)) {
             tv.SetAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_USER);
             tv.SaveCurAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_USER.toInt());
+        }
+    }
+
+    public void setSoundChannel (int position) {
+        switch (position) {
+            case 0:
+                tv.DtvSetAudioChannleMod(0);
+                break;
+            case 1:
+                tv.DtvSetAudioChannleMod(1);
+                break;
+            case 2:
+                tv.DtvSetAudioChannleMod(2);
+                break;
         }
     }
 
