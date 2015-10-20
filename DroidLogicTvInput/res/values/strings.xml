@@ -104,6 +104,9 @@
     <string name="sound_system_i">I</string>
     <string name="sound_system_bg">B/G</string>
     <string name="sound_system_m">M</string>
+    <string name="left_channel">left channel</string>
+    <string name="right_channel">right channel</string>
+    <string name="stereo">stereo</string>
     <string name="confirm">confirm</string>
     <string name="from">from: </string>
     <string name="to">to: </string>

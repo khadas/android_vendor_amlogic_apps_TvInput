@@ -17,7 +17,7 @@ import java.util.HashMap;
 
 import com.droidlogic.tvinput.R;
 
-public class OptionListLayout {
+public class OptionListLayout implements OnItemClickListener{
     private static final String TAG = "OptionListLayout";
 
     private Context mContext;
@@ -64,7 +64,19 @@ public class OptionListLayout {
                     new String[]{SettingsManager.STRING_NAME}, new int[]{R.id.text_name});
                 break;
         }
-        if (optionAdapter != null)
+        if (optionAdapter != null) {
             optionListView.setAdapter(optionAdapter);
+            optionListView.setOnItemClickListener(this);
+        }
+    }
+
+    public void onItemClick (AdapterView<?> parent, View view, int position, long id) {
+        switch (mTag) {
+            case OptionUiManager.OPTION_AUDIO_TRACK:
+                break;
+            case OptionUiManager.OPTION_SOUND_CHANNEL:
+                mSettingsManager.setSoundChannel(position);
+                break;
+        }
     }
 }
