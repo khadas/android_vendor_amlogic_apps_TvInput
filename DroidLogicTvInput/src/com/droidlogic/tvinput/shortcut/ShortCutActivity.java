@@ -8,6 +8,8 @@ import com.droidlogic.tvinput.settings.SettingsManager;
 import android.app.Activity;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -27,6 +29,8 @@ public class ShortCutActivity extends Activity {
     private static final int KEY_SOUND_MODE = 2006;
     private static final int KEY_ASPECT_RATIO = 2004;
     private static final int KEY_SLEEP_TIMER = 2009;
+
+    private static final int TOAST_SHOW_TIME = 3000;
 
     private Tv tv = Tv.open();
     private SettingsManager mSettingsManager;
@@ -144,18 +148,18 @@ public class ShortCutActivity extends Activity {
 
         TextView title =(TextView)layout.findViewById(R.id.toast_title);
         TextView status =(TextView)layout.findViewById(R.id.toast_status);
-        Log.d(TAG, "@@@@@@@@@@@@@@@@@ title="+getToastTitle(mode));
-        Log.d(TAG, "@@@@@@@@@@@@@@@@@ status="+getStatusTitle(mode));
+
         title.setText(getToastTitle(mode));
         status.setText(getStatusTitle(mode));
 
         if (toast == null) {
             toast = new Toast(this);
-            toast.setDuration(Toast.LENGTH_LONG);
+            toast.setDuration(TOAST_SHOW_TIME);
             toast.setGravity(Gravity.CENTER_VERTICAL, 400, 300);
         }
         toast.setView(layout);
         toast.show();
+        startShowActivityTimer();
     }
 
     private String getToastTitle (int mode) {
@@ -201,4 +205,16 @@ public class ShortCutActivity extends Activity {
         }
         return null;
     }
+
+    public void startShowActivityTimer () {
+        handler.removeMessages(0);
+        handler.sendEmptyMessageDelayed(0, TOAST_SHOW_TIME);
+    }
+
+    Handler handler = new Handler() {
+        public void handleMessage(Message msg) {
+            if (msg.what == 0)
+                finish();
+        }
+    };
 }
