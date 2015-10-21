@@ -274,7 +274,7 @@ public class ChannelTuner {
         int total_size = 0;
         total_size = isRadio ? mRadioChannels.size() : mVideoChannels.size();
         if (index < 0 || index >= total_size) {
-            throw new IllegalArgumentException("wrong argument index...");
+            return false;
         }
 
         mCurrentChannelIndex = index;

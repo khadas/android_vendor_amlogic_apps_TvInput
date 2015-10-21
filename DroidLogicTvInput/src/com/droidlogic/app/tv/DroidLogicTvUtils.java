@@ -66,6 +66,14 @@ public class DroidLogicTvUtils {
      */
     public static final String EXTRA_KEY_CODE = "key_code";
 
+    /**
+     * message for {@link TvInputBaseSession#handleMessage(android.os.Message)}
+     */
+    public static final int SESSION_DO_RELEASE          = 1;
+    public static final int SESSION_DO_SURFACE_CHANGED  = 4;
+    public static final int SESSION_DO_TUNE             = 6;
+    public static final int SESSION_UNBLOCK_CONTENT     = 13;
+
     private static final UriMatcher sUriMatcher;
     public static final int MATCH_CHANNEL = 1;
     public static final int MATCH_CHANNEL_ID = 2;

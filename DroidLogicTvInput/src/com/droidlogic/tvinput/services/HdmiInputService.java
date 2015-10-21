@@ -6,6 +6,7 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import com.droidlogic.app.tv.DroidLogicTvInputService;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
+import com.droidlogic.app.tv.TvInputBaseSession;
 import com.droidlogic.tvclient.TvClient;
 import com.droidlogic.utils.Utils;
 import android.amlogic.Tv;
@@ -13,15 +14,8 @@ import android.content.Context;
 import android.content.pm.ResolveInfo;
 import android.media.tv.TvInputHardwareInfo;
 import android.media.tv.TvInputInfo;
-import android.media.tv.TvInputManager;
-import android.media.tv.TvInputManager.Hardware;
-import android.media.tv.TvInputManager.HardwareCallback;
-import android.media.tv.TvInputService;
-import android.media.tv.TvStreamConfig;
-import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.Surface;
 
 public class HdmiInputService extends DroidLogicTvInputService {
     private static final String TAG = HdmiInputService.class.getSimpleName();
@@ -30,45 +24,16 @@ public class HdmiInputService extends DroidLogicTvInputService {
 
     @Override
     public Session onCreateSession(String inputId) {
-        Utils.logd(TAG, "=====onCreateSession====");
-        mSession = new HdmiInputSession(getApplicationContext(), inputId);
-        registerInputSession(mSession, inputId);
+        super.onCreateSession(inputId);
+        mSession = new HdmiInputSession(getApplicationContext(), inputId, getHardwareDeviceId(inputId));
+        registerInputSession(mSession);
         client.curSource = Tv.SourceInput_Type.SOURCE_TYPE_HDMI;
         return mSession;
     }
 
-    public class HdmiInputSession extends TvInputService.Session {
-        private String mInputId;
-        private Surface mSurface;
-        private Hardware mHardware;
-        private TvInputManager mTvInputManager;
-        private TvStreamConfig[] mConfigs;
-        private boolean isTuneNotReady = false;
-        private HardwareCallback mHardwareCallback = new HardwareCallback(){
-            @Override
-            public void onReleased() {
-                Utils.logd(TAG, "====onReleased===");
-            }
-
-            @Override
-            public void onStreamConfigChanged(TvStreamConfig[] configs) {
-                Utils.logd(TAG, "===onStreamConfigChanged==");
-                mConfigs = configs;
-            }
-        };
-
-        public HdmiInputSession(Context context, String inputId) {
-            super(context);
-            mInputId = inputId;
-            mTvInputManager = (TvInputManager)context.getSystemService(Context.TV_INPUT_SERVICE);
-            mHardware = mTvInputManager.acquireTvInputHardware(getHardwareDeviceId(inputId),
-                    mHardwareCallback, mTvInputManager.getTvInputInfo(inputId));
-        }
-
-        @Override
-        public void onRelease() {
-            mHardware.setSurface(null, null);
-            mTvInputManager.releaseTvInputHardware(getHardwareDeviceId(mInputId), mHardware);
+    public class HdmiInputSession extends TvInputBaseSession {
+        public HdmiInputSession(Context context, String inputId, int deviceId) {
+            super(context, inputId, deviceId);
         }
 
         @Override
@@ -77,46 +42,6 @@ public class HdmiInputService extends DroidLogicTvInputService {
                 stopTv();
             }
         }
-
-        @Override
-        public boolean onSetSurface(Surface surface) {
-            mSurface = surface;
-            return false;
-        }
-
-        @Override
-        public void onSurfaceChanged(int format, int width, int height) {
-            if (isTuneNotReady) {
-                switchToSourceInput();
-                isTuneNotReady = false;
-            }
-        }
-
-        @Override
-        public void onSetStreamVolume(float volume) {
-            // TODO Auto-generated method stub
-        }
-
-        @Override
-        public boolean onTune(Uri channelUri) {
-            Utils.logd(TAG, "====onTune====");
-            if (mSurface == null) {//TvView is not ready
-                isTuneNotReady = true;
-            } else {
-                switchToSourceInput();
-            }
-            return false;
-        }
-
-        @Override
-        public void onSetCaptionEnabled(boolean enabled) {
-            // TODO Auto-generated method stub
-        }
-
-        private void switchToSourceInput() {
-            mHardware.setSurface(mSurface, mConfigs[0]);
-        }
-
     }
 
     public TvInputInfo onHardwareAdded(TvInputHardwareInfo hardwareInfo) {

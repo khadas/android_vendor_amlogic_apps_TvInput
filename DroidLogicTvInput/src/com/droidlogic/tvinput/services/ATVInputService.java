@@ -1,19 +1,3 @@
-/*
- * Copyright 2015 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.droidlogic.tvinput.services;
 
 import android.content.BroadcastReceiver;
@@ -23,22 +7,12 @@ import android.content.IntentFilter;
 import android.content.pm.ResolveInfo;
 import android.media.tv.TvContentRating;
 import android.media.tv.TvInputManager;
-import android.media.tv.TvInputManager.Hardware;
-import android.media.tv.TvInputManager.HardwareCallback;
-import android.media.tv.TvStreamConfig;
-import android.media.tv.TvInputService;
 import android.media.tv.TvInputInfo;
 import android.media.tv.TvInputHardwareInfo;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Handler.Callback;
-import android.os.HandlerThread;
-import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.Surface;
-import android.view.View;
 
 import com.droidlogic.utils.Utils;
 import com.droidlogic.utils.tunerinput.tvutil.TvContractUtils;
@@ -46,6 +20,7 @@ import com.droidlogic.utils.tunerinput.data.ChannelInfo;
 
 import com.droidlogic.app.tv.DroidLogicTvInputService;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
+import com.droidlogic.app.tv.TvInputBaseSession;
 import com.droidlogic.tvclient.TvClient;
 
 import java.util.HashSet;
@@ -57,12 +32,7 @@ public class ATVInputService extends DroidLogicTvInputService {
 
     private static final String TAG = "ATVInputService";
 
-    public static final int ATV_HW_DEVICE_ID = 0;
-
     private static TvClient client = TvClient.getTvClient();
-    private HandlerThread mHandlerThread;
-    private Handler mDbHandler;
-
     private ATVSessionImpl mSession;
 
     private final BroadcastReceiver mParentalControlsBroadcastReceiver = new BroadcastReceiver() {
@@ -77,9 +47,6 @@ public class ATVInputService extends DroidLogicTvInputService {
     @Override
     public void onCreate() {
         super.onCreate();
-        mHandlerThread = new HandlerThread(getClass().getSimpleName());
-        mHandlerThread.start();
-        mDbHandler = new Handler(mHandlerThread.getLooper());
 
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(TvInputManager.ACTION_BLOCKED_RATINGS_CHANGED);
@@ -91,79 +58,56 @@ public class ATVInputService extends DroidLogicTvInputService {
     public void onDestroy() {
         super.onDestroy();
         unregisterReceiver(mParentalControlsBroadcastReceiver);
-        mHandlerThread.quit();
-        mHandlerThread = null;
-        mDbHandler = null;
     }
 
     @Override
     public Session onCreateSession(String inputId) {
-        mSession = new ATVSessionImpl(this, inputId);
+        mSession = new ATVSessionImpl(this, inputId, getHardwareDeviceId(inputId));
         mSession.setOverlayViewEnabled(true);
-        registerInputSession(mSession, inputId);
+        registerInputSession(mSession);
         client.curSource = Tv.SourceInput_Type.SOURCE_TYPE_TV;
         return mSession;
     }
 
-    public class ATVSessionImpl extends TvInputService.Session implements Callback {
+    public class ATVSessionImpl extends TvInputBaseSession {
         private final Context mContext;
-        private final String mInputId;
         private TvInputManager mTvInputManager;
-        private Hardware mHardware;
-        private TvStreamConfig[] mConfigs;
-        private Surface mSurface;
-        private float mVolume;
-        private ChannelInfo mCurrentChannelInfo;
         private TvContentRating mLastBlockedRating;
         private TvContentRating mCurrentContentRating;
-        private String mSelectedSubtitleTrackId;
-        private boolean mEpgSyncRequested;
         private final Set<TvContentRating> mUnblockedRatingSet = new HashSet<>();
         private Tv mTv = TvClient.getTvInstance();
-        private Uri mChannelUri;
-        private Handler mHandler;
-        private PlayCurrentProgramRunnable mPlayCurrentProgramRunnable;
-        private static final int MSG_PLAY_PROGRAM = 1000;
 
-        private HardwareCallback mHardwareCallback = new HardwareCallback() {
-            @Override
-            public void onReleased() {
-                Log.d(TAG, "====onReleased===");
-            }
-
-            @Override
-            public void onStreamConfigChanged(TvStreamConfig[] configs) {
-                Log.d(TAG, "===onStreamConfigChanged==");
-                mConfigs = configs;
-            }
-        };
-        private boolean isTuneNotReady = false;
-
-        protected ATVSessionImpl(Context context, String inputId) {
-            super(context);
+        protected ATVSessionImpl(Context context, String inputId, int deviceId) {
+            super(context, inputId, deviceId);
 
             mContext = context;
-            mInputId = inputId;
-            mTvInputManager = (TvInputManager) context.getSystemService(Context.TV_INPUT_SERVICE);
-            mHardware = mTvInputManager.acquireTvInputHardware(
-                    ATV_HW_DEVICE_ID, mHardwareCallback,
-                    mTvInputManager.getTvInputInfo(inputId));
-            mHandler = new Handler(this);
-
             mLastBlockedRating = null;
         }
 
         @Override
-        public void onRelease() {
-            Log.d(TAG, "onRelease");
-
+        public void doRelease() {
+            super.doRelease();
             releasePlayer();
-            if (mDbHandler != null) {
-                mDbHandler.removeCallbacks(mPlayCurrentProgramRunnable);
-            }
+        }
 
-            mHardware.setSurface(null, null);
-            mTvInputManager.releaseTvInputHardware(ATV_HW_DEVICE_ID, mHardware);
+        @Override
+        public void doTune(Uri uri) {
+            super.doTune(uri);
+            switchToSourceInput(uri);
+        }
+
+        @Override
+        public void doSurfaceChanged(Uri uri) {
+            super.doSurfaceChanged(uri);
+            switchToSourceInput(uri);
+        }
+
+        @Override
+        public void doUnblockContent(TvContentRating rating) {
+            super.doUnblockContent(rating);
+            if (rating != null) {
+                unblockContent(rating);
+            }
         }
 
         @Override
@@ -173,119 +117,25 @@ public class ATVInputService extends DroidLogicTvInputService {
             }
         }
 
-        @Override
-        public View onCreateOverlayView() {
-            return null;
-        }
-
-        @Override
-        public boolean onSetSurface(Surface surface) {
-            Log.d(TAG, "onSetSurface: surface[" + surface + "]");
-
-            mSurface = surface;
-
-            return true;
-        }
-
-        @Override
-        public void onSurfaceChanged(int format, int width, int height) {
-            Log.d(TAG, "onSurfaceChanged [fmt:" + format + ", w:" + width + ", h:" + height + "]");
-
-            if (isTuneNotReady) {
-                switchToSourceInput();
-                isTuneNotReady = false;
-            }
-        }
-
-        @Override
-        public void onSetStreamVolume(float volume) {
-            mVolume = volume;
-        }
-
-        @Override
-        public boolean handleMessage(Message msg) {
-            switch (msg.what) {
-            case MSG_PLAY_PROGRAM:
-                playProgram((ChannelInfo) msg.obj);
-                break;
-            default:
-                break;
-            }
-            return false;
-        }
-
-        private class PlayCurrentProgramRunnable implements Runnable {
-            private Uri mChannelUri;
-
-            public PlayCurrentProgramRunnable(Uri uri) {
-                mChannelUri = uri;
-            }
-
-            @Override
-            public void run() {
-                ChannelInfo ch = TvContractUtils.getChannelInfoATV(
-                        mContext.getContentResolver(), mChannelUri);
-                if (ch != null) {
-                    mHandler.removeMessages(MSG_PLAY_PROGRAM);
-                    mHandler.obtainMessage(MSG_PLAY_PROGRAM, ch).sendToTarget();
-                } else {
-                    Log.w(TAG, "Failed to get channel info for " + mChannelUri);
-                }
-            }
-        }
-
-        private void switchToSourceInput() {
-            mHardware.setSurface(mSurface, mConfigs[0]);
+        private void switchToSourceInput(Uri uri) {
             mUnblockedRatingSet.clear();
 
-            if (Utils.getChannelId(mChannelUri) < 0)
+            if (Utils.getChannelId(uri) < 0)
                 return;
-
-            mDbHandler.removeCallbacks(mPlayCurrentProgramRunnable);
-            mPlayCurrentProgramRunnable = new PlayCurrentProgramRunnable(mChannelUri);
-            mDbHandler.post(mPlayCurrentProgramRunnable);
+            ChannelInfo ch = TvContractUtils.getChannelInfoDTV(
+                    mContext.getContentResolver(), uri);
+            if (ch != null) {
+                playProgram(ch);
+            } else {
+                Log.w(TAG, "Failed to get channel info for " + uri);
+            }
         }
 
         private boolean playProgram(ChannelInfo info) {
-            mCurrentChannelInfo = info;
-
-            // TODO: play atv here
             mTv.PlayATVProgram(info.frequency, info.videoStd, info.audioStd, info.fineTune);
 
             checkContentBlockNeeded();
-
             return true;
-        }
-
-        @Override
-        public boolean onTune(Uri channelUri) {
-            Log.d(TAG, "onTune: url:" + channelUri.toString());
-            mChannelUri = channelUri;
-
-            if (mSurface == null) {// TvView is not ready
-                isTuneNotReady = true;
-            } else {
-                switchToSourceInput();
-            }
-
-            return false;
-        }
-
-        @Override
-        public void onSetCaptionEnabled(boolean enabled) {
-        }
-
-        @Override
-        public boolean onSelectTrack(int type, String trackId) {
-            return true;
-        }
-
-        @Override
-        public void onUnblockContent(TvContentRating rating) {
-            Log.d(TAG, "onUnblockContent: rating:" + rating.flattenToString());
-            if (rating != null) {
-                unblockContent(rating);
-            }
         }
 
         private void checkContentBlockNeeded() {
@@ -342,7 +192,7 @@ public class ATVInputService extends DroidLogicTvInputService {
     }
 
     public TvInputInfo onHardwareAdded(TvInputHardwareInfo hardwareInfo) {
-        if (hardwareInfo.getDeviceId() != ATV_HW_DEVICE_ID)
+        if (hardwareInfo.getDeviceId() != DroidLogicTvUtils.DEVICE_ID_ATV)
             return null;
 
         Log.d(TAG, "=====onHardwareAdded=====" + hardwareInfo.toString());

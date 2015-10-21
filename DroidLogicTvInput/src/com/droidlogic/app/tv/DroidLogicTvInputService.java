@@ -1,6 +1,5 @@
 package com.droidlogic.app.tv;
 
-
 import java.util.List;
 
 import android.amlogic.Tv;
@@ -31,23 +30,24 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
 
     private SparseArray<TvInputInfo> mInfoList = new SparseArray<>();
 
-    private Session mSession;
+    private TvInputBaseSession mSession;
     private String mCurrentInputId;
 
+    /**
+     * inputId should get from subclass which must invoke {@link super#onCreateSession(String)}
+     */
     @Override
     public Session onCreateSession(String inputId) {
-        // TODO Auto-generated method stub
+        mCurrentInputId = inputId;
         return null;
     }
 
     /**
      * get session has been created by {@code onCreateSession}, and input id of session.
      * @param session {@link HdmiInputSession} or {@link AVInputSession}
-     * @param inputId input id of {@code session} has created by {@code onCreateSession}
      */
-    protected void registerInputSession(Session session, String inputId) {
+    protected void registerInputSession(TvInputBaseSession session) {
         mSession = session;
-        mCurrentInputId = inputId;
         Tv.open().SetSigInfoChangeListener(this);
     }
 
