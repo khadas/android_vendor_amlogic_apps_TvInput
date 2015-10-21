@@ -336,6 +336,54 @@ public class TvContractUtils
         }
     }
 
+    private static void declineChannelNum(ContentResolver resolver, ChannelInfo channel) {
+        Uri channelsUri = TvContract.buildChannelsUriForInput(channel.inputId);
+        String[] projection = {Channels._ID, Channels.COLUMN_DISPLAY_NUMBER};
+        String condition = Channels.COLUMN_SERVICE_TYPE + " = " +
+                ((channel.serviceType == 1)?Channels.SERVICE_TYPE_AUDIO_VIDEO:Channels.SERVICE_TYPE_AUDIO) +
+                " and " + Channels.COLUMN_DISPLAY_NUMBER + " > " + channel.number;
+
+        Cursor cursor = null;
+        try {
+            cursor = resolver.query(channelsUri, projection, condition, null, null);
+            while (cursor != null && cursor.moveToNext()) {
+                long rowId = cursor.getLong(0);
+                ContentValues values = new ContentValues();
+                values.put(Channels.COLUMN_DISPLAY_NUMBER, Integer.parseInt(channel.number) - 1);
+                Uri uri = TvContract.buildChannelUri(rowId);
+                resolver.update(uri, values, null, null);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            cursor.close();
+        }
+    }
+
+    private static void increaseChannelNum(ContentResolver resolver, ChannelInfo channel) {
+        Uri channelsUri = TvContract.buildChannelsUriForInput(channel.inputId);
+        String[] projection = {Channels._ID, Channels.COLUMN_DISPLAY_NUMBER};
+        String condition = Channels.COLUMN_SERVICE_TYPE + " = " +
+                ((channel.serviceType == 1)?Channels.SERVICE_TYPE_AUDIO_VIDEO:Channels.SERVICE_TYPE_AUDIO) +
+                " and " + Channels.COLUMN_DISPLAY_NUMBER + " >= " + channel.number;
+
+        Cursor cursor = null;
+        try {
+            cursor = resolver.query(channelsUri, projection, condition, null, null);
+            while (cursor != null && cursor.moveToNext()) {
+                long rowId = cursor.getLong(0);
+                ContentValues values = new ContentValues();
+                values.put(Channels.COLUMN_DISPLAY_NUMBER, Integer.parseInt(channel.number) + 1);
+                Uri uri = TvContract.buildChannelUri(rowId);
+                resolver.update(uri, values, null, null);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            cursor.close();
+        }
+    }
+
     public static void deleteChannel(Context context, ChannelInfo channel) {
         Uri channelsUri = TvContract.buildChannelsUriForInput(channel.inputId);
         ContentResolver resolver = context.getContentResolver();
@@ -353,6 +401,7 @@ public class TvContractUtils
         } else if (channel.inputId.contains("DTV")) {
             resolver.delete(channelsUri, Channels.COLUMN_SERVICE_ID + "=?", new String[]{channel.serviceId + ""});
         }
+        declineChannelNum(resolver, channel);
     }
 
     // If a channel exists, update it. If not, insert a new one.
