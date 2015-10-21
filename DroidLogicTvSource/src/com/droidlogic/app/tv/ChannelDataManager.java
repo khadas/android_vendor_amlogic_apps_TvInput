@@ -20,27 +20,6 @@ public class ChannelDataManager {
     private final Context mContext;
     private static List<ChannelTuner> mChannelTuners = new ArrayList<ChannelTuner>();
     private ChannelObserver mChannelObserver;
-    
-    private static final UriMatcher sUriMatcher;
-    private static final int MATCH_CHANNEL = 1;
-    private static final int MATCH_CHANNEL_ID = 2;
-    private static final int MATCH_CHANNEL_ID_LOGO = 3;
-    private static final int MATCH_PASSTHROUGH_ID = 4;
-    private static final int MATCH_PROGRAM = 5;
-    private static final int MATCH_PROGRAM_ID = 6;
-    private static final int MATCH_WATCHED_PROGRAM = 7;
-    private static final int MATCH_WATCHED_PROGRAM_ID = 8;
-    static {
-        sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
-        sUriMatcher.addURI(TvContract.AUTHORITY, "channel", MATCH_CHANNEL);
-        sUriMatcher.addURI(TvContract.AUTHORITY, "channel/#", MATCH_CHANNEL_ID);
-        sUriMatcher.addURI(TvContract.AUTHORITY, "channel/#/logo", MATCH_CHANNEL_ID_LOGO);
-        sUriMatcher.addURI(TvContract.AUTHORITY, "passthrough/*", MATCH_PASSTHROUGH_ID);
-        sUriMatcher.addURI(TvContract.AUTHORITY, "program", MATCH_PROGRAM);
-        sUriMatcher.addURI(TvContract.AUTHORITY, "program/#", MATCH_PROGRAM_ID);
-        sUriMatcher.addURI(TvContract.AUTHORITY, "watched_program", MATCH_WATCHED_PROGRAM);
-        sUriMatcher.addURI(TvContract.AUTHORITY, "watched_program/#", MATCH_WATCHED_PROGRAM_ID);
-    }
 
     public ChannelDataManager(Context context) {
         mContext = context;
@@ -72,11 +51,11 @@ public class ChannelDataManager {
     private void processChangedUri(Uri uri) {
         if (DEBUG)
             Log.d(TAG, "==== uri =" + uri);
-        switch (sUriMatcher.match(uri)) {
-            case MATCH_CHANNEL:
+        switch (DroidLogicTvUtils.matchsWhich(uri)) {
+            case DroidLogicTvUtils.MATCH_CHANNEL:
                 changeChannels(uri);
                 break;
-            case MATCH_CHANNEL_ID:
+            case DroidLogicTvUtils.MATCH_CHANNEL_ID:
                 changeRowChannel(uri);
                 break;
             default:

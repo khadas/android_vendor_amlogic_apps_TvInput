@@ -40,6 +40,7 @@ import android.util.Log;
 import android.view.Surface;
 import android.view.View;
 
+import com.droidlogic.utils.Utils;
 import com.droidlogic.utils.tunerinput.tvutil.TvContractUtils;
 import com.droidlogic.utils.tunerinput.data.ChannelInfo;
 
@@ -236,6 +237,9 @@ public class ATVInputService extends DroidLogicTvInputService {
         private void switchToSourceInput() {
             mHardware.setSurface(mSurface, mConfigs[0]);
             mUnblockedRatingSet.clear();
+
+            if (Utils.getChannelId(mChannelUri) < 0)
+                return;
 
             mDbHandler.removeCallbacks(mPlayCurrentProgramRunnable);
             mPlayCurrentProgramRunnable = new PlayCurrentProgramRunnable(mChannelUri);
