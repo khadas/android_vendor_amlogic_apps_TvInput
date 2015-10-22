@@ -115,19 +115,19 @@ public class ShortCutActivity extends Activity {
             case DroidLogicKeyEvent.KEYCODE_TV_SLEEP:
                 String sleep_time = mSettingsManager.getSleepTimerStatus();
                 if (sleep_time.equals(mResources.getString(R.string.off))) {
-                    mSettingsManager.setSleepTime(15);
+                    mSettingsManager.setSleepTimer(15);
                 } else if (sleep_time.equals(mResources.getString(R.string.time_15min))) {
-                    mSettingsManager.setSleepTime(30);
+                    mSettingsManager.setSleepTimer(30);
                 } else if (sleep_time.equals(mResources.getString(R.string.time_30min))) {
-                    mSettingsManager.setSleepTime(45);
+                    mSettingsManager.setSleepTimer(45);
                 } else if (sleep_time.equals(mResources.getString(R.string.time_45min))) {
-                    mSettingsManager.setSleepTime(60);
+                    mSettingsManager.setSleepTimer(60);
                 } else if (sleep_time.equals(mResources.getString(R.string.time_60min))) {
-                    mSettingsManager.setSleepTime(90);
+                    mSettingsManager.setSleepTimer(90);
                 } else if (sleep_time.equals(mResources.getString(R.string.time_90min))) {
-                    mSettingsManager.setSleepTime(120);
+                    mSettingsManager.setSleepTimer(120);
                 } else if (sleep_time.equals(mResources.getString(R.string.time_120min))) {
-                    mSettingsManager.setSleepTime(0);
+                    mSettingsManager.setSleepTimer(0);
                 }
                 break;
             case DroidLogicKeyEvent.KEYCODE_MEDIA_AUDIO_CONTROL:

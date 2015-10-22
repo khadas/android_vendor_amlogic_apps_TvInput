@@ -218,7 +218,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
     public void startShowActivityTimer () {
         handler.removeMessages(0);
 
-        int seconds = Settings.System.getInt(getContentResolver(), SettingsManager.KEY_MENU_TIME, 10);
+        int seconds = Settings.System.getInt(getContentResolver(), SettingsManager.KEY_MENU_TIME, SettingsManager.DEFUALT_MENU_TIME);
         handler.sendEmptyMessageDelayed(0, seconds * 1000);
     }
 
@@ -227,7 +227,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
             if (msg.what == 0 && !mOptionUiManager.isSearching())
                 finish();
             else if (mOptionUiManager.isSearching()) {
-                int seconds = Settings.System.getInt(getContentResolver(), SettingsManager.KEY_MENU_TIME, 10);
+                int seconds = Settings.System.getInt(getContentResolver(), SettingsManager.KEY_MENU_TIME, SettingsManager.DEFUALT_MENU_TIME);
                 sendEmptyMessageDelayed(0, seconds * 1000);
             }
         }

@@ -102,6 +102,8 @@ public class SettingsManager {
     public static final double STATUS_DEFAUT_FREQUENCY              = 44250000;
     public static final int PERCENT_INCREASE                        = 1;
     public static final int PERCENT_DECREASE                        = -1;
+    public static final int DEFAULT_SLEEP_TIMER                     = 0;
+    public static final int DEFUALT_MENU_TIME                       = 10;
 
     public static final String STRING_NAME               = "name";
     public static final String STRING_STATUS              = "status";
@@ -644,28 +646,28 @@ public class SettingsManager {
 
     public String getSleepTimerStatus () {
         String ret = "";
-        int time = SystemProperties.getInt("tv.sleep_timer", 0);
+        int time = Settings.System.getInt(mContext.getContentResolver(), KEY_SLEEP_TIMER, DEFAULT_SLEEP_TIMER);
         switch (time)
         {
             case 0://off
                 ret = mResources.getString(R.string.off);
                 break;
-            case 900000://15min
+            case 15://15min
                 ret = mResources.getString(R.string.time_15min);
                 break;
-            case 1800000://30min
+            case 30://30min
                 ret = mResources.getString(R.string.time_30min);
                 break;
-            case 2700000://45min
+            case 45://45min
                 ret = mResources.getString(R.string.time_45min);
                 break;
-            case 3600000://60min
+            case 60://60min
                 ret = mResources.getString(R.string.time_60min);
                 break;
-            case 5400000://90min
+            case 90://90min
                 ret = mResources.getString(R.string.time_90min);
                 break;
-            case 7200000://120min
+            case 120://120min
                 ret = mResources.getString(R.string.time_120min);
                 break;
             default:
@@ -676,7 +678,7 @@ public class SettingsManager {
     }
 
     private String getMenuTimeStatus () {
-        int seconds = Settings.System.getInt(mContext.getContentResolver(), KEY_MENU_TIME, 10);
+        int seconds = Settings.System.getInt(mContext.getContentResolver(), KEY_MENU_TIME, DEFUALT_MENU_TIME);
         switch (seconds) {
             case 10:
                 return mResources.getString(R.string.time_10s);
@@ -825,8 +827,8 @@ public class SettingsManager {
 
     }
 
-    public void setSleepTime (int mins) {
-        SystemProperties.set("tv.sleep_timer", Integer.toString(mins * 60 * 1000));
+    public void setSleepTimer (int mins) {
+        Settings.System.putInt(mContext.getContentResolver(), KEY_SLEEP_TIMER, mins);
     }
 
     public void setMenuTime (int seconds) {
@@ -835,10 +837,10 @@ public class SettingsManager {
     }
 
     public void doFactoryReset() {
-        setSleepTime(0);
-        setMenuTime(10);
-        SystemControlManager mSystemControlManager = new SystemControlManager(mContext);
-        mSystemControlManager.setBootenv("ubootenv.var.upgrade_step", "1");
+        setSleepTimer(DEFAULT_SLEEP_TIMER);
+        setMenuTime(DEFUALT_MENU_TIME);
+       // SystemControlManager mSystemControlManager = new SystemControlManager(mContext);
+       // mSystemControlManager.setBootenv("ubootenv.var.upgrade_step", "1");
 
         for (int i = 0; i < tvPackages.length; i++) {
             ClearPackageData(tvPackages[i]);
