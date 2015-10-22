@@ -619,25 +619,25 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             // ====Settings====
             // Sleep Timer
             case R.id.sleep_timer_off:
-                mSettingsManager.setSleepTime(0);
+                mSettingsManager.setSleepTimer(0);
                 break;
             case R.id.sleep_timer_15min:
-                mSettingsManager.setSleepTime(15);
+                mSettingsManager.setSleepTimer(15);
                 break;
             case R.id.sleep_timer_30min:
-                mSettingsManager.setSleepTime(30);
+                mSettingsManager.setSleepTimer(30);
                 break;
             case R.id.sleep_timer_45min:
-                mSettingsManager.setSleepTime(45);
+                mSettingsManager.setSleepTimer(45);
                 break;
             case R.id.sleep_timer_60min:
-                mSettingsManager.setSleepTime(60);
+                mSettingsManager.setSleepTimer(60);
                 break;
             case R.id.sleep_timer_90min:
-                mSettingsManager.setSleepTime(90);
+                mSettingsManager.setSleepTimer(90);
                 break;
             case R.id.sleep_timer_120min:
-                mSettingsManager.setSleepTime(120);
+                mSettingsManager.setSleepTimer(120);
                 break;
             //menu time
             case R.id.menu_time_10s:
