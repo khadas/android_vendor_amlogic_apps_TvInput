@@ -689,18 +689,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 break;
             // Restore Factory Settings
             case R.id.restore_factory:
-                new AlertDialog.Builder(mContext).setTitle(R.string.warning).setMessage(R.string.prompt_def_set)
-                        .setPositiveButton(R.string.confirm, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                // TODO Auto-generated method stub
-                                tv.stopAutoBacklight();
-                                SystemProperties.set("tv.sleep_timer", "0");
-                                tv.SSMInitDevice();
-                                tv.FactoryCleanAllTableForProgram();
-                                ((PowerManager) mContext.getSystemService(Context.POWER_SERVICE)).reboot(null);
-                            }
-                        }).setNegativeButton(R.string.cancel, null).show();
+                createFactoryResetUi();
                 break;
             default:
                 break;
@@ -1173,6 +1162,18 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             default:
                 break;
         }
+    }
+
+    private void createFactoryResetUi () {
+        new AlertDialog.Builder(mContext).setTitle(R.string.warning).setMessage(R.string.prompt_def_set)
+            .setPositiveButton(R.string.confirm, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    // TODO Auto-generated method stub
+                    mSettingsManager.doFactoryReset();
+                    ((PowerManager) mContext.getSystemService(Context.POWER_SERVICE)).reboot("");
+                }
+        }).setNegativeButton(R.string.cancel, null).show();
     }
 
     public void stopAllAction(){

@@ -1,6 +1,9 @@
 package com.droidlogic.tvinput.settings;
 
+import android.app.ActivityManager;
 import android.content.Context;
+import android.content.pm.PackageManager;
+import android.content.pm.IPackageDataObserver;
 import android.content.res.Resources;
 import android.provider.Settings;
 import android.os.SystemProperties;
@@ -12,6 +15,7 @@ import java.util.HashMap;
 import android.R.integer;
 import android.amlogic.Tv;
 
+import com.droidlogic.app.SystemControlManager;
 import android.media.tv.TvContract.Channels;
 import com.droidlogic.utils.tunerinput.data.ChannelInfo;
 import com.droidlogic.utils.tunerinput.tvutil.TvContractUtils;
@@ -828,5 +832,49 @@ public class SettingsManager {
     public void setMenuTime (int seconds) {
         Settings.System.putInt(mContext.getContentResolver(), KEY_MENU_TIME, seconds);
         ((TvSettingsActivity)mContext).startShowActivityTimer();
+    }
+
+    public void doFactoryReset() {
+        setSleepTime(0);
+        setMenuTime(10);
+        SystemControlManager mSystemControlManager = new SystemControlManager(mContext);
+        mSystemControlManager.setBootenv("ubootenv.var.upgrade_step", "1");
+
+        for (int i = 0; i < tvPackages.length; i++) {
+            ClearPackageData(tvPackages[i]);
+        }
+        tv.stopAutoBacklight();
+        tv.SSMInitDevice();
+        tv.FactoryCleanAllTableForProgram();
+    }
+
+    private String[] tvPackages = {
+        "com.android.providers.tv",
+    };
+
+    private  void ClearPackageData(String packageName) {
+        Log.d(TAG, "ClearPackageData:" + packageName);
+        //clear data
+        ActivityManager am = (ActivityManager)mContext.getSystemService(Context.ACTIVITY_SERVICE);
+        ClearUserDataObserver mClearDataObserver = new ClearUserDataObserver();
+        boolean res = am.clearApplicationUserData(packageName, mClearDataObserver);
+        if (!res) {
+            Log.i(TAG, " clear " + packageName + " data failed");
+        } else {
+            Log.i(TAG, " clear " + packageName + " data succeed");
+        }
+
+        //clear cache
+        PackageManager packageManager = mContext.getPackageManager();
+        ClearUserDataObserver mClearCacheObserver = new ClearUserDataObserver();
+        packageManager.deleteApplicationCacheFiles(packageName, mClearCacheObserver);
+
+        //clear default
+        packageManager.clearPackagePreferredActivities(packageName);
+    }
+
+    private class ClearUserDataObserver extends IPackageDataObserver.Stub {
+        public void onRemoveCompleted(final String packageName, final boolean succeeded) {
+        }
     }
 }
