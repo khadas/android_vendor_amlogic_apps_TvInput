@@ -122,7 +122,7 @@ public class ATVInputService extends DroidLogicTvInputService {
 
             if (Utils.getChannelId(uri) < 0)
                 return;
-            ChannelInfo ch = TvContractUtils.getChannelInfoDTV(
+            ChannelInfo ch = TvContractUtils.getChannelInfoATV(
                     mContext.getContentResolver(), uri);
             if (ch != null) {
                 playProgram(ch);
@@ -133,7 +133,7 @@ public class ATVInputService extends DroidLogicTvInputService {
 
         private boolean playProgram(ChannelInfo info) {
             mTv.PlayATVProgram(info.frequency, info.videoStd, info.audioStd, info.fineTune);
-
+            client.curChannel = info;
             checkContentBlockNeeded();
             return true;
         }

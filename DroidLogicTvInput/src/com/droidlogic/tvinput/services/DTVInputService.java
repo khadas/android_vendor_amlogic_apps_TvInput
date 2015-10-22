@@ -147,7 +147,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                         info.pcrPID);
             else
                 Log.d(TAG, "channel type[" + info.type + "] not supported yet.");
-
+            client.curChannel = info;
             checkContentBlockNeeded();
             return true;
         }

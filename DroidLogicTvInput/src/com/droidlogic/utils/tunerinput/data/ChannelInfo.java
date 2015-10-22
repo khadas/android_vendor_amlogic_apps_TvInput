@@ -23,8 +23,8 @@ public final class ChannelInfo {
 	public final int audioFormats[];
 	public final String audioLangs[];
 	public final int pcrPID;
-	public final int videoStd;
-	public final int audioStd;
+	public int videoStd;
+	public int audioStd;
 	public final int isAutoStd;
 	public final int fineTune;
 

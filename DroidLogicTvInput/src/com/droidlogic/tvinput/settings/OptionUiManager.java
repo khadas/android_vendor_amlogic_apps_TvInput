@@ -572,19 +572,40 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             // ====Channel====
             // color system
             case R.id.color_system_auto:
+                client.curChannel.videoStd = Tv.tvin_color_system_e.COLOR_SYSTEM_AUTO.toInt();
+                TvContractUtils.updateChannelInfo(mContext, client.curChannel);
+                tv.SetFrontendParms(Tv.tv_fe_type_e.TV_FE_ANALOG, client.curChannel.frequency, client.curChannel.videoStd, client.curChannel.audioStd, 0, 0);
                 break;
             case R.id.color_system_pal:
+                client.curChannel.videoStd = Tv.tvin_color_system_e.COLOR_SYSTEM_PAL.toInt();
+                TvContractUtils.updateChannelInfo(mContext, client.curChannel);
+                tv.SetFrontendParms(Tv.tv_fe_type_e.TV_FE_ANALOG, client.curChannel.frequency, client.curChannel.videoStd, client.curChannel.audioStd, 0, 0);
                 break;
             case R.id.color_system_ntsc:
+                client.curChannel.videoStd = Tv.tvin_color_system_e.COLOR_SYSTEM_NTSC.toInt();
+                TvContractUtils.updateChannelInfo(mContext, client.curChannel);
+                tv.SetFrontendParms(Tv.tv_fe_type_e.TV_FE_ANALOG, client.curChannel.frequency, client.curChannel.videoStd, client.curChannel.audioStd, 0, 0);
                 break;
             // sound system
             case R.id.sound_system_dk:
+                client.curChannel.audioStd = Tv.atv_audio_std_e.ATV_AUDIO_STD_DK.toInt();
+                TvContractUtils.updateChannelInfo(mContext, client.curChannel);
+                tv.SetFrontendParms(Tv.tv_fe_type_e.TV_FE_ANALOG, client.curChannel.frequency, client.curChannel.videoStd, client.curChannel.audioStd, 0, 0);
                 break;
             case R.id.sound_system_i:
+                client.curChannel.audioStd = Tv.atv_audio_std_e.ATV_AUDIO_STD_I.toInt();
+                TvContractUtils.updateChannelInfo(mContext, client.curChannel);
+                tv.SetFrontendParms(Tv.tv_fe_type_e.TV_FE_ANALOG, client.curChannel.frequency, client.curChannel.videoStd, client.curChannel.audioStd, 0, 0);
                 break;
             case R.id.sound_system_bg:
+                client.curChannel.audioStd = Tv.atv_audio_std_e.ATV_AUDIO_STD_BG.toInt();
+                TvContractUtils.updateChannelInfo(mContext, client.curChannel);
+                tv.SetFrontendParms(Tv.tv_fe_type_e.TV_FE_ANALOG, client.curChannel.frequency, client.curChannel.videoStd, client.curChannel.audioStd, 0, 0);
                 break;
             case R.id.sound_system_m:
+                client.curChannel.audioStd = Tv.atv_audio_std_e.ATV_AUDIO_STD_M.toInt();
+                TvContractUtils.updateChannelInfo(mContext, client.curChannel);
+                tv.SetFrontendParms(Tv.tv_fe_type_e.TV_FE_ANALOG, client.curChannel.frequency, client.curChannel.videoStd, client.curChannel.audioStd, 0, 0);
                 break;
             // volume compensate
             case R.id.volume_compensate_increase:

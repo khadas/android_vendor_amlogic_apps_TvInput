@@ -474,11 +474,33 @@ public class SettingsManager {
     }
 
     private String getColorSystemStatus () {
-        return mResources.getString(R.string.auto);
+        switch (client.curChannel.videoStd)
+        {
+            case 0:
+                return mResources.getString(R.string.auto);
+            case 1:
+                return mResources.getString(R.string.pal);
+            case 2:
+                return mResources.getString(R.string.ntsc);
+            default:
+                return mResources.getString(R.string.auto);
+        }
     }
 
     private String getSoundSystemStatus () {
-        return mResources.getString(R.string.sound_system_dk);
+        switch (client.curChannel.audioStd)
+        {
+            case 0:
+                return mResources.getString(R.string.sound_system_dk);
+            case 1:
+                return mResources.getString(R.string.sound_system_i);
+            case 2:
+                return mResources.getString(R.string.sound_system_bg);
+            case 3:
+                return mResources.getString(R.string.sound_system_m);
+            default:
+                return mResources.getString(R.string.sound_system_dk);
+        }
     }
 
     private String getVolumeCompensateStatus () {
