@@ -11,10 +11,12 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
 import android.view.View.OnKeyListener;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -688,6 +690,12 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 tv.setBlackoutEnable(1);
                 break;
             // Restore Factory Settings
+            case R.id.startup_setting_launcher:
+                mSettingsManager.setStartupSetting(0);
+                break;
+            case R.id.startup_setting_tv:
+                mSettingsManager.setStartupSetting(1);
+                break;
             case R.id.restore_factory:
                 createFactoryResetUi();
                 break;
@@ -1165,15 +1173,33 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     }
 
     private void createFactoryResetUi () {
-        new AlertDialog.Builder(mContext).setTitle(R.string.warning).setMessage(R.string.prompt_def_set)
-            .setPositiveButton(R.string.confirm, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    // TODO Auto-generated method stub
-                    mSettingsManager.doFactoryReset();
-                    ((PowerManager) mContext.getSystemService(Context.POWER_SERVICE)).reboot("");
-                }
-        }).setNegativeButton(R.string.cancel, null).show();
+         LayoutInflater inflater =(LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+         View view = inflater.inflate(R.layout.layout_dialog, null);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+        final AlertDialog mAlertDialog = builder.create();
+        mAlertDialog.show();
+        mAlertDialog.getWindow().setContentView(view);
+        //mAlertDialog.getWindow().setLayout(150, 320);
+
+        TextView button_cancel = (TextView)view.findViewById(R.id.dialog_cancel);
+        button_cancel.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mAlertDialog != null)
+                    mAlertDialog.dismiss();
+            }
+        });
+        button_cancel.setOnFocusChangeListener(this);
+        TextView button_ok = (TextView)view.findViewById(R.id.dialog_ok);
+        button_ok.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mSettingsManager.doFactoryReset();
+                ((PowerManager) mContext.getSystemService(Context.POWER_SERVICE)).reboot("");
+            }
+        });
+        button_ok.setOnFocusChangeListener(this);
     }
 
     public void stopAllAction(){

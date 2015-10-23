@@ -2,7 +2,11 @@ package com.droidlogic.tvinput.settings;
 
 import android.app.ActivityManager;
 import android.content.Context;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.content.pm.IPackageDataObserver;
 import android.content.res.Resources;
 import android.provider.Settings;
@@ -104,6 +108,10 @@ public class SettingsManager {
     public static final int PERCENT_DECREASE                        = -1;
     public static final int DEFAULT_SLEEP_TIMER                     = 0;
     public static final int DEFUALT_MENU_TIME                       = 10;
+    public static final String LAUNCHER_NAME                         = "com.android.launcher";
+    public static final String LAUNCHER_ACTIVITY                    = "com.android.launcher2.Launcher";
+    public static final String TV_NAME                                = "com.droidlogic.tv";
+    public static final String TV_ACTIVITY                           = "com.droidlogic.tv.DroidLogicTv";
 
     public static final String STRING_NAME               = "name";
     public static final String STRING_STATUS              = "status";
@@ -694,7 +702,15 @@ public class SettingsManager {
     }
 
     private String getStartupSettingStatus () {
-        return mResources.getString(R.string.launcher);
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_HOME);
+
+        final ResolveInfo res = mContext.getPackageManager().resolveActivity(intent, 0);
+
+        if (res.activityInfo.packageName.equals(LAUNCHER_NAME))
+            return mResources.getString(R.string.launcher);
+        else
+            return mResources.getString(R.string.tv);
     }
 
     private String getDynamicBacklightStatus () {
@@ -836,9 +852,29 @@ public class SettingsManager {
         ((TvSettingsActivity)mContext).startShowActivityTimer();
     }
 
+    public void setStartupSetting (int type) {
+        IntentFilter  mHomeFilter = new IntentFilter(Intent.ACTION_MAIN);
+        mHomeFilter.addCategory(Intent.CATEGORY_HOME);
+        mHomeFilter.addCategory(Intent.CATEGORY_DEFAULT);
+
+        PackageManager packageManager = mContext.getPackageManager();
+        ComponentName component_launcher= new ComponentName(LAUNCHER_NAME, LAUNCHER_ACTIVITY);
+        ComponentName component_tv = new ComponentName(TV_NAME, TV_ACTIVITY);
+        ComponentName[] components = new ComponentName[] {component_launcher, component_tv};
+
+        if (type == 0) {
+            packageManager.replacePreferredActivity(mHomeFilter, IntentFilter.MATCH_CATEGORY_EMPTY,
+                components, component_launcher);
+        } else {
+            packageManager.replacePreferredActivity(mHomeFilter, IntentFilter.MATCH_CATEGORY_EMPTY,
+                components, component_tv);
+        }
+    }
+
     public void doFactoryReset() {
         setSleepTimer(DEFAULT_SLEEP_TIMER);
         setMenuTime(DEFUALT_MENU_TIME);
+        setStartupSetting(0);
        // SystemControlManager mSystemControlManager = new SystemControlManager(mContext);
        // mSystemControlManager.setBootenv("ubootenv.var.upgrade_step", "1");
 
