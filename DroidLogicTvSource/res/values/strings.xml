@@ -13,4 +13,6 @@
 
     <string name="radio_label">Digtal Radio</string>
 
+    <string name="auto_shutdown_info">Seconds should be power off,press any key to cancel</string>
+
 </resources>

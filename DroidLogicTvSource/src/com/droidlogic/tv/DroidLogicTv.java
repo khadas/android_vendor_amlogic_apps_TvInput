@@ -16,6 +16,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.hardware.input.InputManager;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.tv.TvInputInfo;
@@ -25,8 +26,10 @@ import android.media.tv.TvView.TvInputCallback;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.os.Handler.Callback;
 import android.os.Message;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.SurfaceHolder;
@@ -63,6 +66,8 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     private Timer delayTimer = null;
     private int delayCounter = 0;
     private Timer channelSwitchTimer = null;
+    private volatile int mNoSignalShutdownCount = -1;
+    private TextView mTimePromptText = null;
 
     private Handler mHandler;
     private static final int MSG_INFO_DELAY = 0;
@@ -137,6 +142,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
 
         mHandler = new Handler(this);
 
+        mTimePromptText = (TextView) this.findViewById(R.id.textView_time_prompt);
         mSourceView = (TvView) findViewById(R.id.source_view);
         mSourceView.setCallback(new DroidLogicInputCallback());
 
@@ -331,7 +337,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         Utils.logd(TAG, "====keycode =" + keyCode);
-
+        reset_nosignal_time();
         if (isSourceMenuShowing) {
             createDelayTimer(MSG_SOURCE_DELAY, MSG_SOURCE_DELAY_TIME);
         }
@@ -738,6 +744,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
 
             isNoSignal = false;
             popupNoSignal(Utils.HIDE_VIEW);
+            remove_nosignal_time();
         }
 
         @Override
@@ -750,11 +757,64 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
                 case TvInputManager.VIDEO_UNAVAILABLE_REASON_BUFFERING:
                     isNoSignal = true;
                     popupNoSignal(Utils.SHOW_VIEW);
+                    reset_nosignal_time();
                     break;
                 default:
                     break;
             }
         }
+    }
+
+    private Handler no_signal_handler = new Handler();
+    private Runnable no_signal_runnable = new Runnable() {
+        @Override
+        public void run() {
+            // TODO Auto-generated method stub
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    // TODO Auto-generated method stub
+                    try {
+                        mNoSignalShutdownCount--;
+                        if (mNoSignalShutdownCount == 0) {
+                            long now = SystemClock.uptimeMillis();
+                            KeyEvent down = new KeyEvent(now, now, KeyEvent.ACTION_DOWN, DroidLogicKeyEvent.KEYCODE_POWER, 0);
+                            KeyEvent up = new KeyEvent(now, now, KeyEvent.ACTION_UP, DroidLogicKeyEvent.KEYCODE_POWER, 0);
+                            InputManager.getInstance().injectInputEvent(down, InputManager.INJECT_INPUT_EVENT_MODE_ASYNC);
+                            InputManager.getInstance().injectInputEvent(up, InputManager.INJECT_INPUT_EVENT_MODE_ASYNC);
+                        }
+                        else {
+                            if (mNoSignalShutdownCount < 60) {
+                                String str = mNoSignalShutdownCount + " " + getResources().getString(R.string.auto_shutdown_info);
+                                mTimePromptText.setText(str);
+                                if (mTimePromptText.getVisibility() != View.VISIBLE)// if sleep time,no show view
+                                    mTimePromptText.setVisibility(View.VISIBLE);
+                            } else {
+                                if (mTimePromptText.getVisibility() == View.VISIBLE)
+                                    mTimePromptText.setVisibility(View.GONE);
+                            }
+                            no_signal_handler.postDelayed(no_signal_runnable, 1000);
+                        }
+                    }
+                    catch (RuntimeException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+
+    };
+
+    private void reset_nosignal_time() {
+        if (isNoSignal) {
+            mNoSignalShutdownCount = 300;//5min
+            no_signal_handler.removeCallbacks(no_signal_runnable);
+            no_signal_handler.postDelayed(no_signal_runnable, 0);
+        }
+    }
+
+    private void remove_nosignal_time() {
+        no_signal_handler.removeCallbacks(no_signal_runnable);
     }
 
 }
