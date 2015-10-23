@@ -814,6 +814,8 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     }
 
     private void remove_nosignal_time() {
+        if (mTimePromptText.getVisibility() == View.VISIBLE)
+            mTimePromptText.setVisibility(View.GONE);
         no_signal_handler.removeCallbacks(no_signal_runnable);
     }
 

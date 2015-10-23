@@ -97,7 +97,6 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     private SettingsManager mSettingsManager;
     private int optionTag = OPTION_PICTURE_MODE;
     private String optionKey = null;
-    private int searchedChannelNum = 0;
     private int channelNumber = 0;//for db store TV channel's channelNumber
     private int radioNumber = 0;//for db store Radio channel's channelNumber
     List<ChannelInfo> mChannels = new ArrayList<ChannelInfo>();
@@ -622,7 +621,6 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             case R.id.manual_search_start_dtv:
                 startManualSearch();
                 isSearching = true;
-                searchedChannelNum = 0;
                 finish_result = DroidLogicTvUtils.RESULT_UPDATE;
                 break;
             // auto search
@@ -634,7 +632,6 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV)
                     tv.DtvAutoScan();
                 isSearching = true;
-                searchedChannelNum = 0;
                 finish_result = DroidLogicTvUtils.RESULT_UPDATE;
                 break;
             // ====Settings====
@@ -1069,12 +1066,15 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
 
     @Override
     public void onEvent(Tv.ScannerEvent event) {
-        Log.d(TAG, "searching---precent = " + event.precent);
+        //Log.d("fuhao", "searching---precent = " + event.precent + ",arg0.quality = " + event.quality + ",strength = " + event.strength);
         ChannelInfo channel = null;
         String name = null;
         if (event.lock == 1) {
             // get a channel
-            searchedChannelNum++;
+            if (event.srvType == 1)
+                channelNumber++;
+            else
+                radioNumber++;
         }
         switch (event.type) {
             case Tv.EVENT_DTV_PROG_DATA:
@@ -1098,11 +1098,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 else {
                     if (event.srvType == 1) {
                         TvContractUtils.insertDtvChannel(mContext, channel, channelNumber);
-                        channelNumber++;
                     }
                     else {
                         TvContractUtils.insertDtvChannel(mContext, channel, radioNumber);
-                        radioNumber++;
                     }
                 }
                 Log.d(TAG, "STORE_SERVICE: " + channel.toString());
@@ -1129,8 +1127,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                     setAutoSearchFrequency(event);
                 break;
             case Tv.EVENT_ATV_PROG_DATA:
-                channelNumber++;
-                channel = new ChannelInfo("A " + String.valueOf(searchedChannelNum), event.programName, null, 0, 0, mSettingsManager.getInputId(), 0, 0, 0, 3,
+                channel = new ChannelInfo("A " + String.valueOf(channelNumber), event.programName, null, 0, 0, mSettingsManager.getInputId(), 0, 0, 0, 3,
                         event.srvType, event.freq, 0,// bandwidth
                         0,// videoPID
                         0,// videoFormat,
@@ -1155,7 +1152,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             case Tv.EVENT_SCAN_EXIT:
                 Log.d(TAG, "Scan exit.");
                 isSearching = false;
-                if (searchedChannelNum == 0) {
+                if (channelNumber == 0 && radioNumber == 0) {
                     ((TvSettingsActivity) mContext).finish();
                 }
                 break;
