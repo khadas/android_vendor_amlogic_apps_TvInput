@@ -134,7 +134,7 @@
     <string name="ensure_restore">ensure restore</string>
     <string name="ok">OK</string>
     <string name="warning">warning</string>
-    <string name="prompt_def_set"> restore default settings will restore the settings menu data to factory condition, determined to restore the default settings? </string>
+    <string name="prompt_def_set">restore default settings will restore the settings menu data to factory condition</string>
     <string name="prompt2">restore default settings.</string>
     <string name="cancel">cancel</string>
     <string name="error_not_number">Please input number!</string>
