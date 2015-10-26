@@ -73,6 +73,7 @@ public class OptionListLayout implements OnItemClickListener{
     public void onItemClick (AdapterView<?> parent, View view, int position, long id) {
         switch (mTag) {
             case OptionUiManager.OPTION_AUDIO_TRACK:
+                mSettingsManager.setAudioTrack(position);
                 break;
             case OptionUiManager.OPTION_SOUND_CHANNEL:
                 mSettingsManager.setSoundChannel(position);

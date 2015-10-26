@@ -149,6 +149,8 @@ public class TvContractUtils
                     map.put("afmts", Arrays.toString(channel.audioFormats));
                     map.put("alangs", Arrays.toString(channel.audioLangs));
                     map.put("pcr", String.valueOf(channel.pcrPID));
+                    map.put("atrackIndex", String.valueOf(channel.audioTrackIndex));
+                    map.put("acompensation", String.valueOf(channel.audioCompensation));
                     String output = MapUtil.mapToString(map);
                     values.put(TvContract.Channels.COLUMN_INTERNAL_PROVIDER_DATA, output);
                     Uri uri = TvContract.buildChannelUri(rowId);
@@ -211,6 +213,7 @@ public class TvContractUtils
                     map.put("astd", String.valueOf(channel.audioStd));
                     map.put("auto", String.valueOf(channel.isAutoStd));
                     map.put("fine", String.valueOf(channel.fineTune));
+                    map.put("acompensation", String.valueOf(channel.audioCompensation));
                     String output = MapUtil.mapToString(map);
                     values.put(TvContract.Channels.COLUMN_INTERNAL_PROVIDER_DATA, output);
                     Uri uri = TvContract.buildChannelUri(rowId);
@@ -266,6 +269,8 @@ public class TvContractUtils
         map.put("afmts", Arrays.toString(channel.audioFormats));
         map.put("alangs", Arrays.toString(channel.audioLangs));
         map.put("pcr", String.valueOf(channel.pcrPID));
+        map.put("atrackIndex", String.valueOf(channel.audioTrackIndex));
+        map.put("acompensation", String.valueOf(channel.audioCompensation));
         String output = MapUtil.mapToString(map);
         values.put(TvContract.Channels.COLUMN_INTERNAL_PROVIDER_DATA, output);
         Uri uri = resolver.insert(TvContract.Channels.CONTENT_URI, values);
@@ -314,6 +319,7 @@ public class TvContractUtils
         map.put("astd", String.valueOf(channel.audioStd));
         map.put("auto", String.valueOf(channel.isAutoStd));
         map.put("fine", String.valueOf(channel.fineTune));
+        map.put("acompensation", String.valueOf(channel.audioCompensation));
         String output = MapUtil.mapToString(map);
         values.put(TvContract.Channels.COLUMN_INTERNAL_PROVIDER_DATA, output);
 
@@ -329,6 +335,8 @@ public class TvContractUtils
     }
 
     public static void updateChannelInfo(Context context, ChannelInfo channel) {
+        if (channel.inputId == null)
+            return;
         if (channel.inputId.contains("ATV")) {
             updateAtvChannel(context, channel);
         } else if (channel.inputId.contains("DTV")) {
@@ -500,7 +508,7 @@ public class TvContractUtils
                         Integer.parseInt(parsedMap.get("vid")), Integer.parseInt(parsedMap.get("vfmt")),
                         aids, afmts, alangs,
                         Integer.parseInt(parsedMap.get("pcr")),
-                        0,0,0,0
+                        0,0,0,0,Integer.parseInt(parsedMap.get("atrackIndex")),Integer.parseInt(parsedMap.get("acompensation"))
                         );
                 if (srvType == serviceType) {
                     channelList.add(info);
@@ -539,7 +547,7 @@ public class TvContractUtils
                         null,// audioLangs[],
                         0,// pcrPID,
                         Integer.parseInt(parsedMap.get("vstd")), Integer.parseInt(parsedMap.get("astd")), Integer.parseInt(parsedMap.get("auto")),
-                        Integer.parseInt(parsedMap.get("fine")));
+                        Integer.parseInt(parsedMap.get("fine")), 0, Integer.parseInt(parsedMap.get("acompensation")));
                 channelList.add(info);
             }
             cursor.close();
@@ -593,8 +601,8 @@ public class TvContractUtils
                             Integer.parseInt(parsedMap.get("vid")), Integer.parseInt(parsedMap.get("vfmt")),
                             aids, afmts, alangs,
                             Integer.parseInt(parsedMap.get("pcr")),
-                            0,0,0,0
-                            );
+                            0,0,0,0,Integer.parseInt(parsedMap.get("atrackIndex")),
+                            Integer.parseInt(parsedMap.get("acompensation")));
             }
         }
         catch (Exception e)
@@ -641,7 +649,7 @@ public class TvContractUtils
                         null,// audioLangs[],
                         0,// pcrPID,
                         Integer.parseInt(parsedMap.get("vstd")), Integer.parseInt(parsedMap.get("astd")), Integer.parseInt(parsedMap.get("auto")),
-                        Integer.parseInt(parsedMap.get("fine")));
+                        Integer.parseInt(parsedMap.get("fine")), 0, Integer.parseInt(parsedMap.get("acompensation")));
             }
         }
         catch (Exception e)

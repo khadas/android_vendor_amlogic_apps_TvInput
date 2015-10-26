@@ -27,19 +27,34 @@ public final class ChannelInfo {
 	public int audioStd;
 	public final int isAutoStd;
 	public final int fineTune;
+	public int audioTrackIndex;
+	public int audioCompensation;
 
-	public ChannelInfo(String number, String name, String logoUrl, int originalNetworkId,
-						int transportStreamId, String inputId, int serviceId, int videoWidth, int videoHeight,
-						int type,
-						int serviceType, int frequency, int bandwidth,
-						int videoPID, int videoFormat,
-						int audioPIDs[], int audioFormats[],
-						String audioLangs[],
-						int pcrPID,
-						int vStd,
-						int aStd,
-						int autoStd,
-						int fine) {
+	public ChannelInfo(String number,
+	                    String name,
+	                    String logoUrl,
+	                    int originalNetworkId,
+	                    int transportStreamId,
+	                    String inputId,
+	                    int serviceId,
+	                    int videoWidth,
+	                    int videoHeight,
+	                    int type,
+	                    int serviceType,
+	                    int frequency,
+	                    int bandwidth,
+	                    int videoPID,
+	                    int videoFormat,
+	                    int audioPIDs[],
+	                    int audioFormats[],
+	                    String audioLangs[],
+	                    int pcrPID,
+	                    int vStd,
+	                    int aStd,
+	                    int autoStd,
+	                    int fine,
+	                    int audioTrackIndex,
+	                    int audioCompensation) {
 		this.number = number;
 		this.name = name;
 		this.logoUrl = logoUrl;
@@ -63,6 +78,8 @@ public final class ChannelInfo {
 		this.audioStd = aStd;
 		this.isAutoStd = autoStd;
 		this.fineTune = fine;
+		this.audioTrackIndex = audioTrackIndex;
+		this.audioCompensation = audioCompensation;
 	}
 
 	public String toString(){

@@ -608,8 +608,16 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 break;
             // volume compensate
             case R.id.volume_compensate_increase:
+                if (client.curChannel.audioCompensation<20)
+                client.curChannel.audioCompensation++;
+                TvContractUtils.updateChannelInfo(mContext, client.curChannel);
+                tv.SetCurProgVolumeCompesition(client.curChannel.audioCompensation);
                 break;
             case R.id.volume_compensate_decrease:
+                if (client.curChannel.audioCompensation>-20)
+                client.curChannel.audioCompensation--;
+                TvContractUtils.updateChannelInfo(mContext, client.curChannel);
+                tv.SetCurProgVolumeCompesition(client.curChannel.audioCompensation);
                 break;
             // fine tune
             case R.id.fine_tune_increase:
@@ -1091,7 +1099,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 }
 
                 channel = new ChannelInfo(String.valueOf(channelNumber), name, null, event.orig_net_id, event.ts_id, mSettingsManager.getInputId(), event.serviceID, 0, 0,
-                        event.mode, event.srvType, event.freq, event.bandwidth, event.vid, event.vfmt, event.aids, event.afmts, event.alangs, event.pcr, 0, 0, 0, 0);
+                        event.mode, event.srvType, event.freq, event.bandwidth, event.vid, event.vfmt, event.aids, event.afmts, event.alangs, event.pcr, 0, 0, 0, 0, 0, 0);
 
                 if (optionTag == OPTION_MANUAL_SEARCH)
                     TvContractUtils.updateOrinsertDtvChannel(mContext, channel);
@@ -1135,7 +1143,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                         null,// audioFormats[],
                         null,// audioLangs[],
                         0,// pcrPID,
-                        event.videoStd, event.audioStd, event.isAutoStd, 0);
+                        event.videoStd, event.audioStd, event.isAutoStd, 0, 0, 0);
                 if (optionTag == OPTION_MANUAL_SEARCH)
                     TvContractUtils.updateOrinsertAtvChannel(mContext, channel);
                 else
