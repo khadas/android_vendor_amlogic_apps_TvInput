@@ -398,7 +398,7 @@ public class SettingsManager {
     }
 
     private String getAudioTrackStatus () {
-        return Integer.toString(tv.DtvGetAudioChannleMod());
+        return client.curChannel.audioLangs[client.curChannel.audioTrackIndex];
     }
 
     private String getSoundChannelStatus () {
@@ -458,13 +458,11 @@ public class SettingsManager {
     public ArrayList<HashMap<String,Object>> getAudioTrackList () {
         ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
 
-        HashMap<String,Object> item = new HashMap<String,Object>();
-        item.put(STRING_NAME, "audio 1");
-        list.add(item);
-
-        item = new HashMap<String,Object>();
-        item.put(STRING_NAME, "audio 2");
-        list.add(item);
+        for (int i=0;i<client.curChannel.audioLangs.length;i++) {
+            HashMap<String,Object> item = new HashMap<String,Object>();
+            item.put(STRING_NAME, client.curChannel.audioLangs[i]);
+            list.add(item);
+        }
 
         return list;
     }
@@ -518,7 +516,7 @@ public class SettingsManager {
     }
 
     private String getVolumeCompensateStatus () {
-        return "0%";
+        return client.curChannel.audioCompensation + "";
     }
 
     public int getFineTuneProgress () {
@@ -796,6 +794,11 @@ public class SettingsManager {
             tv.SetAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_USER);
             tv.SaveCurAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_USER.toInt());
         }
+    }
+
+    public void setAudioTrack (int position) {
+        client.curChannel.audioTrackIndex = position;
+        TvContractUtils.updateChannelInfo(mContext, client.curChannel);
     }
 
     public void setSoundChannel (int position) {
