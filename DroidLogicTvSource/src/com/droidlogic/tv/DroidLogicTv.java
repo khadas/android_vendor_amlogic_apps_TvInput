@@ -29,7 +29,6 @@ import android.os.Handler;
 import android.os.SystemClock;
 import android.os.Handler.Callback;
 import android.os.Message;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.SurfaceHolder;
