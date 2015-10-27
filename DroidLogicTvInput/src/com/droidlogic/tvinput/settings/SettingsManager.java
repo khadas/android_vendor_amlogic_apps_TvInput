@@ -398,7 +398,10 @@ public class SettingsManager {
     }
 
     private String getAudioTrackStatus () {
-        return client.curChannel.audioLangs[client.curChannel.audioTrackIndex];
+        if (client.curChannel.audioLangs == null)
+            return "";
+        else
+            return client.curChannel.audioLangs[client.curChannel.audioTrackIndex];
     }
 
     private String getSoundChannelStatus () {
@@ -458,11 +461,12 @@ public class SettingsManager {
     public ArrayList<HashMap<String,Object>> getAudioTrackList () {
         ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
 
-        for (int i=0;i<client.curChannel.audioLangs.length;i++) {
-            HashMap<String,Object> item = new HashMap<String,Object>();
-            item.put(STRING_NAME, client.curChannel.audioLangs[i]);
-            list.add(item);
-        }
+        if (client.curChannel.audioLangs != null)
+            for (int i=0;i<client.curChannel.audioLangs.length;i++) {
+                HashMap<String,Object> item = new HashMap<String,Object>();
+                item.put(STRING_NAME, client.curChannel.audioLangs[i]);
+                list.add(item);
+            }
 
         return list;
     }

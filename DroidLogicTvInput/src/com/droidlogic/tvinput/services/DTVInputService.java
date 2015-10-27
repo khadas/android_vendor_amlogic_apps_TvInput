@@ -144,7 +144,8 @@ public class DTVInputService extends DroidLogicTvInputService {
                         info.videoFormat,
                         (info.audioPIDs != null) ? info.audioPIDs[info.audioTrackIndex] : -1,
                         (info.audioFormats != null) ? info.audioFormats[info.audioTrackIndex] : -1,
-                        info.pcrPID);
+                        info.pcrPID,
+                        info.audioCompensation);
             else
                 Log.d(TAG, "channel type[" + info.type + "] not supported yet.");
             client.curChannel = info;

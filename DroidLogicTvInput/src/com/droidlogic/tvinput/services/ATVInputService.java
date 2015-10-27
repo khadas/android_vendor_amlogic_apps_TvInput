@@ -132,7 +132,7 @@ public class ATVInputService extends DroidLogicTvInputService {
         }
 
         private boolean playProgram(ChannelInfo info) {
-            mTv.PlayATVProgram(info.frequency, info.videoStd, info.audioStd, info.fineTune);
+            mTv.PlayATVProgram(info.frequency, info.videoStd, info.audioStd, info.fineTune, info.audioCompensation);
             client.curChannel = info;
             checkContentBlockNeeded();
             return true;
