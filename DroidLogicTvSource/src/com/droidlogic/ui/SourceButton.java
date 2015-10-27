@@ -1,5 +1,6 @@
 package com.droidlogic.ui;
 
+import com.droidlogic.app.tv.Channel;
 import com.droidlogic.app.tv.ChannelDataManager;
 import com.droidlogic.app.tv.ChannelTuner;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
@@ -11,6 +12,7 @@ import android.media.tv.TvInputInfo;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.util.SparseArray;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -142,6 +144,14 @@ public class SourceButton extends Button implements OnClickListener{
 
     public void setChannelVideoFormat(String format) {
         mChannelTuner.setChannelVideoFormat(format);
+    }
+
+    public SparseArray<Channel> getChannelVideoList() {
+        return mChannelTuner.getChannelVideoList();
+    }
+
+    public SparseArray<Channel> getChannelRadioList() {
+        return mChannelTuner.getChannelRadioList();
     }
 
     private void initChannelTuner() {

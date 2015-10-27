@@ -8,6 +8,8 @@ import java.util.TimerTask;
 import com.droidlogic.app.DroidLogicKeyEvent;
 import com.droidlogic.app.tv.ChannelDataManager;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
+import com.droidlogic.ui.ChannelListLayout;
+import com.droidlogic.ui.ChannelListLayout.OnChannelSelectListener;
 import com.droidlogic.ui.SourceButton;
 import com.droidlogic.ui.SourceButton.OnSourceClickListener;
 
@@ -38,7 +40,7 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-public class DroidLogicTv extends Activity implements Callback, OnSourceClickListener {
+public class DroidLogicTv extends Activity implements Callback, OnSourceClickListener, OnChannelSelectListener {
     private static final String TAG = "DroidLogicTv";
     private static final String SHARE_NAME = "tv_app";
 
@@ -51,6 +53,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
 
     private LinearLayout mSourceMenuLayout;
     private LinearLayout mSourceInfoLayout;
+    private ChannelListLayout mChannelListLayout;
 
     //max index of all hardware devices in mSourceMenuLayout
     private int maxHardwareIndex = 0;
@@ -58,9 +61,9 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     private int mSigType;
 
     private boolean isNoSignal;
-    private boolean isNoSignalShowing;
+//    private boolean isNoSignalShowing;
     private boolean isSourceMenuShowing;
-    private boolean isSourceInfoShowing;
+//    private boolean isSourceInfoShowing;
 
     private Timer delayTimer = null;
     private int delayCounter = 0;
@@ -69,12 +72,12 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     private TextView mTimePromptText = null;
 
     private Handler mHandler;
-    private static final int MSG_INFO_DELAY = 0;
-    private static final int MSG_SOURCE_DELAY = 1;
-    private static final int MSG_CHANNEL_KEY_SWITCH = 2;
-    private static final int MSG_CHANNEL_NUM_SWITCH = 3;
-    private static final int MSG_INFO_DELAY_TIME = 5;
-    private static final int MSG_SOURCE_DELAY_TIME = 5;
+    private static final int MSG_INFO_DELAY             = 0;
+    private static final int MSG_SOURCE_DELAY           = 1;
+    private static final int MSG_CHANNEL_KEY_SWITCH     = 2;
+    private static final int MSG_CHANNEL_NUM_SWITCH     = 3;
+    private static final int TIME_INFO_DELAY = 5;
+    private static final int TIME_SOURCE_DELAY = 5;
 
     private static final int START_SETUP = 0;
     private static final int START_SETTING = 1;
@@ -147,6 +150,8 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
 
         mSourceMenuLayout = (LinearLayout)findViewById(R.id.menu_layout);
         mSourceInfoLayout = (LinearLayout)findViewById(R.id.info_layout);
+        mChannelListLayout = (ChannelListLayout)findViewById(R.id.channel_list);
+        mChannelListLayout.setOnChannelSelectListener(this);
 
         initSourceMenuLayout();
     }
@@ -240,8 +245,8 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         Utils.logd(TAG, "channelUri switching to is " + channel_uri);
 
         mSourceView.tune(mSourceInput.getInputId(), channel_uri);
-        if (isSourceMenuShowing)
-            popupSourceMenu(Utils.HIDE_VIEW);
+        popupSourceMenu(Utils.HIDE_VIEW);
+        popupSourceInfo(Utils.SHOW_VIEW);
     }
 
     private void startSetupActivity () {
@@ -322,10 +327,19 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     }
 
     @Override
+    public void onSelect(int channelIndex, boolean isRadio) {
+        if (mSourceInput.moveToChannel(channelIndex, isRadio)) {
+            popupChannelList(Utils.HIDE_VIEW);
+            switchToSourceInput();
+        }
+    }
+
+    @Override
     public void onButtonClick(SourceButton sb) {
         Utils.logd(TAG, "==== onButtonClick ====" + sb);
         if (mSourceInput.getSourceType() == sb.getSourceType()) {
             popupSourceMenu(Utils.HIDE_VIEW);
+            popupSourceInfo(Utils.SHOW_VIEW);
             return;
         }
         preSwitchSourceInput();
@@ -338,18 +352,15 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         Utils.logd(TAG, "====keycode =" + keyCode);
         reset_nosignal_time();
         if (isSourceMenuShowing) {
-            createDelayTimer(MSG_SOURCE_DELAY, MSG_SOURCE_DELAY_TIME);
+            createDelayTimer(MSG_SOURCE_DELAY, TIME_SOURCE_DELAY);
         }
         switch (keyCode) {
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_SOURCE_LIST:
                 popupSourceMenu(isSourceMenuShowing ? Utils.HIDE_VIEW : Utils.SHOW_VIEW);
                 return true;
             case DroidLogicKeyEvent.KEYCODE_MENU://show setup activity
-                if (isSourceMenuShowing) {
-                    popupSourceMenu(Utils.HIDE_VIEW);
-                } else if (isSourceInfoShowing) {
-                    popupSourceInfo(Utils.HIDE_VIEW);
-                }
+                popupSourceMenu(Utils.HIDE_VIEW);
+                popupSourceInfo(Utils.HIDE_VIEW);
                 startSetupActivity();
                 return true;
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_DISPAYMODE:
@@ -362,8 +373,26 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
                 startSettingActivity(keyCode);
                 return true;
             case DroidLogicKeyEvent.KEYCODE_FAV:
+                if (mChannelListLayout.isShow()) {
+                    popupChannelList(Utils.HIDE_VIEW);
+                    popupSourceInfo(Utils.SHOW_VIEW);
+                } else {
+                    popupChannelList(Utils.SHOW_VIEW,
+                            mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_ATV ? Utils.ATV_FAV_LIST
+                                    : (mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_DTV
+                                    ? Utils.DTV_FAV_LIST : -1));
+                }
                 return true;
             case DroidLogicKeyEvent.KEYCODE_LIST:
+                if (mChannelListLayout.isShow()) {
+                    popupChannelList(Utils.HIDE_VIEW);
+                    popupSourceInfo(Utils.SHOW_VIEW);
+                } else {
+                    popupChannelList(Utils.SHOW_VIEW,
+                            mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_ATV ? Utils.ATV_LIST
+                                    : (mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_DTV
+                                    ? Utils.DTV_LIST : -1));
+                }
                 return true;
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_TVINFO:
                 popupSourceInfo(Utils.SHOW_VIEW);
@@ -371,6 +400,11 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
             case DroidLogicKeyEvent.KEYCODE_BACK:
                 if (isSourceMenuShowing) {
                     popupSourceMenu(Utils.HIDE_VIEW);
+                    popupSourceInfo(Utils.SHOW_VIEW);
+                    return true;
+                } else if (mChannelListLayout.isShow()) {
+                    popupChannelList(Utils.HIDE_VIEW);
+                    popupSourceInfo(Utils.SHOW_VIEW);
                     return true;
                 }
                 break;
@@ -447,41 +481,42 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
 
     private void popupSourceMenu(boolean show_or_hide) {//ture:show
         if (!show_or_hide) {
+            if (mSourceMenuLayout.getVisibility() != View.VISIBLE)
+                return;
             destroyDelayTimer();
             isSourceMenuShowing = false;
             mSourceMenuLayout.setVisibility(View.INVISIBLE);
-            popupSourceInfo(Utils.SHOW_VIEW);
         } else {
             isSourceMenuShowing = true;
             mSourceMenuLayout.setVisibility(View.VISIBLE);
             mSourceMenuLayout.requestLayout();
             mSourceInput.requestFocus();
-            if (isSourceInfoShowing)
-                popupSourceInfo(Utils.HIDE_VIEW);
-            if (isNoSignalShowing)
-                popupNoSignal(Utils.HIDE_VIEW);
-            createDelayTimer(MSG_SOURCE_DELAY, MSG_SOURCE_DELAY_TIME);
+
+            popupSourceInfo(Utils.HIDE_VIEW);
+            popupNoSignal(Utils.HIDE_VIEW);
+            popupChannelList(Utils.HIDE_VIEW);
+            createDelayTimer(MSG_SOURCE_DELAY, TIME_SOURCE_DELAY);
         }
     }
 
     private void popupNoSignal(boolean show_or_hide) {//true:show
         TextView no_signal = (TextView)findViewById(R.id.no_signal);
         if (!show_or_hide) {
-            isNoSignalShowing = false;
+            if (no_signal.getVisibility() != View.VISIBLE)
+                return;
             no_signal.setVisibility(View.INVISIBLE);
         } else {
-            isNoSignalShowing = true;
             no_signal.setVisibility(View.VISIBLE);
             no_signal.requestLayout();
-            if (isSourceInfoShowing)
-                popupSourceInfo(Utils.HIDE_VIEW);
+            popupSourceInfo(Utils.HIDE_VIEW);
         }
     }
 
     private void popupSourceInfo(boolean show_or_hide) {//true:show
         if (!show_or_hide) {
+            if (mSourceInfoLayout.getVisibility() != View.VISIBLE)
+                return;
             destroyDelayTimer();
-            isSourceInfoShowing = false;
             mSourceInfoLayout.setVisibility(View.INVISIBLE);
         } else {
             switch (mSigType) {
@@ -501,15 +536,51 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
                     initOtherInfo();
                     break;
             }
-            if (isNoSignalShowing) {
-                popupNoSignal(Utils.HIDE_VIEW);
-            }
-            if (isSourceMenuShowing) {
-                popupSourceMenu(Utils.HIDE_VIEW);
-            }
+            popupNoSignal(Utils.HIDE_VIEW);
+            popupSourceMenu(Utils.HIDE_VIEW);
+            popupChannelList(Utils.HIDE_VIEW);
             mSourceInfoLayout.setVisibility(View.VISIBLE);
-            isSourceInfoShowing = true;
-            createDelayTimer(MSG_INFO_DELAY, MSG_INFO_DELAY_TIME);
+            createDelayTimer(MSG_INFO_DELAY, TIME_INFO_DELAY);
+        }
+    }
+
+    private void popupChannelList(boolean show_or_hide) {
+        if (!show_or_hide) {//hide
+            mChannelListLayout.hide();
+        } else {
+            popupChannelList(Utils.SHOW_VIEW, -1);
+        }
+    }
+
+    private void popupChannelList(boolean show_or_hide, int type) {
+        if (!show_or_hide) {//hide
+            mChannelListLayout.hide();
+        } else {
+            if (type == -1)
+                return;
+            switch (type) {
+                case Utils.ATV_FAV_LIST:
+                    mChannelListLayout.initView(type, mSourceInput.getChannelVideoList());
+                    break;
+                case Utils.ATV_LIST:
+                    mChannelListLayout.initView(type, mSourceInput.getChannelVideoList());
+                    break;
+                case Utils.DTV_FAV_LIST:
+                    mChannelListLayout.initView(type, mSourceInput.getChannelVideoList(),
+                            mSourceInput.getChannelRadioList());
+                    break;
+                case Utils.DTV_LIST:
+                    mChannelListLayout.initView(type, mSourceInput.getChannelVideoList(),
+                            mSourceInput.getChannelRadioList());
+                    break;
+                default:
+                    break;
+            }
+            popupSourceMenu(Utils.HIDE_VIEW);
+            popupSourceInfo(Utils.HIDE_VIEW);
+            popupNoSignal(Utils.HIDE_VIEW);
+            mChannelListLayout.show();
+//            createDelayTimer(MSG_INFO_DELAY, TIME_CHANNEL_LIST);
         }
     }
 
@@ -708,6 +779,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
                 max_counter = (int)msg.obj;
                 if (delayCounter > max_counter) {
                     popupSourceMenu(Utils.HIDE_VIEW);
+                    popupSourceInfo(Utils.SHOW_VIEW);
                 }
                 break;
             case MSG_CHANNEL_KEY_SWITCH:
@@ -768,11 +840,9 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     private Runnable no_signal_runnable = new Runnable() {
         @Override
         public void run() {
-            // TODO Auto-generated method stub
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    // TODO Auto-generated method stub
                     try {
                         mNoSignalShutdownCount--;
                         if (mNoSignalShutdownCount == 0) {

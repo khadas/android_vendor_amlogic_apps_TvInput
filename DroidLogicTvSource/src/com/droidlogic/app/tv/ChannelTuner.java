@@ -24,6 +24,7 @@ public class ChannelTuner {
     private Channel mCurrentChannel;
     private static final int DEFAULT_CHANNEL_IDDEX = -1;
     private int mCurrentChannelIndex;
+    private String mSelection = Channels.COLUMN_BROWSABLE + "=1";
 
     public ChannelTuner(Context context, TvInputInfo input_info) {
         mContext = context;
@@ -77,7 +78,7 @@ public class ChannelTuner {
             ContentResolver resolver = mContext.getContentResolver();
             Uri uri = TvContract.buildChannelsUriForInput(mInputId);
             try {
-                cursor = resolver.query(uri, Channel.PROJECTION, null, null, null);
+                cursor = resolver.query(uri, Channel.PROJECTION, mSelection, null, null);
                 if (cursor != null)
                     Log.d(TAG, "==== initChannelList, cursor count = " + cursor.getCount());
                 while (cursor != null && cursor.moveToNext()) {
@@ -182,7 +183,7 @@ public class ChannelTuner {
         Cursor cursor = null;
         Channel channel = null;
         try {
-            cursor = resolver.query(uri, Channel.PROJECTION, null, null, null);
+            cursor = resolver.query(uri, Channel.PROJECTION, mSelection, null, null);
             if (cursor == null || cursor.getCount() == 0) {
                 long id = (long)Integer.parseInt(uri.getLastPathSegment());
                 deleteRowChannel(id);
@@ -238,7 +239,7 @@ public class ChannelTuner {
         Cursor cursor = null;
         ContentResolver resolver = mContext.getContentResolver();
         try {
-            cursor = resolver.query(uri, Channel.PROJECTION, null, null, null);
+            cursor = resolver.query(uri, Channel.PROJECTION, mSelection, null, null);
             while (cursor != null && cursor.moveToNext()) {
                 Channel channel = Channel.fromCursor(cursor);
                 if (isDTVChannel() && isRadioChannel(channel)) {
@@ -375,4 +376,11 @@ public class ChannelTuner {
         mCurrentChannel.setVideoFormat(format);
     }
 
+    public SparseArray<Channel> getChannelVideoList() {
+        return mVideoChannels;
+    }
+
+    public SparseArray<Channel> getChannelRadioList() {
+        return mRadioChannels;
+    }
 }

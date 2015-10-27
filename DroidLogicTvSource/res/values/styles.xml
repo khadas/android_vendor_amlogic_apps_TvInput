@@ -9,4 +9,17 @@
         <item name="android:background">@drawable/bg_source_bt</item>
         <item name="android:textColor">@drawable/color_source_bt</item>
     </style>
+
+    <style name="tv_channel_list">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:scrollbars">none</item>
+        <item name="android:focusable">true</item>
+        <item name="android:listSelector">@drawable/channel_list_selector</item>
+        <item name="android:divider">@drawable/list_line</item>
+        <item name="android:paddingLeft">@dimen/list_padding_left</item>
+        <item name="android:paddingRight">@dimen/list_padding_right</item>
+        <item name="android:paddingTop">@dimen/list_padding_top</item>
+        <item name="android:paddingBottom">@dimen/list_padding_bottom</item>
+    </style>
 </resources>

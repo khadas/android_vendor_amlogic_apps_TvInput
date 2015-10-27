@@ -15,8 +15,28 @@
     <dimen name="text_size_info_ha_value">30sp</dimen>
     <dimen name="gap_margin_to">20dp</dimen>
 
+    <!-- dimention for atv info and dtv info -->
     <dimen name="ad_info_margin_top">10dp</dimen>
     <dimen name="text_size_info_ad_name">30sp</dimen>
     <dimen name="text_size_info_ad_number">65sp</dimen>
     <dimen name="text_size_info_ad_value">30sp</dimen>
+
+    <!-- dimention for channel list -->
+    <dimen name="text_size_tab">35sp</dimen>
+    <dimen name="list_margin_top">20dp</dimen>
+    <dimen name="list_margin_left">20dp</dimen>
+    <dimen name="list_width">501dp</dimen>
+    <dimen name="list_height">640dp</dimen>
+    <dimen name="list_padding_left">10dp</dimen>
+    <dimen name="list_padding_right">10dp</dimen>
+    <dimen name="list_padding_top">10dp</dimen>
+    <dimen name="list_padding_bottom">20dp</dimen>
+    <dimen name="list_item_width">461dp</dimen>
+    <dimen name="list_item_height">61dp</dimen>
+    <dimen name="text_size_list_item">30sp</dimen>
+    <dimen name="list_item_padding_left">15dp</dimen>
+    <dimen name="list_item_padding_right">15dp</dimen>
+    <dimen name="list_item_padding_top">10dp</dimen>
+    <dimen name="list_item_padding_bottom">10dp</dimen>
+
 </resources>

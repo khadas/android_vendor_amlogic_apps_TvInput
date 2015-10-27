@@ -15,4 +15,9 @@
 
     <string name="auto_shutdown_info">Seconds should be power off,press any key to cancel</string>
 
+    <!-- for channel list -->
+    <string name="tab_atv">Channel List</string>
+    <string name="tab_dtv_video">TV</string>
+    <string name="tab_dtv_radio">Radio</string>
+
 </resources>

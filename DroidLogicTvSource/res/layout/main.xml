@@ -44,8 +44,19 @@
             android:paddingRight="@dimen/info_margin_right"
             android:paddingLeft="2dp"
             android:paddingBottom="2dp"
-            android:orientation="vertical">
-        </LinearLayout>
+            android:orientation="vertical" />
+        <com.droidlogic.ui.ChannelListLayout
+            android:id="@+id/channel_list"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:paddingTop="@dimen/list_margin_top"
+            android:paddingLeft="@dimen/list_margin_left"
+            android:paddingRight="2dp"
+            android:paddingBottom="2dp"
+            android:orientation="vertical"
+            android:visibility="invisible" />
 
         <TextView
 	        android:id="@+id/textView_time_prompt"
