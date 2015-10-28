@@ -2,6 +2,8 @@ package com.droidlogic.utils.tunerinput.data;
 
 import java.util.Arrays;
 
+import android.R.integer;
+
 public final class ChannelInfo {
 
 	public final String number;
@@ -29,6 +31,8 @@ public final class ChannelInfo {
 	public final int fineTune;
 	public int audioTrackIndex;
 	public int audioCompensation;
+	public int skip;//0 is skip
+	public int fav;//1 is fav
 
 	public ChannelInfo(String number,
 	                    String name,
@@ -54,7 +58,9 @@ public final class ChannelInfo {
 	                    int autoStd,
 	                    int fine,
 	                    int audioTrackIndex,
-	                    int audioCompensation) {
+	                    int audioCompensation,
+	                    int skip,
+	                    int fav) {
 		this.number = number;
 		this.name = name;
 		this.logoUrl = logoUrl;
@@ -80,6 +86,8 @@ public final class ChannelInfo {
 		this.fineTune = fine;
 		this.audioTrackIndex = audioTrackIndex;
 		this.audioCompensation = audioCompensation;
+		this.skip = skip;
+		this.fav = fav;
 	}
 
 	public String toString(){

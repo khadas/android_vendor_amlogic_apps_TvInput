@@ -13,6 +13,7 @@
 
 package com.droidlogic.utils.tunerinput.tvutil;
 
+import android.R.integer;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -251,6 +252,7 @@ public class TvContractUtils
         values.put(Channels.COLUMN_SERVICE_ID, channel.serviceId);
         values.putNull(Channels.COLUMN_VIDEO_FORMAT);
         values.put(Channels.COLUMN_TYPE, getChannelType(channel.type));
+        values.put(Channels.COLUMN_BROWSABLE, channel.skip);
 
         if (channel.serviceType == 1)
             values.put(Channels.COLUMN_SERVICE_TYPE, Channels.SERVICE_TYPE_AUDIO_VIDEO);
@@ -271,6 +273,7 @@ public class TvContractUtils
         map.put("pcr", String.valueOf(channel.pcrPID));
         map.put("atrackIndex", String.valueOf(channel.audioTrackIndex));
         map.put("acompensation", String.valueOf(channel.audioCompensation));
+        map.put("fav", String.valueOf(channel.fav));
         String output = MapUtil.mapToString(map);
         values.put(TvContract.Channels.COLUMN_INTERNAL_PROVIDER_DATA, output);
         Uri uri = resolver.insert(TvContract.Channels.CONTENT_URI, values);
@@ -303,6 +306,7 @@ public class TvContractUtils
         values.put(Channels.COLUMN_DISPLAY_NUMBER, channelNumber);
         values.put(Channels.COLUMN_DISPLAY_NAME, channel.name);
         values.put(Channels.COLUMN_TYPE, Channels.TYPE_PAL);// TODO: channel.type -> COLUMN_TYPE (PAL/NTSC/SECAM)?
+        values.put(Channels.COLUMN_BROWSABLE, channel.skip);
         if (channel.serviceType == 1)
         {
             values.put(Channels.COLUMN_SERVICE_TYPE, Channels.SERVICE_TYPE_AUDIO_VIDEO);
@@ -320,6 +324,7 @@ public class TvContractUtils
         map.put("auto", String.valueOf(channel.isAutoStd));
         map.put("fine", String.valueOf(channel.fineTune));
         map.put("acompensation", String.valueOf(channel.audioCompensation));
+        map.put("fav", String.valueOf(channel.fav));
         String output = MapUtil.mapToString(map);
         values.put(TvContract.Channels.COLUMN_INTERNAL_PROVIDER_DATA, output);
 
@@ -474,7 +479,7 @@ public class TvContractUtils
         ContentResolver resolver = context.getContentResolver();
         String[] projection = {Channels.COLUMN_INPUT_ID, Channels.COLUMN_DISPLAY_NAME, Channels.COLUMN_ORIGINAL_NETWORK_ID, Channels.COLUMN_TRANSPORT_STREAM_ID,
                 Channels.COLUMN_SERVICE_ID, Channels.COLUMN_SERVICE_TYPE, Channels.COLUMN_INTERNAL_PROVIDER_DATA, Channels.COLUMN_DISPLAY_NUMBER,
-                Channels.COLUMN_TYPE};
+                Channels.COLUMN_TYPE, Channels.COLUMN_BROWSABLE};
         try {
             Cursor cursor = resolver.query(channelsUri, projection, null, null, null);
             while (cursor != null && cursor.moveToNext()) {
@@ -501,6 +506,7 @@ public class TvContractUtils
                     alangs = parsedMap.get("alangs").replace("[", "").replace("]", "").split(", ");
                 }
                 int number = cursor.getInt(7);
+                int skip = cursor.getInt(8);
                 ChannelInfo info = new ChannelInfo(String.valueOf(number), name, null, originalNetworkId, transportStreamId, inputId, serviceId, 0, 0,
                         getChannelType(cursor.getString(8)),
                         Integer.parseInt(parsedMap.get("type")),
@@ -508,8 +514,8 @@ public class TvContractUtils
                         Integer.parseInt(parsedMap.get("vid")), Integer.parseInt(parsedMap.get("vfmt")),
                         aids, afmts, alangs,
                         Integer.parseInt(parsedMap.get("pcr")),
-                        0,0,0,0,Integer.parseInt(parsedMap.get("atrackIndex")),Integer.parseInt(parsedMap.get("acompensation"))
-                        );
+                        0,0,0,0,Integer.parseInt(parsedMap.get("atrackIndex")),Integer.parseInt(parsedMap.get("acompensation")),
+                        skip, Integer.parseInt(parsedMap.get("fav")));
                 if (srvType == serviceType) {
                     channelList.add(info);
                 } else {
@@ -528,7 +534,7 @@ public class TvContractUtils
         Uri channelsUri = TvContract.buildChannelsUriForInput(curInputId);
         ContentResolver resolver = context.getContentResolver();
         String[] projection = {Channels.COLUMN_INPUT_ID, Channels.COLUMN_DISPLAY_NAME, Channels.COLUMN_SERVICE_TYPE, Channels.COLUMN_INTERNAL_PROVIDER_DATA,
-                Channels.COLUMN_DISPLAY_NUMBER,};
+                Channels.COLUMN_DISPLAY_NUMBER, Channels.COLUMN_BROWSABLE};
         try {
             Cursor cursor = resolver.query(channelsUri, projection, null, null, null);
             while (cursor != null && cursor.moveToNext()) {
@@ -537,6 +543,7 @@ public class TvContractUtils
                 int serviceType = cursor.getInt(2);
                 Map<String, String> parsedMap = parseInternalProviderData(cursor.getString(3));
                 String number = cursor.getString(4);
+                int skip = cursor.getInt(5);
                 ChannelInfo info = new ChannelInfo(number, name, null, 0, 0, inputId, 0, 0, 0, 0, Integer.parseInt(parsedMap.get("stype")), Integer.parseInt(parsedMap
                         .get("freq")),
                         0,// bandwidth
@@ -547,7 +554,8 @@ public class TvContractUtils
                         null,// audioLangs[],
                         0,// pcrPID,
                         Integer.parseInt(parsedMap.get("vstd")), Integer.parseInt(parsedMap.get("astd")), Integer.parseInt(parsedMap.get("auto")),
-                        Integer.parseInt(parsedMap.get("fine")), 0, Integer.parseInt(parsedMap.get("acompensation")));
+                        Integer.parseInt(parsedMap.get("fine")), 0, Integer.parseInt(parsedMap.get("acompensation")),
+                        skip, Integer.parseInt(parsedMap.get("fav")));
                 channelList.add(info);
             }
             cursor.close();
@@ -562,7 +570,7 @@ public class TvContractUtils
         Uri uri = channelUri;
         String[] projection = {Channels.COLUMN_INPUT_ID, Channels.COLUMN_DISPLAY_NAME, Channels.COLUMN_ORIGINAL_NETWORK_ID, Channels.COLUMN_TRANSPORT_STREAM_ID,
                 Channels.COLUMN_SERVICE_ID, Channels.COLUMN_SERVICE_TYPE, Channels.COLUMN_INTERNAL_PROVIDER_DATA, Channels.COLUMN_DISPLAY_NUMBER,
-                Channels.COLUMN_TYPE};
+                Channels.COLUMN_TYPE, Channels.COLUMN_BROWSABLE};
         Cursor cursor = null;
         ChannelInfo info = null;
         try
@@ -594,6 +602,7 @@ public class TvContractUtils
                     alangs = parsedMap.get("alangs").replace("[", "").replace("]", "").split(", ");
                 }
                 int number = cursor.getInt(7);
+                int skip = cursor.getInt(8);
                 info = new ChannelInfo(String.valueOf(number), name, null, originalNetworkId, transportStreamId, inputId, serviceId, 0, 0,
                             getChannelType(cursor.getString(8)),
                             Integer.parseInt(parsedMap.get("type")),
@@ -602,7 +611,8 @@ public class TvContractUtils
                             aids, afmts, alangs,
                             Integer.parseInt(parsedMap.get("pcr")),
                             0,0,0,0,Integer.parseInt(parsedMap.get("atrackIndex")),
-                            Integer.parseInt(parsedMap.get("acompensation")));
+                            Integer.parseInt(parsedMap.get("acompensation")), skip,
+                            Integer.parseInt(parsedMap.get("fav")));
             }
         }
         catch (Exception e)
@@ -626,7 +636,7 @@ public class TvContractUtils
 
         Uri uri = channelUri;
         String[] projection = {Channels.COLUMN_INPUT_ID, Channels.COLUMN_DISPLAY_NAME, Channels.COLUMN_SERVICE_TYPE, Channels.COLUMN_INTERNAL_PROVIDER_DATA,
-                Channels.COLUMN_DISPLAY_NUMBER,};
+                Channels.COLUMN_DISPLAY_NUMBER, Channels.COLUMN_BROWSABLE};
         Cursor cursor = null;
         ChannelInfo info = null;
         try
@@ -639,6 +649,7 @@ public class TvContractUtils
                 int serviceType = cursor.getInt(2);
                 Map<String, String> parsedMap = parseInternalProviderData(cursor.getString(3));
                 String number = cursor.getString(4);
+                int skip = cursor.getInt(5);
                 info = new ChannelInfo(number, name, null, 0, 0, inputId, 0, 0, 0, 0, Integer.parseInt(parsedMap.get("stype")), Integer.parseInt(parsedMap
                         .get("freq")),
                         0,// bandwidth
@@ -649,7 +660,8 @@ public class TvContractUtils
                         null,// audioLangs[],
                         0,// pcrPID,
                         Integer.parseInt(parsedMap.get("vstd")), Integer.parseInt(parsedMap.get("astd")), Integer.parseInt(parsedMap.get("auto")),
-                        Integer.parseInt(parsedMap.get("fine")), 0, Integer.parseInt(parsedMap.get("acompensation")));
+                        Integer.parseInt(parsedMap.get("fine")), 0, Integer.parseInt(parsedMap.get("acompensation")),
+                        skip, Integer.parseInt(parsedMap.get("fav")));
             }
         }
         catch (Exception e)
