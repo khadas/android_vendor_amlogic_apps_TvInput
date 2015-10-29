@@ -4,8 +4,8 @@ import java.util.Arrays;
 
 public final class ChannelInfo {
 
-	public final String number;
-	public final String name;
+	public String number;
+	public String name;
 	public final String logoUrl;
 	public final int originalNetworkId;
 	public final int transportStreamId;

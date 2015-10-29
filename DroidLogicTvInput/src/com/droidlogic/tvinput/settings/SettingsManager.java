@@ -576,9 +576,9 @@ public class SettingsManager {
         return mSearchedNumber;
     }
 
-    public ArrayList<HashMap<String,Object>> getAtvChannelList () {
+    public ArrayList<HashMap<String,Object>> getChannelList (int type) {
         ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
-        ArrayList<ChannelInfo> channelList = TvContractUtils.getAtvChannelList(mContext, mInputId);
+        ArrayList<ChannelInfo> channelList = getChannelInfoList(type);
 
         if (channelList.size() > 0) {
             for (int i = 0 ; i < channelList.size(); i++) {
@@ -595,42 +595,26 @@ public class SettingsManager {
         return list;
     }
 
-    public ArrayList<HashMap<String,Object>> getDtvTvChannelList () {
-        ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
-        ArrayList<ChannelInfo> channelList = TvContractUtils.getDtvChannelList(mContext, mInputId, 1);
-
-        if (channelList.size() > 0) {
-            for (int i = 0 ; i < channelList.size(); i++) {
-                HashMap<String,Object> item = new HashMap<String,Object>();
-                item.put(STRING_NAME, channelList.get(i).name);
-                list.add(item);
-            }
-        } else {
-            HashMap<String,Object> item = new HashMap<String,Object>();
-            item.put(STRING_NAME, mResources.getString(R.string.error_no_channel));
-            list.add(item);
+    private ArrayList<ChannelInfo> getChannelInfoList (int type) {
+        ArrayList<ChannelInfo> channelList = null;
+        switch (type) {
+            case ChannelEdit.TYPE_ATV:
+                channelList = TvContractUtils.getAtvChannelList(mContext, mInputId);
+                break;
+            case ChannelEdit.TYPE_DTV_TV:
+                channelList = TvContractUtils.getDtvChannelList(mContext, mInputId, 1);
+                break;
+            case ChannelEdit.TYPE_DTV_RADIO:
+                channelList = TvContractUtils.getDtvChannelList(mContext, mInputId, 2);
+                break;
         }
-
-        return list;
+        return channelList;
     }
 
-    public ArrayList<HashMap<String,Object>> getDtvRadioChannelList () {
-        ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
-        ArrayList<ChannelInfo> channelList = TvContractUtils.getDtvChannelList(mContext, mInputId, 2);
+    private ChannelInfo getChannelByNumber (int type, int channelNumber) {
+        ChannelInfo channel = getChannelInfoList(type).get(channelNumber);
 
-        if (channelList.size() > 0) {
-            for (int i = 0 ; i < channelList.size(); i++) {
-                HashMap<String,Object> item = new HashMap<String,Object>();
-                item.put(STRING_NAME, channelList.get(i).name);
-                list.add(item);
-            }
-        } else {
-            HashMap<String,Object> item = new HashMap<String,Object>();
-            item.put(STRING_NAME, mResources.getString(R.string.error_no_channel));
-            list.add(item);
-        }
-
-        return list;
+        return channel;
     }
 
     private String getSwitchChannelStatus () {
@@ -736,27 +720,47 @@ public class SettingsManager {
     }
 
     public void setBrightness (int step) {
-
+        if (step == PERCENT_INCREASE)
+            tv.SetBrightness(tv.GetBrightness(client.curSource) + 1, client.curSource, 1);
+        else
+            tv.SetBrightness(tv.GetBrightness(client.curSource) - 1, client.curSource, 1);
     }
 
     public void setContrast (int step) {
-
+        if (step == PERCENT_INCREASE)
+            tv.SetContrast(tv.GetContrast(client.curSource) + 1, client.curSource, 1);
+        else
+            tv.SetContrast(tv.GetContrast(client.curSource) - 1, client.curSource, 1);
     }
 
     public void setColor (int step) {
-
+        if (step == PERCENT_INCREASE)
+            tv.SetSaturation(tv.GetSaturation(client.curSource) + 1, client.curSource, tv.GetCurrentSignalInfo().fmt, 1);
+        else
+            tv.SetSaturation(tv.GetSaturation(client.curSource) - 1, client.curSource, tv.GetCurrentSignalInfo().fmt, 1);
     }
 
     public void setSharpness (int step) {
-
+        if (step == PERCENT_INCREASE)
+            tv.SetSharpness(tv.GetSharpness(client.curSource) + 1, client.curSource, 1, 0, 1);
+        else
+            tv.SetSharpness(tv.GetSharpness(client.curSource) - 1, client.curSource, 1, 0, 1);
     }
 
     public void setBacklight (int step) {
-
+        if (step == PERCENT_INCREASE)
+            tv.SetBacklight(tv.GetBacklight(client.curSource) + 1, client.curSource, 1);
+        else
+            tv.SetBacklight(tv.GetBacklight(client.curSource) - 1, client.curSource, 1);
     }
 
     public void setColorTemperature(String mode) {
-
+        if (mode.equals(STATUS_STANDARD))
+            tv.SetColorTemperature(Tv.color_temperature.COLOR_TEMP_STANDARD, client.curSource, 1);
+        else if (mode.equals(STATUS_WARM))
+            tv.SetColorTemperature(Tv.color_temperature.COLOR_TEMP_WARM, client.curSource, 1);
+        else if (mode.equals(STATUS_COOL))
+            tv.SetColorTemperature(Tv.color_temperature.COLOR_TEMP_COLD, client.curSource, 1);
     }
 
     public void setAspectRatio(String mode) {
@@ -774,11 +778,33 @@ public class SettingsManager {
     }
 
     public void setDnr (String mode) {
-
+        if (mode.equals(STATUS_OFF))
+            tv.SetNoiseReductionMode(Tv.Noise_Reduction_Mode.REDUCE_NOISE_CLOSE, client.curSource, 1);
+        else if (mode.equals(STATUS_AUTO))
+            tv.SetNoiseReductionMode(Tv.Noise_Reduction_Mode.REDUCTION_MODE_AUTO, client.curSource, 1);
+        else if (mode.equals(STATUS_MEDIUM))
+            tv.SetNoiseReductionMode(Tv.Noise_Reduction_Mode.REDUCE_NOISE_MID, client.curSource, 1);
+        else if (mode.equals(STATUS_HIGH))
+            tv.SetNoiseReductionMode(Tv.Noise_Reduction_Mode.REDUCE_NOISE_STRONG, client.curSource, 1);
+        else if (mode.equals(STATUS_LOW))
+            tv.SetNoiseReductionMode(Tv.Noise_Reduction_Mode.REDUCE_NOISE_WEAK, client.curSource, 1);
     }
 
     public void set3dSettings (String mode) {
-
+        if (mode.equals(STATUS_OFF))
+            tv.Set3DMode(Tv.Mode_3D.MODE_3D_CLOSE, Tv.Tvin_3d_Status.STATUS3D_DISABLE);
+        else if (mode.equals(STATUS_AUTO))
+            tv.Set3DMode(Tv.Mode_3D.MODE_3D_AUTO, Tv.Tvin_3d_Status.STATUS3D_AUTO);
+        else if (mode.equals(STATUS_3D_LR_MODE))
+            tv.Set3DLRSwith(0, Tv.Tvin_3d_Status.STATUS3D_LR);
+        else if (mode.equals(STATUS_3D_RL_MODE))
+            tv.Set3DLRSwith(1, Tv.Tvin_3d_Status.STATUS3D_LR);
+        else if (mode.equals(STATUS_3D_UD_MODE))
+            tv.Set3DLRSwith(0, Tv.Tvin_3d_Status.STATUS3D_BT);
+        else if (mode.equals(STATUS_3D_DU_MODE))
+            tv.Set3DLRSwith(1, Tv.Tvin_3d_Status.STATUS3D_BT);
+        else if (mode.equals(STATUS_3D_TO_2D))
+            ;// tv.Set3DTo2DMode(Tv.Mode_3D_2D.values()[position], Tv.Tvin_3d_Status.values()[tv.Get3DMode()]);
     }
 
     public void setSoundMode (String mode) {
@@ -819,35 +845,82 @@ public class SettingsManager {
         }
     }
 
-    public void setChannelName (int type, int channer_number, String targetName) {
-        switch (type) {
-            case ChannelEdit.TYPE_ATV:
-                break;
-            case ChannelEdit.TYPE_DTV_TV:
-                break;
-            case ChannelEdit.TYPE_DTV_RATIO:
-                break;
+    public void setChannelName (int type, int channelNumber, String targetName) {
+        ChannelInfo channel = getChannelByNumber(type, channelNumber);
+        if (channel != null) {
+            channel.name = targetName;
+            TvContractUtils.updateChannelInfo(mContext, channel);
         }
     }
 
-    public  void swapChannelPosition (int type, int channer_number, int targetNumber) {
+    public  void swapChannelPosition (int type, int channelNumber, int targetNumber) {
+        if (channelNumber == targetNumber)
+            return;
 
+        ChannelInfo sourceChannel = getChannelByNumber(type, channelNumber);
+        ChannelInfo targetChannel = getChannelByNumber(type, targetNumber);
+        if (sourceChannel != null && targetChannel != null) {
+            String tmp = sourceChannel.number;
+            sourceChannel.number = targetChannel.number;
+            targetChannel.number = tmp;
+
+            TvContractUtils.updateChannelInfo(mContext, sourceChannel);
+            TvContractUtils.updateChannelInfo(mContext, targetChannel);
+        }
     }
 
-    public  void moveChannelPosition (int type, int channer_number, int targetNumber) {
+    public  void moveChannelPosition (int type, int channelNumber, int targetNumber) {
+        if (channelNumber == targetNumber)
+            return;
 
+        ArrayList<ChannelInfo> channelList = getChannelInfoList(type);
+
+        channelList.get(channelNumber).number =  Integer.toString(targetNumber);
+        if (targetNumber < channelNumber) {
+            for (int i = targetNumber; i < channelNumber; i++)
+                channelList.get(i).number = Integer.toString(i + 1);
+
+            for (int i = targetNumber; i <= channelNumber; i++)
+                TvContractUtils.updateChannelInfo(mContext, channelList.get(i));
+
+        } else if (targetNumber > channelNumber) {
+            for (int i = channelNumber + 1; i <= targetNumber; i++)
+                channelList.get(i).number = Integer.toString(i - 1);
+
+            for (int i = channelNumber; i <= targetNumber; i++)
+                TvContractUtils.updateChannelInfo(mContext, channelList.get(i));
+        }
     }
 
     public  void skipChannel (int type, int channelNumber) {
+        ChannelInfo channel = getChannelByNumber(type, channelNumber);
 
+        if (channel != null) {
+            if (channel.skip == 0)
+                channel.skip = 1;
+            else
+                channel.skip = 0;
+            TvContractUtils.updateChannelInfo(mContext, channel);
+        }
     }
 
     public  void deleteChannel (int type, int channelNumber) {
+        ChannelInfo channel = getChannelByNumber(type, channelNumber);
 
+        if (channel != null)
+            TvContractUtils.deleteChannel(mContext, channel);
     }
 
     public  void setFavouriteChannel (int type, int channelNumber) {
+        ChannelInfo channel = getChannelByNumber(type, channelNumber);
 
+        if (channel != null) {
+            if (channel.fav == 0)
+                channel.fav = 1;
+            else
+                channel.fav = 0;
+            TvContractUtils.updateChannelInfo(mContext, channel);
+        }
     }
 
     public void setSleepTimer (int mins) {

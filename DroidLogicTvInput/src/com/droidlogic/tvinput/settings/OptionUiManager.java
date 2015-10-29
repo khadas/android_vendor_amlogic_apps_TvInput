@@ -363,60 +363,47 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 break;
             // brightness
             case R.id.brightness_increase:
-                tv.SetBrightness(tv.GetBrightness(client.curSource) + 1, client.curSource, 1);
                 mSettingsManager.setBrightness(SettingsManager.PERCENT_INCREASE);
                 break;
             case R.id.brightness_decrease:
-                tv.SetBrightness(tv.GetBrightness(client.curSource) - 1, client.curSource, 1);
                 mSettingsManager.setBrightness(SettingsManager.PERCENT_DECREASE);
                 break;
             // contrast
             case R.id.contrast_increase:
-                tv.SetContrast(tv.GetContrast(client.curSource) + 1, client.curSource, 1);
                 mSettingsManager.setContrast(SettingsManager.PERCENT_INCREASE);
                 break;
             case R.id.contrast_decrease:
-                tv.SetContrast(tv.GetContrast(client.curSource) - 1, client.curSource, 1);
                 mSettingsManager.setContrast(SettingsManager.PERCENT_DECREASE);
                 break;
             // color
             case R.id.color_increase:
-                tv.SetSaturation(tv.GetSaturation(client.curSource) + 1, client.curSource, tv.GetCurrentSignalInfo().fmt, 1);
                 mSettingsManager.setColor(SettingsManager.PERCENT_INCREASE);
                 break;
             case R.id.color_decrease:
-                tv.SetSaturation(tv.GetSaturation(client.curSource) - 1, client.curSource, tv.GetCurrentSignalInfo().fmt, 1);
                 mSettingsManager.setColor(SettingsManager.PERCENT_DECREASE);
                 break;
             // sharpness
             case R.id.sharpness_increase:
-                tv.SetSharpness(tv.GetSharpness(client.curSource) + 1, client.curSource, 1, 0, 1);
                 mSettingsManager.setSharpness(SettingsManager.PERCENT_INCREASE);
                 break;
             case R.id.sharpness_decrease:
-                tv.SetSharpness(tv.GetSharpness(client.curSource) - 1, client.curSource, 1, 0, 1);
                 mSettingsManager.setSharpness(SettingsManager.PERCENT_DECREASE);
                 break;
             // backlight
             case R.id.backlight_increase:
-                tv.SetBacklight(tv.GetBacklight(client.curSource) + 1, client.curSource, 1);
                 mSettingsManager.setBacklight(SettingsManager.PERCENT_INCREASE);
                 break;
             case R.id.backlight_decrease:
-                tv.SetBacklight(tv.GetBacklight(client.curSource) - 1, client.curSource, 1);
                 mSettingsManager.setBacklight(SettingsManager.PERCENT_DECREASE);
                 break;
             // color temperature
             case R.id.color_temperature_standard:
-                tv.SetColorTemperature(Tv.color_temperature.COLOR_TEMP_STANDARD, client.curSource, 1);
                 mSettingsManager.setColorTemperature(SettingsManager.STATUS_STANDARD);
                 break;
             case R.id.color_temperature_warm:
-                tv.SetColorTemperature(Tv.color_temperature.COLOR_TEMP_WARM, client.curSource, 1);
                 mSettingsManager.setColorTemperature(SettingsManager.STATUS_WARM);
                 break;
             case R.id.color_temperature_cool:
-                tv.SetColorTemperature(Tv.color_temperature.COLOR_TEMP_COLD, client.curSource, 1);
                 mSettingsManager.setColorTemperature(SettingsManager.STATUS_COOL);
                 break;
             // aspect ratio
@@ -434,52 +421,40 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 break;
             // dnr
             case R.id.dnr_off:
-                tv.SetNoiseReductionMode(Tv.Noise_Reduction_Mode.REDUCE_NOISE_CLOSE, client.curSource, 1);
                 mSettingsManager.setDnr(SettingsManager.STATUS_OFF);
                 break;
             case R.id.dnr_auto:
-                tv.SetNoiseReductionMode(Tv.Noise_Reduction_Mode.REDUCTION_MODE_AUTO, client.curSource, 1);
                 mSettingsManager.setDnr(SettingsManager.STATUS_AUTO);
                 break;
             case R.id.dnr_medium:
-                tv.SetNoiseReductionMode(Tv.Noise_Reduction_Mode.REDUCE_NOISE_MID, client.curSource, 1);
                 mSettingsManager.setDnr(SettingsManager.STATUS_MEDIUM);
                 break;
             case R.id.dnr_high:
-                tv.SetNoiseReductionMode(Tv.Noise_Reduction_Mode.REDUCE_NOISE_STRONG, client.curSource, 1);
                 mSettingsManager.setDnr(SettingsManager.STATUS_HIGH);
                 break;
             case R.id.dnr_low:
-                tv.SetNoiseReductionMode(Tv.Noise_Reduction_Mode.REDUCE_NOISE_WEAK, client.curSource, 1);
                 mSettingsManager.setDnr(SettingsManager.STATUS_LOW);
                 break;
             // 3d settings
             case R.id.settings_3d_off:
-                tv.Set3DMode(Tv.Mode_3D.MODE_3D_CLOSE, Tv.Tvin_3d_Status.STATUS3D_DISABLE);
                 mSettingsManager.set3dSettings(SettingsManager.STATUS_OFF);
                 break;
             case R.id.settings_3d_auto:
-                tv.Set3DMode(Tv.Mode_3D.MODE_3D_AUTO, Tv.Tvin_3d_Status.STATUS3D_AUTO);
                 mSettingsManager.set3dSettings(SettingsManager.STATUS_AUTO);
                 break;
             case R.id.settings_3d_lr_mode:
-                tv.Set3DLRSwith(0, Tv.Tvin_3d_Status.STATUS3D_LR);
                 mSettingsManager.set3dSettings(SettingsManager.STATUS_3D_LR_MODE);
                 break;
             case R.id.settings_3d_rl_mode:
-                tv.Set3DLRSwith(1, Tv.Tvin_3d_Status.STATUS3D_LR);
                 mSettingsManager.set3dSettings(SettingsManager.STATUS_3D_RL_MODE);
                 break;
             case R.id.settings_3d_ud_mode:
-                tv.Set3DLRSwith(0, Tv.Tvin_3d_Status.STATUS3D_BT);
                 mSettingsManager.set3dSettings(SettingsManager.STATUS_3D_UD_MODE);
                 break;
             case R.id.settings_3d_du_mode:
-                tv.Set3DLRSwith(1, Tv.Tvin_3d_Status.STATUS3D_BT);
                 mSettingsManager.set3dSettings(SettingsManager.STATUS_3D_DU_MODE);
                 break;
             case R.id.settings_3d_3d_to_2d:
-                // tv.Set3DTo2DMode(Tv.Mode_3D_2D.values()[position], Tv.Tvin_3d_Status.values()[tv.Get3DMode()]);
                 mSettingsManager.set3dSettings(SettingsManager.STATUS_3D_TO_2D);
                 break;
             // ====Sound====

@@ -487,7 +487,12 @@ public class TvContractUtils
                 int originalNetworkId = cursor.getInt(2);
                 int transportStreamId = cursor.getInt(3);
                 int serviceId = cursor.getInt(4);
-                int serviceType = cursor.getInt(5);
+                int serviceType = 0;
+                cursor.getString(5);
+                if (cursor.getString(5).equals(Channels.SERVICE_TYPE_AUDIO_VIDEO))
+                    serviceType = 1;
+                else if (cursor.getString(5).equals(Channels.SERVICE_TYPE_AUDIO))
+                    serviceType = 2;
                 Map<String, String> parsedMap = parseInternalProviderData(cursor.getString(6));
                 String[] aidStrings = parsedMap.get("aids").replace("[", "").replace("]", "").split(", ");
                 String[] afmtStrings = parsedMap.get("afmts").replace("[", "").replace("]", "").split(", ");
@@ -518,7 +523,7 @@ public class TvContractUtils
                 if (srvType == serviceType) {
                     channelList.add(info);
                 } else {
-                    channelList.add(info);
+                    //channelList.add(info);
                 }
             }
             cursor.close();

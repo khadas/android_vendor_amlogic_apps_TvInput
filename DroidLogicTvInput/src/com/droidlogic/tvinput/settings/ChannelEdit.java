@@ -31,7 +31,7 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener {
 
     public static final int TYPE_ATV                           = 0;
     public static final int TYPE_DTV_TV                        = 1;
-    public static final int TYPE_DTV_RATIO                     = 2;
+    public static final int TYPE_DTV_RADIO                     = 2;
 
     private static final int ACTION_INITIAL_STATE             = -1;
     private static final int ACTION_SHOW_LIST                 = 0;
@@ -84,9 +84,10 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener {
         operationsEditView = (ViewGroup)channelEditView.findViewById(R.id.channel_edit_editname);
 
         if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV)
-            ChannelListData = ((TvSettingsActivity)mContext).getSettingsManager().getAtvChannelList();
+            channelType = TYPE_ATV;
         else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV)
-            ChannelListData = ((TvSettingsActivity)mContext).getSettingsManager().getDtvTvChannelList();
+            channelType = TYPE_DTV_TV;
+        ChannelListData = ((TvSettingsActivity)mContext).getSettingsManager().getChannelList(channelType);
 
         ChannelAdapter = new SimpleAdapter(mContext, ChannelListData,
             R.layout.layout_option_single_text,
@@ -246,7 +247,7 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener {
                 showListView();
                 break;
             case R.id.channel_edit_radio:
-                channelType = TYPE_DTV_RATIO;
+                channelType = TYPE_DTV_RADIO;
                 showListView();
                 break;
             case R.id.edit:
@@ -292,14 +293,15 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener {
     }
 
     private void freshChannelList () {
+        ArrayList<HashMap<String,Object>> list = null;
+
         ChannelListData.clear();
-        if (channelType == TYPE_ATV)
-            ChannelListData.addAll(((TvSettingsActivity)mContext).getSettingsManager().getAtvChannelList());
-        else if (channelType == TYPE_DTV_TV)
-            ChannelListData.addAll(((TvSettingsActivity)mContext).getSettingsManager().getDtvTvChannelList());
-        else if (channelType == TYPE_DTV_RATIO)
-            ChannelListData.addAll(((TvSettingsActivity)mContext).getSettingsManager().getDtvRadioChannelList());
-        ChannelAdapter.notifyDataSetChanged();
+        list = ((TvSettingsActivity)mContext).getSettingsManager().getChannelList(channelType);
+
+        if (list != null) {
+            ChannelListData.addAll(list);
+            ChannelAdapter.notifyDataSetChanged();
+        }
     }
 
     private void recoverActionState () {
