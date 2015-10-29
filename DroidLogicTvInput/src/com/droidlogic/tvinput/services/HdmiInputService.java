@@ -37,7 +37,8 @@ public class HdmiInputService extends DroidLogicTvInputService {
         }
 
         @Override
-        public void onAppPrivateCommand(String action, Bundle data) {
+        public void doAppPrivateCmd(String action, Bundle bundle) {
+            super.doAppPrivateCmd(action, bundle);
             if (TextUtils.equals(DroidLogicTvUtils.ACTION_STOP_TV, action)) {
                 stopTv();
             }

@@ -105,17 +105,18 @@ public class DTVInputService extends DroidLogicTvInputService {
         }
 
         @Override
-        public void doUnblockContent(TvContentRating rating) {
-            super.doUnblockContent(rating);
-            if (rating != null) {
-                unblockContent(rating);
+        public void doAppPrivateCmd(String action, Bundle bundle) {
+            super.doAppPrivateCmd(action, bundle);
+            if (TextUtils.equals(DroidLogicTvUtils.ACTION_STOP_TV, action)) {
+                stopTv();
             }
         }
 
         @Override
-        public void onAppPrivateCommand(String action, Bundle data) {
-            if (TextUtils.equals(DroidLogicTvUtils.ACTION_STOP_TV, action)) {
-                stopTv();
+        public void doUnblockContent(TvContentRating rating) {
+            super.doUnblockContent(rating);
+            if (rating != null) {
+                unblockContent(rating);
             }
         }
 

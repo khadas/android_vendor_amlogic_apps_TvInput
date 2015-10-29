@@ -97,6 +97,14 @@ public class ATVInputService extends DroidLogicTvInputService {
         }
 
         @Override
+        public void doAppPrivateCmd(String action, Bundle bundle) {
+            super.doAppPrivateCmd(action, bundle);
+            if (TextUtils.equals(DroidLogicTvUtils.ACTION_STOP_TV, action)) {
+                stopTv();
+            }
+        }
+
+        @Override
         public void doSurfaceChanged(Uri uri) {
             super.doSurfaceChanged(uri);
             switchToSourceInput(uri);
@@ -107,13 +115,6 @@ public class ATVInputService extends DroidLogicTvInputService {
             super.doUnblockContent(rating);
             if (rating != null) {
                 unblockContent(rating);
-            }
-        }
-
-        @Override
-        public void onAppPrivateCommand(String action, Bundle data) {
-            if (TextUtils.equals(DroidLogicTvUtils.ACTION_STOP_TV, action)) {
-                stopTv();
             }
         }
 

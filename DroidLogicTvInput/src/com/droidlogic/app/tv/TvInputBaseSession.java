@@ -8,6 +8,7 @@ import android.media.tv.TvStreamConfig;
 import android.media.tv.TvInputManager.Hardware;
 import android.media.tv.TvInputManager.HardwareCallback;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
@@ -80,6 +81,9 @@ public abstract class TvInputBaseSession extends TvInputService.Session implemen
             case DroidLogicTvUtils.SESSION_DO_TUNE:
                 doTune((Uri)msg.obj);
                 break;
+            case DroidLogicTvUtils.SESSION_DO_APP_PRIVATE:
+                doAppPrivateCmd((String)msg.obj, msg.getData());
+                break;
             case DroidLogicTvUtils.SESSION_UNBLOCK_CONTENT:
                 doUnblockContent((TvContentRating)msg.obj);
                 break;
@@ -99,6 +103,10 @@ public abstract class TvInputBaseSession extends TvInputService.Session implemen
         mHardware.setSurface(mSurface, mConfigs[0]);
     }
 
+    public void doAppPrivateCmd(String action, Bundle bundle) {
+        //do something
+    }
+
     public void doSurfaceChanged(Uri uri) {
         mHardware.setSurface(mSurface, mConfigs[0]);
     }
@@ -107,7 +115,7 @@ public abstract class TvInputBaseSession extends TvInputService.Session implemen
 
     @Override
     public void onRelease() {
-        doRelease();
+        mSessionHandler.obtainMessage(DroidLogicTvUtils.SESSION_DO_RELEASE).sendToTarget();
     }
 
     @Override
@@ -128,6 +136,17 @@ public abstract class TvInputBaseSession extends TvInputService.Session implemen
     @Override
     public void onSetStreamVolume(float volume) {
         // TODO Auto-generated method stub
+    }
+
+    @Override
+    public void onAppPrivateCommand(String action, Bundle data) {
+        if (DEBUG)
+            Log.d(TAG, "==== onAppPrivateCommand ====");
+        Message msg = mSessionHandler.obtainMessage(
+                DroidLogicTvUtils.SESSION_DO_APP_PRIVATE);
+        msg.setData(data);
+        msg.obj = action;
+        msg.sendToTarget();
     }
 
     @Override

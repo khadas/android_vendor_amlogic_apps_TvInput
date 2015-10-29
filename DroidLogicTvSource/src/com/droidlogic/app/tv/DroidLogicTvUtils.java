@@ -72,6 +72,7 @@ public class DroidLogicTvUtils {
     public static final int SESSION_DO_RELEASE          = 1;
     public static final int SESSION_DO_SURFACE_CHANGED  = 4;
     public static final int SESSION_DO_TUNE             = 6;
+    public static final int SESSION_DO_APP_PRIVATE      = 9;
     public static final int SESSION_UNBLOCK_CONTENT     = 13;
 
     private static final UriMatcher sUriMatcher;
