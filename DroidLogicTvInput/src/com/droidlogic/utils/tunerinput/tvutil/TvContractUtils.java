@@ -13,7 +13,6 @@
 
 package com.droidlogic.utils.tunerinput.tvutil;
 
-import android.R.integer;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;

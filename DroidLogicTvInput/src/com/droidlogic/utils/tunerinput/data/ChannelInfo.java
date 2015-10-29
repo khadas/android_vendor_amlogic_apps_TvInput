@@ -2,8 +2,6 @@ package com.droidlogic.utils.tunerinput.data;
 
 import java.util.Arrays;
 
-import android.R.integer;
-
 public final class ChannelInfo {
 
 	public final String number;

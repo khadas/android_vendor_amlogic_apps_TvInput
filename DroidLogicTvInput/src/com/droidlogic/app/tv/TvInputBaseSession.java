@@ -133,7 +133,7 @@ public abstract class TvInputBaseSession extends TvInputService.Session implemen
     @Override
     public boolean onTune(Uri channelUri) {
         if (DEBUG)
-            Log.d(TAG, "==== onTune ====");
+            Log.d(TAG, "==== onTune ====" + channelUri);
         mChannelUri = channelUri;
         if (mSurface == null) {//TvView is not ready
             isTuneNotReady = true;

@@ -120,8 +120,10 @@ public class ATVInputService extends DroidLogicTvInputService {
         private void switchToSourceInput(Uri uri) {
             mUnblockedRatingSet.clear();
 
-            if (Utils.getChannelId(uri) < 0)
+            if (Utils.getChannelId(uri) < 0) {
+                notifyVideoUnavailable(TvInputManager.VIDEO_UNAVAILABLE_REASON_UNKNOWN);
                 return;
+            }
             ChannelInfo ch = TvContractUtils.getChannelInfoATV(
                     mContext.getContentResolver(), uri);
             if (ch != null) {
