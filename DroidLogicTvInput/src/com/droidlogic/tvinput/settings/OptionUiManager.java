@@ -99,8 +99,10 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     private SettingsManager mSettingsManager;
     private int optionTag = OPTION_PICTURE_MODE;
     private String optionKey = null;
-    private int channelNumber = 0;//for db store TV channel's channelNumber
-    private int radioNumber = 0;//for db store Radio channel's channelNumber
+    private int channelNumber = 0;//for setting show searched tv channelNumber
+    private int radioNumber = 0;//for setting show searched radio channelNumber
+    private int tvDisplayNumber = 0;//for db store TV channel's channel displayNumber
+    private int radioDisplayNumber = 0;//for db store Radio channel's channel displayNumber
     List<ChannelInfo> mChannels = new ArrayList<ChannelInfo>();
     private int finish_result = DroidLogicTvUtils.RESULT_OK;
     private boolean isSearching = false;
@@ -1106,19 +1108,27 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                     name = "????";
                 }
 
-                channel = new ChannelInfo(String.valueOf(channelNumber), name, null, event.orig_net_id, event.ts_id, mSettingsManager.getInputId(), event.serviceID, 0, 0,
-                        event.mode, event.srvType, event.freq, event.bandwidth, event.vid, event.vfmt, event.aids, event.afmts, event.alangs, event.pcr, 0, 0, 0, 0, 0, 0, 1, 0);
-
-                if (optionTag == OPTION_MANUAL_SEARCH)
-                    TvContractUtils.updateOrinsertDtvChannel(mContext, channel);
-                else {
-                    if (event.srvType == 1) {
-                        TvContractUtils.insertDtvChannel(mContext, channel, channelNumber);
-                    }
+                if (event.srvType == 1) {
+                    if (optionTag == OPTION_MANUAL_SEARCH)
+                        TvContractUtils.updateOrinsertDtvChannel(mContext, channel);
                     else {
-                        TvContractUtils.insertDtvChannel(mContext, channel, radioNumber);
+                        channel = new ChannelInfo(String.valueOf(tvDisplayNumber), name, null, event.orig_net_id, event.ts_id, mSettingsManager.getInputId(), event.serviceID, 0, 0,
+                                event.mode, event.srvType, event.freq, event.bandwidth, event.vid, event.vfmt, event.aids, event.afmts, event.alangs, event.pcr, 0, 0, 0, 0, 0, 0, 1, 0);
+                        TvContractUtils.insertDtvChannel(mContext, channel, tvDisplayNumber);
+                        tvDisplayNumber++;
                     }
                 }
+                else {
+                    if (optionTag == OPTION_MANUAL_SEARCH)
+                        TvContractUtils.updateOrinsertDtvChannel(mContext, channel);
+                    else {
+                        channel = new ChannelInfo(String.valueOf(radioDisplayNumber), name, null, event.orig_net_id, event.ts_id, mSettingsManager.getInputId(), event.serviceID, 0, 0,
+                                event.mode, event.srvType, event.freq, event.bandwidth, event.vid, event.vfmt, event.aids, event.afmts, event.alangs, event.pcr, 0, 0, 0, 0, 0, 0, 1, 0);
+                        TvContractUtils.insertDtvChannel(mContext, channel, radioDisplayNumber);
+                        radioDisplayNumber++;
+                    }
+                }
+
                 Log.d(TAG, "STORE_SERVICE: " + channel.toString());
                 break;
             case Tv.EVENT_SCAN_PROGRESS:
@@ -1143,7 +1153,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                     setAutoSearchFrequency(event);
                 break;
             case Tv.EVENT_ATV_PROG_DATA:
-                channel = new ChannelInfo("A " + String.valueOf(channelNumber), event.programName, null, 0, 0, mSettingsManager.getInputId(), 0, 0, 0, 3,
+                channel = new ChannelInfo("A " + String.valueOf(tvDisplayNumber), event.programName, null, 0, 0, mSettingsManager.getInputId(), 0, 0, 0, 3,
                         event.srvType, event.freq, 0,// bandwidth
                         0,// videoPID
                         0,// videoFormat,
@@ -1155,7 +1165,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 if (optionTag == OPTION_MANUAL_SEARCH)
                     TvContractUtils.updateOrinsertAtvChannel(mContext, channel);
                 else
-                    TvContractUtils.insertAtvChannel(mContext, channel, channelNumber);
+                    TvContractUtils.insertAtvChannel(mContext, channel, tvDisplayNumber);
+                tvDisplayNumber++;
                 break;
             case Tv.EVENT_STORE_END:
                 Log.d(TAG, "Store end");
