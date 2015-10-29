@@ -1128,7 +1128,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                     setAutoSearchFrequency(event);
                 break;
             case Tv.EVENT_ATV_PROG_DATA:
-                channel = new ChannelInfo("A " + String.valueOf(tvDisplayNumber), event.programName, null, 0, 0, mSettingsManager.getInputId(), 0, 0, 0, 3,
+                channel = new ChannelInfo(String.valueOf(tvDisplayNumber), event.programName, null, 0, 0, mSettingsManager.getInputId(), 0, 0, 0, 3,
                         event.srvType, event.freq, 0,// bandwidth
                         0,// videoPID
                         0,// videoFormat,
