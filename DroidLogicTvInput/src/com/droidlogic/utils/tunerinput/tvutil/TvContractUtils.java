@@ -40,6 +40,8 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -126,12 +128,13 @@ public class TvContractUtils
                     values.put(Channels.COLUMN_INPUT_ID, channel.inputId);
                     Map<Uri, String> logos = new HashMap<Uri, String>();
                     values.put(Channels.COLUMN_DISPLAY_NAME, channel.name);
+                    values.put(Channels.COLUMN_DISPLAY_NUMBER, channel.number);
                     values.put(Channels.COLUMN_ORIGINAL_NETWORK_ID, channel.originalNetworkId);
                     values.put(Channels.COLUMN_TRANSPORT_STREAM_ID, channel.transportStreamId);
                     values.put(Channels.COLUMN_SERVICE_ID, channel.serviceId);
                     values.putNull(Channels.COLUMN_VIDEO_FORMAT);
                     values.put(Channels.COLUMN_TYPE, getChannelType(channel.type));
-
+                    values.put(Channels.COLUMN_BROWSABLE, channel.skip);
                     if (channel.serviceType == 1)
                         values.put(Channels.COLUMN_SERVICE_TYPE, Channels.SERVICE_TYPE_AUDIO_VIDEO);
                     else if (channel.serviceType == 2)
@@ -151,6 +154,7 @@ public class TvContractUtils
                     map.put("pcr", String.valueOf(channel.pcrPID));
                     map.put("atrackIndex", String.valueOf(channel.audioTrackIndex));
                     map.put("acompensation", String.valueOf(channel.audioCompensation));
+                    map.put("fav", String.valueOf(channel.fav));
                     String output = MapUtil.mapToString(map);
                     values.put(TvContract.Channels.COLUMN_INTERNAL_PROVIDER_DATA, output);
                     Uri uri = TvContract.buildChannelUri(rowId);
@@ -197,6 +201,7 @@ public class TvContractUtils
                     values.put(Channels.COLUMN_DISPLAY_NAME, channel.name);
                     values.put(Channels.COLUMN_TYPE, Channels.TYPE_PAL);// TODO: channel.type -> COLUMN_TYPE
                                                                         // (PAL/NTSC/SECAM)?
+                    values.put(Channels.COLUMN_BROWSABLE, channel.skip);
                     if (channel.serviceType == 1)
                     {
                         values.put(Channels.COLUMN_SERVICE_TYPE, Channels.SERVICE_TYPE_AUDIO_VIDEO);
@@ -214,6 +219,7 @@ public class TvContractUtils
                     map.put("auto", String.valueOf(channel.isAutoStd));
                     map.put("fine", String.valueOf(channel.fineTune));
                     map.put("acompensation", String.valueOf(channel.audioCompensation));
+                    map.put("fav", String.valueOf(channel.fav));
                     String output = MapUtil.mapToString(map);
                     values.put(TvContract.Channels.COLUMN_INTERNAL_PROVIDER_DATA, output);
                     Uri uri = TvContract.buildChannelUri(rowId);
@@ -522,14 +528,14 @@ public class TvContractUtils
                         skip, Integer.parseInt(parsedMap.get("fav")));
                 if (srvType == serviceType) {
                     channelList.add(info);
-                } else {
-                    //channelList.add(info);
                 }
             }
             cursor.close();
         } catch (Exception e) {
             // TODO: handle exception
+            e.printStackTrace();
         }
+        Collections.sort(channelList, new SortByDisplayNumber());
         return channelList;
     }
 
@@ -566,6 +572,7 @@ public class TvContractUtils
         } catch (Exception e) {
             // TODO: handle exception
         }
+        Collections.sort(channelList, new SortByDisplayNumber());
         return channelList;
     }
 
@@ -798,10 +805,6 @@ public class TvContractUtils
         throw new IllegalArgumentException("Unknown channel: " + channelNumber);
     }
 
-    private TvContractUtils()
-    {
-    }
-
     public static class InsertLogosTask extends AsyncTask<Map<Uri, String>, Void, Void>
     {
         private final Context mContext;
@@ -829,6 +832,16 @@ public class TvContractUtils
                 }
             }
             return null;
+        }
+    }
+
+    static class SortByDisplayNumber implements Comparator {
+        public int compare(Object o1, Object o2) {
+            ChannelInfo c1 = (ChannelInfo) o1;
+            ChannelInfo c2 = (ChannelInfo) o2;
+            if (Integer.parseInt(c1.number) < Integer.parseInt(c2.number))
+                return 1;
+            return 0;
         }
     }
 }
