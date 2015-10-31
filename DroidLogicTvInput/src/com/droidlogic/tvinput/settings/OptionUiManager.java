@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.media.tv.TvContract;
+import android.media.tv.TvContract.Channels;
 import android.os.PowerManager;
 import android.os.SystemProperties;
 import android.text.Editable;
@@ -1057,6 +1059,39 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             return -1;
     }
 
+    private ChannelInfo initDtvChannelInfo (Tv.ScannerEvent event) {
+        int temp_display_number = 0;
+        String name = null;
+        try {
+            String composedName = new String(event.programName);
+            name = TVMultilingualText.getText(composedName);
+            if (name == null || name.isEmpty()) {
+                name = TVMultilingualText.getText(composedName, "first");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            name = "????";
+        }
+
+        temp_display_number = event.srvType == 1 ? tvDisplayNumber : radioDisplayNumber;
+        return new ChannelInfo(String.valueOf(temp_display_number), name, null, event.orig_net_id,
+                event.ts_id, mSettingsManager.getInputId(), event.serviceID, 0, 0, event.mode,
+                event.srvType, event.freq, event.bandwidth, event.vid, event.vfmt, event.aids,
+                event.afmts, event.alangs, event.pcr, 0, 0, 0, 0, 0, 0, 1, 0);
+    }
+
+    private ChannelInfo initAtvChannelInfo (Tv.ScannerEvent event) {
+        return new ChannelInfo(String.valueOf(tvDisplayNumber), event.programName, null, 0, 0,
+                mSettingsManager.getInputId(), 0, 0, 0, 3, event.srvType, event.freq, 0,// bandwidth
+                0,// videoPID
+                0,// videoFormat,
+                null,// audioPIDs[],
+                null,// audioFormats[],
+                null,// audioLangs[],
+                0,// pcrPID,
+                event.videoStd, event.audioStd, event.isAutoStd, 0, 0, 0, 1, 0);
+    }
+
     @Override
     public void onEvent(Tv.ScannerEvent event) {
         //Log.d("fuhao", "searching---precent = " + event.precent + ",arg0.quality = " + event.quality + ",strength = " + event.strength);
@@ -1071,34 +1106,14 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         }
         switch (event.type) {
             case Tv.EVENT_DTV_PROG_DATA:
-                try {
-                    String composedName = new String(event.programName);
-                    name = TVMultilingualText.getText(composedName);
-                    if (name == null || name.isEmpty()) {
-                        name = TVMultilingualText.getText(composedName, "first");
-                    }
-                }
-                catch (Exception e) {
-                    e.printStackTrace();
-                    name = "????";
-                }
-
-                if (event.srvType == 1) {
-                    if (optionTag == OPTION_MANUAL_SEARCH)
-                        TvContractUtils.updateOrinsertDtvChannel(mContext, channel);
-                    else {
-                        channel = new ChannelInfo(String.valueOf(tvDisplayNumber), name, null, event.orig_net_id, event.ts_id, mSettingsManager.getInputId(), event.serviceID, 0, 0,
-                                event.mode, event.srvType, event.freq, event.bandwidth, event.vid, event.vfmt, event.aids, event.afmts, event.alangs, event.pcr, 0, 0, 0, 0, 0, 0, 1, 0);
+                channel = initDtvChannelInfo(event);
+                if (optionTag == OPTION_MANUAL_SEARCH) {
+                    TvContractUtils.updateOrinsertDtvChannel(mContext, channel);
+                } else {
+                    if (event.srvType == 1) {//{@link Channels#SERVICE_TYPE_AUDIO_VIDEO}
                         TvContractUtils.insertDtvChannel(mContext, channel, tvDisplayNumber);
                         tvDisplayNumber++;
-                    }
-                }
-                else {
-                    if (optionTag == OPTION_MANUAL_SEARCH)
-                        TvContractUtils.updateOrinsertDtvChannel(mContext, channel);
-                    else {
-                        channel = new ChannelInfo(String.valueOf(radioDisplayNumber), name, null, event.orig_net_id, event.ts_id, mSettingsManager.getInputId(), event.serviceID, 0, 0,
-                                event.mode, event.srvType, event.freq, event.bandwidth, event.vid, event.vfmt, event.aids, event.afmts, event.alangs, event.pcr, 0, 0, 0, 0, 0, 0, 1, 0);
+                    } else {
                         TvContractUtils.insertDtvChannel(mContext, channel, radioDisplayNumber);
                         radioDisplayNumber++;
                     }
@@ -1128,15 +1143,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                     setAutoSearchFrequency(event);
                 break;
             case Tv.EVENT_ATV_PROG_DATA:
-                channel = new ChannelInfo(String.valueOf(tvDisplayNumber), event.programName, null, 0, 0, mSettingsManager.getInputId(), 0, 0, 0, 3,
-                        event.srvType, event.freq, 0,// bandwidth
-                        0,// videoPID
-                        0,// videoFormat,
-                        null,// audioPIDs[],
-                        null,// audioFormats[],
-                        null,// audioLangs[],
-                        0,// pcrPID,
-                        event.videoStd, event.audioStd, event.isAutoStd, 0, 0, 0, 1, 0);
+                channel = initAtvChannelInfo(event);
                 if (optionTag == OPTION_MANUAL_SEARCH)
                     TvContractUtils.updateOrinsertAtvChannel(mContext, channel);
                 else
