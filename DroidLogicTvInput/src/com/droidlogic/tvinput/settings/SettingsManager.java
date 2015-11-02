@@ -32,9 +32,7 @@ public class SettingsManager {
     private TvClient client;
     private Tv tv;
 
-    public static final String KEY_CONTENT_TITLE                            = "content_title";
-
-    public static final String KEY_PICTURE                          = "Picture";
+    public static final String KEY_PICTURE                          = "picture";
     public static final String KEY_PICTURE_MODE                     = "picture_mode";
     public static final String KEY_BRIGHTNESS                       = "brightness";
     public static final String KEY_CONTRAST                         = "contrast";
@@ -46,7 +44,7 @@ public class SettingsManager {
     public static final String KEY_DNR                              = "dnr";
     public static final String KEY_3D_SETTINGS                      = "settings_3d";
 
-    public static final String KEY_SOUND                            = "Sound";
+    public static final String KEY_SOUND                            = "sound";
     public static final String KEY_SOUND_MODE                       = "sound_mode";
     public static final String KEY_TREBLE                           = "treble";
     public static final String KEY_BASS                             = "bass";
@@ -56,7 +54,7 @@ public class SettingsManager {
     public static final String KEY_DIALOG_CLARITY                   = "dialog_clarity";
     public static final String KEY_BASS_BOOST                       = "bass_boost";
 
-    public static final String KEY_CHANNEL                          = "Channel";
+    public static final String KEY_CHANNEL                          = "channel";
     public static final String KEY_CURRENT_CHANNEL                  = "current_channel";
     public static final String KEY_FREQUNCY                         = "frequency";
     public static final String KEY_AUIDO_TRACK                         = "audio_track";
@@ -71,7 +69,7 @@ public class SettingsManager {
     public static final String KEY_CHANNEL_EDIT                     = "channel_edit";
     public static final String KEY_SWITCH_CHANNEL                   = "switch_channel";
 
-    public static final String KEY_SETTINGS                         = "Settings";
+    public static final String KEY_SETTINGS                         = "settings";
     public static final String KEY_SLEEP_TIMER                      = "sleep_timer";
     public static final String KEY_MENU_TIME                        = "menu_time";
     public static final String KEY_STARTUP_SETTING                  = "startup_setting";
@@ -113,6 +111,7 @@ public class SettingsManager {
     public static final String TV_NAME                                = "com.droidlogic.tv";
     public static final String TV_ACTIVITY                           = "com.droidlogic.tv.DroidLogicTv";
 
+    public static final String STRING_ICON               = "icon";
     public static final String STRING_NAME               = "name";
     public static final String STRING_STATUS              = "status";
     public static String currentTag = null;
@@ -146,21 +145,8 @@ public class SettingsManager {
 
     public String getStatus (String key) {
         Log.d(TAG, " current screen is :" + currentTag + ", item is :" + key);
-        if (currentTag.equals(KEY_PICTURE)) {
-            return getPictureStatus(key);
-        } else if (currentTag.equals(KEY_SOUND)) {
-            return getSoundStatus(key);
-        } else if (currentTag.equals(KEY_CHANNEL)) {
-            return getChannelStatus(key);
-        } else if (currentTag.equals(KEY_SETTINGS)) {
-            return getSettingsStatus(key);
-        }
 
-        return null;
-    }
-
-    //picture
-    private String getPictureStatus (String key) {
+        //picture
         if (key.equals(KEY_PICTURE_MODE)) {
             return getPictureModeStatus();
         } else if (key.equals(KEY_BRIGHTNESS)) {
@@ -182,6 +168,52 @@ public class SettingsManager {
         } else if (key.equals(KEY_3D_SETTINGS)) {
             return get3dSettingsStatus();
         }
+        //sound
+        else if (key.equals(KEY_SOUND_MODE)) {
+            return getSoundModeStatus();
+        } else if (key.equals(KEY_TREBLE)) {
+            return getTrebleStatus();
+        } else if (key.equals(KEY_BASS)) {
+            return getBassStatus();
+        } else if (key.equals(KEY_BALANCE)) {
+            return getBalanceStatus();
+        } else if (key.equals(KEY_SPDIF)) {
+            return getSpdifStatus();
+        } else if (key.equals(KEY_SURROUND)) {
+            return getSurroundStatus();
+        } else if (key.equals(KEY_DIALOG_CLARITY)) {
+            return getDialogClarityStatus();
+        } else if (key.equals(KEY_BASS_BOOST)) {
+            return getBassBoostStatus();
+        }
+        //channel
+        else if (key.equals(KEY_CURRENT_CHANNEL)) {
+            return getCurrentChannelStatus();
+        } else if (key.equals(KEY_FREQUNCY)) {
+            return getFrequencyStatus();
+        } else if (key.equals(KEY_AUIDO_TRACK)) {
+            return getAudioTrackStatus();
+        } else if (key.equals(KEY_SOUND_CHANNEL)) {
+            return getSoundChannelStatus();
+        } else if (key.equals(KEY_COLOR_SYSTEM)) {
+            return getColorSystemStatus();
+        } else if (key.equals(KEY_SOUND_SYSTEM)) {
+            return getSoundSystemStatus();
+        } else if (key.equals(KEY_VOLUME_COMPENSATE)) {
+            return getVolumeCompensateStatus();
+        } else if (key.equals(KEY_SWITCH_CHANNEL)) {
+            return getSwitchChannelStatus();
+        }
+        //settings
+        else if (key.equals(KEY_SLEEP_TIMER)) {
+            return getSleepTimerStatus();
+        } else if (key.equals(KEY_MENU_TIME)) {
+            return getMenuTimeStatus();
+        } else if (key.equals(KEY_STARTUP_SETTING)) {
+            return getStartupSettingStatus();
+        } else if (key.equals(KEY_DYNAMIC_BACKLIGHT)) {
+            return getDynamicBacklightStatus();
+        }
         return null;
     }
 
@@ -189,15 +221,15 @@ public class SettingsManager {
         int pictureModeIndex = tv.GetPQMode(client.curSource);
         switch (pictureModeIndex) {
             case 0:
-                return STATUS_STANDARD;
+                return mResources.getString(R.string.standard);
             case 1:
-                return STATUS_VIVID;
+                return mResources.getString(R.string.vivid);
             case 2:
-                return STATUS_SOFT;
+                return mResources.getString(R.string.soft);
             case 3:
-                return STATUS_USER;
+                return mResources.getString(R.string.user);
             default:
-                return STATUS_STANDARD;
+                return mResources.getString(R.string.standard);
         }
     }
 
@@ -280,29 +312,6 @@ public class SettingsManager {
         }
     }
 
-    //Sound
-    private String getSoundStatus (String key) {
-        if (key.equals(KEY_SOUND_MODE)) {
-            return getSoundModeStatus();
-        } else if (key.equals(KEY_TREBLE)) {
-            return getTrebleStatus();
-        } else if (key.equals(KEY_BASS)) {
-            return getBassStatus();
-        } else if (key.equals(KEY_BALANCE)) {
-            return getBalanceStatus();
-        } else if (key.equals(KEY_SPDIF)) {
-            return getSpdifStatus();
-        } else if (key.equals(KEY_SURROUND)) {
-            return getSurroundStatus();
-        } else if (key.equals(KEY_DIALOG_CLARITY)) {
-            return getDialogClarityStatus();
-        } else if (key.equals(KEY_BASS_BOOST)) {
-            return getBassBoostStatus();
-        }
-        return null;
-    }
-
-
     public  String getSoundModeStatus () {
         int itemPosition = tv.GetCurAudioSoundMode();
         if (itemPosition == 0)
@@ -365,28 +374,6 @@ public class SettingsManager {
             return mResources.getString(R.string.off);
         else
             return mResources.getString(R.string.on);
-    }
-
-    //Channel
-    private String getChannelStatus (String key) {
-        if (key.equals(KEY_CURRENT_CHANNEL)) {
-            return getCurrentChannelStatus();
-        } else if (key.equals(KEY_FREQUNCY)) {
-            return getFrequencyStatus();
-        } else if (key.equals(KEY_AUIDO_TRACK)) {
-            return getAudioTrackStatus();
-        } else if (key.equals(KEY_SOUND_CHANNEL)) {
-            return getSoundChannelStatus();
-        } else if (key.equals(KEY_COLOR_SYSTEM)) {
-            return getColorSystemStatus();
-        } else if (key.equals(KEY_SOUND_SYSTEM)) {
-            return getSoundSystemStatus();
-        } else if (key.equals(KEY_VOLUME_COMPENSATE)) {
-            return getVolumeCompensateStatus();
-        } else if (key.equals(KEY_SWITCH_CHANNEL)) {
-            return getSwitchChannelStatus();
-        }
-        return null;
     }
 
     private String getCurrentChannelStatus () {
@@ -582,12 +569,21 @@ public class SettingsManager {
 
         if (channelList.size() > 0) {
             for (int i = 0 ; i < channelList.size(); i++) {
+                ChannelInfo info = channelList.get(i);
                 HashMap<String,Object> item = new HashMap<String,Object>();
-                item.put(STRING_NAME, channelList.get(i).name);
+                if (info.skip == 0)
+                    item.put(STRING_ICON, R.drawable.skip);
+                else if (info.fav == 1)
+                    item.put(STRING_ICON, R.drawable.favourite);
+                else
+                    item.put(STRING_ICON, 0);
+
+                item.put(STRING_NAME, info.name);
                 list.add(item);
             }
         } else {
             HashMap<String,Object> item = new HashMap<String,Object>();
+            item.put(STRING_ICON, 0);
             item.put(STRING_NAME, mResources.getString(R.string.error_no_channel));
             list.add(item);
         }
@@ -622,20 +618,6 @@ public class SettingsManager {
             return mResources.getString(R.string.static_frame);
         else
             return mResources.getString(R.string.black_frame);
-    }
-
-    //Settings
-    private String getSettingsStatus (String key) {
-        if (key.equals(KEY_SLEEP_TIMER)) {
-            return getSleepTimerStatus();
-        } else if (key.equals(KEY_MENU_TIME)) {
-            return getMenuTimeStatus();
-        } else if (key.equals(KEY_STARTUP_SETTING)) {
-            return getStartupSettingStatus();
-        } else if (key.equals(KEY_DYNAMIC_BACKLIGHT)) {
-            return getDynamicBacklightStatus();
-        }
-        return null;
     }
 
     public String getSleepTimerStatus () {

@@ -1,4 +1,5 @@
-<resources>
+<?xml version="1.0" encoding="UTF-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
 
     <string name="app_name">DroidLogicTvInput</string>
     <string name="source_input_error">TV source switching to is wrong.</string>

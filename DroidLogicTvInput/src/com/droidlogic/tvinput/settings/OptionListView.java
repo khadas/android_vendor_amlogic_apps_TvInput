@@ -102,8 +102,16 @@ public class OptionListView extends ListView implements OnItemSelectedListener {
     }
 
     private void setItemTextColor (View view, boolean focused) {
-        TextView item_name = (TextView)((ViewGroup)view).getChildAt(0);
-        TextView item_status = (TextView)((ViewGroup)view).getChildAt(1);
+        TextView item_name = null;
+        TextView item_status = null;
+
+        View child0 = ((ViewGroup)view).getChildAt(0);
+        if (child0 instanceof TextView)
+            item_name = (TextView)child0;
+
+        View child1 = ((ViewGroup)view).getChildAt(1);
+        if (child1 instanceof TextView)
+            item_status = (TextView)child1;
 
         if (focused) {
             int color_text_focused = mContext.getResources().getColor(R.color.color_text_focused);

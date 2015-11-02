@@ -150,8 +150,11 @@ public class ContentFragment extends Fragment {
             sa.recycle();
 
             //Log.d(TAG, "@@@@@@@@@@@@@@@@ key=" + key + "  title=" + title);
-            if (key.equals(SettingsManager.KEY_CONTENT_TITLE)) {
-                mSettingsManager.setTag(title);
+            if (key.equals(SettingsManager.KEY_PICTURE) ||
+                key.equals(SettingsManager.KEY_SOUND) ||
+                key.equals(SettingsManager.KEY_CHANNEL) ||
+                key.equals(SettingsManager.KEY_SETTINGS)) {
+                mSettingsManager.setTag(key);
                 content_title.setText(title);
             } else {
                 HashMap<String, Object> map = new HashMap<String, Object>();

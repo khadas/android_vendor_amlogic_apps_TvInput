@@ -90,8 +90,8 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener {
         ChannelListData = ((TvSettingsActivity)mContext).getSettingsManager().getChannelList(channelType);
 
         ChannelAdapter = new SimpleAdapter(mContext, ChannelListData,
-            R.layout.layout_option_single_text,
-            new String[]{SettingsManager.STRING_NAME}, new int[]{R.id.text_name});
+            R.layout.layout_option_icon_text,
+            new String[]{SettingsManager.STRING_ICON, SettingsManager.STRING_NAME}, new int[]{R.id.image_icon, R.id.text_name});
         channelListView.setAdapter(ChannelAdapter);
 
         if (!ChannelListData.get(0).get(SettingsManager.STRING_NAME).toString()

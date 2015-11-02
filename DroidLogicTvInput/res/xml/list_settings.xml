@@ -2,7 +2,7 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <Preference
-        android:key="content_title"
+        android:key="settings"
         android:title="@string/settings" >
     </Preference>
 
