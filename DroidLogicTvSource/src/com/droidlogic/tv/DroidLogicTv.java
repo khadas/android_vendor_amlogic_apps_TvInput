@@ -735,6 +735,16 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         }
     }
 
+    /**
+     * release something for next resume or destroy. e.g, if exit with home key, clear info which
+     * is unknown when next resume for pass through.
+     * clear info for pass through, and release session.
+     */
+    private void releaseBeforeExit() {
+        preSwitchSourceInput();
+        mSourceView.reset();
+    }
+
     @Override
     protected void onPause() {
         Utils.logd(TAG, "==== onPause ====");
@@ -745,7 +755,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     protected void onStop() {
         Utils.logd(TAG, "==== onStop ====");
         hasStopped = true;
-        mSourceView.reset();
+        releaseBeforeExit();
         super.onStop();
     }
 
