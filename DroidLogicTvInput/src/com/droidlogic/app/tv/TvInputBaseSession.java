@@ -120,6 +120,8 @@ public abstract class TvInputBaseSession extends TvInputService.Session implemen
 
     @Override
     public boolean onSetSurface(Surface surface) {
+        if (DEBUG)
+            Log.d(TAG, "==== onSetSurface ====");
         mSurface = surface;
         return false;
     }

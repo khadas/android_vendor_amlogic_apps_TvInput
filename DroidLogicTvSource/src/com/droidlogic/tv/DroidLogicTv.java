@@ -56,6 +56,8 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     private LinearLayout mSourceInfoLayout;
     private ChannelListLayout mChannelListLayout;
 
+    private MediaPlayer mPlayer;
+
     //max index of all hardware devices in mSourceMenuLayout
     private int maxHardwareIndex = 0;
 
@@ -105,7 +107,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         Utils.logd(TAG, "==== onCreate ====");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-        initVideoView();
+//        initVideoView();
         init();
     }
 
@@ -117,22 +119,34 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
             surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
                 @Override
                 public void surfaceDestroyed(SurfaceHolder arg0) {
-                    // TODO Auto-generated method stub
+                    Utils.logd(TAG, "==== video view release ====");
+                    if (mPlayer != null) {
+                        try {
+                            mPlayer.stop();
+                        } catch (IllegalStateException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                        mPlayer.release();
+                        mPlayer = null;
+                    }
                 }
 
                 @Override
                 public void surfaceCreated(SurfaceHolder holder) {
-                    MediaPlayer mediaPlayer = new MediaPlayer();
-                    mediaPlayer.reset();
-                    mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                    if (mPlayer == null) {
+                        mPlayer = new MediaPlayer();
+                    }
+                    mPlayer.reset();
+                    mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
                     try {
-                        mediaPlayer.setDataSource("tvin:test");
-                        mediaPlayer.setDisplay(holder);
-                        mediaPlayer.prepare();
+                        mPlayer.setDataSource("tvin:test");
+                        mPlayer.setDisplay(holder);
+                        mPlayer.prepare();
                     } catch (Exception e) {
                         Utils.loge(TAG, e.toString());
                     }
-                    mediaPlayer.start();
+                    mPlayer.start();
                 }
 
                 @Override
@@ -146,11 +160,11 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     private void init() {
         mContext = getApplicationContext();
         mTvInputManager = (TvInputManager)getSystemService(Context.TV_INPUT_SERVICE);
-        mChannelDataManager = new ChannelDataManager(getApplicationContext());
+        mChannelDataManager = new ChannelDataManager(mContext);
 
         mHandler = new Handler(this);
 
-        mTimePromptText = (TextView) this.findViewById(R.id.textView_time_prompt);
+        mTimePromptText = (TextView) findViewById(R.id.textView_time_prompt);
         mSourceView = (TvView) findViewById(R.id.source_view);
         mSourceView.setCallback(new DroidLogicInputCallback());
 
@@ -159,8 +173,8 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         mChannelListLayout = (ChannelListLayout)findViewById(R.id.channel_list);
         mChannelListLayout.setOnChannelSelectListener(this);
 
-        initSourceMenuLayout();
         initThread(mThreadName);
+        initSourceMenuLayout();
     }
 
     private void initThread(String name) {
@@ -232,6 +246,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     protected void onResume() {
         Utils.logd(TAG, "== onResume ====");
 
+        initVideoView();
         if (hasStopped || needUpdateSource) {
             switchToSourceInput();
         }
@@ -270,13 +285,13 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
      * used to tune must be wrong.
      */
     private void switchToSourceInput() {
+        mThreadHandler.obtainMessage(MSG_SAVE_CHANNEL_INFO).sendToTarget();
         mPreSigType = mSigType;
         mSigType = getSigType(mSourceInput.getSourceType());
         Uri channel_uri = mSourceInput.getUri();
         Utils.logd(TAG, "channelUri switching to is " + channel_uri);
 
         mSourceView.tune(mSourceInput.getInputId(), channel_uri);
-        mThreadHandler.obtainMessage(MSG_SAVE_CHANNEL_INFO).sendToTarget();
         popupSourceMenu(Utils.HIDE_VIEW);
         popupSourceInfo(Utils.SHOW_VIEW);
     }
@@ -730,7 +745,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     protected void onStop() {
         Utils.logd(TAG, "==== onStop ====");
         hasStopped = true;
-        mSourceView.sendAppPrivateCommand(DroidLogicTvUtils.ACTION_STOP_TV, null);
+        mSourceView.reset();
         super.onStop();
     }
 
@@ -739,7 +754,6 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         Utils.logd(TAG, "==== onDestroy ====");
         releaseThread();
         mChannelDataManager.release();
-        mSourceView.reset();
         super.onDestroy();
     }
 
