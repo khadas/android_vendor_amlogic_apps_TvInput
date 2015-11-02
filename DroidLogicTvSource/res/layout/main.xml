@@ -9,7 +9,8 @@
 
     <RelativeLayout
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent">
+        android:layout_height="fill_parent"
+        android:id="@+id/main_view">
         <LinearLayout
 	        android:id="@+id/menu_layout"
 	        android:layout_width="wrap_content"

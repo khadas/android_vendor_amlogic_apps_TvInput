@@ -18,12 +18,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.content.res.Resources.NotFoundException;
 import android.hardware.input.InputManager;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.tv.TvInputInfo;
 import android.media.tv.TvInputManager;
 import android.media.tv.TvView;
+import android.media.tv.TvContract.Channels;
 import android.media.tv.TvView.TvInputCallback;
 import android.net.Uri;
 import android.os.Bundle;
@@ -39,6 +41,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 public class DroidLogicTv extends Activity implements Callback, OnSourceClickListener, OnChannelSelectListener {
@@ -52,6 +55,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     private TvView mSourceView;
     private SourceButton mSourceInput;
 
+    private RelativeLayout mMainView;
     private LinearLayout mSourceMenuLayout;
     private LinearLayout mSourceInfoLayout;
     private ChannelListLayout mChannelListLayout;
@@ -102,6 +106,8 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     private static final String mThreadName = TAG;
     private Handler mThreadHandler;
     private static final int MSG_SAVE_CHANNEL_INFO = 1;
+    private boolean isPlayingRadio = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Utils.logd(TAG, "==== onCreate ====");
@@ -168,6 +174,8 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         mSourceView = (TvView) findViewById(R.id.source_view);
         mSourceView.setCallback(new DroidLogicInputCallback());
 
+        mMainView = (RelativeLayout)findViewById(R.id.main_view);
+
         mSourceMenuLayout = (LinearLayout)findViewById(R.id.menu_layout);
         mSourceInfoLayout = (LinearLayout)findViewById(R.id.info_layout);
         mChannelListLayout = (ChannelListLayout)findViewById(R.id.channel_list);
@@ -199,6 +207,27 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         mHandlerThread.quit();
         mHandlerThread = null;
         mThreadHandler = null;
+    }
+
+    /**
+     * must be invoked after {@link SourceButton.moveToChannel}.
+     * set the background between {@link Channels#SERVICE_TYPE_AUDIO_VIDEO} and
+     * {@link Channels#SERVICE_TYPE_AUDIO}.
+     */
+    private void initMainView() {
+        boolean is_audio = mSourceInput.isRadioChannel();
+        Utils.logd(TAG, "==== isPlayingRadio =" + isPlayingRadio + ", is_audio=" + is_audio);
+        if (!isPlayingRadio && is_audio) {
+            try {
+                mMainView.setBackground(getResources().getDrawable(R.drawable.bg_radio, null));
+            } catch (NotFoundException e) {
+                e.printStackTrace();
+            }
+            isPlayingRadio = true;
+        } else if (isPlayingRadio && !is_audio) {
+            mMainView.setBackground(null);
+            isPlayingRadio = false;
+        }
     }
 
     /**
@@ -247,6 +276,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         Utils.logd(TAG, "== onResume ====");
 
         initVideoView();
+        initMainView();
         if (hasStopped || needUpdateSource) {
             switchToSourceInput();
         }
@@ -375,6 +405,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     @Override
     public void onSelect(int channelIndex, boolean isRadio) {
         if (mSourceInput.moveToChannel(channelIndex, isRadio)) {
+            initMainView();
             popupChannelList(Utils.HIDE_VIEW);
             switchToSourceInput();
         }
@@ -390,6 +421,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         }
         preSwitchSourceInput();
         mSourceInput = sb;
+        initMainView();
         switchToSourceInput();
     }
 
