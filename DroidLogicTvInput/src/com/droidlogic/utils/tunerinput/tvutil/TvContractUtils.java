@@ -108,8 +108,7 @@ public class TvContractUtils
         String[] projection = {Channels._ID, Channels.COLUMN_SERVICE_ID};
 
         Cursor cursor = null;
-        try
-        {
+        try {
             String srvType = "";
             if (channel.serviceType == 1)
                 srvType = Channels.SERVICE_TYPE_AUDIO_VIDEO;
@@ -118,12 +117,10 @@ public class TvContractUtils
             else
                 srvType = Channels.SERVICE_TYPE_OTHER;
             cursor = resolver.query(channelsUri, projection, Channels.COLUMN_SERVICE_TYPE + "=?", new String[]{srvType}, null);
-            while (cursor != null && cursor.moveToNext())
-            {
+            while (cursor != null && cursor.moveToNext()) {
                 long rowId = cursor.getLong(0);
                 int serviceId = cursor.getInt(1);
-                if (serviceId == channel.serviceId)
-                {
+                if (serviceId == channel.serviceId) {
                     ContentValues values = new ContentValues();
                     values.put(Channels.COLUMN_INPUT_ID, channel.inputId);
                     Map<Uri, String> logos = new HashMap<Uri, String>();
@@ -159,22 +156,25 @@ public class TvContractUtils
                     values.put(TvContract.Channels.COLUMN_INTERNAL_PROVIDER_DATA, output);
                     Uri uri = TvContract.buildChannelUri(rowId);
                     resolver.update(uri, values, null, null);
-                    if (!TextUtils.isEmpty(channel.logoUrl))
-                    {
+                    if (!TextUtils.isEmpty(channel.logoUrl)) {
                         logos.put(TvContract.buildChannelLogoUri(uri), channel.logoUrl);
                     }
-                    if (!logos.isEmpty())
-                    {
-                        new InsertLogosTask(context).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, logos);
+                    if (!logos.isEmpty()) {
+                        new InsertLogosTask(context).executeOnExecutor(
+                                AsyncTask.THREAD_POOL_EXECUTOR, logos);
                     }
                     ret = UPDATE_SUCCESS;
                 } else {
                     ret = cursor.getCount();
                 }
             }
-            cursor.close();
+        } catch (Exception e) {
+            //TODO
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
         }
-        catch (Exception e) {}
         return ret;
     }
 
@@ -184,16 +184,13 @@ public class TvContractUtils
         ContentResolver resolver = context.getContentResolver();
         String[] projection = {Channels._ID, Channels.COLUMN_INTERNAL_PROVIDER_DATA};
         Cursor cursor = null;
-        try
-        {
+        try {
             cursor = resolver.query(channelsUri, projection, null, null, null);
-            while (cursor != null && cursor.moveToNext())
-            {
+            while (cursor != null && cursor.moveToNext()) {
                 long rowId = cursor.getLong(0);
                 Map<String, String> parsedMap = parseInternalProviderData(cursor.getString(1));
                 int frequency = Integer.parseInt(parsedMap.get("freq"));
-                if (frequency == channel.frequency)
-                {
+                if (frequency == channel.frequency) {
                     ContentValues values = new ContentValues();
                     values.put(Channels.COLUMN_INPUT_ID, channel.inputId);
                     Map<Uri, String> logos = new HashMap<Uri, String>();
@@ -202,12 +199,9 @@ public class TvContractUtils
                     values.put(Channels.COLUMN_TYPE, Channels.TYPE_PAL);// TODO: channel.type -> COLUMN_TYPE
                                                                         // (PAL/NTSC/SECAM)?
                     values.put(Channels.COLUMN_BROWSABLE, channel.skip);
-                    if (channel.serviceType == 1)
-                    {
+                    if (channel.serviceType == 1) {
                         values.put(Channels.COLUMN_SERVICE_TYPE, Channels.SERVICE_TYPE_AUDIO_VIDEO);
-                    }
-                    else if (channel.serviceType == 2)
-                    {
+                    } else if (channel.serviceType == 2) {
                         values.put(Channels.COLUMN_SERVICE_TYPE, Channels.SERVICE_TYPE_AUDIO);
                     }
                     Map<String, String> map = new HashMap<String, String>();
@@ -224,13 +218,13 @@ public class TvContractUtils
                     values.put(TvContract.Channels.COLUMN_INTERNAL_PROVIDER_DATA, output);
                     Uri uri = TvContract.buildChannelUri(rowId);
                     resolver.update(uri, values, null, null);
-                    if (!TextUtils.isEmpty(channel.logoUrl))
-                    {
-                        logos.put(TvContract.buildChannelLogoUri(uri), channel.logoUrl);
+                    if (!TextUtils.isEmpty(channel.logoUrl)) {
+                        logos.put(TvContract.buildChannelLogoUri(uri),
+                                channel.logoUrl);
                     }
-                    if (!logos.isEmpty())
-                    {
-                        new InsertLogosTask(context).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, logos);
+                    if (!logos.isEmpty()) {
+                        new InsertLogosTask(context).executeOnExecutor(
+                                AsyncTask.THREAD_POOL_EXECUTOR, logos);
                     }
                     ret = UPDATE_SUCCESS;
                 } else {
@@ -238,13 +232,17 @@ public class TvContractUtils
                 }
             }
             cursor.close();
+        } catch (Exception e) {
+            //TODO
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
         }
-        catch (Exception e) {}
         return ret;
     }
 
-    public static void insertDtvChannel(Context context, ChannelInfo channel, int channelNumber)
-    {
+    public static void insertDtvChannel(Context context, ChannelInfo channel, int channelNumber) {
         Uri channelsUri = TvContract.buildChannelsUriForInput(channel.inputId);
         ContentResolver resolver = context.getContentResolver();
         ContentValues values = new ContentValues();
@@ -282,27 +280,24 @@ public class TvContractUtils
         String output = MapUtil.mapToString(map);
         values.put(TvContract.Channels.COLUMN_INTERNAL_PROVIDER_DATA, output);
         Uri uri = resolver.insert(TvContract.Channels.CONTENT_URI, values);
-        if (!TextUtils.isEmpty(channel.logoUrl))
-        {
+        if (!TextUtils.isEmpty(channel.logoUrl)) {
             logos.put(TvContract.buildChannelLogoUri(uri), channel.logoUrl);
         }
-        if (!logos.isEmpty())
-        {
-            new InsertLogosTask(context).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, logos);
+        if (!logos.isEmpty()) {
+            new InsertLogosTask(context).executeOnExecutor(
+                    AsyncTask.THREAD_POOL_EXECUTOR, logos);
         }
     }
 
     // If a channel exists, update it. If not, insert a new one.
-    public static void updateOrinsertDtvChannel(Context context, ChannelInfo channel)
-    {
+    public static void updateOrinsertDtvChannel(Context context, ChannelInfo channel) {
         int updateRet = updateDtvChannel(context, channel);
         if (updateRet != UPDATE_SUCCESS) {
             insertDtvChannel(context, channel, updateRet);
         }
     }
 
-    public static void insertAtvChannel(Context context, ChannelInfo channel, int channelNumber)
-    {
+    public static void insertAtvChannel(Context context, ChannelInfo channel, int channelNumber) {
         Uri channelsUri = TvContract.buildChannelsUriForInput(channel.inputId);
         ContentResolver resolver = context.getContentResolver();
         ContentValues values = new ContentValues();
@@ -312,12 +307,9 @@ public class TvContractUtils
         values.put(Channels.COLUMN_DISPLAY_NAME, channel.name);
         values.put(Channels.COLUMN_TYPE, Channels.TYPE_PAL);// TODO: channel.type -> COLUMN_TYPE (PAL/NTSC/SECAM)?
         values.put(Channels.COLUMN_BROWSABLE, channel.skip);
-        if (channel.serviceType == 1)
-        {
+        if (channel.serviceType == 1) {
             values.put(Channels.COLUMN_SERVICE_TYPE, Channels.SERVICE_TYPE_AUDIO_VIDEO);
-        }
-        else if (channel.serviceType == 2)
-        {
+        } else if (channel.serviceType == 2) {
             values.put(Channels.COLUMN_SERVICE_TYPE, Channels.SERVICE_TYPE_AUDIO);
         }
         Map<String, String> map = new HashMap<String, String>();
@@ -334,12 +326,10 @@ public class TvContractUtils
         values.put(TvContract.Channels.COLUMN_INTERNAL_PROVIDER_DATA, output);
 
         Uri uri = resolver.insert(TvContract.Channels.CONTENT_URI, values);
-        if (!TextUtils.isEmpty(channel.logoUrl))
-        {
+        if (!TextUtils.isEmpty(channel.logoUrl)) {
             logos.put(TvContract.buildChannelLogoUri(uri), channel.logoUrl);
         }
-        if (!logos.isEmpty())
-        {
+        if (!logos.isEmpty()) {
             new InsertLogosTask(context).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, logos);
         }
     }
@@ -374,7 +364,9 @@ public class TvContractUtils
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            cursor.close();
+            if (cursor != null) {
+                cursor.close();
+            }
         }
     }
 
@@ -398,7 +390,9 @@ public class TvContractUtils
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            cursor.close();
+            if (cursor != null) {
+                cursor.close();
+            }
         }
     }
 
@@ -423,26 +417,22 @@ public class TvContractUtils
     }
 
     // If a channel exists, update it. If not, insert a new one.
-    public static void updateOrinsertAtvChannel(Context context, ChannelInfo channel)
-    {
+    public static void updateOrinsertAtvChannel(Context context, ChannelInfo channel) {
         int updateRet = updateAtvChannel(context, channel);
         if (updateRet != UPDATE_SUCCESS) {
             insertAtvChannel(context, channel, updateRet);
         }
     }
 
-    private static String getVideoFormat(int videoHeight)
-    {
+    private static String getVideoFormat(int videoHeight) {
         return VIDEO_HEIGHT_TO_FORMAT_MAP.get(videoHeight);
     }
 
-    private static String getChannelType(int mode)
-    {
+    private static String getChannelType(int mode) {
         return CHANNEL_MODE_TO_TYPE_MAP.get(mode);
     }
 
-    private static int getChannelType(String type)
-    {
+    private static int getChannelType(String type) {
         return CHANNEL_TYPE_TO_MODE_MAP.get(type);
     }
 
@@ -485,8 +475,8 @@ public class TvContractUtils
         String[] projection = {Channels.COLUMN_INPUT_ID, Channels.COLUMN_DISPLAY_NAME, Channels.COLUMN_ORIGINAL_NETWORK_ID, Channels.COLUMN_TRANSPORT_STREAM_ID,
                 Channels.COLUMN_SERVICE_ID, Channels.COLUMN_SERVICE_TYPE, Channels.COLUMN_INTERNAL_PROVIDER_DATA, Channels.COLUMN_DISPLAY_NUMBER,
                 Channels.COLUMN_TYPE, Channels.COLUMN_BROWSABLE};
+        Cursor cursor = resolver.query(channelsUri, projection, null, null, null);
         try {
-            Cursor cursor = resolver.query(channelsUri, projection, null, null, null);
             while (cursor != null && cursor.moveToNext()) {
                 String inputId = cursor.getString(0);
                 String name = cursor.getString(1);
@@ -530,10 +520,13 @@ public class TvContractUtils
                     channelList.add(info);
                 }
             }
-            cursor.close();
         } catch (Exception e) {
             // TODO: handle exception
             e.printStackTrace();
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
         }
         Collections.sort(channelList, new SortByDisplayNumber());
         return channelList;
@@ -625,15 +618,10 @@ public class TvContractUtils
                             Integer.parseInt(parsedMap.get("acompensation")), skip,
                             Integer.parseInt(parsedMap.get("fav")));
             }
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             Log.e(TAG, "Failed to get channel info from TvProvider.", e);
-        }
-        finally
-        {
-            if (cursor != null)
-            {
+        } finally {
+            if (cursor != null) {
                 cursor.close();
             }
         }
@@ -674,15 +662,10 @@ public class TvContractUtils
                         Integer.parseInt(parsedMap.get("fine")), 0, Integer.parseInt(parsedMap.get("acompensation")),
                         skip, Integer.parseInt(parsedMap.get("fav")));
             }
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             Log.e(TAG, "Failed to get channel info from TvProvider.", e);
-        }
-        finally
-        {
-            if (cursor != null)
-            {
+        } finally {
+            if (cursor != null) {
                 cursor.close();
             }
         }

@@ -93,7 +93,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     private static final int START_SETTING = 1;
     private boolean needUpdateSource = true;
     //if activity has been stopped, source input must be switched again.
-    private boolean hasStopped = false;
+    private boolean hasStopped = true;
 
     //info
     private TextView mInfoLabel;
@@ -278,7 +278,8 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     protected void onResume() {
         Utils.logd(TAG, "== onResume ====");
 
-        initVideoView();
+        if (hasStopped)
+            initVideoView();
         initMainView();
         if (hasStopped || needUpdateSource) {
             switchToSourceInput();
