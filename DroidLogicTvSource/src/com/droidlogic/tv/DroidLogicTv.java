@@ -81,10 +81,13 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     private Handler mHandler;
     private static final int MSG_INFO_DELAY             = 0;
     private static final int MSG_SOURCE_DELAY           = 1;
-    private static final int MSG_CHANNEL_KEY_SWITCH     = 2;
-    private static final int MSG_CHANNEL_NUM_SWITCH     = 3;
+    private static final int MSG_CHANNEL_LIST_DELAY     = 2;
+    private static final int MSG_CHANNEL_KEY_SWITCH     = 3;
+    private static final int MSG_CHANNEL_NUM_SWITCH     = 4;
+
     private static final int TIME_INFO_DELAY = 5;
     private static final int TIME_SOURCE_DELAY = 5;
+    private static final int TIME_CHANNEL_LIST_DELAY = 5;
 
     private static final int START_SETUP = 0;
     private static final int START_SETTING = 1;
@@ -432,6 +435,9 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         if (isSourceMenuShowing) {
             createDelayTimer(MSG_SOURCE_DELAY, TIME_SOURCE_DELAY);
         }
+        if (mChannelListLayout.isShow()) {
+            createDelayTimer(MSG_CHANNEL_LIST_DELAY, TIME_CHANNEL_LIST_DELAY);
+        }
         switch (keyCode) {
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_SOURCE_LIST:
                 popupSourceMenu(isSourceMenuShowing ? Utils.HIDE_VIEW : Utils.SHOW_VIEW);
@@ -439,6 +445,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
             case DroidLogicKeyEvent.KEYCODE_MENU://show setup activity
                 popupSourceMenu(Utils.HIDE_VIEW);
                 popupSourceInfo(Utils.HIDE_VIEW);
+                popupChannelList(Utils.HIDE_VIEW);
                 startSetupActivity();
                 return true;
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_DISPAYMODE:
@@ -448,6 +455,9 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
             case DroidLogicKeyEvent.KEYCODE_TV_SLEEP:
             case DroidLogicKeyEvent.KEYCODE_MEDIA_AUDIO_CONTROL:
             case DroidLogicKeyEvent.KEYCODE_GUIDE:
+                popupSourceMenu(Utils.HIDE_VIEW);
+                popupSourceInfo(Utils.HIDE_VIEW);
+                popupChannelList(Utils.HIDE_VIEW);
                 startSettingActivity(keyCode);
                 return true;
             case DroidLogicKeyEvent.KEYCODE_FAV:
@@ -624,6 +634,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
 
     private void popupChannelList(boolean show_or_hide) {
         if (!show_or_hide) {//hide
+            destroyDelayTimer();
             mChannelListLayout.hide();
         } else {
             popupChannelList(Utils.SHOW_VIEW, -1);
@@ -632,6 +643,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
 
     private void popupChannelList(boolean show_or_hide, int type) {
         if (!show_or_hide) {//hide
+            destroyDelayTimer();
             mChannelListLayout.hide();
         } else {
             if (type == -1)
@@ -658,7 +670,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
             popupSourceInfo(Utils.HIDE_VIEW);
             popupNoSignal(Utils.HIDE_VIEW);
             mChannelListLayout.show();
-//            createDelayTimer(MSG_INFO_DELAY, TIME_CHANNEL_LIST);
+            createDelayTimer(MSG_CHANNEL_LIST_DELAY, TIME_CHANNEL_LIST_DELAY);
         }
     }
 
@@ -877,6 +889,14 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
                 isNumberSwitching = false;
                 keyInputNumber = "";
                 popupSourceInfo(Utils.SHOW_VIEW);
+                break;
+            case MSG_CHANNEL_LIST_DELAY:
+                delayCounter++;
+                max_counter = (int)msg.obj;
+                if (delayCounter > max_counter) {
+                    popupChannelList(Utils.HIDE_VIEW);
+                    popupSourceInfo(Utils.SHOW_VIEW);
+                }
                 break;
             default:
                 break;
