@@ -64,7 +64,6 @@
 
         <activity
             android:name=".settings.TvSettingsActivity"
-            android:process="com.droidlogic.tvinput.setup"
             android:label="@string/app_name"
             android:theme="@style/Settings"
             android:windowSoftInputMode="adjustPan">
@@ -75,7 +74,6 @@
 
         <activity
             android:name=".shortcut.ShortCutActivity"
-            android:process="com.droidlogic.tvinput.setting"
             android:label="@string/app_name"
             android:theme="@style/Settings">
             <intent-filter>
