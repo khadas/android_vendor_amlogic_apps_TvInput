@@ -34,6 +34,7 @@ import android.os.HandlerThread;
 import android.os.SystemClock;
 import android.os.Handler.Callback;
 import android.os.Message;
+import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.SurfaceHolder;
@@ -722,7 +723,8 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
             mInfoName.setText("");
         } else {
             mInfoNumber.setText(mSourceInput.getChannelNumber());
-            mInfoName.setText(mSourceInput.getChannelType());
+            mInfoName.setText(TextUtils.isEmpty(mSourceInput.getChannelType()) ? "" : mSourceInput
+                    .getChannelType().substring(5));
         }
     }
 
