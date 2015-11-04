@@ -199,6 +199,31 @@ public class SourceButton extends Button implements OnClickListener{
         }
     }
 
+    public int getSigType() {
+        int ret = 0;
+        switch (mSourceType) {
+            case DroidLogicTvUtils.SOURCE_TYPE_ATV:
+                ret = DroidLogicTvUtils.SIG_INFO_TYPE_ATV;
+                break;
+            case DroidLogicTvUtils.SOURCE_TYPE_DTV:
+                ret = DroidLogicTvUtils.SIG_INFO_TYPE_DTV;
+                break;
+            case DroidLogicTvUtils.SOURCE_TYPE_AV1:
+            case DroidLogicTvUtils.SOURCE_TYPE_AV2:
+                ret = DroidLogicTvUtils.SIG_INFO_TYPE_AV;
+                break;
+            case DroidLogicTvUtils.SOURCE_TYPE_HDMI1:
+            case DroidLogicTvUtils.SOURCE_TYPE_HDMI2:
+            case DroidLogicTvUtils.SOURCE_TYPE_HDMI3:
+                ret = DroidLogicTvUtils.SIG_INFO_TYPE_HDMI;
+                break;
+            default:
+                ret = DroidLogicTvUtils.SIG_INFO_TYPE_OTHER;
+                break;
+        }
+        return ret;
+    }
+
     private void ensureValidField(TvInputInfo info) {
         if (info == null) {
             throw new IllegalArgumentException("wrong argument info...");
