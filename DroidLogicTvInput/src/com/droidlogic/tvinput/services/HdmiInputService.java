@@ -7,9 +7,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import com.droidlogic.app.tv.DroidLogicTvInputService;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.app.tv.TvInputBaseSession;
-import com.droidlogic.tvclient.TvClient;
 import com.droidlogic.utils.Utils;
-import android.amlogic.Tv;
 import android.content.Context;
 import android.content.pm.ResolveInfo;
 import android.media.tv.TvInputHardwareInfo;
@@ -19,7 +17,6 @@ import android.text.TextUtils;
 
 public class HdmiInputService extends DroidLogicTvInputService {
     private static final String TAG = HdmiInputService.class.getSimpleName();
-    private static TvClient client = TvClient.getTvClient();
     private HdmiInputSession mSession;
 
     @Override
@@ -27,7 +24,6 @@ public class HdmiInputService extends DroidLogicTvInputService {
         super.onCreateSession(inputId);
         mSession = new HdmiInputSession(getApplicationContext(), inputId, getHardwareDeviceId(inputId));
         registerInputSession(mSession);
-        client.curSource = Tv.SourceInput_Type.SOURCE_TYPE_HDMI;
         return mSession;
     }
 

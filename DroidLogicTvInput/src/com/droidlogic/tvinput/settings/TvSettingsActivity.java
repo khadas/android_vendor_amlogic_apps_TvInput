@@ -48,8 +48,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.layout_main);
 
-        mSettingsManager = new SettingsManager(this);
-        mSettingsManager.setInputId(getIntent().getStringExtra(TvInputInfo.EXTRA_INPUT_ID));
+        mSettingsManager = new SettingsManager(this, getIntent());
         client = mSettingsManager.getTvClient();
         tv = mSettingsManager.getTvInstance();
 
