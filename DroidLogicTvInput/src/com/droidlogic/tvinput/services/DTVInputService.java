@@ -20,19 +20,16 @@ import com.droidlogic.utils.tunerinput.tvutil.TVChannelParams;
 import com.droidlogic.app.tv.DroidLogicTvInputService;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.app.tv.TvInputBaseSession;
-import com.droidlogic.tvclient.TvClient;
 import com.droidlogic.utils.tunerinput.data.ChannelInfo;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import android.amlogic.Tv;
 
 public class DTVInputService extends DroidLogicTvInputService {
 
     private static final String TAG = "DTVInputService";
 
-    private static TvClient client = TvClient.getTvClient();
     private DTVSessionImpl mSession;
 
     private final BroadcastReceiver mParentalControlsBroadcastReceiver = new BroadcastReceiver() {
@@ -67,7 +64,6 @@ public class DTVInputService extends DroidLogicTvInputService {
         mSession = new DTVSessionImpl(this, inputId, getHardwareDeviceId(inputId));
         mSession.setOverlayViewEnabled(true);
         registerInputSession(mSession);
-        client.curSource = Tv.SourceInput_Type.SOURCE_TYPE_DTV;
         return mSession;
     }
 
@@ -77,7 +73,6 @@ public class DTVInputService extends DroidLogicTvInputService {
         private TvContentRating mLastBlockedRating;
         private TvContentRating mCurrentContentRating;
         private final Set<TvContentRating> mUnblockedRatingSet = new HashSet<>();
-        private Tv mTv = TvClient.getTvInstance();
 
         protected DTVSessionImpl(Context context, String inputId, int deviceId) {
             super(context, inputId, deviceId);
@@ -137,8 +132,9 @@ public class DTVInputService extends DroidLogicTvInputService {
         }
 
         private boolean playProgram(ChannelInfo info) {
-            if (info.type == TVChannelParams.MODE_DTMB)
-                mTv.PlayDTVProgram(
+            if (info.type == TVChannelParams.MODE_DTMB) {
+                Tv tv = Tv.open();
+                tv.PlayDTVProgram(
                         info.type,
                         info.frequency,
                         info.bandwidth,
@@ -149,9 +145,8 @@ public class DTVInputService extends DroidLogicTvInputService {
                         (info.audioFormats != null) ? info.audioFormats[info.audioTrackIndex] : -1,
                         info.pcrPID,
                         info.audioCompensation);
-            else
+            } else
                 Log.d(TAG, "channel type[" + info.type + "] not supported yet.");
-            client.curChannel = info;
             checkContentBlockNeeded();
             return true;
         }

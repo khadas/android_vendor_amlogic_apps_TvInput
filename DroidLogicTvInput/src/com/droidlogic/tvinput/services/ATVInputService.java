@@ -21,18 +21,15 @@ import com.droidlogic.utils.tunerinput.data.ChannelInfo;
 import com.droidlogic.app.tv.DroidLogicTvInputService;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.app.tv.TvInputBaseSession;
-import com.droidlogic.tvclient.TvClient;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import android.amlogic.Tv;
 
 public class ATVInputService extends DroidLogicTvInputService {
 
     private static final String TAG = "ATVInputService";
 
-    private static TvClient client = TvClient.getTvClient();
     private ATVSessionImpl mSession;
 
     private final BroadcastReceiver mParentalControlsBroadcastReceiver = new BroadcastReceiver() {
@@ -65,7 +62,6 @@ public class ATVInputService extends DroidLogicTvInputService {
         mSession = new ATVSessionImpl(this, inputId, getHardwareDeviceId(inputId));
         mSession.setOverlayViewEnabled(true);
         registerInputSession(mSession);
-        client.curSource = Tv.SourceInput_Type.SOURCE_TYPE_TV;
         return mSession;
     }
 
@@ -75,7 +71,6 @@ public class ATVInputService extends DroidLogicTvInputService {
         private TvContentRating mLastBlockedRating;
         private TvContentRating mCurrentContentRating;
         private final Set<TvContentRating> mUnblockedRatingSet = new HashSet<>();
-        private Tv mTv = TvClient.getTvInstance();
 
         protected ATVSessionImpl(Context context, String inputId, int deviceId) {
             super(context, inputId, deviceId);
@@ -135,8 +130,8 @@ public class ATVInputService extends DroidLogicTvInputService {
         }
 
         private boolean playProgram(ChannelInfo info) {
-            mTv.PlayATVProgram(info.frequency, info.videoStd, info.audioStd, info.fineTune, info.audioCompensation);
-            client.curChannel = info;
+            Tv tv = Tv.open();
+            tv.PlayATVProgram(info.frequency, info.videoStd, info.audioStd, info.fineTune, info.audioCompensation);
             checkContentBlockNeeded();
             return true;
         }

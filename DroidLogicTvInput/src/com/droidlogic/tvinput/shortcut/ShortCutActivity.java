@@ -43,7 +43,7 @@ public class ShortCutActivity extends Activity {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-        mSettingsManager = new SettingsManager(this);
+        mSettingsManager = new SettingsManager(this, getIntent());
         mResources = getResources();
 
         int mode = getIntent().getIntExtra(DroidLogicTvUtils.EXTRA_KEY_CODE, 0);

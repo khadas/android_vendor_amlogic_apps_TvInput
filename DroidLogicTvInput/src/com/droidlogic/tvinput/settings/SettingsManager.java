@@ -19,6 +19,7 @@ import java.util.HashMap;
 import android.R.integer;
 import android.amlogic.Tv;
 
+import android.media.tv.TvInputInfo;
 import com.droidlogic.app.SystemControlManager;
 import android.media.tv.TvContract.Channels;
 import com.droidlogic.utils.tunerinput.data.ChannelInfo;
@@ -118,11 +119,13 @@ public class SettingsManager {
 
     private Context mContext;
     private Resources mResources;
+    private String mInputId;
 
-    public SettingsManager (Context context) {
+    public SettingsManager (Context context, Intent intent) {
         mContext = context;
-        client = TvClient.getTvClient();
-        tv = TvClient.getTvInstance();
+        mInputId = intent.getStringExtra(TvInputInfo.EXTRA_INPUT_ID);
+        client = new TvClient(intent.getStringExtra(TvInputInfo.EXTRA_LABEL));
+        tv = client.getTvInstance();
         mResources = mContext.getResources();
         Log.d(TAG, " @@@@@@@@@@@@@ client.curSource = " + client.curSource);
     }
@@ -516,12 +519,6 @@ public class SettingsManager {
 
     private int mSearchProgress;
     private int mSearchedNumber;
-    private String mInputId;
-
-    public String setInputId(String id) {
-        mInputId = id;
-        return id;
-    }
 
     public String getInputId() {
         return mInputId;

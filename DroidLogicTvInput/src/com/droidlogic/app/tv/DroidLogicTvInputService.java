@@ -5,6 +5,7 @@ import java.util.List;
 import android.amlogic.Tv;
 import android.amlogic.Tv.tvin_info_t;
 
+import com.droidlogic.tvclient.TvClient;
 import com.droidlogic.tvinput.services.ATVInputService.ATVSessionImpl;
 import com.droidlogic.tvinput.services.AVInputService.AVInputSession;
 import com.droidlogic.tvinput.services.DTVInputService.DTVSessionImpl;
@@ -91,25 +92,25 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
         String label = null;
         switch (device_id) {
             case DroidLogicTvUtils.DEVICE_ID_ATV:
-                label = "ATV";
+                label = TvClient.LABEL_ATV;
                 break;
             case DroidLogicTvUtils.DEVICE_ID_DTV:
-                label = "DTV";
+                label = TvClient.LABEL_DTV;
                 break;
             case DroidLogicTvUtils.DEVICE_ID_AV1:
-                label = "AV1";
+                label = TvClient.LABEL_AV1;
                 break;
             case DroidLogicTvUtils.DEVICE_ID_AV2:
-                label = "AV2";
+                label = TvClient.LABEL_AV2;
                 break;
             case DroidLogicTvUtils.DEVICE_ID_HDMI1:
-                label = "HDMI1";
+                label = TvClient.LABEL_HDMI1;
                 break;
             case DroidLogicTvUtils.DEVICE_ID_HDMI2:
-                label = "HDMI2";
+                label = TvClient.LABEL_HDMI2;
                 break;
             case DroidLogicTvUtils.DEVICE_ID_HDMI3:
-                label = "HDMI3";
+                label = TvClient.LABEL_HDMI3;
                 break;
             default:
                 break;
