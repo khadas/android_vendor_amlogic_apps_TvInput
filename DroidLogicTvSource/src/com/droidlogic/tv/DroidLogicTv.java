@@ -322,7 +322,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     private void switchToSourceInput() {
         mThreadHandler.obtainMessage(MSG_SAVE_CHANNEL_INFO).sendToTarget();
         mPreSigType = mSigType;
-        mSigType = getSigType(mSourceInput.getSourceType());
+        mSigType = mSourceInput.getSigType();
         Uri channel_uri = mSourceInput.getUri();
         Utils.logd(TAG, "channelUri switching to is " + channel_uri);
 
@@ -364,31 +364,6 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
                 || resultCode == DroidLogicTvUtils.RESULT_FAILED) {
             needUpdateSource = true;
         }
-    }
-
-    private int getSigType(int source_type) {
-        int ret = 0;
-        switch (source_type) {
-            case DroidLogicTvUtils.SOURCE_TYPE_ATV:
-                ret = DroidLogicTvUtils.SIG_INFO_TYPE_ATV;
-                break;
-            case DroidLogicTvUtils.SOURCE_TYPE_DTV:
-                ret = DroidLogicTvUtils.SIG_INFO_TYPE_DTV;
-                break;
-            case DroidLogicTvUtils.SOURCE_TYPE_AV1:
-            case DroidLogicTvUtils.SOURCE_TYPE_AV2:
-                ret = DroidLogicTvUtils.SIG_INFO_TYPE_AV;
-                break;
-            case DroidLogicTvUtils.SOURCE_TYPE_HDMI1:
-            case DroidLogicTvUtils.SOURCE_TYPE_HDMI2:
-            case DroidLogicTvUtils.SOURCE_TYPE_HDMI3:
-                ret = DroidLogicTvUtils.SIG_INFO_TYPE_HDMI;
-                break;
-            default:
-                ret = DroidLogicTvUtils.SIG_INFO_TYPE_OTHER;
-                break;
-        }
-        return ret;
     }
 
     /**
@@ -762,7 +737,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
 
     private void processSessionEvent(String inputId, String eventType, Bundle eventArgs) {
         if (eventType.equals(DroidLogicTvUtils.SIG_INFO_EVENT)) {//sig_info
-            mSigType = getSigType(mSourceInput.getSourceType());
+            mSigType = mSourceInput.getSigType();
             String args = "";
 
             switch (mSigType) {

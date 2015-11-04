@@ -83,7 +83,9 @@ public class ChannelTuner {
                     Log.d(TAG, "==== initChannelList, cursor count = " + cursor.getCount());
                 while (cursor != null && cursor.moveToNext()) {
                     Channel channel = Channel.fromCursor(cursor);
-                    if (isDTVChannel() && isRadioChannel(channel)) {
+                    if (mSourceType == DroidLogicTvUtils.SOURCE_TYPE_OTHER) {
+                        mVideoChannels.put((int)channel.getId(), channel);
+                    } else if (isDTVChannel() && isRadioChannel(channel)) {
                         mRadioChannels.put(channel.getChannelNumber(), channel);
                     } else if (isVideoChannel(channel)) {
                         mVideoChannels.put(channel.getChannelNumber(), channel);
@@ -242,7 +244,9 @@ public class ChannelTuner {
             cursor = resolver.query(uri, Channel.PROJECTION, mSelection, null, null);
             while (cursor != null && cursor.moveToNext()) {
                 Channel channel = Channel.fromCursor(cursor);
-                if (isDTVChannel() && isRadioChannel(channel)) {
+                if (mSourceType == DroidLogicTvUtils.SOURCE_TYPE_OTHER) {
+                    mVideoChannels.put((int)channel.getId(), channel);
+                } else if (isDTVChannel() && isRadioChannel(channel)) {
                     mRadioChannels.put(channel.getChannelNumber(), channel);
                 } else if (isVideoChannel(channel)) {
                     mVideoChannels.put(channel.getChannelNumber(), channel);
