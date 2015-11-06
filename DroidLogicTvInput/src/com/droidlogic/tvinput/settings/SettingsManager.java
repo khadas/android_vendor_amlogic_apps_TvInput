@@ -877,8 +877,10 @@ public class SettingsManager {
         if (channel != null) {
             if (channel.skip == 0)
                 channel.skip = 1;
-            else
+            else {
                 channel.skip = 0;
+                channel.fav = 0;
+            }
             TvContractUtils.updateChannelInfo(mContext, channel);
         }
     }
@@ -894,9 +896,10 @@ public class SettingsManager {
         ChannelInfo channel = getChannelByNumber(type, channelNumber);
 
         if (channel != null) {
-            if (channel.fav == 0)
+            if (channel.fav == 0) {
                 channel.fav = 1;
-            else
+                channel.skip = 1;
+            } else
                 channel.fav = 0;
             TvContractUtils.updateChannelInfo(mContext, channel);
         }
