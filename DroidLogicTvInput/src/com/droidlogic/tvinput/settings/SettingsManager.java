@@ -380,11 +380,11 @@ public class SettingsManager {
     }
 
     private String getCurrentChannelStatus () {
-        return null;
+        return client.curChannel.name;
     }
 
     private String getFrequencyStatus () {
-        return null;
+        return Integer.toString(client.curChannel.frequency);
     }
 
     private String getAudioTrackStatus () {
@@ -412,15 +412,15 @@ public class SettingsManager {
 
         HashMap<String,Object> item = new HashMap<String,Object>();
         item.put(STRING_NAME, mResources.getString(R.string.channel_l));
-        item.put(STRING_STATUS, "2");
+        item.put(STRING_STATUS, client.curChannel.name);
         list.add(item);
 
         item = new HashMap<String,Object>();
         item.put(STRING_NAME, mResources.getString(R.string.frequency_l));
-        item.put(STRING_STATUS, "586.0MHz");
+        item.put(STRING_STATUS, Integer.toString(client.curChannel.frequency));
         list.add(item);
 
-        item = new HashMap<String,Object>();
+        /*item = new HashMap<String,Object>();
         item.put(STRING_NAME, mResources.getString(R.string.quality));
         item.put(STRING_STATUS, "18dB");
         list.add(item);
@@ -428,21 +428,21 @@ public class SettingsManager {
         item = new HashMap<String,Object>();
         item.put(STRING_NAME, mResources.getString(R.string.strength));
         item.put(STRING_STATUS, "0%");
-        list.add(item);
+        list.add(item);*/
 
         item = new HashMap<String,Object>();
         item.put(STRING_NAME, mResources.getString(R.string.type));
-        item.put(STRING_STATUS, "1");
+        item.put(STRING_STATUS, Integer.toString(client.curChannel.type));
         list.add(item);
 
         item = new HashMap<String,Object>();
         item.put(STRING_NAME, mResources.getString(R.string.service_id));
-        item.put(STRING_STATUS, "83");
+        item.put(STRING_STATUS, Integer.toString(client.curChannel.serviceId));
         list.add(item);
 
         item = new HashMap<String,Object>();
         item.put(STRING_NAME, mResources.getString(R.string.pcr_id));
-        item.put(STRING_STATUS, "831");
+        item.put(STRING_STATUS, Integer.toString(client.curChannel.pcrPID));
         list.add(item);
 
         return list;
@@ -568,7 +568,7 @@ public class SettingsManager {
             for (int i = 0 ; i < channelList.size(); i++) {
                 ChannelInfo info = channelList.get(i);
                 HashMap<String,Object> item = new HashMap<String,Object>();
-                if (info.skip == 0)
+                if (info.skip == 1)
                     item.put(STRING_ICON, R.drawable.skip);
                 else if (info.fav == 1)
                     item.put(STRING_ICON, R.drawable.favourite);
@@ -875,12 +875,11 @@ public class SettingsManager {
         ChannelInfo channel = getChannelByNumber(type, channelNumber);
 
         if (channel != null) {
-            if (channel.skip == 0)
+            if (channel.skip == 0) {
                 channel.skip = 1;
-            else {
-                channel.skip = 0;
                 channel.fav = 0;
-            }
+            } else
+                channel.skip = 0;
             TvContractUtils.updateChannelInfo(mContext, channel);
         }
     }
@@ -898,7 +897,7 @@ public class SettingsManager {
         if (channel != null) {
             if (channel.fav == 0) {
                 channel.fav = 1;
-                channel.skip = 1;
+                channel.skip = 0;
             } else
                 channel.fav = 0;
             TvContractUtils.updateChannelInfo(mContext, channel);

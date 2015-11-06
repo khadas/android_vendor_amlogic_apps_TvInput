@@ -24,7 +24,7 @@ public class ChannelTuner {
     private Channel mCurrentChannel;
     private static final int DEFAULT_CHANNEL_IDDEX = -1;
     private int mCurrentChannelIndex;
-    private String mSelection = Channels.COLUMN_BROWSABLE + "=1";
+    private String mSelection = Channels.COLUMN_BROWSABLE + "=0";
 
     public ChannelTuner(Context context, TvInputInfo input_info) {
         mContext = context;

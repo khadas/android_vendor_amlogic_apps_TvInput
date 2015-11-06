@@ -1077,7 +1077,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         return new ChannelInfo(String.valueOf(temp_display_number), name, null, event.orig_net_id,
                 event.ts_id, mSettingsManager.getInputId(), event.serviceID, 0, 0, event.mode,
                 event.srvType, event.freq, event.bandwidth, event.vid, event.vfmt, event.aids,
-                event.afmts, event.alangs, event.pcr, 0, 0, 0, 0, 0, 0, 1, 0);
+                event.afmts, event.alangs, event.pcr, 0, 0, 0, 0, 0, 0, 0, 0);
     }
 
     private ChannelInfo initAtvChannelInfo (Tv.ScannerEvent event) {
@@ -1089,7 +1089,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 null,// audioFormats[],
                 null,// audioLangs[],
                 0,// pcrPID,
-                event.videoStd, event.audioStd, event.isAutoStd, 0, 0, 0, 1, 0);
+                event.videoStd, event.audioStd, event.isAutoStd, 0, 0, 0, 0, 0);
     }
 
     @Override

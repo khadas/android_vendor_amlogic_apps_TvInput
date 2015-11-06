@@ -71,7 +71,7 @@ public class Channel {
             builder.setVideoFormat(cursor.getString(index));
         index = cursor.getColumnIndex(Channels.COLUMN_BROWSABLE);
         if (index >= 0)
-            builder.setBrowsable(cursor.getInt(index)==1 ? true : false);
+            builder.setBrowsable(cursor.getInt(index)==1 ? false : true);
         index = cursor.getColumnIndex(Channels.COLUMN_LOCKED);
         if (index >= 0)
             builder.setLocked(cursor.getInt(index)==1 ? true : false);

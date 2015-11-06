@@ -77,7 +77,8 @@ public class ShortCutActivity extends Activity {
                 if (display_mode.equals(mResources.getString(R.string.auto))) {
                     mSettingsManager.setAspectRatio(SettingsManager.STATUS_4_TO_3);
                 } else if (display_mode.equals(mResources.getString(R.string.four2three))) {
-                    mSettingsManager.setAspectRatio(SettingsManager.STATUS_PANORAMA);
+                    //mSettingsManager.setAspectRatio(SettingsManager.STATUS_PANORAMA);
+                    mSettingsManager.setAspectRatio(SettingsManager.STATUS_FULL_SCREEN);
                 } else if (display_mode.equals(mResources.getString(R.string.panorama))) {
                     mSettingsManager.setAspectRatio(SettingsManager.STATUS_FULL_SCREEN);
                 } else if (display_mode.equals(mResources.getString(R.string.full_screen))) {

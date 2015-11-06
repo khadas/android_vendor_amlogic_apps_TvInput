@@ -29,7 +29,7 @@ public final class ChannelInfo {
 	public final int fineTune;
 	public int audioTrackIndex;
 	public int audioCompensation;
-	public int skip;//0 is skip
+	public int skip;//1 is skip
 	public int fav;//1 is fav
 
 	public ChannelInfo(String number,

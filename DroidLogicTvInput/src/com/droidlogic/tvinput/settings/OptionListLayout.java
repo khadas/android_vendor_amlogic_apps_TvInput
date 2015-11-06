@@ -79,5 +79,6 @@ public class OptionListLayout implements OnItemClickListener{
                 mSettingsManager.setSoundChannel(position);
                 break;
         }
+        ((TvSettingsActivity) mContext).getCurrentFragment().refreshList();
     }
 }
