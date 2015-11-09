@@ -3,6 +3,7 @@ package com.droidlogic.app.tv;
 import android.content.UriMatcher;
 import android.media.tv.TvContract;
 import android.net.Uri;
+import android.provider.Settings;
 
 
 public class DroidLogicTvUtils {
@@ -65,6 +66,15 @@ public class DroidLogicTvUtils {
      * Other extra names for {@link TvInputInfo.createSettingsIntent#intent} except for input id.
      */
     public static final String EXTRA_KEY_CODE = "key_code";
+
+    /**
+     * used for table {@link Settings#System}.
+     * {@link #TV_START_UP_ENTER_APP} indicates whether enter into TV but not home activity,
+     * and enter into it when value is {@value >0}.
+     * {@link #TV_START_UP_APP_NAME} indicates the class name of TV, format is pkg_name/.class_name
+     */
+    public static final String TV_START_UP_ENTER_APP = "tv_start_up_enter_app";
+    public static final String TV_START_UP_APP_NAME = "tv_start_up_app_name";
 
     /**
      * message for {@link TvInputBaseSession#handleMessage(android.os.Message)}
