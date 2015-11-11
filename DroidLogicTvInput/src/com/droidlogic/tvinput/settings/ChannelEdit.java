@@ -23,8 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import com.droidlogic.tvinput.R;
-import com.droidlogic.tvclient.TvClient;
-import android.amlogic.Tv;
+import com.droidlogic.app.tv.TvControlManager;
 
 public class ChannelEdit implements OnClickListener, OnFocusChangeListener {
     private static final String TAG = "ChannelEdit";
@@ -59,12 +58,10 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener {
     private int needOperateChannelPosition = ACTION_INITIAL_STATE;
     private int currentOperation = ACTION_INITIAL_STATE;
 
-    private TvClient client;
 
     public ChannelEdit (Context context, View view) {
         mContext = context;
         mSettingsManager = ((TvSettingsActivity)mContext).getSettingsManager();
-        client = mSettingsManager.getTvClient();
         channelEditView = view;
 
         initChannelEditView();
@@ -83,9 +80,9 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener {
         operationsView = (ViewGroup)channelEditView.findViewById(R.id.channel_edit_operations);
         operationsEditView = (ViewGroup)channelEditView.findViewById(R.id.channel_edit_editname);
 
-        if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV)
+        if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV)
             channelType = TYPE_ATV;
-        else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV)
+        else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV)
             channelType = TYPE_DTV_TV;
         ChannelListData = ((TvSettingsActivity)mContext).getSettingsManager().getChannelList(channelType);
 
@@ -116,12 +113,12 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener {
             });
         }
 
-        if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV) {
+        if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV) {
             button_tv.setVisibility(View.GONE);
             button_radio.setVisibility(View.GONE);
             operationsView.setVisibility(View.GONE);
             operationsEditView.setVisibility(View.GONE);
-        } else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV) {
+        } else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
             channelListView.setVisibility(View.GONE);
             operationsView.setVisibility(View.GONE);
             operationsEditView.setVisibility(View.GONE);

@@ -11,27 +11,24 @@ import android.content.pm.IPackageDataObserver;
 import android.content.res.Resources;
 import android.provider.Settings;
 import android.os.SystemProperties;
+import android.text.TextUtils;
 import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import android.R.integer;
-import android.amlogic.Tv;
-
 import android.media.tv.TvInputInfo;
 import com.droidlogic.app.SystemControlManager;
 import android.media.tv.TvContract.Channels;
-import com.droidlogic.utils.tunerinput.data.ChannelInfo;
-import com.droidlogic.utils.tunerinput.tvutil.TvContractUtils;
-import com.droidlogic.tvclient.TvClient;
+import com.droidlogic.app.tv.ChannelInfo;
+import com.droidlogic.app.tv.TvDataBaseManager;
+import com.droidlogic.app.tv.TvControlManager;
+import com.droidlogic.app.tv.DroidLogicTvUtils;
+import com.droidlogic.app.tv.TVMultilingualText;
 import com.droidlogic.tvinput.R;
 
 public class SettingsManager {
     public static final String TAG = "SettingsManager";
-
-    private TvClient client;
-    private Tv tv;
 
     public static final String KEY_PICTURE                          = "picture";
     public static final String KEY_PICTURE_MODE                     = "picture_mode";
@@ -120,14 +117,31 @@ public class SettingsManager {
     private Context mContext;
     private Resources mResources;
     private String mInputId;
+    private TvControlManager.SourceInput_Type mTvSource;
+    private ChannelInfo currentChannel;
+    private TvControlManager mTvControlManager;
+    private TvDataBaseManager mTvDataBaseManager;
+    private boolean isRadioChannel = false;
 
     public SettingsManager (Context context, Intent intent) {
         mContext = context;
+        mTvDataBaseManager = new TvDataBaseManager(mContext);
+
         mInputId = intent.getStringExtra(TvInputInfo.EXTRA_INPUT_ID);
-        client = new TvClient(intent.getStringExtra(TvInputInfo.EXTRA_LABEL));
-        tv = client.getTvInstance();
+        isRadioChannel = intent.getBooleanExtra(DroidLogicTvUtils.EXTRA_IS_RADIO_CHANNEL, false);
+        mTvSource = parseTvSourceType(intent.getIntExtra(DroidLogicTvUtils.EXTRA_CHANNEL_DEVICE_ID, -1));
+
+        if (mTvSource == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV
+            || mTvSource == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
+            String channelNumber = intent.getStringExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER);
+            Log.d(TAG, "current channelNumber = " +  channelNumber);
+            if (!TextUtils.isEmpty(channelNumber))
+                currentChannel = getChannelByNumber(parseChannelEditType(), Integer.valueOf(channelNumber));
+        }
+
+        mTvControlManager = TvControlManager.open();
         mResources = mContext.getResources();
-        Log.d(TAG, " @@@@@@@@@@@@@ client.curSource = " + client.curSource);
+        Log.d(TAG, " curSource=" + mTvSource + " isRadio=" + isRadioChannel);
     }
 
     public void setTag (String tag) {
@@ -138,12 +152,55 @@ public class SettingsManager {
         return currentTag;
     }
 
-    public TvClient getTvClient () {
-        return client;
+    public TvControlManager.SourceInput_Type getCurentTvSource () {
+        return mTvSource;
     }
 
-    public Tv getTvInstance () {
-        return tv;
+    public TvControlManager getTvControlManager () {
+        return mTvControlManager;
+    }
+
+    public TvDataBaseManager getTvDataBaseManager () {
+        return mTvDataBaseManager;
+    }
+
+    private TvControlManager.SourceInput_Type parseTvSourceType (int deviceId) {
+        TvControlManager.SourceInput_Type source;
+
+        switch (deviceId) {
+            case DroidLogicTvUtils.DEVICE_ID_ATV:
+                source = TvControlManager.SourceInput_Type.SOURCE_TYPE_TV;
+                break;
+            case DroidLogicTvUtils.DEVICE_ID_AV1:
+            case DroidLogicTvUtils.DEVICE_ID_AV2:
+                source = TvControlManager.SourceInput_Type.SOURCE_TYPE_AV;
+                break;
+            case DroidLogicTvUtils.DEVICE_ID_HDMI1:
+            case DroidLogicTvUtils.DEVICE_ID_HDMI2:
+            case DroidLogicTvUtils.DEVICE_ID_HDMI3:
+                source = TvControlManager.SourceInput_Type.SOURCE_TYPE_HDMI;
+                break;
+            case DroidLogicTvUtils.DEVICE_ID_DTV:
+                source = TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV;
+                break;
+            default:
+                source = TvControlManager.SourceInput_Type.SOURCE_TYPE_TV;
+                break;
+        }
+        return source;
+    }
+
+    private int parseChannelEditType () {
+        if (mTvSource == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV)
+            return ChannelEdit.TYPE_ATV;
+        else if (mTvSource == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
+            if (!isRadioChannel)
+                return ChannelEdit.TYPE_DTV_TV;
+            else
+                return ChannelEdit.TYPE_DTV_RADIO;
+        }
+
+        return ChannelEdit.TYPE_ATV;
     }
 
     public String getStatus (String key) {
@@ -190,7 +247,7 @@ public class SettingsManager {
             return getBassBoostStatus();
         }
         //channel
-        else if (key.equals(KEY_CURRENT_CHANNEL)) {
+        else if (key.equals(KEY_CURRENT_CHANNEL) || key.equals(KEY_CHANNEL_INFO)) {
             return getCurrentChannelStatus();
         } else if (key.equals(KEY_FREQUNCY)) {
             return getFrequencyStatus();
@@ -221,7 +278,7 @@ public class SettingsManager {
     }
 
     public  String getPictureModeStatus () {
-        int pictureModeIndex = tv.GetPQMode(client.curSource);
+        int pictureModeIndex = mTvControlManager.GetPQMode(mTvSource);
         switch (pictureModeIndex) {
             case 0:
                 return mResources.getString(R.string.standard);
@@ -237,27 +294,27 @@ public class SettingsManager {
     }
 
     private String getBrightnessStatus () {
-        return tv.GetBrightness(client.curSource) + "%";
+        return mTvControlManager.GetBrightness(mTvSource) + "%";
     }
 
     private String getContrastStatus () {
-        return tv.GetContrast(client.curSource) + "%";
+        return mTvControlManager.GetContrast(mTvSource) + "%";
     }
 
     private String getColorStatus () {
-        return tv.GetSaturation(client.curSource) + "%";
+        return mTvControlManager.GetSaturation(mTvSource) + "%";
     }
 
     private String getSharpnessStatus () {
-        return tv.GetSharpness(client.curSource) + "%";
+        return mTvControlManager.GetSharpness(mTvSource) + "%";
     }
 
     private String getBacklightStatus () {
-        return tv.GetBacklight(client.curSource) + "%";
+        return mTvControlManager.GetBacklight(mTvSource) + "%";
     }
 
     private String getColorTemperatureStatus () {
-        int itemPosition = tv.GetColorTemperature(client.curSource);
+        int itemPosition = mTvControlManager.GetColorTemperature(mTvSource);
         if (itemPosition == 0)
             return mResources.getString(R.string.standard);
         else if (itemPosition == 1)
@@ -267,19 +324,19 @@ public class SettingsManager {
     }
 
     public String getAspectRatioStatus () {
-        int itemPosition = tv.GetDisplayMode(client.curSource);
-        if (itemPosition == Tv.Display_Mode.DISPLAY_MODE_169.toInt())
+        int itemPosition = mTvControlManager.GetDisplayMode(mTvSource);
+        if (itemPosition == TvControlManager.Display_Mode.DISPLAY_MODE_169.toInt())
             return mResources.getString(R.string.full_screen);
-        else if (itemPosition == Tv.Display_Mode.DISPLAY_MODE_MODE43.toInt())
+        else if (itemPosition == TvControlManager.Display_Mode.DISPLAY_MODE_MODE43.toInt())
             return mResources.getString(R.string.four2three);
-        else if (itemPosition == Tv.Display_Mode.DISPLAY_MODE_FULL.toInt())
+        else if (itemPosition == TvControlManager.Display_Mode.DISPLAY_MODE_FULL.toInt())
             return mResources.getString(R.string.panorama);
         else
             return mResources.getString(R.string.auto);
     }
 
     private String getDnrStatus () {
-        int itemPosition = tv.GetNoiseReductionMode(client.curSource);
+        int itemPosition = mTvControlManager.GetNoiseReductionMode(mTvSource);
         if (itemPosition == 0)
             return mResources.getString(R.string.off);
         else if (itemPosition == 1)
@@ -293,20 +350,20 @@ public class SettingsManager {
     }
 
     public  String get3dSettingsStatus () {
-        if (tv.Get3DTo2DMode() != 0)
+        if (mTvControlManager.Get3DTo2DMode() != 0)
             return mResources.getString(R.string.mode_3d_to_2d);
-        int threeD_mode = tv.Get3DMode();
-        if (threeD_mode == Tv.Mode_3D.MODE_3D_CLOSE.toInt()) {
+        int threeD_mode = mTvControlManager.Get3DMode();
+        if (threeD_mode == TvControlManager.Mode_3D.MODE_3D_CLOSE.toInt()) {
             return mResources.getString(R.string.off);
-        } else if (threeD_mode == Tv.Mode_3D.MODE_3D_AUTO.toInt()) {
+        } else if (threeD_mode == TvControlManager.Mode_3D.MODE_3D_AUTO.toInt()) {
             return mResources.getString(R.string.auto);
-        } else if (threeD_mode == Tv.Mode_3D.MODE_3D_LEFT_RIGHT.toInt()) {
-            if (tv.Get3DLRSwith() == 0)
+        } else if (threeD_mode == TvControlManager.Mode_3D.MODE_3D_LEFT_RIGHT.toInt()) {
+            if (mTvControlManager.Get3DLRSwith() == 0)
                 return mResources.getString(R.string.mode_lr);
             else
                 return mResources.getString(R.string.mode_rl);
-        } else if (threeD_mode == Tv.Mode_3D.MODE_3D_UP_DOWN.toInt()) {
-            if (tv.Get3DLRSwith() == 0)
+        } else if (threeD_mode == TvControlManager.Mode_3D.MODE_3D_UP_DOWN.toInt()) {
+            if (mTvControlManager.Get3DLRSwith() == 0)
                 return mResources.getString(R.string.mode_ud);
             else
                 return mResources.getString(R.string.mode_du);
@@ -316,7 +373,7 @@ public class SettingsManager {
     }
 
     public  String getSoundModeStatus () {
-        int itemPosition = tv.GetCurAudioSoundMode();
+        int itemPosition = mTvControlManager.GetCurAudioSoundMode();
         if (itemPosition == 0)
             return mResources.getString(R.string.standard);
         else if (itemPosition == 1)
@@ -332,21 +389,21 @@ public class SettingsManager {
     }
 
     private String getTrebleStatus () {
-        return tv.GetCurAudioTrebleVolume() + "%";
+        return mTvControlManager.GetCurAudioTrebleVolume() + "%";
     }
 
     private String getBassStatus () {
-        return tv.GetCurAudioBassVolume() + "%";
+        return mTvControlManager.GetCurAudioBassVolume() + "%";
     }
 
     private String getBalanceStatus () {
-        return tv.GetCurAudioBalance() + "%";
+        return mTvControlManager.GetCurAudioBalance() + "%";
     }
 
     private String getSpdifStatus () {
-        if (tv.GetCurAudioSPDIFSwitch() == 0)
+        if (mTvControlManager.GetCurAudioSPDIFSwitch() == 0)
             return mResources.getString(R.string.off);
-        int itemPosition = tv.GetCurAudioSPDIFMode();
+        int itemPosition = mTvControlManager.GetCurAudioSPDIFMode();
         if (itemPosition == 0)
             return mResources.getString(R.string.auto);
         else if (itemPosition == 1)
@@ -356,7 +413,7 @@ public class SettingsManager {
     }
 
     private String getSurroundStatus () {
-        int itemPosition = tv.GetCurAudioSrsSurround();
+        int itemPosition = mTvControlManager.GetCurAudioSrsSurround();
         if (itemPosition == 0)
             return mResources.getString(R.string.off);
         else
@@ -364,7 +421,7 @@ public class SettingsManager {
     }
 
     private String getDialogClarityStatus () {
-        int itemPosition = tv.GetCurAudioSrsDialogClarity();
+        int itemPosition = mTvControlManager.GetCurAudioSrsDialogClarity();
         if (itemPosition == 0)
             return mResources.getString(R.string.off);
         else
@@ -372,7 +429,7 @@ public class SettingsManager {
     }
 
     private String getBassBoostStatus () {
-        int itemPosition = tv.GetCurAudioSrsTruBass();
+        int itemPosition = mTvControlManager.GetCurAudioSrsTruBass();
         if (itemPosition == 0)
             return mResources.getString(R.string.off);
         else
@@ -380,22 +437,28 @@ public class SettingsManager {
     }
 
     private String getCurrentChannelStatus () {
-        return client.curChannel.name;
+        if (currentChannel != null)
+            return currentChannel.getDisplayName();
+
+        return null;
     }
 
     private String getFrequencyStatus () {
-        return Integer.toString(client.curChannel.frequency);
+        if (currentChannel != null)
+            return Integer.toString(currentChannel.getFrequency());
+
+        return null;
     }
 
     private String getAudioTrackStatus () {
-        if (client.curChannel.audioLangs == null)
-            return "";
+        if (currentChannel != null &&  currentChannel.getAudioLangs() != null)
+            return currentChannel.getAudioLangs()[currentChannel.getAudioTrackIndex()];
         else
-            return client.curChannel.audioLangs[client.curChannel.audioTrackIndex];
+            return null;
     }
 
     private String getSoundChannelStatus () {
-        switch (tv.DtvGetAudioChannleMod()) {
+        switch (mTvControlManager.DtvGetAudioChannleMod()) {
             case 0:
                 return mResources.getString(R.string.stereo);
             case 1:
@@ -410,51 +473,52 @@ public class SettingsManager {
     public ArrayList<HashMap<String,Object>> getChannelInfo () {
         ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
 
-        HashMap<String,Object> item = new HashMap<String,Object>();
-        item.put(STRING_NAME, mResources.getString(R.string.channel_l));
-        item.put(STRING_STATUS, client.curChannel.name);
-        list.add(item);
+        if (currentChannel != null) {
+            HashMap<String,Object> item = new HashMap<String,Object>();
+            item.put(STRING_NAME, mResources.getString(R.string.channel_l));
+            item.put(STRING_STATUS, currentChannel.getDisplayName());
+            list.add(item);
 
-        item = new HashMap<String,Object>();
-        item.put(STRING_NAME, mResources.getString(R.string.frequency_l));
-        item.put(STRING_STATUS, Integer.toString(client.curChannel.frequency));
-        list.add(item);
+            item = new HashMap<String,Object>();
+            item.put(STRING_NAME, mResources.getString(R.string.frequency_l));
+            item.put(STRING_STATUS, Integer.toString(currentChannel.getFrequency()));
+            list.add(item);
 
-        /*item = new HashMap<String,Object>();
-        item.put(STRING_NAME, mResources.getString(R.string.quality));
-        item.put(STRING_STATUS, "18dB");
-        list.add(item);
+            /*item = new HashMap<String,Object>();
+            item.put(STRING_NAME, mResources.getString(R.string.quality));
+            item.put(STRING_STATUS, "18dB");
+            list.add(item);
 
-        item = new HashMap<String,Object>();
-        item.put(STRING_NAME, mResources.getString(R.string.strength));
-        item.put(STRING_STATUS, "0%");
-        list.add(item);*/
+            item = new HashMap<String,Object>();
+            item.put(STRING_NAME, mResources.getString(R.string.strength));
+            item.put(STRING_STATUS, "0%");
+            list.add(item);*/
 
-        item = new HashMap<String,Object>();
-        item.put(STRING_NAME, mResources.getString(R.string.type));
-        item.put(STRING_STATUS, Integer.toString(client.curChannel.type));
-        list.add(item);
+            item = new HashMap<String,Object>();
+            item.put(STRING_NAME, mResources.getString(R.string.type));
+            item.put(STRING_STATUS, currentChannel.getType());
+            list.add(item);
 
-        item = new HashMap<String,Object>();
-        item.put(STRING_NAME, mResources.getString(R.string.service_id));
-        item.put(STRING_STATUS, Integer.toString(client.curChannel.serviceId));
-        list.add(item);
+            item = new HashMap<String,Object>();
+            item.put(STRING_NAME, mResources.getString(R.string.service_id));
+            item.put(STRING_STATUS, Integer.toString(currentChannel.getServiceId()));
+            list.add(item);
 
-        item = new HashMap<String,Object>();
-        item.put(STRING_NAME, mResources.getString(R.string.pcr_id));
-        item.put(STRING_STATUS, Integer.toString(client.curChannel.pcrPID));
-        list.add(item);
-
+            item = new HashMap<String,Object>();
+            item.put(STRING_NAME, mResources.getString(R.string.pcr_id));
+            item.put(STRING_STATUS, Integer.toString(currentChannel.getPcrPid()));
+            list.add(item);
+        }
         return list;
     }
 
     public ArrayList<HashMap<String,Object>> getAudioTrackList () {
         ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
 
-        if (client.curChannel.audioLangs != null)
-            for (int i=0;i<client.curChannel.audioLangs.length;i++) {
+        if (currentChannel != null && currentChannel.getAudioLangs() != null)
+            for (int i=0;i<currentChannel.getAudioLangs().length;i++) {
                 HashMap<String,Object> item = new HashMap<String,Object>();
-                item.put(STRING_NAME, client.curChannel.audioLangs[i]);
+                item.put(STRING_NAME, currentChannel.getAudioLangs()[i]);
                 list.add(item);
             }
 
@@ -480,37 +544,47 @@ public class SettingsManager {
     }
 
     private String getColorSystemStatus () {
-        switch (client.curChannel.videoStd)
-        {
-            case 0:
-                return mResources.getString(R.string.auto);
-            case 1:
-                return mResources.getString(R.string.pal);
-            case 2:
-                return mResources.getString(R.string.ntsc);
-            default:
-                return mResources.getString(R.string.auto);
+        if (currentChannel != null) {
+            switch (currentChannel.getVideoStd())
+            {
+                case 0:
+                    return mResources.getString(R.string.auto);
+                case 1:
+                    return mResources.getString(R.string.pal);
+                case 2:
+                    return mResources.getString(R.string.ntsc);
+                default:
+                    return mResources.getString(R.string.auto);
+            }
         }
+        return null;
     }
 
     private String getSoundSystemStatus () {
-        switch (client.curChannel.audioStd)
-        {
-            case 0:
-                return mResources.getString(R.string.sound_system_dk);
-            case 1:
-                return mResources.getString(R.string.sound_system_i);
-            case 2:
-                return mResources.getString(R.string.sound_system_bg);
-            case 3:
-                return mResources.getString(R.string.sound_system_m);
-            default:
-                return mResources.getString(R.string.sound_system_dk);
+        if (currentChannel != null) {
+            switch (currentChannel.getAudioStd())
+            {
+                case 0:
+                    return mResources.getString(R.string.sound_system_dk);
+                case 1:
+                    return mResources.getString(R.string.sound_system_i);
+                case 2:
+                    return mResources.getString(R.string.sound_system_bg);
+                case 3:
+                    return mResources.getString(R.string.sound_system_m);
+                default:
+                    return mResources.getString(R.string.sound_system_dk);
+            }
         }
+
+        return null;
     }
 
     private String getVolumeCompensateStatus () {
-        return client.curChannel.audioCompensation + "";
+        if (currentChannel != null)
+            return currentChannel.getAudioCompensation() + "";
+        else
+            return null;
     }
 
     public int getFineTuneProgress () {
@@ -568,14 +642,14 @@ public class SettingsManager {
             for (int i = 0 ; i < channelList.size(); i++) {
                 ChannelInfo info = channelList.get(i);
                 HashMap<String,Object> item = new HashMap<String,Object>();
-                if (info.skip == 1)
+                if (!info.isBrowsable())
                     item.put(STRING_ICON, R.drawable.skip);
-                else if (info.fav == 1)
+                else if (info.IsFavourite())
                     item.put(STRING_ICON, R.drawable.favourite);
                 else
                     item.put(STRING_ICON, 0);
 
-                item.put(STRING_NAME, info.name);
+                item.put(STRING_NAME, info.getDisplayName());
                 list.add(item);
             }
         } else {
@@ -592,13 +666,13 @@ public class SettingsManager {
         ArrayList<ChannelInfo> channelList = null;
         switch (type) {
             case ChannelEdit.TYPE_ATV:
-                channelList = TvContractUtils.getAtvChannelList(mContext, mInputId);
+                channelList = mTvDataBaseManager.getAtvChannelList(mInputId);
                 break;
             case ChannelEdit.TYPE_DTV_TV:
-                channelList = TvContractUtils.getDtvChannelList(mContext, mInputId, 1);
+                channelList = mTvDataBaseManager.getDtvChannelList(mInputId, Channels.SERVICE_TYPE_AUDIO_VIDEO);
                 break;
             case ChannelEdit.TYPE_DTV_RADIO:
-                channelList = TvContractUtils.getDtvChannelList(mContext, mInputId, 2);
+                channelList = mTvDataBaseManager.getDtvChannelList(mInputId, Channels.SERVICE_TYPE_AUDIO);
                 break;
         }
         return channelList;
@@ -611,7 +685,7 @@ public class SettingsManager {
     }
 
     private String getSwitchChannelStatus () {
-        if (tv.SSMReadBlackoutEnalbe() == 0)
+        if (mTvControlManager.SSMReadBlackoutEnalbe() == 0)
             return mResources.getString(R.string.static_frame);
         else
             return mResources.getString(R.string.black_frame);
@@ -679,7 +753,7 @@ public class SettingsManager {
     }
 
     private String getDynamicBacklightStatus () {
-        int itemPosition = tv.isAutoBackLighting();
+        int itemPosition = mTvControlManager.isAutoBackLighting();
         if (itemPosition == 0)
             return mResources.getString(R.string.off);
         else
@@ -688,147 +762,184 @@ public class SettingsManager {
 
     public void setPictureMode (String mode) {
         if (mode.equals(STATUS_STANDARD)) {
-            tv.SetPQMode(Tv.Pq_Mode.PQ_MODE_STANDARD, client.curSource, 1);
+            mTvControlManager.SetPQMode(TvControlManager.Pq_Mode.PQ_MODE_STANDARD, mTvSource, 1);
         } else if (mode.equals(STATUS_VIVID)) {
-            tv.SetPQMode(Tv.Pq_Mode.PQ_MODE_BRIGHT, client.curSource, 1);
+            mTvControlManager.SetPQMode(TvControlManager.Pq_Mode.PQ_MODE_BRIGHT, mTvSource, 1);
         } else if (mode.equals(STATUS_SOFT)) {
-            tv.SetPQMode(Tv.Pq_Mode.PQ_MODE_SOFTNESS, client.curSource, 1);
+            mTvControlManager.SetPQMode(TvControlManager.Pq_Mode.PQ_MODE_SOFTNESS, mTvSource, 1);
         } else if (mode.equals(STATUS_USER)) {
-            tv.SetPQMode(Tv.Pq_Mode.PQ_MODE_USER, client.curSource, 1);
+            mTvControlManager.SetPQMode(TvControlManager.Pq_Mode.PQ_MODE_USER, mTvSource, 1);
         }
     }
 
     public void setBrightness (int step) {
         if (step == PERCENT_INCREASE)
-            tv.SetBrightness(tv.GetBrightness(client.curSource) + 1, client.curSource, 1);
+            mTvControlManager.SetBrightness(mTvControlManager.GetBrightness(mTvSource) + 1, mTvSource, 1);
         else
-            tv.SetBrightness(tv.GetBrightness(client.curSource) - 1, client.curSource, 1);
+            mTvControlManager.SetBrightness(mTvControlManager.GetBrightness(mTvSource) - 1, mTvSource, 1);
     }
 
     public void setContrast (int step) {
         if (step == PERCENT_INCREASE)
-            tv.SetContrast(tv.GetContrast(client.curSource) + 1, client.curSource, 1);
+            mTvControlManager.SetContrast(mTvControlManager.GetContrast(mTvSource) + 1, mTvSource, 1);
         else
-            tv.SetContrast(tv.GetContrast(client.curSource) - 1, client.curSource, 1);
+            mTvControlManager.SetContrast(mTvControlManager.GetContrast(mTvSource) - 1, mTvSource, 1);
     }
 
     public void setColor (int step) {
         if (step == PERCENT_INCREASE)
-            tv.SetSaturation(tv.GetSaturation(client.curSource) + 1, client.curSource, tv.GetCurrentSignalInfo().fmt, 1);
+            mTvControlManager.SetSaturation(mTvControlManager.GetSaturation(mTvSource) + 1,
+                mTvSource, mTvControlManager.GetCurrentSignalInfo().fmt, 1);
         else
-            tv.SetSaturation(tv.GetSaturation(client.curSource) - 1, client.curSource, tv.GetCurrentSignalInfo().fmt, 1);
+            mTvControlManager.SetSaturation(mTvControlManager.GetSaturation(mTvSource) - 1,
+                mTvSource, mTvControlManager.GetCurrentSignalInfo().fmt, 1);
     }
 
     public void setSharpness (int step) {
         if (step == PERCENT_INCREASE)
-            tv.SetSharpness(tv.GetSharpness(client.curSource) + 1, client.curSource, 1, 0, 1);
+            mTvControlManager.SetSharpness(mTvControlManager.GetSharpness(mTvSource) + 1, mTvSource, 1, 0, 1);
         else
-            tv.SetSharpness(tv.GetSharpness(client.curSource) - 1, client.curSource, 1, 0, 1);
+            mTvControlManager.SetSharpness(mTvControlManager.GetSharpness(mTvSource) - 1, mTvSource, 1, 0, 1);
     }
 
     public void setBacklight (int step) {
         if (step == PERCENT_INCREASE)
-            tv.SetBacklight(tv.GetBacklight(client.curSource) + 1, client.curSource, 1);
+            mTvControlManager.SetBacklight(mTvControlManager.GetBacklight(mTvSource) + 1, mTvSource, 1);
         else
-            tv.SetBacklight(tv.GetBacklight(client.curSource) - 1, client.curSource, 1);
+            mTvControlManager.SetBacklight(mTvControlManager.GetBacklight(mTvSource) - 1, mTvSource, 1);
     }
 
     public void setColorTemperature(String mode) {
         if (mode.equals(STATUS_STANDARD))
-            tv.SetColorTemperature(Tv.color_temperature.COLOR_TEMP_STANDARD, client.curSource, 1);
+            mTvControlManager.SetColorTemperature(TvControlManager.color_temperature.COLOR_TEMP_STANDARD, mTvSource, 1);
         else if (mode.equals(STATUS_WARM))
-            tv.SetColorTemperature(Tv.color_temperature.COLOR_TEMP_WARM, client.curSource, 1);
+            mTvControlManager.SetColorTemperature(TvControlManager.color_temperature.COLOR_TEMP_WARM, mTvSource, 1);
         else if (mode.equals(STATUS_COOL))
-            tv.SetColorTemperature(Tv.color_temperature.COLOR_TEMP_COLD, client.curSource, 1);
+            mTvControlManager.SetColorTemperature(TvControlManager.color_temperature.COLOR_TEMP_COLD, mTvSource, 1);
     }
 
     public void setAspectRatio(String mode) {
-        if (tv.Get3DMode() == 0) {
+        if (mTvControlManager.Get3DMode() == 0) {
             if (mode.equals(STATUS_AUTO)) {
-                tv.SetDisplayMode(Tv.Display_Mode.DISPLAY_MODE_NORMAL, client.curSource, tv.GetCurrentSignalInfo().fmt, 1);
+                mTvControlManager.SetDisplayMode(TvControlManager.Display_Mode.DISPLAY_MODE_NORMAL,
+                    mTvSource, mTvControlManager.GetCurrentSignalInfo().fmt, 1);
             } else if (mode.equals(STATUS_4_TO_3)) {
-                tv.SetDisplayMode(Tv.Display_Mode.DISPLAY_MODE_MODE43, client.curSource, tv.GetCurrentSignalInfo().fmt, 1);
+                mTvControlManager.SetDisplayMode(TvControlManager.Display_Mode.DISPLAY_MODE_MODE43,
+                    mTvSource, mTvControlManager.GetCurrentSignalInfo().fmt, 1);
             } else if (mode.equals(STATUS_PANORAMA)) {
-                tv.SetDisplayMode(Tv.Display_Mode.DISPLAY_MODE_FULL, client.curSource, tv.GetCurrentSignalInfo().fmt, 1);
+                mTvControlManager.SetDisplayMode(TvControlManager.Display_Mode.DISPLAY_MODE_FULL,
+                    mTvSource, mTvControlManager.GetCurrentSignalInfo().fmt, 1);
             } else if (mode.equals(STATUS_FULL_SCREEN)) {
-                tv.SetDisplayMode(Tv.Display_Mode.DISPLAY_MODE_169, client.curSource, tv.GetCurrentSignalInfo().fmt, 1);
+                mTvControlManager.SetDisplayMode(TvControlManager.Display_Mode.DISPLAY_MODE_169,
+                    mTvSource, mTvControlManager.GetCurrentSignalInfo().fmt, 1);
             }
         }
     }
 
     public void setDnr (String mode) {
         if (mode.equals(STATUS_OFF))
-            tv.SetNoiseReductionMode(Tv.Noise_Reduction_Mode.REDUCE_NOISE_CLOSE, client.curSource, 1);
+            mTvControlManager.SetNoiseReductionMode(TvControlManager.Noise_Reduction_Mode.REDUCE_NOISE_CLOSE, mTvSource, 1);
         else if (mode.equals(STATUS_AUTO))
-            tv.SetNoiseReductionMode(Tv.Noise_Reduction_Mode.REDUCTION_MODE_AUTO, client.curSource, 1);
+            mTvControlManager.SetNoiseReductionMode(TvControlManager.Noise_Reduction_Mode.REDUCTION_MODE_AUTO, mTvSource, 1);
         else if (mode.equals(STATUS_MEDIUM))
-            tv.SetNoiseReductionMode(Tv.Noise_Reduction_Mode.REDUCE_NOISE_MID, client.curSource, 1);
+            mTvControlManager.SetNoiseReductionMode(TvControlManager.Noise_Reduction_Mode.REDUCE_NOISE_MID, mTvSource, 1);
         else if (mode.equals(STATUS_HIGH))
-            tv.SetNoiseReductionMode(Tv.Noise_Reduction_Mode.REDUCE_NOISE_STRONG, client.curSource, 1);
+            mTvControlManager.SetNoiseReductionMode(TvControlManager.Noise_Reduction_Mode.REDUCE_NOISE_STRONG, mTvSource, 1);
         else if (mode.equals(STATUS_LOW))
-            tv.SetNoiseReductionMode(Tv.Noise_Reduction_Mode.REDUCE_NOISE_WEAK, client.curSource, 1);
+            mTvControlManager.SetNoiseReductionMode(TvControlManager.Noise_Reduction_Mode.REDUCE_NOISE_WEAK, mTvSource, 1);
     }
 
     public void set3dSettings (String mode) {
         if (mode.equals(STATUS_OFF))
-            tv.Set3DMode(Tv.Mode_3D.MODE_3D_CLOSE, Tv.Tvin_3d_Status.STATUS3D_DISABLE);
+            mTvControlManager.Set3DMode(TvControlManager.Mode_3D.MODE_3D_CLOSE, TvControlManager.Tvin_3d_Status.STATUS3D_DISABLE);
         else if (mode.equals(STATUS_AUTO))
-            tv.Set3DMode(Tv.Mode_3D.MODE_3D_AUTO, Tv.Tvin_3d_Status.STATUS3D_AUTO);
+            mTvControlManager.Set3DMode(TvControlManager.Mode_3D.MODE_3D_AUTO, TvControlManager.Tvin_3d_Status.STATUS3D_AUTO);
         else if (mode.equals(STATUS_3D_LR_MODE))
-            tv.Set3DLRSwith(0, Tv.Tvin_3d_Status.STATUS3D_LR);
+            mTvControlManager.Set3DLRSwith(0, TvControlManager.Tvin_3d_Status.STATUS3D_LR);
         else if (mode.equals(STATUS_3D_RL_MODE))
-            tv.Set3DLRSwith(1, Tv.Tvin_3d_Status.STATUS3D_LR);
+            mTvControlManager.Set3DLRSwith(1, TvControlManager.Tvin_3d_Status.STATUS3D_LR);
         else if (mode.equals(STATUS_3D_UD_MODE))
-            tv.Set3DLRSwith(0, Tv.Tvin_3d_Status.STATUS3D_BT);
+            mTvControlManager.Set3DLRSwith(0, TvControlManager.Tvin_3d_Status.STATUS3D_BT);
         else if (mode.equals(STATUS_3D_DU_MODE))
-            tv.Set3DLRSwith(1, Tv.Tvin_3d_Status.STATUS3D_BT);
+            mTvControlManager.Set3DLRSwith(1, TvControlManager.Tvin_3d_Status.STATUS3D_BT);
         else if (mode.equals(STATUS_3D_TO_2D))
             ;// tv.Set3DTo2DMode(Tv.Mode_3D_2D.values()[position], Tv.Tvin_3d_Status.values()[tv.Get3DMode()]);
     }
 
     public void setSoundMode (String mode) {
         if (mode.equals(STATUS_STANDARD)) {
-            tv.SetAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_STD);
-            tv.SaveCurAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_STD.toInt());
+            mTvControlManager.SetAudioSoundMode(TvControlManager.Sound_Mode.SOUND_MODE_STD);
+            mTvControlManager.SaveCurAudioSoundMode(TvControlManager.Sound_Mode.SOUND_MODE_STD.toInt());
         } else if (mode.equals(STATUS_MUSIC)) {
-            tv.SetAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_MUSIC);
-            tv.SaveCurAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_MUSIC.toInt());
+            mTvControlManager.SetAudioSoundMode(TvControlManager.Sound_Mode.SOUND_MODE_MUSIC);
+            mTvControlManager.SaveCurAudioSoundMode(TvControlManager.Sound_Mode.SOUND_MODE_MUSIC.toInt());
         } else if (mode.equals(STATUS_NEWS)) {
-            tv.SetAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_NEWS);
-            tv.SaveCurAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_NEWS.toInt());
+            mTvControlManager.SetAudioSoundMode(TvControlManager.Sound_Mode.SOUND_MODE_NEWS);
+            mTvControlManager.SaveCurAudioSoundMode(TvControlManager.Sound_Mode.SOUND_MODE_NEWS.toInt());
         } else if (mode.equals(STATUS_MOVIE)) {
-            tv.SetAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_THEATER);
-            tv.SaveCurAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_THEATER.toInt());
+            mTvControlManager.SetAudioSoundMode(TvControlManager.Sound_Mode.SOUND_MODE_THEATER);
+            mTvControlManager.SaveCurAudioSoundMode(TvControlManager.Sound_Mode.SOUND_MODE_THEATER.toInt());
         } else if (mode.equals(STATUS_USER)) {
-            tv.SetAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_USER);
-            tv.SaveCurAudioSoundMode(Tv.Sound_Mode.SOUND_MODE_USER.toInt());
+            mTvControlManager.SetAudioSoundMode(TvControlManager.Sound_Mode.SOUND_MODE_USER);
+            mTvControlManager.SaveCurAudioSoundMode(TvControlManager.Sound_Mode.SOUND_MODE_USER.toInt());
         }
     }
 
     public void setAudioTrack (int position) {
-        client.curChannel.audioTrackIndex = position;
-        TvContractUtils.updateChannelInfo(mContext, client.curChannel);
+        if (currentChannel != null) {
+            currentChannel.setAudioTrackIndex(position);
+            mTvDataBaseManager.updateChannelInfo(currentChannel);
+        }
     }
 
     public void setSoundChannel (int position) {
         switch (position) {
             case 0:
-                tv.DtvSetAudioChannleMod(0);
+                mTvControlManager.DtvSetAudioChannleMod(0);
                 break;
             case 1:
-                tv.DtvSetAudioChannleMod(1);
+                mTvControlManager.DtvSetAudioChannleMod(1);
                 break;
             case 2:
-                tv.DtvSetAudioChannleMod(2);
+                mTvControlManager.DtvSetAudioChannleMod(2);
                 break;
         }
     }
 
+    public void setColorSystem(int mode) {
+        if (currentChannel != null) {
+            currentChannel.setVideoStd(mode);
+            mTvDataBaseManager.updateChannelInfo(currentChannel);
+            mTvControlManager.SetFrontendParms(TvControlManager.tv_fe_type_e.TV_FE_ANALOG, currentChannel.getFrequency(),
+                currentChannel.getVideoStd(), currentChannel.getAudioStd(), 0, 0);
+        }
+    }
+
+     public void setSoundSystem(int mode) {
+        if (currentChannel != null) {
+            currentChannel.setAudioStd(mode);
+            mTvDataBaseManager.updateChannelInfo(currentChannel);
+            mTvControlManager.SetFrontendParms(TvControlManager.tv_fe_type_e.TV_FE_ANALOG, currentChannel.getFrequency(),
+                currentChannel.getVideoStd(), currentChannel.getAudioStd(), 0, 0);
+        }
+    }
+
+     public void setVolumeCompensate (int offset) {
+        if (currentChannel != null) {
+            if ((currentChannel.getAudioCompensation() < 20 && offset > 0)
+                || (currentChannel.getAudioCompensation() > -20 && offset < 0)) {
+                currentChannel.setAudioCompensation(currentChannel.getAudioCompensation() + offset);
+                mTvDataBaseManager.updateChannelInfo(currentChannel);
+                mTvControlManager.SetCurProgVolumeCompesition(currentChannel.getAudioCompensation());
+            }
+        }
+     }
+
     public void setChannelName (int type, int channelNumber, String targetName) {
         ChannelInfo channel = getChannelByNumber(type, channelNumber);
         if (channel != null) {
-            channel.name = targetName;
-            TvContractUtils.updateChannelInfo(mContext, channel);
+            channel.setDisplayName(targetName);
+            mTvDataBaseManager.updateChannelInfo(channel);
         }
     }
 
@@ -839,12 +950,12 @@ public class SettingsManager {
         ChannelInfo sourceChannel = getChannelByNumber(type, channelNumber);
         ChannelInfo targetChannel = getChannelByNumber(type, targetNumber);
         if (sourceChannel != null && targetChannel != null) {
-            String tmp = sourceChannel.number;
-            sourceChannel.number = targetChannel.number;
-            targetChannel.number = tmp;
+            int tmp = sourceChannel.getDisplayNumber();
+            sourceChannel.setDisplayNumber(targetChannel.getDisplayNumber());
+            targetChannel.setDisplayNumber(tmp);
 
-            TvContractUtils.updateChannelInfo(mContext, sourceChannel);
-            TvContractUtils.updateChannelInfo(mContext, targetChannel);
+            mTvDataBaseManager.updateChannelInfo(sourceChannel);
+            mTvDataBaseManager.updateChannelInfo(targetChannel);
         }
     }
 
@@ -854,20 +965,20 @@ public class SettingsManager {
 
         ArrayList<ChannelInfo> channelList = getChannelInfoList(type);
 
-        channelList.get(channelNumber).number =  Integer.toString(targetNumber);
+        channelList.get(channelNumber).setDisplayNumber(targetNumber);
         if (targetNumber < channelNumber) {
             for (int i = targetNumber; i < channelNumber; i++)
-                channelList.get(i).number = Integer.toString(i + 1);
+                channelList.get(i).setDisplayNumber(i + 1);
 
             for (int i = targetNumber; i <= channelNumber; i++)
-                TvContractUtils.updateChannelInfo(mContext, channelList.get(i));
+                mTvDataBaseManager.updateChannelInfo(channelList.get(i));
 
         } else if (targetNumber > channelNumber) {
             for (int i = channelNumber + 1; i <= targetNumber; i++)
-                channelList.get(i).number = Integer.toString(i - 1);
+                channelList.get(i).setDisplayNumber(i - 1);
 
             for (int i = channelNumber; i <= targetNumber; i++)
-                TvContractUtils.updateChannelInfo(mContext, channelList.get(i));
+                mTvDataBaseManager.updateChannelInfo(channelList.get(i));
         }
     }
 
@@ -875,12 +986,12 @@ public class SettingsManager {
         ChannelInfo channel = getChannelByNumber(type, channelNumber);
 
         if (channel != null) {
-            if (channel.skip == 0) {
-                channel.skip = 1;
-                channel.fav = 0;
+            if (channel.isBrowsable()) {
+                channel.setBrowsable(false);
+                channel.setFavourite(false);
             } else
-                channel.skip = 0;
-            TvContractUtils.updateChannelInfo(mContext, channel);
+                channel.setBrowsable(true);
+            mTvDataBaseManager.updateChannelInfo(channel);
         }
     }
 
@@ -888,19 +999,19 @@ public class SettingsManager {
         ChannelInfo channel = getChannelByNumber(type, channelNumber);
 
         if (channel != null)
-            TvContractUtils.deleteChannel(mContext, channel);
+            mTvDataBaseManager.deleteChannel(channel);
     }
 
     public  void setFavouriteChannel (int type, int channelNumber) {
         ChannelInfo channel = getChannelByNumber(type, channelNumber);
 
         if (channel != null) {
-            if (channel.fav == 0) {
-                channel.fav = 1;
-                channel.skip = 0;
+            if (!channel.IsFavourite()) {
+                channel.setFavourite(true);
+                channel.setBrowsable(true);
             } else
-                channel.fav = 0;
-            TvContractUtils.updateChannelInfo(mContext, channel);
+                channel.setFavourite(false);
+            mTvDataBaseManager.updateChannelInfo(channel);
         }
     }
 
@@ -942,9 +1053,9 @@ public class SettingsManager {
         for (int i = 0; i < tvPackages.length; i++) {
             ClearPackageData(tvPackages[i]);
         }
-        tv.stopAutoBacklight();
-        tv.SSMInitDevice();
-        tv.FactoryCleanAllTableForProgram();
+        mTvControlManager.stopAutoBacklight();
+        mTvControlManager.SSMInitDevice();
+        mTvControlManager.FactoryCleanAllTableForProgram();
     }
 
     private String[] tvPackages = {

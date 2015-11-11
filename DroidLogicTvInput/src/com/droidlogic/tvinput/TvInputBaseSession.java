@@ -1,4 +1,4 @@
-package com.droidlogic.app.tv;
+package com.droidlogic.tvinput;
 
 import android.content.Context;
 import android.media.tv.TvContentRating;
@@ -14,6 +14,8 @@ import android.os.HandlerThread;
 import android.os.Message;
 import android.util.Log;
 import android.view.Surface;
+
+import com.droidlogic.app.tv.DroidLogicTvUtils;
 
 public abstract class TvInputBaseSession extends TvInputService.Session implements Handler.Callback {
     private static final boolean DEBUG = true;

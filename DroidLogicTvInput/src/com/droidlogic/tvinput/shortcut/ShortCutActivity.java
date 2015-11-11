@@ -2,7 +2,6 @@ package com.droidlogic.tvinput.shortcut;
 
 import com.droidlogic.app.DroidLogicKeyEvent;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
-import com.droidlogic.tvclient.TvClient;
 import com.droidlogic.tvinput.settings.SettingsManager;
 
 import android.app.Activity;
@@ -19,7 +18,6 @@ import android.view.Window;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import android.amlogic.Tv;
 import com.droidlogic.tvinput.R;
 
 public class ShortCutActivity extends Activity {
@@ -32,7 +30,6 @@ public class ShortCutActivity extends Activity {
 
     private static final int TOAST_SHOW_TIME = 3000;
 
-    private Tv tv = Tv.open();
     private SettingsManager mSettingsManager;
     private Resources mResources;
     private Toast toast = null;
@@ -89,27 +86,27 @@ public class ShortCutActivity extends Activity {
                 break;
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_VIEWMODE:
                 String picture_mode = mSettingsManager.getPictureModeStatus();
-                if (picture_mode.equals(SettingsManager.STATUS_STANDARD)) {
+                if (picture_mode.equals(mResources.getString(R.string.standard))) {
                     mSettingsManager.setPictureMode(SettingsManager.STATUS_VIVID);
-                } else if (picture_mode.equals(SettingsManager.STATUS_VIVID)) {
+                } else if (picture_mode.equals(mResources.getString(R.string.vivid))) {
                     mSettingsManager.setPictureMode(SettingsManager.STATUS_SOFT);
-                } else if (picture_mode.equals(SettingsManager.STATUS_SOFT)) {
+                } else if (picture_mode.equals(mResources.getString(R.string.soft))) {
                     mSettingsManager.setPictureMode(SettingsManager.STATUS_USER);
-                } else if (picture_mode.equals(SettingsManager.STATUS_USER)) {
+                } else if (picture_mode.equals(mResources.getString(R.string.user))) {
                     mSettingsManager.setPictureMode(SettingsManager.STATUS_STANDARD);
                 }
                 break;
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_VOICEMODE:
                 String sound_mode = mSettingsManager.getSoundModeStatus();
-                if (sound_mode.equals(SettingsManager.STATUS_STANDARD)) {
+                if (sound_mode.equals(mResources.getString(R.string.standard))) {
                     mSettingsManager.setSoundMode(SettingsManager.STATUS_MUSIC);
-                } else if (sound_mode.equals(SettingsManager.STATUS_MUSIC)) {
+                } else if (sound_mode.equals(mResources.getString(R.string.music))) {
                     mSettingsManager.setSoundMode(SettingsManager.STATUS_NEWS);
-                } else if (sound_mode.equals(SettingsManager.STATUS_NEWS)) {
+                } else if (sound_mode.equals(mResources.getString(R.string.news))) {
                     mSettingsManager.setSoundMode(SettingsManager.STATUS_MOVIE);
-                } else if (sound_mode.equals(SettingsManager.STATUS_MOVIE)) {
+                } else if (sound_mode.equals(mResources.getString(R.string.movie))) {
                     mSettingsManager.setSoundMode(SettingsManager.STATUS_USER);
-                } else if (sound_mode.equals(SettingsManager.STATUS_USER)) {
+                } else if (sound_mode.equals(mResources.getString(R.string.user))) {
                     mSettingsManager.setSoundMode(SettingsManager.STATUS_STANDARD);
                 }
                 break;

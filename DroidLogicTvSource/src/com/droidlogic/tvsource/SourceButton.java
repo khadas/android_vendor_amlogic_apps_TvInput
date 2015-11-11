@@ -1,11 +1,12 @@
-package com.droidlogic.ui;
+package com.droidlogic.tvsource;
 
-import com.droidlogic.app.tv.Channel;
-import com.droidlogic.app.tv.ChannelDataManager;
-import com.droidlogic.app.tv.ChannelTuner;
+import com.droidlogic.app.tv.ChannelInfo;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
-import com.droidlogic.tv.R;
-import com.droidlogic.tv.Utils;
+
+import com.droidlogic.tvsource.ChannelDataManager;
+import com.droidlogic.tvsource.ChannelTuner;
+import com.droidlogic.tvsource.R;
+import com.droidlogic.tvsource.Utils;
 
 import android.content.Context;
 import android.media.tv.TvInputInfo;
@@ -119,7 +120,10 @@ public class SourceButton extends Button implements OnClickListener{
     }
 
     public boolean isRadioChannel() {
-        return mChannelTuner.isRadioChannel();
+        if (mChannelTuner != null)
+            return mChannelTuner.isRadioChannel();
+        else
+            return false;
     }
 
     public String getChannelType() {
@@ -146,11 +150,11 @@ public class SourceButton extends Button implements OnClickListener{
         mChannelTuner.setChannelVideoFormat(format);
     }
 
-    public SparseArray<Channel> getChannelVideoList() {
+    public SparseArray<ChannelInfo> getChannelVideoList() {
         return mChannelTuner.getChannelVideoList();
     }
 
-    public SparseArray<Channel> getChannelRadioList() {
+    public SparseArray<ChannelInfo> getChannelRadioList() {
         return mChannelTuner.getChannelRadioList();
     }
 

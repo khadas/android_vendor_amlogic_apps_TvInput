@@ -21,16 +21,13 @@ import android.util.AttributeSet;
 import android.util.Log;
 
 import com.droidlogic.tvinput.R;
-import com.droidlogic.tvclient.TvClient;
-import android.amlogic.Tv;
+import com.droidlogic.app.tv.TvControlManager;
 
 public class ContentListView extends ListView implements OnItemSelectedListener {
     private static final String TAG = "ContentListView";
     private Context mContext;
     private SettingsManager mSettingsManager;
     private OptionUiManager mOptionUiManager;
-    private TvClient client;
-
     private int selectedPosition = 0;
 
     public ContentListView (Context context){
@@ -42,7 +39,6 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
         mContext = context;
         mSettingsManager = ((TvSettingsActivity)mContext).getSettingsManager();
         mOptionUiManager = ((TvSettingsActivity)mContext).getOptionUiManager();
-        client = mSettingsManager.getTvClient();
         setOnItemSelectedListener(this);
     }
 
@@ -56,7 +52,7 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
                 case KeyEvent.KEYCODE_DPAD_UP:
                     String currentTag = mSettingsManager.getTag();
                     if (selectedPosition == 0
-                        || (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV
+                        || (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV
                             && currentTag.equals(SettingsManager.KEY_CHANNEL) && selectedPosition == 2))
                         return true;
 
@@ -191,7 +187,7 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
 
     public void setInitialSelection () {
         String currentTag = mSettingsManager.getTag();
-        if ((client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV
+        if ((mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV
             && currentTag.equals(SettingsManager.KEY_CHANNEL))) {
             setSelection(2);
         }

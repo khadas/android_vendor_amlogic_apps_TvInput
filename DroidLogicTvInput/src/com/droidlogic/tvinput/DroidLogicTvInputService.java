@@ -1,11 +1,12 @@
-package com.droidlogic.app.tv;
+package com.droidlogic.tvinput;
 
 import java.util.List;
 
-import android.amlogic.Tv;
-import android.amlogic.Tv.tvin_info_t;
+import com.droidlogic.app.tv.ChannelInfo;
+import com.droidlogic.app.tv.DroidLogicTvUtils;
+import com.droidlogic.app.tv.TvControlManager;
+import com.droidlogic.app.tv.TvControlManager.tvin_info_t;
 
-import com.droidlogic.tvclient.TvClient;
 import com.droidlogic.tvinput.services.ATVInputService.ATVSessionImpl;
 import com.droidlogic.tvinput.services.AVInputService.AVInputSession;
 import com.droidlogic.tvinput.services.DTVInputService.DTVSessionImpl;
@@ -25,7 +26,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseArray;
 
-public class DroidLogicTvInputService extends TvInputService implements Tv.SigInfoChangeListener {
+public class DroidLogicTvInputService extends TvInputService implements TvControlManager.SigInfoChangeListener {
     private static final String TAG = DroidLogicTvInputService.class.getSimpleName();
     private static final boolean DEBUG = true;
 
@@ -49,7 +50,7 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
      */
     protected void registerInputSession(TvInputBaseSession session) {
         mSession = session;
-        Tv.open().SetSigInfoChangeListener(this);
+        TvControlManager.open().SetSigInfoChangeListener(this);
     }
 
     /**
@@ -92,25 +93,25 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
         String label = null;
         switch (device_id) {
             case DroidLogicTvUtils.DEVICE_ID_ATV:
-                label = TvClient.LABEL_ATV;
+                label = ChannelInfo.LABEL_ATV;
                 break;
             case DroidLogicTvUtils.DEVICE_ID_DTV:
-                label = TvClient.LABEL_DTV;
+                label = ChannelInfo.LABEL_DTV;
                 break;
             case DroidLogicTvUtils.DEVICE_ID_AV1:
-                label = TvClient.LABEL_AV1;
+                label = ChannelInfo.LABEL_AV1;
                 break;
             case DroidLogicTvUtils.DEVICE_ID_AV2:
-                label = TvClient.LABEL_AV2;
+                label = ChannelInfo.LABEL_AV2;
                 break;
             case DroidLogicTvUtils.DEVICE_ID_HDMI1:
-                label = TvClient.LABEL_HDMI1;
+                label = ChannelInfo.LABEL_HDMI1;
                 break;
             case DroidLogicTvUtils.DEVICE_ID_HDMI2:
-                label = TvClient.LABEL_HDMI2;
+                label = ChannelInfo.LABEL_HDMI2;
                 break;
             case DroidLogicTvUtils.DEVICE_ID_HDMI3:
-                label = TvClient.LABEL_HDMI3;
+                label = ChannelInfo.LABEL_HDMI3;
                 break;
             default:
                 break;
@@ -148,11 +149,11 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
 
     protected void stopTv() {
         Log.d(TAG, "==== stop tv ====" + mCurrentInputId);
-        Tv.open().StopTv();
+        TvControlManager.open().StopTv();
     }
 
     protected void releasePlayer() {
-        Tv.open().StopPlayProgram();
+        TvControlManager.open().StopPlayProgram();
     }
 
     private String getInfoLabel() {
@@ -162,16 +163,16 @@ public class DroidLogicTvInputService extends TvInputService implements Tv.SigIn
 
     @Override
     public void onSigChange(tvin_info_t signal_info) {
-        Tv.tvin_sig_status_t status = signal_info.status;
+        TvControlManager.tvin_sig_status_t status = signal_info.status;
 
         if (DEBUG)
             Log.d(TAG, "==== onSigChange ====" + status.ordinal() + status.toString());
 
-        if (status == Tv.tvin_sig_status_t.TVIN_SIG_STATUS_NOSIG
-                || status == Tv.tvin_sig_status_t.TVIN_SIG_STATUS_NULL
-                || status == Tv.tvin_sig_status_t.TVIN_SIG_STATUS_NOTSUP) {
+        if (status == TvControlManager.tvin_sig_status_t.TVIN_SIG_STATUS_NOSIG
+                || status == TvControlManager.tvin_sig_status_t.TVIN_SIG_STATUS_NULL
+                || status == TvControlManager.tvin_sig_status_t.TVIN_SIG_STATUS_NOTSUP) {
             mSession.notifyVideoUnavailable(TvInputManager.VIDEO_UNAVAILABLE_REASON_UNKNOWN);
-        }else if (status == Tv.tvin_sig_status_t.TVIN_SIG_STATUS_STABLE) {
+        }else if (status == TvControlManager.tvin_sig_status_t.TVIN_SIG_STATUS_STABLE) {
             mSession.notifyVideoAvailable();
             if (mSession instanceof HdmiInputSession) {
                 if (DEBUG)

@@ -14,17 +14,17 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.droidlogic.utils.Utils;
-import com.droidlogic.utils.tunerinput.tvutil.TvContractUtils;
-import com.droidlogic.utils.tunerinput.data.ChannelInfo;
+import com.droidlogic.tvinput.DroidLogicTvInputService;
+import com.droidlogic.tvinput.TvInputBaseSession;
+import com.droidlogic.tvinput.Utils;
 
-import com.droidlogic.app.tv.DroidLogicTvInputService;
+import com.droidlogic.app.tv.ChannelInfo;
+import com.droidlogic.app.tv.TvDataBaseManager;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
-import com.droidlogic.app.tv.TvInputBaseSession;
 
 import java.util.HashSet;
 import java.util.Set;
-import android.amlogic.Tv;
+import com.droidlogic.app.tv.TvControlManager;
 
 public class ATVInputService extends DroidLogicTvInputService {
 
@@ -120,8 +120,8 @@ public class ATVInputService extends DroidLogicTvInputService {
                 notifyVideoUnavailable(TvInputManager.VIDEO_UNAVAILABLE_REASON_UNKNOWN);
                 return;
             }
-            ChannelInfo ch = TvContractUtils.getChannelInfoATV(
-                    mContext.getContentResolver(), uri);
+            TvDataBaseManager mTvDataBaseManager = new TvDataBaseManager(mContext);
+            ChannelInfo ch = mTvDataBaseManager.getChannelInfoATV(uri);
             if (ch != null) {
                 playProgram(ch);
             } else {
@@ -130,8 +130,8 @@ public class ATVInputService extends DroidLogicTvInputService {
         }
 
         private boolean playProgram(ChannelInfo info) {
-            Tv tv = Tv.open();
-            tv.PlayATVProgram(info.frequency, info.videoStd, info.audioStd, info.fineTune, info.audioCompensation);
+            TvControlManager mTvControlManager = TvControlManager.open();
+            mTvControlManager.PlayATVProgram(info.getFrequency(), info.getVideoStd(), info.getAudioStd(), info.getFineTune(), info.getAudioCompensation());
             checkContentBlockNeeded();
             return true;
         }

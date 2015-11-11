@@ -14,17 +14,18 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.droidlogic.utils.Utils;
-import com.droidlogic.utils.tunerinput.tvutil.TvContractUtils;
-import com.droidlogic.utils.tunerinput.tvutil.TVChannelParams;
-import com.droidlogic.app.tv.DroidLogicTvInputService;
+import com.droidlogic.tvinput.DroidLogicTvInputService;
+import com.droidlogic.tvinput.TvInputBaseSession;
+import com.droidlogic.tvinput.Utils;
+
+import com.droidlogic.app.tv.TvDataBaseManager;
+import com.droidlogic.app.tv.TVChannelParams;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
-import com.droidlogic.app.tv.TvInputBaseSession;
-import com.droidlogic.utils.tunerinput.data.ChannelInfo;
+import com.droidlogic.app.tv.ChannelInfo;
 
 import java.util.HashSet;
 import java.util.Set;
-import android.amlogic.Tv;
+import com.droidlogic.app.tv.TvControlManager;
 
 public class DTVInputService extends DroidLogicTvInputService {
 
@@ -122,8 +123,8 @@ public class DTVInputService extends DroidLogicTvInputService {
                 notifyVideoUnavailable(TvInputManager.VIDEO_UNAVAILABLE_REASON_UNKNOWN);
                 return;
             }
-            ChannelInfo ch = TvContractUtils.getChannelInfoDTV(
-                    mContext.getContentResolver(), uri);
+            TvDataBaseManager mTvDataBaseManager = new TvDataBaseManager(mContext);
+            ChannelInfo ch = mTvDataBaseManager.getChannelInfoDTV(uri);
             if (ch != null) {
                 playProgram(ch);
             } else {
@@ -132,21 +133,22 @@ public class DTVInputService extends DroidLogicTvInputService {
         }
 
         private boolean playProgram(ChannelInfo info) {
-            if (info.type == TVChannelParams.MODE_DTMB) {
-                Tv tv = Tv.open();
-                tv.PlayDTVProgram(
-                        info.type,
-                        info.frequency,
-                        info.bandwidth,
+            if (info.getType() == TVChannelParams.MODE_DTMB) {
+                TvControlManager mTvControlManager = TvControlManager.open();
+                info.print();
+                mTvControlManager.PlayDTVProgram(
+                        info.getType(),
+                        info.getFrequency(),
+                        info.getBandwidth(),
                         0,
-                        info.videoPID,
-                        info.videoFormat,
-                        (info.audioPIDs != null) ? info.audioPIDs[info.audioTrackIndex] : -1,
-                        (info.audioFormats != null) ? info.audioFormats[info.audioTrackIndex] : -1,
-                        info.pcrPID,
-                        info.audioCompensation);
+                        info.getVideoPid(),
+                        info.getVideoFormat(),
+                        (info.getAudioPids() != null) ? info.getAudioPids()[info.getAudioTrackIndex()] : -1,
+                        (info.getAudioFormats() != null) ? info.getAudioFormats()[info.getAudioTrackIndex()] : -1,
+                        info.getPcrPid(),
+                        info.getAudioCompensation());
             } else
-                Log.d(TAG, "channel type[" + info.type + "] not supported yet.");
+                Log.d(TAG, "channel type[" + info.getType() + "] not supported yet.");
             checkContentBlockNeeded();
             return true;
         }

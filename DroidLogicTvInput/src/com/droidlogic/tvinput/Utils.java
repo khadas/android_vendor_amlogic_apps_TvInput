@@ -1,4 +1,4 @@
-package com.droidlogic.utils;
+package com.droidlogic.tvinput;
 
 import com.droidlogic.app.tv.DroidLogicTvUtils;
 

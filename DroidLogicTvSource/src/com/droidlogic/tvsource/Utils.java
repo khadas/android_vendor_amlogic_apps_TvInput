@@ -1,4 +1,4 @@
-package com.droidlogic.tv;
+package com.droidlogic.tvsource;
 
 
 import android.util.Log;

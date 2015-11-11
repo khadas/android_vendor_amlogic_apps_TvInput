@@ -35,24 +35,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import android.R.integer;
-import android.amlogic.Tv;
-import android.amlogic.Tv.FreqList;
+import com.droidlogic.app.tv.TvControlManager;
+import com.droidlogic.app.tv.TvControlManager.FreqList;
 import android.app.AlertDialog;
 
 import com.droidlogic.app.tv.DroidLogicTvUtils;
-import com.droidlogic.tvclient.TvClient;
+import com.droidlogic.app.tv.TVMultilingualText;
+import com.droidlogic.app.tv.ChannelInfo;
+import com.droidlogic.app.tv.TvDataBaseManager;
 import com.droidlogic.tvinput.R;
-import com.droidlogic.utils.tunerinput.tvutil.TVChannelParams;
-import com.droidlogic.utils.tunerinput.tvutil.TvContractUtils;
-import com.droidlogic.utils.tunerinput.tvutil.TVMultilingualText;
-import com.droidlogic.utils.tunerinput.tvutil.MapUtil;
-import com.droidlogic.utils.tunerinput.data.ChannelInfo;
 
-public class OptionUiManager implements OnClickListener, OnFocusChangeListener, OnKeyListener, Tv.ScannerEventListener {
+public class OptionUiManager implements OnClickListener, OnFocusChangeListener, OnKeyListener, TvControlManager.ScannerEventListener {
     public static final String TAG = "OptionUiManager";
-
-    private TvClient client;
-    private Tv tv;
 
     public static final int OPTION_PICTURE_MODE = 100;
     public static final int OPTION_BRIGHTNESS = 101;
@@ -99,6 +93,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
 
     private Context mContext;
     private SettingsManager mSettingsManager;
+    private TvControlManager mTvControlManager;
+    private TvDataBaseManager mTvDataBaseManager;
     private int optionTag = OPTION_PICTURE_MODE;
     private String optionKey = null;
     private int channelNumber = 0;//for setting show searched tv channelNumber
@@ -120,9 +116,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     public OptionUiManager(Context context) {
         mContext = context;
         mSettingsManager = ((TvSettingsActivity) mContext).getSettingsManager();
-        client = mSettingsManager.getTvClient();
-        tv = mSettingsManager.getTvInstance();
-        tv.setScannerListener(this);
+        mTvControlManager = mSettingsManager.getTvControlManager();
+        mTvDataBaseManager = mSettingsManager.getTvDataBaseManager();
+        mTvControlManager.setScannerListener(this);
     }
 
     public void setOptionTag(int position) {
@@ -306,14 +302,14 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             case OPTION_FINE_TUNE:
                 return R.layout.layout_channel_fine_tune;
             case OPTION_MANUAL_SEARCH:
-                if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV)
+                if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV)
                     return R.layout.layout_channel_manual_search_atv;
-                else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV)
+                else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV)
                     return R.layout.layout_channel_manual_search_dtv;
             case OPTION_AUTO_SEARCH:
-                if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV)
+                if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV)
                     return R.layout.layout_channel_auto_search_atv;
-                else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV)
+                else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV)
                     return R.layout.layout_channel_auto_search_dtv;
             case OPTION_CHANNEL_EDIT:
                 return R.layout.layout_channel_channel_edit;
@@ -478,127 +474,107 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 break;
             // Treble
             case R.id.treble_increase:
-                int treble_value_increase = tv.GetCurAudioTrebleVolume() + 1;
-                tv.SetAudioTrebleVolume(treble_value_increase);
-                tv.SaveCurAudioTrebleVolume(treble_value_increase);
+                int treble_value_increase = mTvControlManager.GetCurAudioTrebleVolume() + 1;
+                mTvControlManager.SetAudioTrebleVolume(treble_value_increase);
+                mTvControlManager.SaveCurAudioTrebleVolume(treble_value_increase);
                 break;
             case R.id.treble_decrease:
-                int treble_value_decrease = tv.GetCurAudioTrebleVolume() - 1;
-                tv.SetAudioTrebleVolume(treble_value_decrease);
-                tv.SaveCurAudioTrebleVolume(treble_value_decrease);
+                int treble_value_decrease = mTvControlManager.GetCurAudioTrebleVolume() - 1;
+                mTvControlManager.SetAudioTrebleVolume(treble_value_decrease);
+                mTvControlManager.SaveCurAudioTrebleVolume(treble_value_decrease);
                 break;
             // Bass
             case R.id.bass_increase:
-                int bass_value_increase = tv.GetCurAudioBassVolume() + 1;
-                tv.SetAudioBassVolume(bass_value_increase);
-                tv.SaveCurAudioBassVolume(bass_value_increase);
+                int bass_value_increase = mTvControlManager.GetCurAudioBassVolume() + 1;
+                mTvControlManager.SetAudioBassVolume(bass_value_increase);
+                mTvControlManager.SaveCurAudioBassVolume(bass_value_increase);
                 break;
             case R.id.bass_decrease:
-                int bass_value_decrease = tv.GetCurAudioBassVolume() - 1;
-                tv.SetAudioBassVolume(bass_value_decrease);
-                tv.SaveCurAudioBassVolume(bass_value_decrease);
+                int bass_value_decrease = mTvControlManager.GetCurAudioBassVolume() - 1;
+                mTvControlManager.SetAudioBassVolume(bass_value_decrease);
+                mTvControlManager.SaveCurAudioBassVolume(bass_value_decrease);
                 break;
             // Balance
             case R.id.balance_increase:
-                int balance_value_increase = tv.GetCurAudioBalance() + 1;
-                tv.SetAudioBalance(balance_value_increase);
-                tv.SaveCurAudioBalance(balance_value_increase);
+                int balance_value_increase = mTvControlManager.GetCurAudioBalance() + 1;
+                mTvControlManager.SetAudioBalance(balance_value_increase);
+                mTvControlManager.SaveCurAudioBalance(balance_value_increase);
                 break;
             case R.id.balance_decrease:
-                int balance_value_decrease = tv.GetCurAudioBalance() - 1;
-                tv.SetAudioBalance(balance_value_decrease);
-                tv.SaveCurAudioBalance(balance_value_decrease);
+                int balance_value_decrease = mTvControlManager.GetCurAudioBalance() - 1;
+                mTvControlManager.SetAudioBalance(balance_value_decrease);
+                mTvControlManager.SaveCurAudioBalance(balance_value_decrease);
                 break;
             // SPDIF
             case R.id.spdif_off:
-                tv.SetAudioSPDIFSwitch(0);
-                tv.SaveCurAudioSPDIFSwitch(0);
+                mTvControlManager.SetAudioSPDIFSwitch(0);
+                mTvControlManager.SaveCurAudioSPDIFSwitch(0);
                 break;
             case R.id.spdif_auto:
-                tv.SetAudioSPDIFMode(0);
-                tv.SaveCurAudioSPDIFMode(0);
+                mTvControlManager.SetAudioSPDIFMode(0);
+                mTvControlManager.SaveCurAudioSPDIFMode(0);
                 break;
             case R.id.spdif_pcm:
-                tv.SetAudioSPDIFMode(1);
-                tv.SaveCurAudioSPDIFMode(1);
+                mTvControlManager.SetAudioSPDIFMode(1);
+                mTvControlManager.SaveCurAudioSPDIFMode(1);
                 break;
             // Surround
             case R.id.surround_on:
-                tv.SetAudioSrsSurround(1);
-                tv.SaveCurAudioSrsSurround(1);
+                mTvControlManager.SetAudioSrsSurround(1);
+                mTvControlManager.SaveCurAudioSrsSurround(1);
                 break;
             case R.id.surround_off:
-                tv.SetAudioSrsSurround(0);
-                tv.SaveCurAudioSrsSurround(0);
+                mTvControlManager.SetAudioSrsSurround(0);
+                mTvControlManager.SaveCurAudioSrsSurround(0);
                 break;
             // Dialog Clarity
             case R.id.dialog_clarity_on:
-                tv.SetAudioSrsDialogClarity(1);
-                tv.SaveCurAudioSrsDialogClarity(1);
+                mTvControlManager.SetAudioSrsDialogClarity(1);
+                mTvControlManager.SaveCurAudioSrsDialogClarity(1);
                 break;
             case R.id.dialog_clarity_off:
-                tv.SetAudioSrsDialogClarity(0);
-                tv.SaveCurAudioSrsDialogClarity(0);
+                mTvControlManager.SetAudioSrsDialogClarity(0);
+                mTvControlManager.SaveCurAudioSrsDialogClarity(0);
                 break;
             // Bass Boost
             case R.id.bass_boost_on:
-                tv.SetAudioSrsTruBass(1);
-                tv.SaveCurAudioSrsTruBass(1);
+                mTvControlManager.SetAudioSrsTruBass(1);
+                mTvControlManager.SaveCurAudioSrsTruBass(1);
                 break;
             case R.id.bass_boost_off:
-                tv.SetAudioSrsTruBass(0);
-                tv.SaveCurAudioSrsTruBass(0);
+                mTvControlManager.SetAudioSrsTruBass(0);
+                mTvControlManager.SaveCurAudioSrsTruBass(0);
                 break;
             // ====Channel====
             // color system
             case R.id.color_system_auto:
-                client.curChannel.videoStd = Tv.tvin_color_system_e.COLOR_SYSTEM_AUTO.toInt();
-                TvContractUtils.updateChannelInfo(mContext, client.curChannel);
-                tv.SetFrontendParms(Tv.tv_fe_type_e.TV_FE_ANALOG, client.curChannel.frequency, client.curChannel.videoStd, client.curChannel.audioStd, 0, 0);
+                mSettingsManager.setColorSystem(TvControlManager.tvin_color_system_e.COLOR_SYSTEM_AUTO.toInt());
                 break;
             case R.id.color_system_pal:
-                client.curChannel.videoStd = Tv.tvin_color_system_e.COLOR_SYSTEM_PAL.toInt();
-                TvContractUtils.updateChannelInfo(mContext, client.curChannel);
-                tv.SetFrontendParms(Tv.tv_fe_type_e.TV_FE_ANALOG, client.curChannel.frequency, client.curChannel.videoStd, client.curChannel.audioStd, 0, 0);
+                mSettingsManager.setColorSystem(TvControlManager.tvin_color_system_e.COLOR_SYSTEM_PAL.toInt());
                 break;
             case R.id.color_system_ntsc:
-                client.curChannel.videoStd = Tv.tvin_color_system_e.COLOR_SYSTEM_NTSC.toInt();
-                TvContractUtils.updateChannelInfo(mContext, client.curChannel);
-                tv.SetFrontendParms(Tv.tv_fe_type_e.TV_FE_ANALOG, client.curChannel.frequency, client.curChannel.videoStd, client.curChannel.audioStd, 0, 0);
+                mSettingsManager.setColorSystem(TvControlManager.tvin_color_system_e.COLOR_SYSTEM_NTSC.toInt());
                 break;
             // sound system
             case R.id.sound_system_dk:
-                client.curChannel.audioStd = Tv.atv_audio_std_e.ATV_AUDIO_STD_DK.toInt();
-                TvContractUtils.updateChannelInfo(mContext, client.curChannel);
-                tv.SetFrontendParms(Tv.tv_fe_type_e.TV_FE_ANALOG, client.curChannel.frequency, client.curChannel.videoStd, client.curChannel.audioStd, 0, 0);
+                 mSettingsManager.setSoundSystem(TvControlManager.atv_audio_std_e.ATV_AUDIO_STD_DK.toInt());
                 break;
             case R.id.sound_system_i:
-                client.curChannel.audioStd = Tv.atv_audio_std_e.ATV_AUDIO_STD_I.toInt();
-                TvContractUtils.updateChannelInfo(mContext, client.curChannel);
-                tv.SetFrontendParms(Tv.tv_fe_type_e.TV_FE_ANALOG, client.curChannel.frequency, client.curChannel.videoStd, client.curChannel.audioStd, 0, 0);
+                mSettingsManager.setSoundSystem(TvControlManager.atv_audio_std_e.ATV_AUDIO_STD_I.toInt());
                 break;
             case R.id.sound_system_bg:
-                client.curChannel.audioStd = Tv.atv_audio_std_e.ATV_AUDIO_STD_BG.toInt();
-                TvContractUtils.updateChannelInfo(mContext, client.curChannel);
-                tv.SetFrontendParms(Tv.tv_fe_type_e.TV_FE_ANALOG, client.curChannel.frequency, client.curChannel.videoStd, client.curChannel.audioStd, 0, 0);
+                mSettingsManager.setSoundSystem(TvControlManager.atv_audio_std_e.ATV_AUDIO_STD_BG.toInt());
                 break;
             case R.id.sound_system_m:
-                client.curChannel.audioStd = Tv.atv_audio_std_e.ATV_AUDIO_STD_M.toInt();
-                TvContractUtils.updateChannelInfo(mContext, client.curChannel);
-                tv.SetFrontendParms(Tv.tv_fe_type_e.TV_FE_ANALOG, client.curChannel.frequency, client.curChannel.videoStd, client.curChannel.audioStd, 0, 0);
+                mSettingsManager.setSoundSystem(TvControlManager.atv_audio_std_e.ATV_AUDIO_STD_M.toInt());
                 break;
             // volume compensate
             case R.id.volume_compensate_increase:
-                if (client.curChannel.audioCompensation<20)
-                client.curChannel.audioCompensation++;
-                TvContractUtils.updateChannelInfo(mContext, client.curChannel);
-                tv.SetCurProgVolumeCompesition(client.curChannel.audioCompensation);
+                mSettingsManager.setVolumeCompensate(1);
                 break;
             case R.id.volume_compensate_decrease:
-                if (client.curChannel.audioCompensation>-20)
-                client.curChannel.audioCompensation--;
-                TvContractUtils.updateChannelInfo(mContext, client.curChannel);
-                tv.SetCurProgVolumeCompesition(client.curChannel.audioCompensation);
+                mSettingsManager.setVolumeCompensate(-1);
                 break;
             // fine tune
             case R.id.fine_tune_increase:
@@ -615,11 +591,11 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             // auto search
             case R.id.auto_search_start_atv:
             case R.id.auto_search_start_dtv:
-                TvContractUtils.deleteChannels(mContext, mSettingsManager.getInputId());
-                if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV)
-                    tv.AtvAutoScan(Tv.atv_video_std_e.ATV_VIDEO_STD_PAL, Tv.atv_audio_std_e.ATV_AUDIO_STD_I, 0);
-                else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV)
-                    tv.DtvAutoScan();
+                mTvDataBaseManager.deleteChannels(mSettingsManager.getInputId());
+                if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV)
+                    mTvControlManager.AtvAutoScan(TvControlManager.atv_video_std_e.ATV_VIDEO_STD_PAL, TvControlManager.atv_audio_std_e.ATV_AUDIO_STD_I, 0);
+                else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV)
+                    mTvControlManager.DtvAutoScan();
                 isSearching = true;
                 finish_result = DroidLogicTvUtils.RESULT_UPDATE;
                 break;
@@ -661,17 +637,17 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 break;
             // Dynamic Backlight
             case R.id.dynamic_backlight_on:
-                tv.startAutoBacklight();
+                mTvControlManager.startAutoBacklight();
                 break;
             case R.id.dynamic_backlight_off:
-                tv.stopAutoBacklight();
+                mTvControlManager.stopAutoBacklight();
                 break;
             // Switch Channel
             case R.id.switch_channel_static_frame:
-                tv.setBlackoutEnable(0);
+                mTvControlManager.setBlackoutEnable(0);
                 break;
             case R.id.switch_channel_black_frame:
-                tv.setBlackoutEnable(1);
+                mTvControlManager.setBlackoutEnable(1);
                 break;
             // Restore Factory Settings
             case R.id.startup_setting_launcher:
@@ -832,7 +808,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
 
     private void startManualSearch() {
         ViewGroup parent = (ViewGroup) ((TvSettingsActivity) mContext).mOptionLayout.getChildAt(0);
-        if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV) {
+        if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV) {
             EditText begin = (EditText) parent.findViewById(R.id.manual_search_edit_from);
             EditText end = (EditText) parent.findViewById(R.id.manual_search_edit_to);
 
@@ -847,19 +823,19 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             mSettingsManager.setManualSearchProgress(0);
             mSettingsManager.setManualSearchSearchedNumber(0);
 
-            tv.AtvManualScan(Integer.valueOf(beginHZ) * 1000, Integer.valueOf(endHZ) * 1000,
-                Tv.atv_video_std_e.ATV_VIDEO_STD_PAL, Tv.atv_audio_std_e.ATV_AUDIO_STD_DK);
-        } else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV) {
+            mTvControlManager.AtvManualScan(Integer.valueOf(beginHZ) * 1000, Integer.valueOf(endHZ) * 1000,
+                TvControlManager.atv_video_std_e.ATV_VIDEO_STD_PAL, TvControlManager.atv_audio_std_e.ATV_AUDIO_STD_DK);
+        } else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
             EditText edit = (EditText) parent.findViewById(R.id.manual_search_dtv_channel);
             String channel = edit.getText().toString();
             if (channel == null || channel.length() == 0)
                 channel = (String)edit.getHint();
-            tv.DtvManualScan(getDvbFrequencyByPd(Integer.valueOf(channel)));
+            mTvControlManager.DtvManualScan(getDvbFrequencyByPd(Integer.valueOf(channel)));
         }
     }
 
     public void setManualSearchEditStyle(View view) {
-        if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV) {
+        if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV) {
             EditText edit_from = (EditText) view.findViewById(R.id.manual_search_edit_from);
             EditText edit_to = (EditText) view.findViewById(R.id.manual_search_edit_to);
             edit_from.setNextFocusLeftId(R.id.content_list);
@@ -893,7 +869,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             };
             edit_from.addTextChangedListener(textWatcher);
             edit_to.addTextChangedListener(textWatcher);
-        } else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV) {
+        } else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
             final EditText edit = (EditText) view.findViewById(R.id.manual_search_dtv_channel);
             edit.setNextFocusLeftId(R.id.content_list);
             edit.setNextFocusRightId(edit.getId());
@@ -940,7 +916,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
 
     private int getDvbFrequencyByPd(int pd_number) {// KHz
         int the_freq = 706000000;
-        ArrayList<FreqList> m_fList = tv.DTVGetScanFreqList();
+        ArrayList<FreqList> m_fList = mTvControlManager.DTVGetScanFreqList();
         int size = m_fList.size();
         for (int i = 0; i < size; i++) {
             if (pd_number == m_fList.get(i).ID) {
@@ -952,9 +928,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         return the_freq;
     }
 
-    private void setManualSearchInfo(Tv.ScannerEvent event) {
+    private void setManualSearchInfo(TvControlManager.ScannerEvent event) {
         ViewGroup optionView = (ViewGroup)((TvSettingsActivity) mContext).mOptionLayout.getChildAt(0);
-        if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV) {
+        if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV) {
             EditText begin = (EditText)optionView.findViewById(R.id.manual_search_edit_from);
             TextView frequency = (TextView)optionView.findViewById(R.id.manual_search_frequency);
             TextView frequency_band = (TextView)optionView.findViewById(R.id.manual_search_frequency_band);
@@ -974,7 +950,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 frequency_band.setText(parseFrequencyBand(freq));
                 searched_number.setText(mContext.getResources().getString(R.string.searched_number) + ": " + channelNumber);
             }
-        } else if (event != null && client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV) {
+        } else if (event != null && mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
             OptionListView listView = (OptionListView)optionView.findViewById(R.id.manual_search_dtv_info);
              ArrayList<HashMap<String,Object>> dataList = getSearchedDtvInfo(event);
              SimpleAdapter adapter = new SimpleAdapter(mContext, dataList,
@@ -985,7 +961,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         }
     }
 
-    public ArrayList<HashMap<String,Object>> getSearchedDtvInfo (Tv.ScannerEvent event) {
+    public ArrayList<HashMap<String,Object>> getSearchedDtvInfo (TvControlManager.ScannerEvent event) {
         ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
 
         HashMap<String,Object> item = new HashMap<String,Object>();
@@ -1017,9 +993,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         return list;
     }
 
-    private void setAutoSearchFrequency(Tv.ScannerEvent event) {
+    private void setAutoSearchFrequency(TvControlManager.ScannerEvent event) {
         ViewGroup optionView = (ViewGroup) ((TvSettingsActivity) mContext).mOptionLayout.getChildAt(0);
-        if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV) {
+        if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV) {
             TextView frequency = (TextView) optionView.findViewById(R.id.auto_search_frequency_atv);
             TextView frequency_band = (TextView) optionView.findViewById(R.id.auto_search_frequency_band_atv);
             TextView searched_number = (TextView) optionView.findViewById(R.id.auto_search_searched_number_atv);
@@ -1029,7 +1005,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 frequency_band.setText(parseFrequencyBand(freq));
                 searched_number.setText(mContext.getResources().getString(R.string.searched_number) + ": " + channelNumber);
             }
-        } else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV) {
+        } else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
             OptionListView listView = (OptionListView)optionView.findViewById(R.id.auto_search_dtv_info);
              ArrayList<HashMap<String,Object>> dataList = getSearchedDtvInfo(event);
              SimpleAdapter adapter = new SimpleAdapter(mContext, dataList,
@@ -1059,9 +1035,11 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             return -1;
     }
 
-    private ChannelInfo initDtvChannelInfo (Tv.ScannerEvent event) {
-        int temp_display_number = 0;
+    private ChannelInfo createDtvChannelInfo (TvControlManager.ScannerEvent event) {
         String name = null;
+        String serviceType;
+        int display_number;
+
         try {
             String composedName = new String(event.programName);
             name = TVMultilingualText.getText(composedName);
@@ -1073,27 +1051,94 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             name = "????";
         }
 
-        temp_display_number = event.srvType == 1 ? tvDisplayNumber : radioDisplayNumber;
-        return new ChannelInfo(String.valueOf(temp_display_number), name, null, event.orig_net_id,
-                event.ts_id, mSettingsManager.getInputId(), event.serviceID, 0, 0, event.mode,
-                event.srvType, event.freq, event.bandwidth, event.vid, event.vfmt, event.aids,
-                event.afmts, event.alangs, event.pcr, 0, 0, 0, 0, 0, 0, 0, 0);
+        if (event.srvType == 1) {
+            serviceType = Channels.SERVICE_TYPE_AUDIO_VIDEO;
+            display_number = tvDisplayNumber;
+        } else if (event.srvType == 2) {
+            serviceType = Channels.SERVICE_TYPE_AUDIO;
+            display_number = radioDisplayNumber;
+        } else {
+            serviceType= Channels.SERVICE_TYPE_OTHER;
+            display_number = radioDisplayNumber;
+        }
+
+        return new ChannelInfo.Builder()
+            .setInputId(mSettingsManager.getInputId())
+            .setType(event.mode)
+            .setServiceType(serviceType)
+            .setServiceId(event.serviceID)
+            .setDisplayNumber(display_number)
+            .setDisplayName(name)
+            .setLogoUrl(null)
+            .setOriginalNetworkId(event.orig_net_id)
+            .setTransportStreamId(event.ts_id)
+            .setVideoPid(event.vid)
+            .setVideoStd(0)
+            .setVideoFormat(event.vfmt)
+            .setVideoWidth(0)
+            .setVideoHeight(0)
+            .setAudioPids(event.aids)
+            .setAudioFormats(event.afmts)
+            .setAudioLangs(event.alangs)
+            .setAudioStd(0)
+            .setIsAutoStd(event.isAutoStd)
+            .setAudioTrackIndex(0)
+            .setAudioCompensation(0)
+            .setPcrPid(event.pcr)
+            .setFrequency(event.freq)
+            .setBandwidth(event.bandwidth)
+            .setFineTune(0)
+            .setBrowsable(true)
+            .setIsFavourite(false)
+            .setPassthrough(false)
+            .setLocked(false)
+            .build();
     }
 
-    private ChannelInfo initAtvChannelInfo (Tv.ScannerEvent event) {
-        return new ChannelInfo(String.valueOf(tvDisplayNumber), event.programName, null, 0, 0,
-                mSettingsManager.getInputId(), 0, 0, 0, 3, event.srvType, event.freq, 0,// bandwidth
-                0,// videoPID
-                0,// videoFormat,
-                null,// audioPIDs[],
-                null,// audioFormats[],
-                null,// audioLangs[],
-                0,// pcrPID,
-                event.videoStd, event.audioStd, event.isAutoStd, 0, 0, 0, 0, 0);
+    private ChannelInfo createAtvChannelInfo (TvControlManager.ScannerEvent event) {
+        String serviceType;
+        if (event.srvType == 1)
+            serviceType = Channels.SERVICE_TYPE_AUDIO_VIDEO;
+        else if (event.srvType == 2)
+            serviceType = Channels.SERVICE_TYPE_AUDIO;
+        else
+            serviceType= Channels.SERVICE_TYPE_OTHER;
+
+        return new ChannelInfo.Builder()
+            .setInputId(mSettingsManager.getInputId())
+            .setType(3)
+            .setServiceType(serviceType)
+            .setServiceId(0)
+            .setDisplayNumber(tvDisplayNumber)
+            .setDisplayName(event.programName)
+            .setLogoUrl(null)
+            .setOriginalNetworkId(0)
+            .setTransportStreamId(0)
+            .setVideoPid(0)
+            .setVideoStd(event.videoStd)
+            .setVideoFormat(0)
+            .setVideoWidth(0)
+            .setVideoHeight(0)
+            .setAudioPids(null)
+            .setAudioFormats(null)
+            .setAudioLangs(null)
+            .setAudioStd(event.audioStd)
+            .setIsAutoStd(event.isAutoStd)
+            .setAudioTrackIndex(0)
+            .setAudioCompensation(0)
+            .setPcrPid(0)
+            .setFrequency(event.freq)
+            .setBandwidth(0)
+            .setFineTune(0)
+            .setBrowsable(true)
+            .setIsFavourite(false)
+            .setPassthrough(false)
+            .setLocked(false)
+            .build();
     }
 
     @Override
-    public void onEvent(Tv.ScannerEvent event) {
+    public void onEvent(TvControlManager.ScannerEvent event) {
         //Log.d("fuhao", "searching---precent = " + event.precent + ",arg0.quality = " + event.quality + ",strength = " + event.strength);
         ChannelInfo channel = null;
         String name = null;
@@ -1105,23 +1150,23 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 radioNumber++;
         }
         switch (event.type) {
-            case Tv.EVENT_DTV_PROG_DATA:
-                channel = initDtvChannelInfo(event);
+            case TvControlManager.EVENT_DTV_PROG_DATA:
+                channel = createDtvChannelInfo(event);
                 if (optionTag == OPTION_MANUAL_SEARCH) {
-                    TvContractUtils.updateOrinsertDtvChannel(mContext, channel);
+                    mTvDataBaseManager.updateOrinsertDtvChannel(channel);
                 } else {
                     if (event.srvType == 1) {//{@link Channels#SERVICE_TYPE_AUDIO_VIDEO}
-                        TvContractUtils.insertDtvChannel(mContext, channel, tvDisplayNumber);
+                        mTvDataBaseManager.insertDtvChannel(channel, tvDisplayNumber);
                         tvDisplayNumber++;
-                    } else {
-                        TvContractUtils.insertDtvChannel(mContext, channel, radioDisplayNumber);
+                    } else if (event.srvType == 2){
+                        mTvDataBaseManager.insertDtvChannel(channel, radioDisplayNumber);
                         radioDisplayNumber++;
                     }
                 }
 
-                Log.d(TAG, "STORE_SERVICE: " + channel.toString());
+                channel.print();
                 break;
-            case Tv.EVENT_SCAN_PROGRESS:
+            case TvControlManager.EVENT_SCAN_PROGRESS:
                 if (event.programName != null) {
                     try {
                         String composedName = new String(event.programName);
@@ -1142,23 +1187,24 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 else
                     setAutoSearchFrequency(event);
                 break;
-            case Tv.EVENT_ATV_PROG_DATA:
-                channel = initAtvChannelInfo(event);
+            case TvControlManager.EVENT_ATV_PROG_DATA:
+                channel = createAtvChannelInfo(event);
                 if (optionTag == OPTION_MANUAL_SEARCH)
-                    TvContractUtils.updateOrinsertAtvChannel(mContext, channel);
+                    mTvDataBaseManager.updateOrinsertAtvChannel(channel);
                 else
-                    TvContractUtils.insertAtvChannel(mContext, channel, tvDisplayNumber);
+                    mTvDataBaseManager.insertAtvChannel(channel, tvDisplayNumber);
                 tvDisplayNumber++;
+                channel.print();
                 break;
-            case Tv.EVENT_STORE_END:
+            case TvControlManager.EVENT_STORE_END:
                 Log.d(TAG, "Store end");
                 ((TvSettingsActivity) mContext).finish();
                 break;
-            case Tv.EVENT_SCAN_END:
+            case TvControlManager.EVENT_SCAN_END:
                 Log.d(TAG, "Scan end");
-                tv.DtvStopScan();
+                mTvControlManager.DtvStopScan();
                 break;
-            case Tv.EVENT_SCAN_EXIT:
+            case TvControlManager.EVENT_SCAN_EXIT:
                 Log.d(TAG, "Scan exit.");
                 isSearching = false;
                 if (channelNumber == 0 && radioNumber == 0) {

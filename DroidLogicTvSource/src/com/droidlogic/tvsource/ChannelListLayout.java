@@ -1,8 +1,7 @@
-package com.droidlogic.ui;
+package com.droidlogic.tvsource;
 
-import com.droidlogic.app.tv.Channel;
-import com.droidlogic.tv.R;
-import com.droidlogic.tv.Utils;
+import com.droidlogic.app.tv.ChannelInfo;
+import com.droidlogic.tvsource.R;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
@@ -33,8 +32,8 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
     private TextView tabDtvr;
     private ListView mListView;
     private MyAdapter mAdapter;
-    SparseArray<Channel> videoList;
-    SparseArray<Channel> radioList;
+    SparseArray<ChannelInfo> videoList;
+    SparseArray<ChannelInfo> radioList;
 
     private Resources mResources;
 
@@ -57,7 +56,7 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
         mListView.setOnItemClickListener(this);
     }
 
-    public void initView(int type, SparseArray<Channel> list) {
+    public void initView(int type, SparseArray<ChannelInfo> list) {
         Utils.logd(TAG, "==== init atv list, type =" + type + ", size =" + list.size());
         mType = type;
         tabFlag = true;
@@ -67,7 +66,7 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
         initList();
     }
 
-    public void initView(int type, SparseArray<Channel> video, SparseArray<Channel> radio) {
+    public void initView(int type, SparseArray<ChannelInfo> video, SparseArray<ChannelInfo> radio) {
         Utils.logd(TAG, "==== init dtv list, type =" + type + ", video size =" + video.size()
                 + ", radio size =" + radio.size());
         mType = type;
@@ -81,7 +80,7 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        Channel channel = (Channel)mAdapter.getItem(position);
+        ChannelInfo channel = (ChannelInfo)mAdapter.getItem(position);
         int index = (int) mAdapter.getItemId(position);
 
         if (channel != null) {
@@ -89,7 +88,7 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
         }
     }
 
-    private SparseArray<Channel> getFavList(SparseArray<Channel> list) {
+    private SparseArray<ChannelInfo> getFavList(SparseArray<ChannelInfo> list) {
         return list;
     }
 
@@ -217,7 +216,7 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
 
     private class MyAdapter extends BaseAdapter {
         private LayoutInflater mInflater;
-        private SparseArray<Channel> mList;
+        private SparseArray<ChannelInfo> mList;
         private boolean mIsFav = false;
 
         private MyAdapter(Context context) {
@@ -229,7 +228,7 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
             mIsFav = isFav;
         }
 
-        public void setList(SparseArray<Channel> list) {
+        public void setList(SparseArray<ChannelInfo> list) {
             mList = list;
         }
 
@@ -258,13 +257,13 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
             } else {
                 holder = (ViewHolder) convertView.getTag();
             }
-            Channel channel = (Channel)getItem(position);
+            ChannelInfo channel = (ChannelInfo)getItem(position);
             Utils.logd(TAG, "==== position =" + position + ", count =" + getCount());
             if (channel == null)
                 return null;
             Utils.logd(TAG, "==== number =" + channel.getDisplayNumber());
             Utils.logd(TAG, "==== name =" + channel.getDisplayName());
-            holder.channelNum.setText(channel.getDisplayNumber());
+            holder.channelNum.setText(Integer.toString(channel.getDisplayNumber()));
             holder.channelName.setText(channel.getDisplayName());
             if (mIsFav) {
                 holder.favImg.setImageResource(R.drawable.list_fav);

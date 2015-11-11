@@ -4,10 +4,11 @@ import java.io.IOException;
 
 import org.xmlpull.v1.XmlPullParserException;
 
-import com.droidlogic.app.tv.DroidLogicTvInputService;
+import com.droidlogic.tvinput.DroidLogicTvInputService;
+import com.droidlogic.tvinput.TvInputBaseSession;
+import com.droidlogic.tvinput.Utils;
+
 import com.droidlogic.app.tv.DroidLogicTvUtils;
-import com.droidlogic.app.tv.TvInputBaseSession;
-import com.droidlogic.utils.Utils;
 import android.content.Context;
 import android.content.pm.ResolveInfo;
 import android.media.tv.TvInputHardwareInfo;

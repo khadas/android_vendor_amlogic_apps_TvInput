@@ -18,15 +18,11 @@ import android.util.Log;
 import android.media.tv.TvInputInfo;
 
 import com.droidlogic.app.tv.DroidLogicTvUtils;
-import com.droidlogic.tvclient.TvClient;
 import com.droidlogic.tvinput.R;
-import android.amlogic.Tv;
+import com.droidlogic.app.tv.TvControlManager;
 
 public class TvSettingsActivity extends Activity implements OnClickListener, OnFocusChangeListener {
     private static final String TAG = "MainActivity";
-
-    private TvClient client;
-    private Tv tv;
 
     private ContentFragment fragmentImage;
     private ContentFragment fragmentSound;
@@ -42,6 +38,8 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
     private ImageButton tabSound;
     private ImageButton tabChannel;
     private ImageButton tabSettings;
+    private TvControlManager mTvControlManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,8 +47,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
         setContentView(R.layout.layout_main);
 
         mSettingsManager = new SettingsManager(this, getIntent());
-        client = mSettingsManager.getTvClient();
-        tv = mSettingsManager.getTvInstance();
+        mTvControlManager = mSettingsManager.getTvControlManager();
 
         tabPicture= (ImageButton) findViewById(R.id.button_picture);
         tabSound= (ImageButton) findViewById(R.id.button_sound);
@@ -65,8 +62,8 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
         tabSettings.setOnClickListener(this);
         tabSettings.setOnFocusChangeListener(this);
 
-        if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_HDMI ||
-            client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_AV) {
+        if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_HDMI ||
+            mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_AV) {
             tabChannel.setVisibility(View.GONE);
             findViewById(R.id.title_channel).setVisibility(View.GONE);
         }
@@ -110,7 +107,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
         switch (keyCode) {
             case KeyEvent.KEYCODE_BACK:
                 if (mOptionUiManager.isSearching()) {
-                    tv.DtvStopScan();
+                    mTvControlManager.DtvStopScan();
                     return true;
                 }
                 break;
@@ -175,9 +172,9 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
                 transaction.replace(R.id.settings_list, currentFragment);
                 break;
             case R.id.button_channel:
-                if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_TV)
+                if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV)
                     currentFragment = new ContentFragment(R.xml.list_channel_atv, v);
-                else if (client.curSource == Tv.SourceInput_Type.SOURCE_TYPE_DTV)
+                else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV)
                     currentFragment = new ContentFragment(R.xml.list_channel_dtv, v);
                 transaction.replace(R.id.settings_list, currentFragment);
                 break;

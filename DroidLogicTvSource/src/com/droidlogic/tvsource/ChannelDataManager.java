@@ -1,4 +1,4 @@
-package com.droidlogic.app.tv;
+package com.droidlogic.tvsource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +12,8 @@ import android.media.tv.TvContract.Channels;
 import android.net.Uri;
 import android.os.Handler;
 import android.util.Log;
+
+import com.droidlogic.app.tv.DroidLogicTvUtils;
 
 public class ChannelDataManager {
     private static final String TAG = "ChannelDataManager";

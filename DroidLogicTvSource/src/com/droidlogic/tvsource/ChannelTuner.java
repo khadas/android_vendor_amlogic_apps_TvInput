@@ -1,4 +1,4 @@
-package com.droidlogic.app.tv;
+package com.droidlogic.tvsource;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -11,6 +11,9 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseArray;
 
+import com.droidlogic.app.tv.ChannelInfo;
+import com.droidlogic.app.tv.DroidLogicTvUtils;
+
 public class ChannelTuner {
     private static final String TAG = "ChannelTuner";
     private final Context mContext;
@@ -18,13 +21,13 @@ public class ChannelTuner {
     private final String mInputId;
     private int mSourceType;
 
-    private SparseArray<Channel> mVideoChannels = new SparseArray<>();
-    private SparseArray<Channel> mRadioChannels = new SparseArray<>();
+    private SparseArray<ChannelInfo> mVideoChannels = new SparseArray<>();
+    private SparseArray<ChannelInfo> mRadioChannels = new SparseArray<>();
 
-    private Channel mCurrentChannel;
+    private ChannelInfo mCurrentChannel;
     private static final int DEFAULT_CHANNEL_IDDEX = -1;
     private int mCurrentChannelIndex;
-    private String mSelection = Channels.COLUMN_BROWSABLE + "=0";
+    private String mSelection = Channels.COLUMN_BROWSABLE + "=1";
 
     public ChannelTuner(Context context, TvInputInfo input_info) {
         mContext = context;
@@ -41,11 +44,11 @@ public class ChannelTuner {
         return mSourceType == DroidLogicTvUtils.SOURCE_TYPE_DTV;
     }
 
-    private boolean isVideoChannel(Channel channel) {
+    private boolean isVideoChannel(ChannelInfo channel) {
         return TextUtils.equals(channel.getServiceType(), Channels.SERVICE_TYPE_AUDIO_VIDEO);
     }
 
-    private boolean isRadioChannel(Channel channel) {
+    private boolean isRadioChannel(ChannelInfo channel) {
         return TextUtils.equals(channel.getServiceType(), Channels.SERVICE_TYPE_AUDIO);
     }
 
@@ -71,24 +74,24 @@ public class ChannelTuner {
         mSourceType = source_type;
         if (isPassthrough()) {
             mCurrentChannelIndex = 0;
-            mCurrentChannel = Channel.createPassthroughChannel(mInputId);
+            mCurrentChannel = ChannelInfo.createPassthroughChannel(mInputId);
             mVideoChannels.put(mCurrentChannelIndex, mCurrentChannel);
         } else {
             Cursor cursor = null;
             ContentResolver resolver = mContext.getContentResolver();
             Uri uri = TvContract.buildChannelsUriForInput(mInputId);
             try {
-                cursor = resolver.query(uri, Channel.PROJECTION, mSelection, null, null);
+                cursor = resolver.query(uri, ChannelInfo.SIMPLE_PROJECTION, mSelection, null, null);
                 if (cursor != null)
                     Log.d(TAG, "==== initChannelList, cursor count = " + cursor.getCount());
                 while (cursor != null && cursor.moveToNext()) {
-                    Channel channel = Channel.fromCursor(cursor);
+                    ChannelInfo channel = ChannelInfo.fromSimpleCursor(cursor);
                     if (mSourceType == DroidLogicTvUtils.SOURCE_TYPE_OTHER) {
                         mVideoChannels.put((int)channel.getId(), channel);
                     } else if (isDTVChannel() && isRadioChannel(channel)) {
-                        mRadioChannels.put(channel.getChannelNumber(), channel);
+                        mRadioChannels.put(channel.getDisplayNumber(), channel);
                     } else if (isVideoChannel(channel)) {
-                        mVideoChannels.put(channel.getChannelNumber(), channel);
+                        mVideoChannels.put(channel.getDisplayNumber(), channel);
                     }
                 }
                 if (mVideoChannels.size() > 0) {
@@ -108,7 +111,7 @@ public class ChannelTuner {
      * {@code null} indicates the channel has been delete.
      * Otherwise, indicates the channel has been inserted.
      */
-    private void updateCurrentChannel(Channel channel) {
+    private void updateCurrentChannel(ChannelInfo channel) {
         if (channel == null) {//has delete a channel
             if (isRadioChannel() && mRadioChannels.size() > 0) {
                 if (mCurrentChannelIndex == -1) {
@@ -178,21 +181,21 @@ public class ChannelTuner {
      * if update a channel, replace the old one.
      */
     public void changeRowChannel(Uri uri) {
-        if (isPassthrough()) 
+        if (isPassthrough())
             return;
 
         ContentResolver resolver = mContext.getContentResolver();
         Cursor cursor = null;
-        Channel channel = null;
+        ChannelInfo channel = null;
         try {
-            cursor = resolver.query(uri, Channel.PROJECTION, mSelection, null, null);
+            cursor = resolver.query(uri, ChannelInfo.SIMPLE_PROJECTION, mSelection, null, null);
             if (cursor == null || cursor.getCount() == 0) {
                 long id = (long)Integer.parseInt(uri.getLastPathSegment());
                 deleteRowChannel(id);
                 updateCurrentChannel(null);
                 return;
             } else if (cursor != null && cursor.moveToNext()) {
-                channel = Channel.fromCursor(cursor);
+                channel = ChannelInfo.fromSimpleCursor(cursor);
             }
         } finally {
             if (cursor != null)
@@ -209,7 +212,7 @@ public class ChannelTuner {
                     return;
                 }
             }
-            mRadioChannels.put(channel.getChannelNumber(), channel);
+            mRadioChannels.put(channel.getDisplayNumber(), channel);
             updateCurrentChannel(channel);
             return;
         } else if (isVideoChannel(channel)) {
@@ -219,7 +222,7 @@ public class ChannelTuner {
                     return;
                 }
             }
-            mVideoChannels.put(channel.getChannelNumber(), channel);
+            mVideoChannels.put(channel.getDisplayNumber(), channel);
             updateCurrentChannel(channel);
         } else {
             //channel's service type is other.
@@ -241,15 +244,15 @@ public class ChannelTuner {
         Cursor cursor = null;
         ContentResolver resolver = mContext.getContentResolver();
         try {
-            cursor = resolver.query(uri, Channel.PROJECTION, mSelection, null, null);
+            cursor = resolver.query(uri, ChannelInfo.SIMPLE_PROJECTION, mSelection, null, null);
             while (cursor != null && cursor.moveToNext()) {
-                Channel channel = Channel.fromCursor(cursor);
+                ChannelInfo channel = ChannelInfo.fromSimpleCursor(cursor);
                 if (mSourceType == DroidLogicTvUtils.SOURCE_TYPE_OTHER) {
                     mVideoChannels.put((int)channel.getId(), channel);
                 } else if (isDTVChannel() && isRadioChannel(channel)) {
-                    mRadioChannels.put(channel.getChannelNumber(), channel);
+                    mRadioChannels.put(channel.getDisplayNumber(), channel);
                 } else if (isVideoChannel(channel)) {
-                    mVideoChannels.put(channel.getChannelNumber(), channel);
+                    mVideoChannels.put(channel.getDisplayNumber(), channel);
                 }
             }
             if (mVideoChannels.size() > 0) {
@@ -347,13 +350,13 @@ public class ChannelTuner {
     public String getChannelType() {
         if (mCurrentChannel == null)
             return "";
-        return mCurrentChannel.getType();
+        return "TBD";
     }
 
     public String getChannelNumber() {
         if (mCurrentChannel == null)
             return "";
-        return mCurrentChannel.getDisplayNumber();
+        return Integer.toString(mCurrentChannel.getDisplayNumber());
     }
 
     public String getChannelName() {
@@ -365,26 +368,26 @@ public class ChannelTuner {
     public String getChannelVideoFormat() {
         if (mCurrentChannel == null)
             return "";
-        return mCurrentChannel.getVideoFormat();
+        return "TBD";
     }
 
     public void setChannelType(String type) {
-        if (mCurrentChannel == null)
+        if (mCurrentChannel == null || TextUtils.isEmpty(type))
             return;
-        mCurrentChannel.setType(type);
+        //mCurrentChannel.setType(Integer.valueOf(type));
     }
 
     public void setChannelVideoFormat(String format) {
-        if (mCurrentChannel == null)
+        if (mCurrentChannel == null || TextUtils.isEmpty(format))
             return;
-        mCurrentChannel.setVideoFormat(format);
+        //mCurrentChannel.setVideoFormat(Integer.valueOf(format));
     }
 
-    public SparseArray<Channel> getChannelVideoList() {
+    public SparseArray<ChannelInfo> getChannelVideoList() {
         return mVideoChannels;
     }
 
-    public SparseArray<Channel> getChannelRadioList() {
+    public SparseArray<ChannelInfo> getChannelRadioList() {
         return mRadioChannels;
     }
 }
