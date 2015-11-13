@@ -1146,7 +1146,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             // get a channel
             if (event.srvType == 1)
                 channelNumber++;
-            else
+            else if (event.srvType == 2)
                 radioNumber++;
         }
         switch (event.type) {

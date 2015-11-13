@@ -887,6 +887,8 @@ public class SettingsManager {
 
     public void setAudioTrack (int position) {
         if (currentChannel != null) {
+            mTvControlManager.DtvSwitchAudioTrack(currentChannel.getAudioPids()[position],
+                currentChannel.getAudioFormats()[position], 0);
             currentChannel.setAudioTrackIndex(position);
             mTvDataBaseManager.updateChannelInfo(currentChannel);
         }
@@ -996,10 +998,14 @@ public class SettingsManager {
     }
 
     public  void deleteChannel (int type, int channelNumber) {
-        ChannelInfo channel = getChannelByNumber(type, channelNumber);
+        ArrayList<ChannelInfo> channelList = getChannelInfoList(type);
+        mTvDataBaseManager.deleteChannel(channelList.get(channelNumber));
 
-        if (channel != null)
-            mTvDataBaseManager.deleteChannel(channel);
+        for (int i = channelNumber + 1; i < channelList.size(); i++) {
+            ChannelInfo info = (ChannelInfo)channelList.get(i);
+            info.setDisplayNumber(i - 1);
+            mTvDataBaseManager.updateChannelInfo(info);
+        }
     }
 
     public  void setFavouriteChannel (int type, int channelNumber) {
