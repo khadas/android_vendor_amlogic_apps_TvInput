@@ -779,7 +779,31 @@ public class SettingsManager {
         }
     }
 
+    private void setPictureUserMode(String key) {
+        int brightness = mTvControlManager.GetBrightness(mTvSource);
+        int contrast = mTvControlManager.GetContrast(mTvSource);
+        int color = mTvControlManager.GetSaturation(mTvSource);
+        int sharpness = mTvControlManager.GetSharpness(mTvSource);
+
+        switch (mTvControlManager.GetPQMode(mTvSource)) {
+            case 0:
+            case 1:;
+            case 2:
+                setPictureMode(STATUS_USER);
+                break;
+        }
+        if (!key.equals(KEY_BRIGHTNESS))
+            mTvControlManager.SetBrightness(brightness, mTvSource, 1);
+        if (!key.equals(KEY_CONTRAST))
+            mTvControlManager.SetContrast(contrast, mTvSource, 1);
+        if (!key.equals(KEY_COLOR))
+            mTvControlManager.SetSaturation(color, mTvSource, mTvControlManager.GetCurrentSignalInfo().fmt, 1);
+        if (!key.equals(KEY_SHARPNESS))
+            mTvControlManager.SetSharpness(sharpness, mTvSource, 1, 0, 1);
+    }
+
     public void setBrightness (int step) {
+        setPictureUserMode(KEY_BRIGHTNESS);
         if (step == PERCENT_INCREASE)
             mTvControlManager.SetBrightness(mTvControlManager.GetBrightness(mTvSource) + 1, mTvSource, 1);
         else
@@ -787,6 +811,7 @@ public class SettingsManager {
     }
 
     public void setContrast (int step) {
+        setPictureUserMode(KEY_CONTRAST);
         if (step == PERCENT_INCREASE)
             mTvControlManager.SetContrast(mTvControlManager.GetContrast(mTvSource) + 1, mTvSource, 1);
         else
@@ -794,6 +819,7 @@ public class SettingsManager {
     }
 
     public void setColor (int step) {
+        setPictureUserMode(KEY_COLOR);
         if (step == PERCENT_INCREASE)
             mTvControlManager.SetSaturation(mTvControlManager.GetSaturation(mTvSource) + 1,
                 mTvSource, mTvControlManager.GetCurrentSignalInfo().fmt, 1);
@@ -803,6 +829,7 @@ public class SettingsManager {
     }
 
     public void setSharpness (int step) {
+        setPictureUserMode(KEY_SHARPNESS);
         if (step == PERCENT_INCREASE)
             mTvControlManager.SetSharpness(mTvControlManager.GetSharpness(mTvSource) + 1, mTvSource, 1, 0, 1);
         else

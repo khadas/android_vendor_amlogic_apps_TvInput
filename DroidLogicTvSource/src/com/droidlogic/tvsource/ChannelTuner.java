@@ -101,6 +101,7 @@ public class ChannelTuner {
                     } else if (isVideoChannel(channel)) {
                         mVideoChannels.put(channel.getDisplayNumber(), channel);
                     }
+                    Log.d(TAG, "==== initChannelList, number=" + channel.getDisplayNumber() + " name=" + channel.getDisplayName());
                 }
                 if (mVideoChannels.size() > 0) {
                     mCurrentChannel = mVideoChannels.valueAt(DEFAULT_INDEX);

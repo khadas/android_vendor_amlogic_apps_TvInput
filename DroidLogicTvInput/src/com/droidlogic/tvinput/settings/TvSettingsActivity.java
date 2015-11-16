@@ -3,6 +3,7 @@ package com.droidlogic.tvinput.settings;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.provider.Settings;
 import android.os.Bundle;
 import android.os.Handler;
@@ -14,6 +15,7 @@ import android.view.View.OnFocusChangeListener;
 import android.view.Window;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
+import android.view.inputmethod.InputMethodManager;
 import android.util.Log;
 import android.media.tv.TvInputInfo;
 
@@ -103,7 +105,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
     }
 
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        Log.d(TAG, "==== focus =" + getCurrentFocus() + ", keycode =" + keyCode);
+        //Log.d(TAG, "==== focus =" + getCurrentFocus() + ", keycode =" + keyCode);
         switch (keyCode) {
             case KeyEvent.KEYCODE_BACK:
                 if (mOptionUiManager.isSearching()) {
@@ -220,9 +222,10 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
 
     Handler handler = new Handler() {
         public void handleMessage(Message msg) {
-            if (msg.what == 0 && !mOptionUiManager.isSearching())
+            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (!mOptionUiManager.isSearching() && !imm. isAcceptingText())
                 finish();
-            else if (mOptionUiManager.isSearching()) {
+            else  {
                 int seconds = Settings.System.getInt(getContentResolver(), SettingsManager.KEY_MENU_TIME, SettingsManager.DEFUALT_MENU_TIME);
                 sendEmptyMessageDelayed(0, seconds * 1000);
             }
