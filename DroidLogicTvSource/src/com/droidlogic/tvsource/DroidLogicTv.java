@@ -277,8 +277,8 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     protected void onResume() {
         Utils.logd(TAG, "== onResume ====");
 
-        if (hasStopped)
-            initVideoView();
+//        if (hasStopped)
+//            initVideoView();//replace with sideband
         initMainView();
         if (hasStopped || needUpdateSource) {
             switchToSourceInput();

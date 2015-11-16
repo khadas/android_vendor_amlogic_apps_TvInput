@@ -1,13 +1,8 @@
 package com.droidlogic.tvinput.settings;
 
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.res.Resources;
-import android.media.tv.TvContract;
 import android.media.tv.TvContract.Channels;
 import android.os.PowerManager;
-import android.os.SystemProperties;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -18,28 +13,23 @@ import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
 import android.view.View.OnKeyListener;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.List;
-import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import android.R.integer;
 import com.droidlogic.app.tv.TvControlManager;
 import com.droidlogic.app.tv.TvControlManager.FreqList;
 import android.app.AlertDialog;
 
 import com.droidlogic.app.tv.DroidLogicTvUtils;
+import com.droidlogic.app.tv.TVChannelParams;
 import com.droidlogic.app.tv.TVMultilingualText;
 import com.droidlogic.app.tv.ChannelInfo;
 import com.droidlogic.app.tv.TvDataBaseManager;
@@ -343,7 +333,6 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
 
     @Override
     public void onClick(View view) {
-        Resources res = mContext.getResources();
         switch (view.getId()) {
         // ====Picture====
         // picture mode
@@ -1064,7 +1053,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
 
         return new ChannelInfo.Builder()
             .setInputId(mSettingsManager.getInputId())
-            .setType(event.mode)
+            .setType(DroidLogicTvUtils.CHANNEL_MODE_TO_TYPE_MAP.get(event.mode))
             .setServiceType(serviceType)
             .setServiceId(event.serviceID)
             .setDisplayNumber(display_number)
@@ -1096,18 +1085,10 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     }
 
     private ChannelInfo createAtvChannelInfo (TvControlManager.ScannerEvent event) {
-        String serviceType;
-        if (event.srvType == 1)
-            serviceType = Channels.SERVICE_TYPE_AUDIO_VIDEO;
-        else if (event.srvType == 2)
-            serviceType = Channels.SERVICE_TYPE_AUDIO;
-        else
-            serviceType= Channels.SERVICE_TYPE_OTHER;
-
         return new ChannelInfo.Builder()
             .setInputId(mSettingsManager.getInputId())
-            .setType(3)
-            .setServiceType(serviceType)
+            .setType(DroidLogicTvUtils.CHANNEL_MODE_TO_TYPE_MAP.get(event.mode))
+            .setServiceType(Channels.SERVICE_TYPE_AUDIO_VIDEO)//default is SERVICE_TYPE_AUDIO_VIDEO
             .setServiceId(0)
             .setDisplayNumber(tvDisplayNumber)
             .setDisplayName(event.programName)
@@ -1144,10 +1125,14 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         String name = null;
         if (event.lock == 1) {
             // get a channel
-            if (event.srvType == 1)
+            if (event.mode == TVChannelParams.MODE_ANALOG) {
                 channelNumber++;
-            else if (event.srvType == 2)
-                radioNumber++;
+            } else {
+                if (event.srvType == 1)
+                    channelNumber++;
+                else if (event.srvType == 2)
+                    radioNumber++;
+            }
         }
         switch (event.type) {
             case TvControlManager.EVENT_DTV_PROG_DATA:
