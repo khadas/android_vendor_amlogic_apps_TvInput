@@ -64,6 +64,7 @@
     <string name="searched_number">program number</string>
     <string name="channel_edit">Channel Edit</string>
     <string name="switch_channel">Switch Channel</string>
+    <string name="atv_program">ATV program</string>
 
     <!-- Settings -->
     <string name="settings">Settings</string>

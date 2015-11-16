@@ -99,6 +99,10 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         return finish_result;
     }
 
+    public void setFinishResult(int result) {
+        finish_result = result;
+    }
+
     public boolean isSearching() {
         return isSearching;
     }
@@ -1091,7 +1095,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             .setServiceType(Channels.SERVICE_TYPE_AUDIO_VIDEO)//default is SERVICE_TYPE_AUDIO_VIDEO
             .setServiceId(0)
             .setDisplayNumber(tvDisplayNumber)
-            .setDisplayName(event.programName)
+            .setDisplayName(mContext.getResources().getString(R.string.atv_program))
             .setLogoUrl(null)
             .setOriginalNetworkId(0)
             .setTransportStreamId(0)

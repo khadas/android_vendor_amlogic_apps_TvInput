@@ -701,8 +701,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
             mInfoName.setText("");
         } else {
             mInfoNumber.setText(mSourceInput.getChannelNumber());
-            mInfoName.setText(TextUtils.isEmpty(mSourceInput.getChannelType()) ? "" : mSourceInput
-                    .getChannelType().substring(5));
+            mInfoName.setText(TextUtils.isEmpty(mSourceInput.getChannelType()) ? "" :"TBD");
         }
     }
 

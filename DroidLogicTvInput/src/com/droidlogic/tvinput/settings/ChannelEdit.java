@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import com.droidlogic.tvinput.R;
+import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.app.tv.TvControlManager;
 
 public class ChannelEdit implements OnClickListener, OnFocusChangeListener {
@@ -44,6 +45,7 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener {
 
     private Context mContext;
     private SettingsManager mSettingsManager;
+    private OptionUiManager mOptionUiManager;
     private View channelEditView = null;
     private TextView button_tv = null;
     private TextView button_radio = null;
@@ -62,6 +64,7 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener {
     public ChannelEdit (Context context, View view) {
         mContext = context;
         mSettingsManager = ((TvSettingsActivity)mContext).getSettingsManager();
+        mOptionUiManager = ((TvSettingsActivity)mContext).getOptionUiManager();
         channelEditView = view;
 
         initChannelEditView();
@@ -225,10 +228,18 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener {
     }
 
     private void skipChannel () {
+        if (currentChannelPosition == mSettingsManager.getCurrentChannelNumber()) {
+            mOptionUiManager.setFinishResult(DroidLogicTvUtils.RESULT_UPDATE);
+        }
+
         mSettingsManager.skipChannel(channelType, currentChannelPosition);
     }
 
     private void deleteChannel () {
+        if (currentChannelPosition == mSettingsManager.getCurrentChannelNumber()) {
+            mOptionUiManager.setFinishResult(DroidLogicTvUtils.RESULT_UPDATE);
+        }
+
         mSettingsManager.deleteChannel(channelType, currentChannelPosition);
     }
 

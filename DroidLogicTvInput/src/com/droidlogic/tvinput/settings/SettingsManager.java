@@ -436,6 +436,13 @@ public class SettingsManager {
             return mResources.getString(R.string.on);
     }
 
+    public int getCurrentChannelNumber() {
+        if (currentChannel != null)
+            return currentChannel.getDisplayNumber();
+
+        return -1;
+    }
+
     private String getCurrentChannelStatus () {
         if (currentChannel != null)
             return currentChannel.getDisplayName();
