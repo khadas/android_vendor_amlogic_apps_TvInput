@@ -133,8 +133,8 @@ public class DTVInputService extends DroidLogicTvInputService {
         }
 
         private boolean playProgram(ChannelInfo info) {
-            int mode = DroidLogicTvUtils.CHANNEL_MODE_TO_TYPE_MAP.keyAt(
-                    DroidLogicTvUtils.CHANNEL_MODE_TO_TYPE_MAP.indexOfValue(info.getType()));
+            info.print();
+            int mode = Utils.type2mode(info.getType());
             if (mode == TVChannelParams.MODE_DTMB) {
                 TvControlManager mTvControlManager = TvControlManager.open();
                 info.print();
@@ -144,7 +144,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                         info.getBandwidth(),
                         0,
                         info.getVideoPid(),
-                        info.getVideoFormat(),
+                        info.getVfmt(),
                         (info.getAudioPids() != null) ? info.getAudioPids()[info.getAudioTrackIndex()] : -1,
                         (info.getAudioFormats() != null) ? info.getAudioFormats()[info.getAudioTrackIndex()] : -1,
                         info.getPcrPid(),

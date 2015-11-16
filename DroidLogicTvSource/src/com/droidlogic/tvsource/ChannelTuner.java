@@ -354,7 +354,7 @@ public class ChannelTuner {
     public String getChannelType() {
         if (mCurrentChannel == null)
             return "";
-        return "TBD";
+        return mCurrentChannel.getType();
     }
 
     public String getChannelNumber() {
@@ -372,19 +372,19 @@ public class ChannelTuner {
     public String getChannelVideoFormat() {
         if (mCurrentChannel == null)
             return "";
-        return "TBD";
+        return mCurrentChannel.getVideoFormat();
     }
 
     public void setChannelType(String type) {
         if (mCurrentChannel == null || TextUtils.isEmpty(type))
             return;
-        //mCurrentChannel.setType(Integer.valueOf(type));
+        mCurrentChannel.setType(type);
     }
 
     public void setChannelVideoFormat(String format) {
         if (mCurrentChannel == null || TextUtils.isEmpty(format))
             return;
-        //mCurrentChannel.setVideoFormat(Integer.valueOf(format));
+        mCurrentChannel.setVideoFormat(format);
     }
 
     public SparseArray<ChannelInfo> getChannelVideoList() {

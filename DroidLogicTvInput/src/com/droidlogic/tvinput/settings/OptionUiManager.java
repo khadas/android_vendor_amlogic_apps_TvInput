@@ -34,6 +34,7 @@ import com.droidlogic.app.tv.TVMultilingualText;
 import com.droidlogic.app.tv.ChannelInfo;
 import com.droidlogic.app.tv.TvDataBaseManager;
 import com.droidlogic.tvinput.R;
+import com.droidlogic.tvinput.Utils;
 
 public class OptionUiManager implements OnClickListener, OnFocusChangeListener, OnKeyListener, TvControlManager.ScannerEventListener {
     public static final String TAG = "OptionUiManager";
@@ -1057,7 +1058,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
 
         return new ChannelInfo.Builder()
             .setInputId(mSettingsManager.getInputId())
-            .setType(DroidLogicTvUtils.CHANNEL_MODE_TO_TYPE_MAP.get(event.mode))
+            .setType(Utils.mode2type(event.mode))
             .setServiceType(serviceType)
             .setServiceId(event.serviceID)
             .setDisplayNumber(display_number)
@@ -1067,7 +1068,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             .setTransportStreamId(event.ts_id)
             .setVideoPid(event.vid)
             .setVideoStd(0)
-            .setVideoFormat(event.vfmt)
+            .setVfmt(event.vfmt)
             .setVideoWidth(0)
             .setVideoHeight(0)
             .setAudioPids(event.aids)
@@ -1091,7 +1092,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     private ChannelInfo createAtvChannelInfo (TvControlManager.ScannerEvent event) {
         return new ChannelInfo.Builder()
             .setInputId(mSettingsManager.getInputId())
-            .setType(DroidLogicTvUtils.CHANNEL_MODE_TO_TYPE_MAP.get(event.mode))
+            .setType(Utils.mode2type(event.mode))
             .setServiceType(Channels.SERVICE_TYPE_AUDIO_VIDEO)//default is SERVICE_TYPE_AUDIO_VIDEO
             .setServiceId(0)
             .setDisplayNumber(tvDisplayNumber)
@@ -1101,7 +1102,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             .setTransportStreamId(0)
             .setVideoPid(0)
             .setVideoStd(event.videoStd)
-            .setVideoFormat(0)
+            .setVfmt(0)
             .setVideoWidth(0)
             .setVideoHeight(0)
             .setAudioPids(null)
