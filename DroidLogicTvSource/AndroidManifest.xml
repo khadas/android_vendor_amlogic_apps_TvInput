@@ -10,6 +10,8 @@
     <uses-permission android:name="com.android.providers.tv.permission.ACCESS_ALL_EPG_DATA" />
     <uses-permission android:name="com.android.providers.tv.permission.READ_EPG_DATA" />
     <uses-permission android:name="com.android.providers.tv.permission.WRITE_EPG_DATA" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.INJECT_EVENTS" />
 
     <application
         android:icon="@drawable/ic_launcher"

@@ -20,4 +20,8 @@
     <string name="tab_dtv_video">TV</string>
     <string name="tab_dtv_radio">Radio</string>
 
+    <!-- for time suspend ui -->
+    <string name="suspend_dialog_title">Suspend Countdown</string>
+	<string name="cancel_suspend">Cancel Countdown</string>
+	<string name="countdown_tips">seconds later shut down!</string>
 </resources>

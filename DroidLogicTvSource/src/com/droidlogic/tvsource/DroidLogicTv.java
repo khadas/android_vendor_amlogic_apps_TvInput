@@ -1,6 +1,5 @@
 package com.droidlogic.tvsource;
 
-
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -12,7 +11,11 @@ import com.droidlogic.tvsource.ChannelListLayout.OnChannelSelectListener;
 import com.droidlogic.tvsource.SourceButton.OnSourceClickListener;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
+import android.content.DialogInterface.OnKeyListener;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -32,7 +35,9 @@ import android.os.HandlerThread;
 import android.os.SystemClock;
 import android.os.Handler.Callback;
 import android.os.Message;
+import android.provider.Settings;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.SurfaceHolder;
@@ -117,6 +122,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         setContentView(R.layout.main);
 //        initVideoView();
         init();
+        initTimeSuspend(this);
     }
 
     private void initVideoView() {
@@ -277,14 +283,14 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     protected void onResume() {
         Utils.logd(TAG, "== onResume ====");
 
-//        if (hasStopped)
-//            initVideoView();//replace with sideband
         initMainView();
         if (hasStopped || needUpdateSource) {
             switchToSourceInput();
         }
         hasStopped = false;
         needUpdateSource = true;
+        reset_nosignal_time();
+        reset_shutdown_time();
 
         popupSourceInfo(Utils.SHOW_VIEW);
         super.onResume();
@@ -907,18 +913,17 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         @Override
         public void onVideoUnavailable(String inputId, int reason) {
             Utils.logd(TAG, "====onVideoUnavailable==inputId =" + inputId +", ===reason ="+ reason);
-
             switch (reason) {
                 case TvInputManager.VIDEO_UNAVAILABLE_REASON_UNKNOWN:
                 case TvInputManager.VIDEO_UNAVAILABLE_REASON_TUNING:
                 case TvInputManager.VIDEO_UNAVAILABLE_REASON_BUFFERING:
                     isNoSignal = true;
                     popupNoSignal(Utils.SHOW_VIEW);
-                    reset_nosignal_time();
                     break;
                 default:
                     break;
             }
+            reset_nosignal_time();
         }
     }
 
@@ -935,8 +940,8 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
                             long now = SystemClock.uptimeMillis();
                             KeyEvent down = new KeyEvent(now, now, KeyEvent.ACTION_DOWN, DroidLogicKeyEvent.KEYCODE_POWER, 0);
                             KeyEvent up = new KeyEvent(now, now, KeyEvent.ACTION_UP, DroidLogicKeyEvent.KEYCODE_POWER, 0);
-                            InputManager.getInstance().injectInputEvent(down, InputManager.INJECT_INPUT_EVENT_MODE_ASYNC);
-                            InputManager.getInstance().injectInputEvent(up, InputManager.INJECT_INPUT_EVENT_MODE_ASYNC);
+                            InputManager.getInstance().injectInputEvent(down, InputManager.INJECT_INPUT_EVENT_MODE_WAIT_FOR_FINISH);
+                            InputManager.getInstance().injectInputEvent(up, InputManager.INJECT_INPUT_EVENT_MODE_WAIT_FOR_FINISH);
                         }
                         else {
                             if (mNoSignalShutdownCount < 60) {
@@ -972,6 +977,91 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         if (mTimePromptText.getVisibility() == View.VISIBLE)
             mTimePromptText.setVisibility(View.GONE);
         no_signal_handler.removeCallbacks(no_signal_runnable);
+    }
+
+    /* time suspend dialog */
+    private AlertDialog sdialog;//use to dismiss
+    private AlertDialog.Builder suspendDialog;
+    private View suspendDialogView;
+    private TextView countDownView;
+    private int mSuspendCount = 0;
+
+    private void initTimeSuspend(Context context) {
+        suspendDialog = new AlertDialog.Builder(context);
+        suspendDialog.setTitle(getString(R.string.suspend_dialog_title));
+        suspendDialog.setPositiveButton(getString(R.string.cancel_suspend), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // TODO Auto-generated method stub
+                remove_shutdown_time();
+            }
+        });
+        suspendDialog.setOnKeyListener(new OnKeyListener()
+        {
+            @Override
+            public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event)
+            {
+                // TODO Auto-generated method stub
+                if (keyCode == DroidLogicKeyEvent.KEYCODE_DPAD_CENTER)
+                    return false;
+                else
+                    return true;
+            }
+        });
+    }
+
+    private Handler timeSuspend_handler = new Handler();
+    private Runnable timeSuspend_runnable = new Runnable() {
+        @Override
+        public void run() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        mSuspendCount--;
+                        if (mSuspendCount == 0) {
+                            long now = SystemClock.uptimeMillis();
+                            KeyEvent down = new KeyEvent(now, now, KeyEvent.ACTION_DOWN, DroidLogicKeyEvent.KEYCODE_POWER, 0);
+                            KeyEvent up = new KeyEvent(now, now, KeyEvent.ACTION_UP, DroidLogicKeyEvent.KEYCODE_POWER, 0);
+                            InputManager.getInstance().injectInputEvent(down, InputManager.INJECT_INPUT_EVENT_MODE_WAIT_FOR_FINISH);
+                            InputManager.getInstance().injectInputEvent(up, InputManager.INJECT_INPUT_EVENT_MODE_WAIT_FOR_FINISH);
+                            Log.d("fuhao", "power down ------------------ ");
+                        }
+                        else {
+                            if (mSuspendCount == 60) {
+                                String str = mSuspendCount + " " + getResources().getString(R.string.countdown_tips);
+                                suspendDialogView = View.inflate(getApplicationContext(), R.layout.timesuspend_dialog, null);
+                                countDownView = (TextView) suspendDialogView.findViewById(R.id.tv_dialog);
+                                countDownView.setText(str);
+                                suspendDialog.setView(suspendDialogView);
+                                sdialog = suspendDialog.show();
+                            } else if (mSuspendCount < 60){
+                                String str = mSuspendCount + " " + getResources().getString(R.string.countdown_tips);
+                                countDownView.setText(str);
+                            }
+                            timeSuspend_handler.postDelayed(timeSuspend_runnable, 1000);
+                        }
+                    }
+                    catch (RuntimeException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+    };
+
+    private void reset_shutdown_time() {
+        int sleepTime = Settings.System.getInt(mContext.getContentResolver(), "sleep_timer", 0);
+        mSuspendCount = sleepTime * 60;
+        if (mSuspendCount > 0) {
+            timeSuspend_handler.removeCallbacks(timeSuspend_runnable);
+            timeSuspend_handler.postDelayed(timeSuspend_runnable, 0);
+        }
+    }
+
+    private void remove_shutdown_time() {
+        Settings.System.putInt(mContext.getContentResolver(), "sleep_timer", 0);
+        timeSuspend_handler.removeCallbacks(timeSuspend_runnable);
     }
 
 }
