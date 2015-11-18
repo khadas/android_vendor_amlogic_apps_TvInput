@@ -700,7 +700,8 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
             mInfoNumber.setText(keyInputNumber);
             mInfoName.setText("");
         } else {
-            mInfoNumber.setText(mSourceInput.getChannelNumber());
+            int index = mSourceInput.getChannelIndex();
+            mInfoNumber.setText(index != -1 ? Integer.toString(index) : "");
             mInfoName.setText(TextUtils.isEmpty(mSourceInput.getChannelType()) ? "" : mSourceInput
                     .getChannelType().substring(5));
         }
@@ -713,7 +714,8 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
             mInfoNumber.setText(keyInputNumber);
             mInfoName.setText("");
         } else {
-            mInfoNumber.setText(mSourceInput.getChannelNumber());
+            int index = mSourceInput.getChannelIndex();
+            mInfoNumber.setText(index != -1 ? Integer.toString(index) : "");
             mInfoName.setText(mSourceInput.getChannelName());
         }
     }

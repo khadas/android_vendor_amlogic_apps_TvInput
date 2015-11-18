@@ -122,6 +122,7 @@ public class SettingsManager {
     private TvControlManager mTvControlManager;
     private TvDataBaseManager mTvDataBaseManager;
     private boolean isRadioChannel = false;
+    private int mResult = DroidLogicTvUtils.RESULT_OK;
 
     public SettingsManager (Context context, Intent intent) {
         mContext = context;
@@ -201,6 +202,14 @@ public class SettingsManager {
         }
 
         return ChannelEdit.TYPE_ATV;
+    }
+
+    public void setActivityResult(int result) {
+        mResult = result;
+    }
+
+    public int getActivityResult() {
+        return mResult;
     }
 
     public String getStatus (String key) {
@@ -686,9 +695,17 @@ public class SettingsManager {
     }
 
     private ChannelInfo getChannelByNumber (int type, int channelNumber) {
-        ChannelInfo channel = getChannelInfoList(type).get(channelNumber);
+        ArrayList<ChannelInfo> channelList = getChannelInfoList(type);
 
-        return channel;
+        if (channelList != null && channelList.size() > 0) {
+            for (int i = 0; i < channelList.size(); i++) {
+                ChannelInfo info = channelList.get(i);
+                if (info != null && info.getDisplayNumber() == channelNumber)
+                    return info;
+            }
+        }
+
+        return null;
     }
 
     private String getSwitchChannelStatus () {
@@ -792,14 +809,12 @@ public class SettingsManager {
                 setPictureMode(STATUS_USER);
                 break;
         }
-        if (!key.equals(KEY_BRIGHTNESS))
-            mTvControlManager.SetBrightness(brightness, mTvSource, 1);
-        if (!key.equals(KEY_CONTRAST))
-            mTvControlManager.SetContrast(contrast, mTvSource, 1);
-        if (!key.equals(KEY_COLOR))
-            mTvControlManager.SetSaturation(color, mTvSource, mTvControlManager.GetCurrentSignalInfo().fmt, 1);
-        if (!key.equals(KEY_SHARPNESS))
-            mTvControlManager.SetSharpness(sharpness, mTvSource, 1, 0, 1);
+
+        //Log.d(TAG, " brightness=" + brightness + " contrast=" + contrast + " color=" + color + " sharp=" + sharpness);
+        mTvControlManager.SetBrightness(brightness, mTvSource, 1);
+        mTvControlManager.SetContrast(contrast, mTvSource, 1);
+        mTvControlManager.SetSaturation(color, mTvSource, mTvControlManager.GetCurrentSignalInfo().fmt, 1);
+        mTvControlManager.SetSharpness(sharpness, mTvSource, 1, 0, 1);
     }
 
     public void setBrightness (int step) {
@@ -973,86 +988,45 @@ public class SettingsManager {
 
     public void setChannelName (int type, int channelNumber, String targetName) {
         ChannelInfo channel = getChannelByNumber(type, channelNumber);
-        if (channel != null) {
-            channel.setDisplayName(targetName);
-            mTvDataBaseManager.updateChannelInfo(channel);
-        }
+        mTvDataBaseManager.setChannelName(channel, targetName);
     }
 
-    public  void swapChannelPosition (int type, int channelNumber, int targetNumber) {
+    public void swapChannelPosition (int type, int channelNumber, int targetNumber) {
         if (channelNumber == targetNumber)
             return;
 
         ChannelInfo sourceChannel = getChannelByNumber(type, channelNumber);
         ChannelInfo targetChannel = getChannelByNumber(type, targetNumber);
-        if (sourceChannel != null && targetChannel != null) {
-            int tmp = sourceChannel.getDisplayNumber();
-            sourceChannel.setDisplayNumber(targetChannel.getDisplayNumber());
-            targetChannel.setDisplayNumber(tmp);
-
-            mTvDataBaseManager.updateChannelInfo(sourceChannel);
-            mTvDataBaseManager.updateChannelInfo(targetChannel);
-        }
+        mTvDataBaseManager.swapChannel(sourceChannel, targetChannel);
     }
 
-    public  void moveChannelPosition (int type, int channelNumber, int targetNumber) {
+    public void moveChannelPosition (int type, int channelNumber, int targetNumber) {
         if (channelNumber == targetNumber)
             return;
 
         ArrayList<ChannelInfo> channelList = getChannelInfoList(type);
-
-        channelList.get(channelNumber).setDisplayNumber(targetNumber);
-        if (targetNumber < channelNumber) {
-            for (int i = targetNumber; i < channelNumber; i++)
-                channelList.get(i).setDisplayNumber(i + 1);
-
-            for (int i = targetNumber; i <= channelNumber; i++)
-                mTvDataBaseManager.updateChannelInfo(channelList.get(i));
-
-        } else if (targetNumber > channelNumber) {
-            for (int i = channelNumber + 1; i <= targetNumber; i++)
-                channelList.get(i).setDisplayNumber(i - 1);
-
-            for (int i = channelNumber; i <= targetNumber; i++)
-                mTvDataBaseManager.updateChannelInfo(channelList.get(i));
-        }
+        mTvDataBaseManager.moveChannel(channelList, channelNumber, targetNumber);
     }
 
-    public  void skipChannel (int type, int channelNumber) {
+    public void skipChannel (int type, int channelNumber) {
         ChannelInfo channel = getChannelByNumber(type, channelNumber);
+        if (ChannelInfo.isSameChannel(currentChannel, channel))
+            setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
 
-        if (channel != null) {
-            if (channel.isBrowsable()) {
-                channel.setBrowsable(false);
-                channel.setFavourite(false);
-            } else
-                channel.setBrowsable(true);
-            mTvDataBaseManager.updateChannelInfo(channel);
-        }
+        mTvDataBaseManager.skipChannel(channel);
     }
 
     public  void deleteChannel (int type, int channelNumber) {
         ArrayList<ChannelInfo> channelList = getChannelInfoList(type);
-        mTvDataBaseManager.deleteChannel(channelList.get(channelNumber));
+        if (ChannelInfo.isSameChannel(currentChannel,  channelList.get(channelNumber)))
+            setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
 
-        for (int i = channelNumber + 1; i < channelList.size(); i++) {
-            ChannelInfo info = (ChannelInfo)channelList.get(i);
-            info.setDisplayNumber(i - 1);
-            mTvDataBaseManager.updateChannelInfo(info);
-        }
+        mTvDataBaseManager.deleteChannel(channelList, channelNumber);
     }
 
-    public  void setFavouriteChannel (int type, int channelNumber) {
+    public void setFavouriteChannel (int type, int channelNumber) {
         ChannelInfo channel = getChannelByNumber(type, channelNumber);
-
-        if (channel != null) {
-            if (!channel.IsFavourite()) {
-                channel.setFavourite(true);
-                channel.setBrowsable(true);
-            } else
-                channel.setFavourite(false);
-            mTvDataBaseManager.updateChannelInfo(channel);
-        }
+        mTvDataBaseManager.setFavouriteChannel(channel);
     }
 
     public void setSleepTimer (int mins) {

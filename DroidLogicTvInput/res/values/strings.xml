@@ -141,4 +141,6 @@
     <string name="cancel">cancel</string>
     <string name="error_not_number">Please input number!</string>
     <string name="error_no_channel">No channel !</string>
+    <string name="error_atv_error_1">Frequency must between 44250~868250 KHz</string>
+    <string name="error_atv_error_2">start frequency must less than end frequency</string>
 </resources>

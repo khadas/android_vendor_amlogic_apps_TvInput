@@ -116,7 +116,7 @@ public class SourceButton extends Button implements OnClickListener{
     }
 
     public int getChannelIndex() {
-        return mChannelTuner.getChannelIndex();
+        return mChannelTuner.getCurrentChannelIndex();
     }
 
     public boolean isRadioChannel() {

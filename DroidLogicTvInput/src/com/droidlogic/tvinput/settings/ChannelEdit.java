@@ -228,18 +228,10 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener {
     }
 
     private void skipChannel () {
-        if (currentChannelPosition == mSettingsManager.getCurrentChannelNumber()) {
-            mOptionUiManager.setFinishResult(DroidLogicTvUtils.RESULT_UPDATE);
-        }
-
         mSettingsManager.skipChannel(channelType, currentChannelPosition);
     }
 
     private void deleteChannel () {
-        if (currentChannelPosition == mSettingsManager.getCurrentChannelNumber()) {
-            mOptionUiManager.setFinishResult(DroidLogicTvUtils.RESULT_UPDATE);
-        }
-
         mSettingsManager.deleteChannel(channelType, currentChannelPosition);
     }
 

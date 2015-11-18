@@ -124,6 +124,8 @@
     <string name="prompt_def_set">选择”确定“将会恢复设置菜单到默认状态</string>
     <string name="prompt2">恢复默认设置。</string>
     <string name="cancel">取消</string>
-    <string name="error_not_number">请输入数字!</string>
-    <string name="error_no_channel">没有频道!</string>
+    <string name="error_not_number">请输入数字！</string>
+    <string name="error_no_channel">没有频道！</string>
+    <string name="error_atv_error_1">频率必须在 44250~868250 KHz之间！</string>
+    <string name="error_atv_error_2">开始频率必须小于结束频率！</string>
 </resources>

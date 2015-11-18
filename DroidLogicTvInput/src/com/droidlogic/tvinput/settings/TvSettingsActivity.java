@@ -204,7 +204,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
 
     @Override
     public void finish() {
-        setResult(mOptionUiManager.getFinishResult());
+        setResult(mSettingsManager.getActivityResult());
         super.finish();
     }
 
