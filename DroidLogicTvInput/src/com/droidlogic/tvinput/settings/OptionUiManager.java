@@ -1203,6 +1203,20 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 isSearching = false;
                 if (channelNumber == 0 && radioNumber == 0) {
                     ((TvSettingsActivity) mContext).finish();
+                    Toast.makeText(mContext,
+                        mContext.getResources().getString(R.string.searched) + " 0 " + mContext.getResources().getString(R.string.channel),
+                        Toast.LENGTH_SHORT).show();
+                } else {
+                    String prompt = mContext.getResources().getString(R.string.searched);
+                    if (channelNumber != 0) {
+                        prompt += " " + channelNumber + " " + mContext.getResources().getString(R.string.tv_channel);
+                        if (radioNumber != 0)
+                            prompt += ",";
+                    }
+                    if (radioNumber != 0)
+                        prompt += " " + radioNumber + " " + mContext.getResources().getString(R.string.radio_channel);
+
+                    Toast.makeText(mContext, prompt, Toast.LENGTH_SHORT).show();
                 }
                 break;
             default:

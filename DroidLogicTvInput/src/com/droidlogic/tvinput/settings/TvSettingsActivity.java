@@ -41,12 +41,14 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
     private ImageButton tabChannel;
     private ImageButton tabSettings;
     private TvControlManager mTvControlManager;
+    private boolean isFinished = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.layout_main);
+        isFinished = false;
 
         mSettingsManager = new SettingsManager(this, getIntent());
         mTvControlManager = mSettingsManager.getTvControlManager();
@@ -157,6 +159,9 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
     @Override
     public void onFocusChange (View v, boolean hasFocus) {
         if (hasFocus) {
+            if (isFinished)
+                return;
+
             RelativeLayout main_view = (RelativeLayout)findViewById(R.id.main);
             if (mOptionLayout != null)
                 main_view.removeView(mOptionLayout);
@@ -168,10 +173,12 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
             case R.id.button_picture:
                 currentFragment = new ContentFragment(R.xml.list_picture, v);
                 transaction.replace(R.id.settings_list, currentFragment);
+                transaction.commit();
                 break;
             case R.id.button_sound:
                 currentFragment = new ContentFragment(R.xml.list_sound, v);
                 transaction.replace(R.id.settings_list, currentFragment);
+                transaction.commit();
                 break;
             case R.id.button_channel:
                 if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV)
@@ -179,14 +186,15 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
                 else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV)
                     currentFragment = new ContentFragment(R.xml.list_channel_dtv, v);
                 transaction.replace(R.id.settings_list, currentFragment);
+                transaction.commit();
                 break;
             case R.id.button_settings:
                 currentFragment = new ContentFragment(R.xml.list_settings, v);
                 transaction.replace(R.id.settings_list, currentFragment);
+                transaction.commit();
                 break;
             }
             // transaction.addToBackStack();
-            transaction.commit();
         }
     }
 
@@ -204,6 +212,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
 
     @Override
     public void finish() {
+        isFinished = true;
         setResult(mSettingsManager.getActivityResult());
         super.finish();
     }
