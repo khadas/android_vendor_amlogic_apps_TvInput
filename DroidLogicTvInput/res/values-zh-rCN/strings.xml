@@ -128,4 +128,5 @@
     <string name="error_no_channel">没有频道！</string>
     <string name="error_atv_error_1">频率必须在 44250~868250 KHz之间！</string>
     <string name="error_atv_error_2">开始频率必须小于结束频率！</string>
+    <string name="searched">搜索到</string>
 </resources>
