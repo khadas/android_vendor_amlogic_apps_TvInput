@@ -64,9 +64,11 @@ public abstract class TvInputBaseSession extends TvInputService.Session implemen
     }
 
     private void releaseThread() {
-        mHandlerThread.quit();
-        mHandlerThread = null;
-        mSessionHandler = null;
+        if (mHandlerThread != null) {
+            mHandlerThread.quit();
+            mHandlerThread = null;
+            mSessionHandler = null;
+        }
     }
 
     @Override
@@ -96,8 +98,10 @@ public abstract class TvInputBaseSession extends TvInputService.Session implemen
     }
 
     public void doRelease() {
-        mHardware.setSurface(null, null);
-        mTvInputManager.releaseTvInputHardware(mDeviceId, mHardware);
+        if (mHardware != null) {
+            mHardware.setSurface(null, null);
+            mTvInputManager.releaseTvInputHardware(mDeviceId, mHardware);
+        }
         releaseThread();
     }
 
@@ -117,6 +121,8 @@ public abstract class TvInputBaseSession extends TvInputService.Session implemen
 
     @Override
     public void onRelease() {
+        if (mSessionHandler == null)
+            return;
         mSessionHandler.obtainMessage(DroidLogicTvUtils.SESSION_DO_RELEASE).sendToTarget();
     }
 
@@ -124,12 +130,19 @@ public abstract class TvInputBaseSession extends TvInputService.Session implemen
     public boolean onSetSurface(Surface surface) {
         if (DEBUG)
             Log.d(TAG, "==== onSetSurface ====");
+        if (mSurface != null && surface == null) {//TvView destroyed, or session need release
+            doRelease();
+        } else if (mSurface == null && surface == null) {
+            Log.d(TAG, "==== surface has been released ====");
+        }
         mSurface = surface;
         return false;
     }
 
     @Override
     public void onSurfaceChanged(int format, int width, int height) {
+        if (mSessionHandler == null)
+            return;
         if (isTuneNotReady) {
             mSessionHandler.obtainMessage(
                     DroidLogicTvUtils.SESSION_DO_SURFACE_CHANGED, mChannelUri).sendToTarget();
@@ -146,6 +159,8 @@ public abstract class TvInputBaseSession extends TvInputService.Session implemen
     public void onAppPrivateCommand(String action, Bundle data) {
         if (DEBUG)
             Log.d(TAG, "==== onAppPrivateCommand ====");
+        if (mSessionHandler == null)
+            return;
         Message msg = mSessionHandler.obtainMessage(
                 DroidLogicTvUtils.SESSION_DO_APP_PRIVATE);
         msg.setData(data);
@@ -161,8 +176,10 @@ public abstract class TvInputBaseSession extends TvInputService.Session implemen
         if (mSurface == null) {//TvView is not ready
             isTuneNotReady = true;
         } else {
-            mSessionHandler.obtainMessage(
-                    DroidLogicTvUtils.SESSION_DO_TUNE, mChannelUri).sendToTarget();
+            if (mSessionHandler != null) {
+                mSessionHandler.obtainMessage(
+                        DroidLogicTvUtils.SESSION_DO_TUNE, mChannelUri).sendToTarget();
+            }
         }
         return false;
     }
@@ -176,6 +193,8 @@ public abstract class TvInputBaseSession extends TvInputService.Session implemen
     public void onUnblockContent(TvContentRating unblockedRating) {
         if (DEBUG)
             Log.d(TAG, "==== onUnblockContent ====");
+        if (mSessionHandler == null)
+            return;
         mSessionHandler.obtainMessage(
                 DroidLogicTvUtils.SESSION_UNBLOCK_CONTENT, unblockedRating).sendToTarget();
     }
