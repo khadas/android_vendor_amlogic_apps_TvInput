@@ -13,10 +13,12 @@ import com.droidlogic.tvsource.SourceButton.OnSourceClickListener;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnKeyListener;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.res.Resources.NotFoundException;
@@ -31,6 +33,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.SystemClock;
+import android.os.SystemProperties;
 import android.os.Handler.Callback;
 import android.os.Message;
 import android.provider.Settings;
@@ -114,6 +117,13 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         setContentView(R.layout.main);
         init();
         initTimeSuspend(this);
+        BroadcastReceiver mReceiver=new BroadcastReceiver(){
+            public void onReceive(Context context, Intent intent) {
+                reset_shutdown_time();
+            }
+        };
+        IntentFilter intentFilter = new IntentFilter("android.intent.action.shutdown");
+        registerReceiver(mReceiver, intentFilter);
     }
 
     private void init() {
@@ -232,10 +242,11 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         if (hasStopped || needUpdateSource) {
             switchToSourceInput();
         }
+        if (hasStopped)
+            reset_shutdown_time();
         hasStopped = false;
         needUpdateSource = true;
         reset_nosignal_time();
-        reset_shutdown_time();
 
         popupSourceInfo(Utils.SHOW_VIEW);
         super.onResume();
@@ -734,6 +745,8 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         Utils.logd(TAG, "==== onStop ====");
         hasStopped = true;
         releaseBeforeExit();
+        if (sdialog != null)
+            sdialog.dismiss();
         super.onStop();
     }
 
@@ -965,12 +978,12 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
                     try {
                         mSuspendCount--;
                         if (mSuspendCount == 0) {
+                            remove_shutdown_time();
                             long now = SystemClock.uptimeMillis();
                             KeyEvent down = new KeyEvent(now, now, KeyEvent.ACTION_DOWN, DroidLogicKeyEvent.KEYCODE_POWER, 0);
                             KeyEvent up = new KeyEvent(now, now, KeyEvent.ACTION_UP, DroidLogicKeyEvent.KEYCODE_POWER, 0);
                             InputManager.getInstance().injectInputEvent(down, InputManager.INJECT_INPUT_EVENT_MODE_WAIT_FOR_FINISH);
                             InputManager.getInstance().injectInputEvent(up, InputManager.INJECT_INPUT_EVENT_MODE_WAIT_FOR_FINISH);
-                            Utils.logd("fuhao", "power down ------------------ ");
                         }
                         else {
                             if (mSuspendCount == 60) {
@@ -996,7 +1009,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     };
 
     private void reset_shutdown_time() {
-        int sleepTime = Settings.System.getInt(mContext.getContentResolver(), "sleep_timer", 0);
+        int sleepTime = SystemProperties.getInt("tv.sleep_timer", 0);
         mSuspendCount = sleepTime * 60;
         if (mSuspendCount > 0) {
             timeSuspend_handler.removeCallbacks(timeSuspend_runnable);
@@ -1005,7 +1018,8 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     }
 
     private void remove_shutdown_time() {
-        Settings.System.putInt(mContext.getContentResolver(), "sleep_timer", 0);
+        sdialog.dismiss();
+        SystemProperties.set("tv.sleep_timer", "0");
         timeSuspend_handler.removeCallbacks(timeSuspend_runnable);
     }
 

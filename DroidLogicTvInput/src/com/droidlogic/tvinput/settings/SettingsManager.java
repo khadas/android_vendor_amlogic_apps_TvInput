@@ -715,7 +715,7 @@ public class SettingsManager {
 
     public String getSleepTimerStatus () {
         String ret = "";
-        int time = Settings.System.getInt(mContext.getContentResolver(), KEY_SLEEP_TIMER, DEFAULT_SLEEP_TIMER);
+        int time = SystemProperties.getInt("tv.sleep_timer", 0);
         switch (time)
         {
             case 0://off
@@ -1028,7 +1028,9 @@ public class SettingsManager {
     }
 
     public void setSleepTimer (int mins) {
-        Settings.System.putInt(mContext.getContentResolver(), KEY_SLEEP_TIMER, mins);
+        SystemProperties.set("tv.sleep_timer", mins+"");
+        Intent intent = new Intent("android.intent.action.shutdown");
+        mContext.sendBroadcast(intent);//to tvapp
     }
 
     public void setMenuTime (int seconds) {
