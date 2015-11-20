@@ -682,13 +682,11 @@ public class SettingsManager {
         ArrayList<ChannelInfo> channelList = null;
         switch (type) {
             case ChannelEdit.TYPE_ATV:
-                channelList = mTvDataBaseManager.getAtvChannelList(mInputId);
-                break;
             case ChannelEdit.TYPE_DTV_TV:
-                channelList = mTvDataBaseManager.getDtvChannelList(mInputId, Channels.SERVICE_TYPE_AUDIO_VIDEO);
+                channelList = mTvDataBaseManager.getChannelList(mInputId, Channels.SERVICE_TYPE_AUDIO_VIDEO);
                 break;
             case ChannelEdit.TYPE_DTV_RADIO:
-                channelList = mTvDataBaseManager.getDtvChannelList(mInputId, Channels.SERVICE_TYPE_AUDIO);
+                channelList = mTvDataBaseManager.getChannelList(mInputId, Channels.SERVICE_TYPE_AUDIO);
                 break;
         }
         return channelList;

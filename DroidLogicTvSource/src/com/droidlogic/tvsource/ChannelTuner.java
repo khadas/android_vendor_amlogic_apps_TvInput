@@ -90,12 +90,9 @@ public class ChannelTuner {
             mVideoChannels.add(mCurrentChannel);
         } else {
             Uri uri = TvContract.buildChannelsUriForInput(mInputId);
-            if (isDTVChannel()) {
-                mVideoChannels = getUnskippedChannel(mTvDataBaseManager.getChannelList(uri, Channels.SERVICE_TYPE_AUDIO_VIDEO));
-                mRadioChannels = getUnskippedChannel(mTvDataBaseManager.getChannelList(uri, Channels.SERVICE_TYPE_AUDIO));
-            } else {
-                mVideoChannels = getUnskippedChannel(mTvDataBaseManager.getChannelList(uri, Channels.SERVICE_TYPE_AUDIO_VIDEO));
-            }
+            mVideoChannels = getUnskippedChannel(mTvDataBaseManager.getChannelList(mInputId, Channels.SERVICE_TYPE_AUDIO_VIDEO));
+            if (isDTVChannel())
+                mRadioChannels = getUnskippedChannel(mTvDataBaseManager.getChannelList(mInputId, Channels.SERVICE_TYPE_AUDIO));
 
             if (mVideoChannels.size() > 0) {
                 mCurrentChannel = mVideoChannels.get(DEFAULT_INDEX);
@@ -132,9 +129,9 @@ public class ChannelTuner {
         Cursor cursor = null;
         ChannelInfo channel = null;
         try {
-            cursor = resolver.query(uri, ChannelInfo.SIMPLE_PROJECTION, null, null, null);
+            cursor = resolver.query(uri, ChannelInfo.COMMON_PROJECTION, null, null, null);
             if (cursor != null && cursor.moveToNext()) {
-                channel = ChannelInfo.fromSimpleCursor(cursor);
+                channel = ChannelInfo.fromCommonCursor(cursor);
                 if (!TextUtils.equals(mInputId, channel.getInputId()))
                     return;
                 if (DEBUG)
@@ -182,12 +179,10 @@ public class ChannelTuner {
         if (mVideoChannels != null)
             mVideoChannels.clear();
 
-        if (isDTVChannel()) {
-            mVideoChannels = getUnskippedChannel(mTvDataBaseManager.getChannelList(uri, Channels.SERVICE_TYPE_AUDIO_VIDEO));
-            mRadioChannels = getUnskippedChannel(mTvDataBaseManager.getChannelList(uri, Channels.SERVICE_TYPE_AUDIO));
-        } else {
-            mVideoChannels = getUnskippedChannel(mTvDataBaseManager.getChannelList(uri, Channels.SERVICE_TYPE_AUDIO_VIDEO));
-        }
+        mVideoChannels = getUnskippedChannel(mTvDataBaseManager.getChannelList(mInputId, Channels.SERVICE_TYPE_AUDIO_VIDEO));
+        if (isDTVChannel())
+            mRadioChannels = getUnskippedChannel(mTvDataBaseManager.getChannelList(mInputId, Channels.SERVICE_TYPE_AUDIO));
+
 
         int index = getChannelIndex(mCurrentChannel);
         if (DEBUG)

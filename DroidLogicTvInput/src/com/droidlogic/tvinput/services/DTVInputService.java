@@ -123,7 +123,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                 return;
             }
             TvDataBaseManager mTvDataBaseManager = new TvDataBaseManager(mContext);
-            ChannelInfo ch = mTvDataBaseManager.getChannelInfoDTV(uri);
+            ChannelInfo ch = mTvDataBaseManager.getChannelInfo(uri);
             if (ch != null) {
                 playProgram(ch);
             } else {
