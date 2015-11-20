@@ -33,7 +33,7 @@
 		        android:textSize="20sp"
 		        android:textColor="@color/color_text_prompt"
 		        />
-		    <EditText
+		    <com.droidlogic.tvinput.settings.OptionEditText
                 android:id="@+id/manual_search_dtv_channel"
 		        android:layout_width="100dp"
 		        android:layout_height="wrap_content"

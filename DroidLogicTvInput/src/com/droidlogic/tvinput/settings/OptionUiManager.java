@@ -13,7 +13,6 @@ import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
 import android.view.View.OnKeyListener;
 import android.view.ViewGroup;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.SimpleAdapter;
@@ -795,8 +794,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     private void startManualSearch() {
         ViewGroup parent = (ViewGroup) ((TvSettingsActivity) mContext).mOptionLayout.getChildAt(0);
         if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV) {
-            EditText edit_from = (EditText) parent.findViewById(R.id.manual_search_edit_from);
-            EditText edit_to = (EditText) parent.findViewById(R.id.manual_search_edit_to);
+            OptionEditText edit_from = (OptionEditText) parent.findViewById(R.id.manual_search_edit_from);
+            OptionEditText edit_to = (OptionEditText) parent.findViewById(R.id.manual_search_edit_to);
 
             String str_begin = edit_from.getText().toString();
             if (str_begin == null || str_begin.length() == 0)
@@ -822,7 +821,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 mSettingsManager.setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
             }
         } else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
-            EditText edit = (EditText) parent.findViewById(R.id.manual_search_dtv_channel);
+            OptionEditText edit = (OptionEditText) parent.findViewById(R.id.manual_search_dtv_channel);
             String channel = edit.getText().toString();
             if (channel == null || channel.length() == 0)
                 channel = (String)edit.getHint();
@@ -834,8 +833,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
 
     public void setManualSearchEditStyle(View view) {
         if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV) {
-            EditText edit_from = (EditText) view.findViewById(R.id.manual_search_edit_from);
-            EditText edit_to = (EditText) view.findViewById(R.id.manual_search_edit_to);
+            OptionEditText edit_from = (OptionEditText) view.findViewById(R.id.manual_search_edit_from);
+            OptionEditText edit_to = (OptionEditText) view.findViewById(R.id.manual_search_edit_to);
             edit_from.setNextFocusLeftId(R.id.content_list);
             edit_from.setNextFocusRightId(edit_from.getId());
             edit_from.setNextFocusUpId(edit_from.getId());
@@ -868,7 +867,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             edit_from.addTextChangedListener(textWatcher);
             edit_to.addTextChangedListener(textWatcher);
         } else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
-            final EditText edit = (EditText) view.findViewById(R.id.manual_search_dtv_channel);
+            final OptionEditText edit = (OptionEditText) view.findViewById(R.id.manual_search_dtv_channel);
             edit.setNextFocusLeftId(R.id.content_list);
             edit.setNextFocusRightId(edit.getId());
             edit.setNextFocusUpId(edit.getId());
@@ -931,7 +930,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     private void setManualSearchInfo(TvControlManager.ScannerEvent event) {
         ViewGroup optionView = (ViewGroup)((TvSettingsActivity) mContext).mOptionLayout.getChildAt(0);
         if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV) {
-            EditText begin = (EditText)optionView.findViewById(R.id.manual_search_edit_from);
+            OptionEditText begin = (OptionEditText)optionView.findViewById(R.id.manual_search_edit_from);
             TextView frequency = (TextView)optionView.findViewById(R.id.manual_search_frequency);
             TextView frequency_band = (TextView)optionView.findViewById(R.id.manual_search_frequency_band);
             TextView searched_number = (TextView)optionView.findViewById(R.id.manual_search_searched_number);
