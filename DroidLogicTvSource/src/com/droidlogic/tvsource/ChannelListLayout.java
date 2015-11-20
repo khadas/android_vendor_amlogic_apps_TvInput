@@ -89,7 +89,13 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
     }
 
     private SparseArray<ChannelInfo> getFavList(SparseArray<ChannelInfo> list) {
-        return list;
+        SparseArray<ChannelInfo> favList = new SparseArray<ChannelInfo>();
+        for (int i = 0; i < list.size(); i++) {
+            ChannelInfo info = list.valueAt(i);
+            if (info.isFavourite())
+                favList.put(info.getDisplayNumber(), info);
+        }
+        return favList;
     }
 
     @Override

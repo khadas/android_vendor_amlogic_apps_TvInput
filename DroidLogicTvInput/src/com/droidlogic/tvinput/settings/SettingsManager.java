@@ -660,7 +660,7 @@ public class SettingsManager {
                 HashMap<String,Object> item = new HashMap<String,Object>();
                 if (!info.isBrowsable())
                     item.put(STRING_ICON, R.drawable.skip);
-                else if (info.IsFavourite())
+                else if (info.isFavourite())
                     item.put(STRING_ICON, R.drawable.favourite);
                 else
                     item.put(STRING_ICON, 0);

@@ -44,6 +44,7 @@
 		        android:textColorHint="@color/color_text_hint"
 		        android:hint="@string/default_begin_frequency"
 		        android:maxLength="7"
+		        android:inputType="number"
 		        />
 		    <TextView
 		        android:layout_width="wrap_content"
@@ -84,6 +85,7 @@
 		        android:textColorHint="@color/color_text_hint"
 		        android:hint="@string/default_end_frequency"
 		        android:maxLength="7"
+		        android:inputType="number"
 		        />
 		    <TextView
 		        android:layout_width="wrap_content"

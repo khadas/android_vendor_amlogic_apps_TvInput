@@ -22,6 +22,7 @@ import android.media.tv.TvInputInfo;
 import android.media.tv.TvInputManager;
 import android.media.tv.TvInputService;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseArray;
@@ -34,6 +35,7 @@ public class DroidLogicTvInputService extends TvInputService implements TvContro
 
     private TvInputBaseSession mSession;
     private String mCurrentInputId;
+    private int save_system_sound = -1;
 
     /**
      * inputId should get from subclass which must invoke {@link super#onCreateSession(String)}
@@ -41,6 +43,8 @@ public class DroidLogicTvInputService extends TvInputService implements TvContro
     @Override
     public Session onCreateSession(String inputId) {
         mCurrentInputId = inputId;
+        closeTouchSound();
+
         return null;
     }
 
@@ -153,6 +157,7 @@ public class DroidLogicTvInputService extends TvInputService implements TvContro
     }
 
     protected void releasePlayer() {
+        restoreTouchSound();
         TvControlManager.open().StopPlayProgram();
     }
 
@@ -218,4 +223,12 @@ public class DroidLogicTvInputService extends TvInputService implements TvContro
         }
     }
 
+    private void closeTouchSound() {
+        save_system_sound = Settings.System.getInt(getApplicationContext().getContentResolver(), Settings.System.SOUND_EFFECTS_ENABLED, 0);
+        Settings.System.putInt(getApplicationContext().getContentResolver(), Settings.System.SOUND_EFFECTS_ENABLED, 0);
+    }
+
+    private void restoreTouchSound() {
+        Settings.System.putInt(getApplicationContext().getContentResolver(), Settings.System.SOUND_EFFECTS_ENABLED, save_system_sound);
+    }
 }

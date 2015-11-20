@@ -26,7 +26,7 @@ import com.droidlogic.tvinput.R;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.app.tv.TvControlManager;
 
-public class ChannelEdit implements OnClickListener, OnFocusChangeListener {
+public class ChannelEdit implements OnClickListener, OnFocusChangeListener, OnItemClickListener {
     private static final String TAG = "ChannelEdit";
 
     public static final int TYPE_ATV                           = 0;
@@ -93,28 +93,9 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener {
             R.layout.layout_option_icon_text,
             new String[]{SettingsManager.STRING_ICON, SettingsManager.STRING_NAME}, new int[]{R.id.image_icon, R.id.text_name});
         channelListView.setAdapter(ChannelAdapter);
-
         if (!ChannelListData.get(0).get(SettingsManager.STRING_NAME).toString()
-            .equals(mContext.getResources().getString(R.string.error_no_channel))) {
-            channelListView.setOnItemClickListener(new OnItemClickListener() {
-                @Override
-                public void onItemClick (AdapterView<?> parent, View view, int position, long id) {
-                    currentChannelPosition = position;
-                    if (currentOperation == ACTION_INITIAL_STATE) {
-                        showOperationsView();
-                    } else {
-                        if (currentOperation == ACTION_OPERATIONS_SWAP)
-                            swapChannelPosition();
-                        else if (currentOperation == ACTION_OPERATIONS_MOVE)
-                            moveChannelPosition();
-
-                        channelListView.setSelector(R.drawable.item_background);
-                        freshChannelList();
-                    }
-                    recoverActionState();
-                }
-            });
-        }
+            .equals(mContext.getResources().getString(R.string.error_no_channel)))
+            channelListView.setOnItemClickListener(this);
 
         if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV) {
             button_tv.setVisibility(View.GONE);
@@ -292,6 +273,22 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener {
         }
     }
 
+    @Override
+    public void onItemClick (AdapterView<?> parent, View view, int position, long id) {
+        currentChannelPosition = position;
+        if (currentOperation == ACTION_INITIAL_STATE) {
+            showOperationsView();
+        } else {
+            if (currentOperation == ACTION_OPERATIONS_SWAP)
+                swapChannelPosition();
+            else if (currentOperation == ACTION_OPERATIONS_MOVE)
+                moveChannelPosition();
+                channelListView.setSelector(R.drawable.item_background);
+                freshChannelList();
+            }
+        recoverActionState();
+    }
+
     private void freshChannelList () {
         ArrayList<HashMap<String,Object>> list = null;
 
@@ -301,6 +298,13 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener {
         if (list != null) {
             ChannelListData.addAll(list);
             ChannelAdapter.notifyDataSetChanged();
+
+            if (!ChannelListData.get(0).get(SettingsManager.STRING_NAME).toString()
+                .equals(mContext.getResources().getString(R.string.error_no_channel))) {
+                channelListView.setOnItemClickListener(this);
+            }else {
+                channelListView.setOnItemClickListener(null);
+            }
         }
     }
 

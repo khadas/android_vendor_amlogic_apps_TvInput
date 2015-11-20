@@ -897,7 +897,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                             String number = edit.getText().toString();
                             if (number == null || number.length() == 0)
                                 number = (String)edit.getHint();
-                            start_frequency.setText(parseChannelFrequency(getDvbFrequencyByPd(Integer.valueOf(number))));
+
+                            if (number.matches("[0-9]+"))
+                                start_frequency.setText(parseChannelFrequency(getDvbFrequencyByPd(Integer.valueOf(number))));
                         }
                     }
                 }

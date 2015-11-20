@@ -45,6 +45,7 @@
 		        android:textColorHint="@color/color_text_hint"
 		        android:hint="@string/default_begin_channel"
 		        android:maxLength="7"
+		        android:inputType="number"
 		        />
 	    </LinearLayout>
     </LinearLayout>

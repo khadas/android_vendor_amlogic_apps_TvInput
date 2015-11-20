@@ -177,8 +177,10 @@ public class ChannelTuner {
         if (!TextUtils.equals(mInputId, input_id))
             return;
 
-        mRadioChannels.clear();
-        mVideoChannels.clear();
+        if (mRadioChannels != null)
+            mRadioChannels.clear();
+        if (mVideoChannels != null)
+            mVideoChannels.clear();
 
         if (isDTVChannel()) {
             mVideoChannels = getUnskippedChannel(mTvDataBaseManager.getChannelList(uri, Channels.SERVICE_TYPE_AUDIO_VIDEO));
