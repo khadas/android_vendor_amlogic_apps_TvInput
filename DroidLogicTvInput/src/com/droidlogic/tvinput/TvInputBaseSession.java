@@ -55,6 +55,7 @@ public abstract class TvInputBaseSession extends TvInputService.Session implemen
         mHardware = mTvInputManager.acquireTvInputHardware(deviceId,
                 mHardwareCallback, mTvInputManager.getTvInputInfo(inputId));
         initThread(mInputId);
+        Log.d(TAG, "==== TvInputBaseSession ===="+this);
     }
 
     private void initThread(String inputId) {
@@ -98,6 +99,7 @@ public abstract class TvInputBaseSession extends TvInputService.Session implemen
     }
 
     public void doRelease() {
+        Log.d(TAG, "==== doRelease ===="+this);
         if (mHardware != null) {
             mHardware.setSurface(null, null);
             mTvInputManager.releaseTvInputHardware(mDeviceId, mHardware);
@@ -129,11 +131,11 @@ public abstract class TvInputBaseSession extends TvInputService.Session implemen
     @Override
     public boolean onSetSurface(Surface surface) {
         if (DEBUG)
-            Log.d(TAG, "==== onSetSurface ====");
+            Log.d(TAG, "==== onSetSurface ===="+this);
         if (mSurface != null && surface == null) {//TvView destroyed, or session need release
             doRelease();
         } else if (mSurface == null && surface == null) {
-            Log.d(TAG, "==== surface has been released ====");
+            Log.d(TAG, "==== surface has been released ===="+this);
         }
         mSurface = surface;
         return false;
@@ -171,7 +173,7 @@ public abstract class TvInputBaseSession extends TvInputService.Session implemen
     @Override
     public boolean onTune(Uri channelUri) {
         if (DEBUG)
-            Log.d(TAG, "==== onTune ====" + channelUri);
+            Log.d(TAG, "==== onTune ====" + channelUri+", hehe"+this);
         mChannelUri = channelUri;
         if (mSurface == null) {//TvView is not ready
             isTuneNotReady = true;

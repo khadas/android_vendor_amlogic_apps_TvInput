@@ -63,7 +63,6 @@ public class DTVInputService extends DroidLogicTvInputService {
     public Session onCreateSession(String inputId) {
         super.onCreateSession(inputId);
         mSession = new DTVSessionImpl(this, inputId, getHardwareDeviceId(inputId));
-        mSession.setOverlayViewEnabled(true);
         registerInputSession(mSession);
         return mSession;
     }

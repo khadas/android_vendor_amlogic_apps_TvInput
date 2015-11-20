@@ -60,7 +60,6 @@ public class ATVInputService extends DroidLogicTvInputService {
     @Override
     public Session onCreateSession(String inputId) {
         mSession = new ATVSessionImpl(this, inputId, getHardwareDeviceId(inputId));
-        mSession.setOverlayViewEnabled(true);
         registerInputSession(mSession);
         return mSession;
     }

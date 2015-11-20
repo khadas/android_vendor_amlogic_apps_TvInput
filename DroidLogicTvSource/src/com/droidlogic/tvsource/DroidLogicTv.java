@@ -1,5 +1,6 @@
 package com.droidlogic.tvsource;
 
+
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -14,15 +15,12 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.DialogInterface.OnClickListener;
 import android.content.DialogInterface.OnKeyListener;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.res.Resources.NotFoundException;
 import android.hardware.input.InputManager;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.media.tv.TvInputInfo;
 import android.media.tv.TvInputManager;
 import android.media.tv.TvView;
@@ -37,13 +35,9 @@ import android.os.Handler.Callback;
 import android.os.Message;
 import android.provider.Settings;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -63,8 +57,6 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     private LinearLayout mSourceMenuLayout;
     private LinearLayout mSourceInfoLayout;
     private ChannelListLayout mChannelListLayout;
-
-    private MediaPlayer mPlayer;
 
     //max index of all hardware devices in mSourceMenuLayout
     private int maxHardwareIndex = 0;
@@ -120,55 +112,8 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         Utils.logd(TAG, "==== onCreate ====");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-//        initVideoView();
         init();
         initTimeSuspend(this);
-    }
-
-    private void initVideoView() {
-        ViewGroup root = (ViewGroup) getWindow().getDecorView().findViewById(android.R.id.content);
-        SurfaceView surfaceView = new SurfaceView(this);
-        root.addView(surfaceView, 0);
-        if (surfaceView != null) {
-            surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
-                @Override
-                public void surfaceDestroyed(SurfaceHolder arg0) {
-                    Utils.logd(TAG, "==== video view release ====");
-                    if (mPlayer != null) {
-                        try {
-                            mPlayer.stop();
-                        } catch (IllegalStateException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
-                        }
-                        mPlayer.release();
-                        mPlayer = null;
-                    }
-                }
-
-                @Override
-                public void surfaceCreated(SurfaceHolder holder) {
-                    if (mPlayer == null) {
-                        mPlayer = new MediaPlayer();
-                    }
-                    mPlayer.reset();
-                    mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                    try {
-                        mPlayer.setDataSource("tvin:test");
-                        mPlayer.setDisplay(holder);
-                        mPlayer.prepare();
-                    } catch (Exception e) {
-                        Utils.loge(TAG, e.toString());
-                    }
-                    mPlayer.start();
-                }
-
-                @Override
-                public void surfaceChanged(SurfaceHolder arg0, int arg1, int arg2, int arg3) {
-                    // TODO Auto-generated method stub
-                }
-            });
-        }
     }
 
     private void init() {
@@ -1025,7 +970,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
                             KeyEvent up = new KeyEvent(now, now, KeyEvent.ACTION_UP, DroidLogicKeyEvent.KEYCODE_POWER, 0);
                             InputManager.getInstance().injectInputEvent(down, InputManager.INJECT_INPUT_EVENT_MODE_WAIT_FOR_FINISH);
                             InputManager.getInstance().injectInputEvent(up, InputManager.INJECT_INPUT_EVENT_MODE_WAIT_FOR_FINISH);
-                            Log.d("fuhao", "power down ------------------ ");
+                            Utils.logd("fuhao", "power down ------------------ ");
                         }
                         else {
                             if (mSuspendCount == 60) {
