@@ -23,6 +23,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.res.Resources.NotFoundException;
 import android.hardware.input.InputManager;
+import android.media.AudioManager;
 import android.media.tv.TvInputInfo;
 import android.media.tv.TvInputManager;
 import android.media.tv.TvView;
@@ -237,6 +238,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     @Override
     protected void onResume() {
         Utils.logd(TAG, "== onResume ====");
+        closeTouchSound();
 
         initMainView();
         if (hasStopped || needUpdateSource) {
@@ -745,6 +747,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         Utils.logd(TAG, "==== onStop ====");
         hasStopped = true;
         releaseBeforeExit();
+        restoreTouchSound();
         if (sdialog != null)
             sdialog.dismiss();
         super.onStop();
@@ -1023,4 +1026,21 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         timeSuspend_handler.removeCallbacks(timeSuspend_runnable);
     }
 
+    private int save_system_sound = -1;
+    private void closeTouchSound() {
+        save_system_sound = Settings.System.getInt(getApplicationContext().getContentResolver(), Settings.System.SOUND_EFFECTS_ENABLED, 0);
+        Settings.System.putInt(getApplicationContext().getContentResolver(), Settings.System.SOUND_EFFECTS_ENABLED, 0);
+        final AudioManager am = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+        am.unloadSoundEffects();
+    }
+
+    private void restoreTouchSound() {
+        Settings.System.putInt(getApplicationContext().getContentResolver(), Settings.System.SOUND_EFFECTS_ENABLED, save_system_sound);
+        final AudioManager am = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+        if (save_system_sound != 0) {
+            am.loadSoundEffects();
+        } else {
+            am.unloadSoundEffects();
+        }
+    }
 }
