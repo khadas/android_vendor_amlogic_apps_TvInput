@@ -97,6 +97,7 @@ public class SettingsManager {
     public static final String STATUS_3D_UD_MODE                    = "up down mode";
     public static final String STATUS_3D_DU_MODE                    = "down up mode";
     public static final String STATUS_3D_TO_2D                      = "3D to 2D";
+    public static final String STATUS_PCM                            = "pcm";
 
     public static final String STATUS_DEFAULT_PERCENT               = "50%";
     public static final double STATUS_DEFAUT_FREQUENCY              = 44250000;
@@ -932,6 +933,71 @@ public class SettingsManager {
         }
     }
 
+    public void setTreble (int step) {
+        int treble_value = mTvControlManager.GetCurAudioTrebleVolume() + step;
+        mTvControlManager.SetAudioTrebleVolume(treble_value);
+        mTvControlManager.SaveCurAudioTrebleVolume(treble_value);
+    }
+
+    public void setBass (int step) {
+        int bass_value = mTvControlManager.GetCurAudioBassVolume() + step;
+        mTvControlManager.SetAudioBassVolume(bass_value);
+        mTvControlManager.SaveCurAudioBassVolume(bass_value);;
+    }
+
+    public void setBalance (int step) {
+        int balance_value = mTvControlManager.GetCurAudioBalance() + step;
+        mTvControlManager.SetAudioBalance(balance_value);
+        mTvControlManager.SaveCurAudioBalance(balance_value);
+    }
+
+    public void setSpdif (String mode) {
+        if (mode.equals(STATUS_OFF)) {
+            mTvControlManager.SetAudioSPDIFSwitch(0);
+            mTvControlManager.SaveCurAudioSPDIFSwitch(0);
+        } else if (mode.equals(STATUS_AUTO)) {
+            mTvControlManager.SetAudioSPDIFMode(0);
+            mTvControlManager.SaveCurAudioSPDIFMode(0);
+        } else if (mode.equals(STATUS_PCM)) {
+            mTvControlManager.SetAudioSPDIFMode(1);
+            mTvControlManager.SaveCurAudioSPDIFMode(1);
+        }
+    }
+
+    public void setSurround (String mode) {
+        if (mode.equals(STATUS_ON)) {
+            mTvControlManager.SetAudioSrsSurround(1);
+            mTvControlManager.SaveCurAudioSrsSurround(1);
+        } else if (mode.equals(STATUS_OFF)) {
+            mTvControlManager.SetAudioSrsSurround(0);
+            mTvControlManager.SaveCurAudioSrsSurround(0);
+            setDialogClarity(STATUS_OFF);
+            setBassBoost(STATUS_OFF);
+        }
+    }
+
+    public void setDialogClarity (String mode) {
+        if (mode.equals(STATUS_ON)) {
+            setSurround(STATUS_ON);
+            mTvControlManager.SetAudioSrsDialogClarity(1);
+            mTvControlManager.SaveCurAudioSrsDialogClarity(1);
+        } else if (mode.equals(STATUS_OFF)) {
+            mTvControlManager.SetAudioSrsDialogClarity(0);
+            mTvControlManager.SaveCurAudioSrsDialogClarity(0);
+        }
+    }
+
+    public void setBassBoost (String mode) {
+        if (mode.equals(STATUS_ON)) {
+            setSurround(STATUS_ON);
+            mTvControlManager.SetAudioSrsTruBass(1);
+            mTvControlManager.SaveCurAudioSrsTruBass(1);
+        } else if (mode.equals(STATUS_OFF)) {
+            mTvControlManager.SetAudioSrsTruBass(0);
+            mTvControlManager.SaveCurAudioSrsTruBass(0);;
+        }
+    }
+
     public void setAudioTrack (int position) {
         if (currentChannel != null) {
             mTvControlManager.DtvSwitchAudioTrack(currentChannel.getAudioPids()[position],
@@ -1008,16 +1074,16 @@ public class SettingsManager {
 
     public void skipChannel (int type, int channelNumber) {
         ChannelInfo channel = getChannelByNumber(type, channelNumber);
-        if (ChannelInfo.isSameChannel(currentChannel, channel))
-            setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
+        //if (ChannelInfo.isSameChannel(currentChannel, channel))
+            //setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
 
         mTvDataBaseManager.skipChannel(channel);
     }
 
     public  void deleteChannel (int type, int channelNumber) {
         ArrayList<ChannelInfo> channelList = getChannelInfoList(type);
-        if (ChannelInfo.isSameChannel(currentChannel,  channelList.get(channelNumber)))
-            setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
+        //if (ChannelInfo.isSameChannel(currentChannel,  channelList.get(channelNumber)))
+            //setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
 
         mTvDataBaseManager.deleteChannel(channelList, channelNumber);
     }
@@ -1100,5 +1166,11 @@ public class SettingsManager {
     private class ClearUserDataObserver extends IPackageDataObserver.Stub {
         public void onRemoveCompleted(final String packageName, final boolean succeeded) {
         }
+    }
+
+    public void sendSearchBroadcast() {
+        Intent intent = new Intent();
+        intent.setAction(DroidLogicTvUtils.ACTION_UPDATE_TV_PLAY);
+        mContext.sendBroadcast(intent);
     }
 }

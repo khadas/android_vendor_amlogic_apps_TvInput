@@ -461,76 +461,55 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 break;
             // Treble
             case R.id.treble_increase:
-                int treble_value_increase = mTvControlManager.GetCurAudioTrebleVolume() + 1;
-                mTvControlManager.SetAudioTrebleVolume(treble_value_increase);
-                mTvControlManager.SaveCurAudioTrebleVolume(treble_value_increase);
+                mSettingsManager.setTreble(1);
                 break;
             case R.id.treble_decrease:
-                int treble_value_decrease = mTvControlManager.GetCurAudioTrebleVolume() - 1;
-                mTvControlManager.SetAudioTrebleVolume(treble_value_decrease);
-                mTvControlManager.SaveCurAudioTrebleVolume(treble_value_decrease);
+                mSettingsManager.setTreble(-1);
                 break;
             // Bass
             case R.id.bass_increase:
-                int bass_value_increase = mTvControlManager.GetCurAudioBassVolume() + 1;
-                mTvControlManager.SetAudioBassVolume(bass_value_increase);
-                mTvControlManager.SaveCurAudioBassVolume(bass_value_increase);
+                mSettingsManager.setBass(1);
                 break;
             case R.id.bass_decrease:
-                int bass_value_decrease = mTvControlManager.GetCurAudioBassVolume() - 1;
-                mTvControlManager.SetAudioBassVolume(bass_value_decrease);
-                mTvControlManager.SaveCurAudioBassVolume(bass_value_decrease);
+                mSettingsManager.setBass(-1);
                 break;
             // Balance
             case R.id.balance_increase:
-                int balance_value_increase = mTvControlManager.GetCurAudioBalance() + 1;
-                mTvControlManager.SetAudioBalance(balance_value_increase);
-                mTvControlManager.SaveCurAudioBalance(balance_value_increase);
+                mSettingsManager.setBalance(1);
                 break;
             case R.id.balance_decrease:
-                int balance_value_decrease = mTvControlManager.GetCurAudioBalance() - 1;
-                mTvControlManager.SetAudioBalance(balance_value_decrease);
-                mTvControlManager.SaveCurAudioBalance(balance_value_decrease);
+                mSettingsManager.setBalance(-1);;
                 break;
             // SPDIF
             case R.id.spdif_off:
-                mTvControlManager.SetAudioSPDIFSwitch(0);
-                mTvControlManager.SaveCurAudioSPDIFSwitch(0);
+                mSettingsManager.setSpdif(SettingsManager.STATUS_OFF);
                 break;
             case R.id.spdif_auto:
-                mTvControlManager.SetAudioSPDIFMode(0);
-                mTvControlManager.SaveCurAudioSPDIFMode(0);
+                mSettingsManager.setSpdif(SettingsManager.STATUS_AUTO);
                 break;
             case R.id.spdif_pcm:
-                mTvControlManager.SetAudioSPDIFMode(1);
-                mTvControlManager.SaveCurAudioSPDIFMode(1);
+                mSettingsManager.setSpdif(SettingsManager.STATUS_PCM);
                 break;
             // Surround
             case R.id.surround_on:
-                mTvControlManager.SetAudioSrsSurround(1);
-                mTvControlManager.SaveCurAudioSrsSurround(1);
+                mSettingsManager.setSurround(SettingsManager.STATUS_ON);
                 break;
             case R.id.surround_off:
-                mTvControlManager.SetAudioSrsSurround(0);
-                mTvControlManager.SaveCurAudioSrsSurround(0);
+                mSettingsManager.setSurround(SettingsManager.STATUS_OFF);
                 break;
             // Dialog Clarity
             case R.id.dialog_clarity_on:
-                mTvControlManager.SetAudioSrsDialogClarity(1);
-                mTvControlManager.SaveCurAudioSrsDialogClarity(1);
+                mSettingsManager.setDialogClarity(SettingsManager.STATUS_ON);
                 break;
             case R.id.dialog_clarity_off:
-                mTvControlManager.SetAudioSrsDialogClarity(0);
-                mTvControlManager.SaveCurAudioSrsDialogClarity(0);
+                mSettingsManager.setDialogClarity(SettingsManager.STATUS_OFF);
                 break;
             // Bass Boost
             case R.id.bass_boost_on:
-                mTvControlManager.SetAudioSrsTruBass(1);
-                mTvControlManager.SaveCurAudioSrsTruBass(1);
+                mSettingsManager.setBassBoost(SettingsManager.STATUS_ON);
                 break;
             case R.id.bass_boost_off:
-                mTvControlManager.SetAudioSrsTruBass(0);
-                mTvControlManager.SaveCurAudioSrsTruBass(0);
+                mSettingsManager.setBassBoost(SettingsManager.STATUS_OFF);
                 break;
             // ====Channel====
             // color system
@@ -576,13 +555,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             // auto search
             case R.id.auto_search_start_atv:
             case R.id.auto_search_start_dtv:
-                mTvDataBaseManager.deleteChannels(mSettingsManager.getInputId());
-                if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV)
-                    mTvControlManager.AtvAutoScan(TvControlManager.atv_video_std_e.ATV_VIDEO_STD_PAL, TvControlManager.atv_audio_std_e.ATV_AUDIO_STD_I, 0);
-                else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV)
-                    mTvControlManager.DtvAutoScan();
-                isSearching = true;
-                mSettingsManager.setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
+                startAutosearch();
                 break;
             // ====Settings====
             // Sleep Timer
@@ -819,6 +792,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                     TvControlManager.atv_video_std_e.ATV_VIDEO_STD_PAL, TvControlManager.atv_audio_std_e.ATV_AUDIO_STD_DK);
                 isSearching = true;
                 mSettingsManager.setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
+                mSettingsManager.sendSearchBroadcast();
             }
         } else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
             OptionEditText edit = (OptionEditText) parent.findViewById(R.id.manual_search_dtv_channel);
@@ -828,6 +802,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             mTvControlManager.DtvManualScan(getDvbFrequencyByPd(Integer.valueOf(channel)));
             isSearching = true;
             mSettingsManager.setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
+            mSettingsManager.sendSearchBroadcast();
         }
     }
 
@@ -990,6 +965,17 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         list.add(item);
 
         return list;
+    }
+
+    private void startAutosearch() {
+        mTvDataBaseManager.deleteChannels(mSettingsManager.getInputId());
+        if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV)
+            mTvControlManager.AtvAutoScan(TvControlManager.atv_video_std_e.ATV_VIDEO_STD_PAL, TvControlManager.atv_audio_std_e.ATV_AUDIO_STD_I, 0);
+        else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV)
+            mTvControlManager.DtvAutoScan();
+        isSearching = true;
+        mSettingsManager.setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
+        mSettingsManager.sendSearchBroadcast();
     }
 
     private void setAutoSearchFrequency(TvControlManager.ScannerEvent event) {

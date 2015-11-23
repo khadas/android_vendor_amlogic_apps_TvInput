@@ -111,6 +111,26 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     private static final int MSG_SAVE_CHANNEL_INFO = 1;
     private boolean isPlayingRadio = false;
 
+    BroadcastReceiver mReceiver=new BroadcastReceiver(){
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action.equals("android.intent.action.shutdown"))
+                reset_shutdown_time();
+            else if (action.equals(DroidLogicTvUtils.ACTION_UPDATE_TV_PLAY)) {
+                String channelNumber = intent.getStringExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER);
+                if (channelNumber != null) {
+                    Utils.logd(TAG, "delete or skipped current channel, switch to: name=" + mSourceInput.getChannelName()
+                    + " uri=" + mSourceInput.getUri());
+                    processDeleteCurrentChannel(Integer.parseInt(channelNumber));
+                } else {
+                    Utils.logd(TAG, "recevie search channel intent");
+                    mMainView.setBackground(null);
+                    isPlayingRadio = false;
+                }
+            }
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Utils.logd(TAG, "==== onCreate ====");
@@ -118,12 +138,9 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         setContentView(R.layout.main);
         init();
         initTimeSuspend(this);
-        BroadcastReceiver mReceiver=new BroadcastReceiver(){
-            public void onReceive(Context context, Intent intent) {
-                reset_shutdown_time();
-            }
-        };
+
         IntentFilter intentFilter = new IntentFilter("android.intent.action.shutdown");
+        intentFilter.addAction(DroidLogicTvUtils.ACTION_UPDATE_TV_PLAY);
         registerReceiver(mReceiver, intentFilter);
     }
 
@@ -464,7 +481,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         return super.onKeyDown(keyCode, event);
     }
 
-    private void processKeyInputChannel(int offset) {
+    public void processKeyInputChannel(int offset) {
         if (mSourceInput.isPassthrough())
             return;
 
@@ -488,6 +505,12 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         popupSourceInfo(Utils.SHOW_VIEW);
         isSwitchingChannel = mSourceInput.moveToIndex(Integer.parseInt(keyInputNumber));
         channelSwitch(MSG_CHANNEL_NUM_SWITCH, 2000);
+    }
+
+    public void processDeleteCurrentChannel(int number) {
+        destroyChannelSwitchTimer();
+        isSwitchingChannel = mSourceInput.moveToIndex(number);
+        channelSwitch(MSG_CHANNEL_NUM_SWITCH, 500);
     }
 
     private void destroyChannelSwitchTimer() {
@@ -746,6 +769,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     protected void onStop() {
         Utils.logd(TAG, "==== onStop ====");
         hasStopped = true;
+        unregisterReceiver(mReceiver);
         releaseBeforeExit();
         restoreTouchSound();
         if (sdialog != null)

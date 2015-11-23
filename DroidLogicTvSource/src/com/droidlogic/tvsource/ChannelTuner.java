@@ -2,6 +2,7 @@ package com.droidlogic.tvsource;
 
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.media.tv.TvContract;
 import android.media.tv.TvContract.Channels;
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 
 import com.droidlogic.app.tv.ChannelInfo;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
+import com.droidlogic.app.tv.TvControlManager;
 import com.droidlogic.app.tv.TvDataBaseManager;
 
 public class ChannelTuner {
@@ -156,7 +158,7 @@ public class ChannelTuner {
         }
 
         if (mCurrentChannel == null && mVideoChannels.size() > 0) {
-            mCurrentChannel = mVideoChannels.get(DEFAULT_INDEX);
+            updateCurrentScreen(mVideoChannels.get(DEFAULT_INDEX));
         }
         if (DEBUG)
             printList();
@@ -185,13 +187,17 @@ public class ChannelTuner {
 
 
         int index = getChannelIndex(mCurrentChannel);
+        boolean isRadio = isRadioChannel(mCurrentChannel);
         if (DEBUG)
             Log.d(TAG, "==== changeChannels uri=" + uri + " index=" + index);
         if (index == -1) {
             mCurrentChannel = null;
-            if (mVideoChannels.size() > 0) {
-                mCurrentChannel = mVideoChannels.get(DEFAULT_INDEX);
-            }
+            if (isRadio && mRadioChannels.size() > 0)
+                updateCurrentScreen(mRadioChannels.get(DEFAULT_INDEX));
+            else if (mVideoChannels.size() > 0)
+                updateCurrentScreen(mVideoChannels.get(DEFAULT_INDEX));
+            else
+                TvControlManager.open().StopPlayProgram();
         } else {
             if (isRadioChannel(mCurrentChannel))
                 mCurrentChannel = mRadioChannels.get(index);
@@ -207,9 +213,11 @@ public class ChannelTuner {
         if (index != -1) {
             channelList.remove(index);
             if (ChannelInfo.isSameChannel(mCurrentChannel, channel) && channelList.size() > 0)
-                mCurrentChannel = channelList.get(DEFAULT_INDEX);
-            else if (channelList.size() == 0)
+                updateCurrentScreen(channelList.get(DEFAULT_INDEX));
+            else if (channelList.size() == 0) {
                 mCurrentChannel = null;
+                TvControlManager.open().StopPlayProgram();
+            }
         }
 
         return channelList;
@@ -233,6 +241,12 @@ public class ChannelTuner {
         return channelList;
     }
 
+    private void updateCurrentScreen(ChannelInfo info) {
+        mCurrentChannel = info;
+        Intent intent = new Intent(DroidLogicTvUtils.ACTION_UPDATE_TV_PLAY);
+        intent.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, Integer.toString(getChannelIndex(mCurrentChannel)));
+        mContext.sendBroadcast(intent);
+    }
 
     /**
      * usually, method is used to initialize this object.
