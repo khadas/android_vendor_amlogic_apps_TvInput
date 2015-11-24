@@ -111,7 +111,13 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     private static final int MSG_SAVE_CHANNEL_INFO = 1;
     private boolean isPlayingRadio = false;
 
-    BroadcastReceiver mReceiver = new BroadcastReceiver(){
+    private int mCurrentKeyType;
+    private static final int IS_KEY_EXIT   = 0;
+    private static final int IS_KEY_HOME   = 1;
+    private static final int IS_KEY_OTHER  = 2;
+    private boolean mSourceHasReleased = false;
+
+    BroadcastReceiver mReceiver=new BroadcastReceiver(){
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (action.equals(DroidLogicTvUtils.ACTION_TIMEOUT_SUSPEND))
@@ -252,6 +258,15 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         }
     }
 
+    /**
+     * source may not be released when stopping tvapp, release it ahead of time.
+     * release it when KEY_EXIT or KEY_HOME in {@link this#onPause()}
+     */
+    private void prepareForSourceRelease() {
+        mCurrentKeyType = IS_KEY_HOME;
+        mSourceHasReleased = false;
+    }
+
     @Override
     protected void onResume() {
         Utils.logd(TAG, "== onResume ====");
@@ -261,6 +276,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         if (hasStopped || needUpdateSource) {
             switchToSourceInput();
         }
+        prepareForSourceRelease();
         if (hasStopped)
             reset_shutdown_time();
         hasStopped = false;
@@ -407,6 +423,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
                 popupSourceMenu(Utils.HIDE_VIEW);
                 popupSourceInfo(Utils.HIDE_VIEW);
                 popupChannelList(Utils.HIDE_VIEW);
+                mCurrentKeyType = IS_KEY_OTHER;
                 startSetupActivity();
                 return true;
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_DISPAYMODE:
@@ -419,6 +436,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
                 popupSourceMenu(Utils.HIDE_VIEW);
                 popupSourceInfo(Utils.HIDE_VIEW);
                 popupChannelList(Utils.HIDE_VIEW);
+                mCurrentKeyType = IS_KEY_OTHER;
                 startSettingActivity(keyCode);
                 return true;
             case DroidLogicKeyEvent.KEYCODE_FAV:
@@ -455,8 +473,11 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
                     popupChannelList(Utils.HIDE_VIEW);
                     popupSourceInfo(Utils.SHOW_VIEW);
                     return true;
+                } else {
+                    mCurrentKeyType = IS_KEY_EXIT;
+                    finish();
+                    return true;
                 }
-                break;
             case DroidLogicKeyEvent.KEYCODE_CHANNEL_UP:
                 processKeyInputChannel(1);
                 return true;
@@ -755,13 +776,18 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
      * clear info for pass through, and release session.
      */
     private void releaseBeforeExit() {
+        Utils.logd(TAG, "==== releaseBeforeExit ====");
         preSwitchSourceInput();
         mSourceView.reset();
+        mSourceHasReleased = true;
     }
 
     @Override
     protected void onPause() {
-        Utils.logd(TAG, "==== onPause ====");
+        Utils.logd(TAG, "==== onPause ====" + mCurrentKeyType);
+        if (mCurrentKeyType == IS_KEY_EXIT || mCurrentKeyType == IS_KEY_HOME) {
+            releaseBeforeExit();
+        }
         super.onPause();
     }
 
@@ -769,7 +795,9 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     protected void onStop() {
         Utils.logd(TAG, "==== onStop ====");
         hasStopped = true;
-        releaseBeforeExit();
+        if (!mSourceHasReleased) {
+            releaseBeforeExit();
+        }
         restoreTouchSound();
         if (sdialog != null)
             sdialog.dismiss();
