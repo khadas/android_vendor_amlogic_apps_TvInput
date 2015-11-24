@@ -44,10 +44,11 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     public static final int OPTION_COLOR = 103;
     public static final int OPTION_SHARPNESS = 104;
     public static final int OPTION_BACKLIGHT = 105;
-    public static final int OPTION_COLOR_TEMPERATURE = 106;
-    public static final int OPTION_ASPECT_RATIO = 107;
-    public static final int OPTION_DNR = 108;
-    public static final int OPTION_3D_SETTINGS = 109;
+    public static final int OPTION_TINT = 106;
+    public static final int OPTION_COLOR_TEMPERATURE = 107;
+    public static final int OPTION_ASPECT_RATIO = 108;
+    public static final int OPTION_DNR = 109;
+    public static final int OPTION_3D_SETTINGS = 110;
 
     public static final int OPTION_SOUND_MODE = 200;
     public static final int OPTION_TREBLE = 201;
@@ -131,6 +132,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         } else if (item_name.equals(mContext.getResources().getString(R.string.backlight))) {
             optionTag = OPTION_BACKLIGHT;
             optionKey = SettingsManager.KEY_BACKLIGHT;
+        } else if (item_name.equals(mContext.getResources().getString(R.string.tint))) {
+            optionTag = OPTION_TINT;
+            optionKey = SettingsManager.KEY_TINT;
         } else if (item_name.equals(mContext.getResources().getString(R.string.color_temperature))) {
             optionTag = OPTION_COLOR_TEMPERATURE;
             optionKey = SettingsManager.KEY_COLOR_TEMPERATURE;
@@ -249,6 +253,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 return R.layout.layout_picture_sharpness;
             case OPTION_BACKLIGHT:
                 return R.layout.layout_picture_backlight;
+            case OPTION_TINT:
+                return R.layout.layout_picture_tint;
             case OPTION_COLOR_TEMPERATURE:
                 return R.layout.layout_picture_color_temperature;
             case OPTION_ASPECT_RATIO:
@@ -380,6 +386,13 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 break;
             case R.id.backlight_decrease:
                 mSettingsManager.setBacklight(SettingsManager.PERCENT_DECREASE);
+                break;
+            // tint
+            case R.id.tint_increase:
+                mSettingsManager.setTint(SettingsManager.PERCENT_INCREASE);
+                break;
+            case R.id.tint_decrease:
+                mSettingsManager.setTint(SettingsManager.PERCENT_DECREASE);
                 break;
             // color temperature
             case R.id.color_temperature_standard:

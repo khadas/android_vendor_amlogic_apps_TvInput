@@ -111,7 +111,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     private static final int MSG_SAVE_CHANNEL_INFO = 1;
     private boolean isPlayingRadio = false;
 
-    BroadcastReceiver mReceiver=new BroadcastReceiver(){
+    BroadcastReceiver mReceiver = new BroadcastReceiver(){
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (action.equals(DroidLogicTvUtils.ACTION_TIMEOUT_SUSPEND))

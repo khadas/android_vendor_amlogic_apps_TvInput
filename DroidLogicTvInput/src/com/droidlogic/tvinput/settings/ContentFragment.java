@@ -157,6 +157,9 @@ public class ContentFragment extends Fragment {
                 mSettingsManager.setTag(key);
                 content_title.setText(title);
             } else {
+                if (key.equals(SettingsManager.KEY_TINT) && !mSettingsManager.isShowTint())
+                    return;
+
                 HashMap<String, Object> map = new HashMap<String, Object>();
                 map.put(ITEM_KEY, key);
                 map.put(ITEM_NAME, title);
