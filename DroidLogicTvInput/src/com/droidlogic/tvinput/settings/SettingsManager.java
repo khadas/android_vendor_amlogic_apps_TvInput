@@ -37,6 +37,7 @@ public class SettingsManager {
     public static final String KEY_COLOR                            = "color";
     public static final String KEY_SHARPNESS                        = "sharpness";
     public static final String KEY_BACKLIGHT                        = "backlight";
+    public static final String KEY_TINT                             = "tint";
     public static final String KEY_COLOR_TEMPERATURE                = "color_temperature";
     public static final String KEY_ASPECT_RATIO                     = "aspect_ratio";
     public static final String KEY_DNR                              = "dnr";
@@ -229,6 +230,8 @@ public class SettingsManager {
             return getSharpnessStatus();
         } else if (key.equals(KEY_BACKLIGHT)) {
             return getBacklightStatus();
+        } else if (key.equals(KEY_TINT)) {
+            return getTintStatus();
         } else if (key.equals(KEY_COLOR_TEMPERATURE)) {
             return getColorTemperatureStatus();
         } else if (key.equals(KEY_ASPECT_RATIO)) {
@@ -321,6 +324,31 @@ public class SettingsManager {
 
     private String getBacklightStatus () {
         return mTvControlManager.GetBacklight(mTvSource) + "%";
+    }
+
+    public boolean isShowTint() {
+        if (mTvSource == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV
+            && getColorSystemStatus().equals(mResources.getString(R.string.ntsc))) {
+            TvControlManager.tvin_info_t tmpInfo = mTvControlManager.GetCurrentSignalInfo();
+            if (tmpInfo.status == TvControlManager.tvin_sig_status_t.TVIN_SIG_STATUS_STABLE) {
+                Log.d(TAG, "ATV NTSC mode signal is stable, show Tint");
+                return true;
+            }
+        } else if (mTvSource == TvControlManager.SourceInput_Type.SOURCE_TYPE_AV) {
+            TvControlManager.tvin_info_t tmpInfo = mTvControlManager.GetCurrentSignalInfo();
+            if (tmpInfo.status == TvControlManager.tvin_sig_status_t.TVIN_SIG_STATUS_STABLE) {
+                String[] strings = tmpInfo.fmt.toString().split("_");
+                if (strings[4].contains("NTSC")) {
+                    Log.d(TAG, "AV NTSC mode signal is stable, show Tint");
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private String getTintStatus () {
+        return mTvControlManager.GetHue(mTvSource) + "%";
     }
 
     private String getColorTemperatureStatus () {
@@ -793,11 +821,15 @@ public class SettingsManager {
         }
     }
 
-    private void setPictureUserMode(String key) {
+    private int setPictureUserMode(String key) {
         int brightness = mTvControlManager.GetBrightness(mTvSource);
         int contrast = mTvControlManager.GetContrast(mTvSource);
         int color = mTvControlManager.GetSaturation(mTvSource);
         int sharpness = mTvControlManager.GetSharpness(mTvSource);
+        int tint = -1;
+        if (isShowTint())
+            tint = mTvControlManager.GetHue(mTvSource);
+        int ret = -1;
 
         switch (mTvControlManager.GetPQMode(mTvSource)) {
             case 0:
@@ -808,44 +840,57 @@ public class SettingsManager {
         }
 
         //Log.d(TAG, " brightness=" + brightness + " contrast=" + contrast + " color=" + color + " sharp=" + sharpness);
-        mTvControlManager.SetBrightness(brightness, mTvSource, 1);
-        mTvControlManager.SetContrast(contrast, mTvSource, 1);
-        mTvControlManager.SetSaturation(color, mTvSource, mTvControlManager.GetCurrentSignalInfo().fmt, 1);
-        mTvControlManager.SetSharpness(sharpness, mTvSource, 1, 0, 1);
+        if (!key.equals(KEY_BRIGHTNESS))
+            mTvControlManager.SetBrightness(brightness, mTvSource, 1);
+        else
+            ret = brightness;
+
+        if (!key.equals(KEY_CONTRAST))
+            mTvControlManager.SetContrast(contrast, mTvSource, 1);
+        else
+            ret = contrast;
+
+        if (!key.equals(KEY_COLOR))
+            mTvControlManager.SetSaturation(color, mTvSource, mTvControlManager.GetCurrentSignalInfo().fmt, 1);
+        else
+            ret = color;
+
+        if (!key.equals(KEY_SHARPNESS))
+            mTvControlManager.SetSharpness(sharpness, mTvSource, 1, 0, 1);
+        else
+            ret = sharpness;
+
+        if (isShowTint()) {
+            if (!key.equals(KEY_TINT))
+                mTvControlManager.SetHue(tint, mTvSource, mTvControlManager.GetCurrentSignalInfo().fmt, 1);
+            else
+                ret = tint;
+        }
+
+        return ret;
     }
 
     public void setBrightness (int step) {
-        setPictureUserMode(KEY_BRIGHTNESS);
-        if (step == PERCENT_INCREASE)
-            mTvControlManager.SetBrightness(mTvControlManager.GetBrightness(mTvSource) + 1, mTvSource, 1);
-        else
-            mTvControlManager.SetBrightness(mTvControlManager.GetBrightness(mTvSource) - 1, mTvSource, 1);
+        mTvControlManager.SetBrightness(setPictureUserMode(KEY_BRIGHTNESS) + step, mTvSource, 1);
     }
 
     public void setContrast (int step) {
-        setPictureUserMode(KEY_CONTRAST);
-        if (step == PERCENT_INCREASE)
-            mTvControlManager.SetContrast(mTvControlManager.GetContrast(mTvSource) + 1, mTvSource, 1);
-        else
-            mTvControlManager.SetContrast(mTvControlManager.GetContrast(mTvSource) - 1, mTvSource, 1);
+        mTvControlManager.SetContrast(setPictureUserMode(KEY_CONTRAST) + step, mTvSource, 1);
     }
 
     public void setColor (int step) {
-        setPictureUserMode(KEY_COLOR);
-        if (step == PERCENT_INCREASE)
-            mTvControlManager.SetSaturation(mTvControlManager.GetSaturation(mTvSource) + 1,
-                mTvSource, mTvControlManager.GetCurrentSignalInfo().fmt, 1);
-        else
-            mTvControlManager.SetSaturation(mTvControlManager.GetSaturation(mTvSource) - 1,
-                mTvSource, mTvControlManager.GetCurrentSignalInfo().fmt, 1);
+        mTvControlManager.SetSaturation(setPictureUserMode(KEY_COLOR) + step,
+            mTvSource, mTvControlManager.GetCurrentSignalInfo().fmt, 1);
     }
 
     public void setSharpness (int step) {
-        setPictureUserMode(KEY_SHARPNESS);
-        if (step == PERCENT_INCREASE)
-            mTvControlManager.SetSharpness(mTvControlManager.GetSharpness(mTvSource) + 1, mTvSource, 1, 0, 1);
-        else
-            mTvControlManager.SetSharpness(mTvControlManager.GetSharpness(mTvSource) - 1, mTvSource, 1, 0, 1);
+        mTvControlManager.SetSharpness(setPictureUserMode(KEY_SHARPNESS) + step, mTvSource, 1, 0, 1);
+    }
+
+    public void setTint (int step) {
+        if (isShowTint())
+            mTvControlManager.SetHue(setPictureUserMode(KEY_TINT) + step, mTvSource,
+                mTvControlManager.GetCurrentSignalInfo().fmt, 1);
     }
 
     public void setBacklight (int step) {
@@ -967,10 +1012,10 @@ public class SettingsManager {
             mTvControlManager.SetAudioSrsSurround(1);
             mTvControlManager.SaveCurAudioSrsSurround(1);
         } else if (mode.equals(STATUS_OFF)) {
-            mTvControlManager.SetAudioSrsSurround(0);
-            mTvControlManager.SaveCurAudioSrsSurround(0);
             setDialogClarity(STATUS_OFF);
             setBassBoost(STATUS_OFF);
+            mTvControlManager.SetAudioSrsSurround(0);
+            mTvControlManager.SaveCurAudioSrsSurround(0);
         }
     }
 

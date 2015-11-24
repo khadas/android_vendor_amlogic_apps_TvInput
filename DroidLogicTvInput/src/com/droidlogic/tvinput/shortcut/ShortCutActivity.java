@@ -141,7 +141,7 @@ public class ShortCutActivity extends Activity {
     }
 
     private void showCustomToast(int mode){
-        LayoutInflater inflater=getLayoutInflater();
+        LayoutInflater inflater = getLayoutInflater();
         View layout=inflater.inflate(R.layout.layout_shortcut_key, null);
 
         TextView title =(TextView)layout.findViewById(R.id.toast_title);

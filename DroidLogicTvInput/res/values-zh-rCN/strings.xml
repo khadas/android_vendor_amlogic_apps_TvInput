@@ -10,6 +10,7 @@
     <string name="color">色饱和度</string>
     <string name="sharpness">锐度</string>
     <string name="backlight">背光</string>
+    <string name="tint">色调</string>
     <string name="color_temperature">色温</string>
     <string name="aspect_ratio">显示比例</string>
     <string name="dnr">降噪</string>

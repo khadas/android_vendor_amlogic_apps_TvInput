@@ -12,6 +12,7 @@
     <string name="color">Color</string>
     <string name="sharpness">Sharpness</string>
     <string name="backlight">Backlight</string>
+    <string name="tint">Tint</string>
     <string name="color_temperature">Color Temperature</string>
     <string name="aspect_ratio">Aspect Ratio</string>
     <string name="dnr">DNR</string>

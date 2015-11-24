@@ -32,6 +32,11 @@
     </Preference>
 
     <Preference
+        android:key="tint"
+        android:title="@string/tint" >
+    </Preference>
+
+    <Preference
         android:key="backlight"
         android:title="@string/backlight" >
     </Preference>
