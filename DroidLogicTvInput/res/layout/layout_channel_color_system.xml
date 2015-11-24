@@ -15,19 +15,6 @@
         android:textColor="@color/color_text_item"
         />
     <TextView
-        android:id="@+id/color_system_auto"
-        android:layout_width="262dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
-        android:layout_marginLeft="31dp"
-        android:paddingLeft="50dp"
-        android:background="@drawable/item_background"
-        android:focusable="true"
-        android:text="@string/auto"
-        android:textSize="26sp"
-        android:textColor="@color/color_text_item"
-        />
-    <TextView
         android:id="@+id/color_system_pal"
         android:layout_width="262dp"
         android:layout_height="wrap_content"

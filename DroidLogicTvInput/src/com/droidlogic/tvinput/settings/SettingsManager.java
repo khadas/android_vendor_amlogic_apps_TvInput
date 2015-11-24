@@ -564,14 +564,12 @@ public class SettingsManager {
         if (currentChannel != null) {
             switch (currentChannel.getVideoStd())
             {
-                case 0:
-                    return mResources.getString(R.string.auto);
                 case 1:
                     return mResources.getString(R.string.pal);
                 case 2:
                     return mResources.getString(R.string.ntsc);
                 default:
-                    return mResources.getString(R.string.auto);
+                    return mResources.getString(R.string.pal);
             }
         }
         return null;
@@ -1095,7 +1093,7 @@ public class SettingsManager {
 
     public void setSleepTimer (int mins) {
         SystemProperties.set("tv.sleep_timer", mins+"");
-        Intent intent = new Intent("android.intent.action.shutdown");
+        Intent intent = new Intent(DroidLogicTvUtils.ACTION_TIMEOUT_SUSPEND);
         mContext.sendBroadcast(intent);//to tvapp
     }
 

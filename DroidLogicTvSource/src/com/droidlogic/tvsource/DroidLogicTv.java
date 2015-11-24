@@ -114,7 +114,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     BroadcastReceiver mReceiver=new BroadcastReceiver(){
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if (action.equals("android.intent.action.shutdown"))
+            if (action.equals(DroidLogicTvUtils.ACTION_TIMEOUT_SUSPEND))
                 reset_shutdown_time();
             else if (action.equals(DroidLogicTvUtils.ACTION_UPDATE_TV_PLAY)) {
                 String channelNumber = intent.getStringExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER);
@@ -139,7 +139,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         init();
         initTimeSuspend(this);
 
-        IntentFilter intentFilter = new IntentFilter("android.intent.action.shutdown");
+        IntentFilter intentFilter = new IntentFilter(DroidLogicTvUtils.ACTION_TIMEOUT_SUSPEND);
         intentFilter.addAction(DroidLogicTvUtils.ACTION_UPDATE_TV_PLAY);
         registerReceiver(mReceiver, intentFilter);
     }
@@ -769,7 +769,6 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     protected void onStop() {
         Utils.logd(TAG, "==== onStop ====");
         hasStopped = true;
-        unregisterReceiver(mReceiver);
         releaseBeforeExit();
         restoreTouchSound();
         if (sdialog != null)
@@ -781,6 +780,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     protected void onDestroy() {
         Utils.logd(TAG, "==== onDestroy ====");
         releaseThread();
+        unregisterReceiver(mReceiver);
         mChannelDataManager.release();
         super.onDestroy();
     }

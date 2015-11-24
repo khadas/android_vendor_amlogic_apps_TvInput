@@ -513,9 +513,6 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 break;
             // ====Channel====
             // color system
-            case R.id.color_system_auto:
-                mSettingsManager.setColorSystem(TvControlManager.tvin_color_system_e.COLOR_SYSTEM_AUTO.toInt());
-                break;
             case R.id.color_system_pal:
                 mSettingsManager.setColorSystem(TvControlManager.tvin_color_system_e.COLOR_SYSTEM_PAL.toInt());
                 break;
