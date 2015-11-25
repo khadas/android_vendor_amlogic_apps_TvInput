@@ -327,8 +327,9 @@ public class SettingsManager {
     }
 
     public boolean isShowTint() {
+        String colorSystem = getColorSystemStatus();
         if (mTvSource == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV
-            && getColorSystemStatus().equals(mResources.getString(R.string.ntsc))) {
+            && colorSystem != null && colorSystem.equals(mResources.getString(R.string.ntsc))) {
             TvControlManager.tvin_info_t tmpInfo = mTvControlManager.GetCurrentSignalInfo();
             if (tmpInfo.status == TvControlManager.tvin_sig_status_t.TVIN_SIG_STATUS_STABLE) {
                 Log.d(TAG, "ATV NTSC mode signal is stable, show Tint");
