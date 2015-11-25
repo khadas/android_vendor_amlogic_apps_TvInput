@@ -1129,7 +1129,8 @@ public class SettingsManager {
         //if (ChannelInfo.isSameChannel(currentChannel,  channelList.get(channelNumber)))
             //setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
 
-        mTvDataBaseManager.deleteChannel(channelList, channelNumber);
+        ChannelInfo channel = channelList.get(channelNumber);
+        mTvDataBaseManager.deleteChannel(channel);
     }
 
     public void setFavouriteChannel (int type, int channelNumber) {

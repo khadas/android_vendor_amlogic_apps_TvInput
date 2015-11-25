@@ -22,6 +22,7 @@ import android.widget.Toast;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import com.droidlogic.app.tv.TvControlManager;
 import com.droidlogic.app.tv.TvControlManager.FreqList;
@@ -1143,18 +1144,14 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         switch (event.type) {
             case TvControlManager.EVENT_DTV_PROG_DATA:
                 channel = createDtvChannelInfo(event);
-                if (optionTag == OPTION_MANUAL_SEARCH) {
-                    mTvDataBaseManager.updateOrinsertDtvChannel(channel);
-                } else {
-                    if (event.srvType == 1) {//{@link Channels#SERVICE_TYPE_AUDIO_VIDEO}
-                        mTvDataBaseManager.insertDtvChannel(channel, tvDisplayNumber);
-                        tvDisplayNumber++;
-                    } else if (event.srvType == 2){
-                        mTvDataBaseManager.insertDtvChannel(channel, radioDisplayNumber);
-                        radioDisplayNumber++;
-                    }
+                onDTvChannelStore(channel);
+                if (event.srvType == 1) {//{@link Channels#SERVICE_TYPE_AUDIO_VIDEO}
+                    mTvDataBaseManager.insertDtvChannel(channel, tvDisplayNumber);
+                    tvDisplayNumber++;
+                } else if (event.srvType == 2){
+                    mTvDataBaseManager.insertDtvChannel(channel, radioDisplayNumber);
+                    radioDisplayNumber++;
                 }
-
                 channel.print();
                 break;
             case TvControlManager.EVENT_SCAN_PROGRESS:
@@ -1187,8 +1184,14 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 tvDisplayNumber++;
                 channel.print();
                 break;
+            case TvControlManager.EVENT_STORE_BEGIN:
+                Log.d(TAG, "Store begin");
+                onTvChannelStoreBegin();
+                break;
+
             case TvControlManager.EVENT_STORE_END:
                 Log.d(TAG, "Store end");
+                onTvChannelStoreEnd();
                 ((TvSettingsActivity) mContext).finish();
                 break;
             case TvControlManager.EVENT_SCAN_END:
@@ -1253,4 +1256,79 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
 
     public void stopAllAction(){
     }
+
+    private boolean need_delete_channel = false;
+    private ArrayList<ChannelInfo> mVideoChannels = null;
+    private ArrayList<ChannelInfo> mRadioChannels = null;
+
+    private void onTvChannelStoreBegin() {
+        if ((mSettingsManager.getCurentTvSource() != TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV)
+            || (optionTag != OPTION_MANUAL_SEARCH))
+            return ;
+
+        String InputId = mSettingsManager.getInputId();
+        mVideoChannels = mTvDataBaseManager.getChannelList(InputId, Channels.SERVICE_TYPE_AUDIO_VIDEO);
+        mRadioChannels = mTvDataBaseManager.getChannelList(InputId, Channels.SERVICE_TYPE_AUDIO);
+
+        tvDisplayNumber = mVideoChannels.size();
+        radioDisplayNumber = mRadioChannels.size();
+        Log.d(TAG, "Store> tv:"+tvDisplayNumber+" radio:"+radioDisplayNumber);
+    }
+
+    private boolean on_dtv_channel_store_firsttime = true;
+    private void onDTvChannelStore(ChannelInfo channel) {
+        if (optionTag != OPTION_MANUAL_SEARCH)
+            return ;
+
+        if (on_dtv_channel_store_firsttime) {
+
+            on_dtv_channel_store_firsttime = false;
+
+            Iterator<ChannelInfo> iter = mVideoChannels.iterator();
+            while (iter.hasNext()) {
+                ChannelInfo c = iter.next();
+                if (c.getFrequency() != channel.getFrequency())
+                    iter.remove();
+            }
+
+            iter = mRadioChannels.iterator();
+            while (iter.hasNext()) {
+                ChannelInfo c = iter.next();
+                if (c.getFrequency() != channel.getFrequency())
+                    iter.remove();
+            }
+
+            need_delete_channel = true;
+
+            //Log.d(TAG, "v:"+mVideoChannels.size()+" a:"+mRadioChannels.size());
+            //for (ChannelInfo c : mVideoChannels)
+            //    Log.d(TAG, "need rm v["+c.getDisplayName()+"]["+c.getFrequency()+"]["+c.getDisplayNumber()+"]");
+            //for (ChannelInfo c : mRadioChannels)
+            //    Log.d(TAG, "need rm a["+c.getDisplayName()+"]["+c.getFrequency()+"]["+c.getDisplayNumber()+"]");
+        }
+        Log.d(TAG, "insert ["+channel.getDisplayNumber()+"]["+channel.getFrequency()+"]["+channel.getServiceType()+"]["+channel.getDisplayName()+"]");
+    }
+
+    private void onTvChannelStoreEnd() {
+        if ((mSettingsManager.getCurentTvSource() != TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV)
+            || (optionTag != OPTION_MANUAL_SEARCH))
+            return ;
+
+        if (need_delete_channel) {
+            mTvDataBaseManager.deleteChannelsContinuous(mVideoChannels);
+            mTvDataBaseManager.deleteChannelsContinuous(mRadioChannels);
+
+            for (ChannelInfo c : mVideoChannels)
+                Log.d(TAG, "rm v["+c.getDisplayNumber()+"]["+c.getDisplayName()+"]["+c.getFrequency()+"]");
+            for (ChannelInfo c : mRadioChannels)
+                Log.d(TAG, "rm a["+c.getDisplayNumber()+"]["+c.getDisplayName()+"]["+c.getFrequency()+"]");
+        }
+
+        need_delete_channel = false;
+        mVideoChannels = null;
+        mRadioChannels = null;
+        tvDisplayNumber = 0;
+        radioDisplayNumber = 0;
+    }
+
 }
