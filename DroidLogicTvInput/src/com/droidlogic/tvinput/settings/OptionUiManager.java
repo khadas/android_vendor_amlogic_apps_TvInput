@@ -98,6 +98,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     private int radioDisplayNumber = 0;//for db store Radio channel's channel displayNumber
     List<ChannelInfo> mChannels = new ArrayList<ChannelInfo>();
     private boolean isSearching = false;
+    private Toast toast = null;
 
     public boolean isSearching() {
         return isSearching;
@@ -793,9 +794,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             int to =  Integer.valueOf(str_end);
 
             if (from < ATV_MIN_KHZ || to > ATV_MAX_KHZ)
-                Toast.makeText(mContext, mContext.getResources().getString(R.string.error_atv_error_1), Toast.LENGTH_SHORT).show();
+                showToast(mContext.getResources().getString(R.string.error_atv_error_1));
             else if (from > to)
-                Toast.makeText(mContext, mContext.getResources().getString(R.string.error_atv_error_2), Toast.LENGTH_SHORT).show();
+                showToast(mContext.getResources().getString(R.string.error_atv_error_2));
             else {
                 mSettingsManager.setManualSearchProgress(0);
                 mSettingsManager.setManualSearchSearchedNumber(0);
@@ -828,8 +829,6 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             edit_to.setNextFocusRightId(edit_to.getId());
 
             TextWatcher textWatcher = new TextWatcher() {
-                private Toast toast = null;
-
                 public void beforeTextChanged(CharSequence s, int start, int count, int after) {
                 }
 
@@ -842,10 +841,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                         char c = s.charAt(pos);
                         if (c < '0' || c > '9') {
                             s.delete(pos, pos + 1);
-                            if (toast == null)
-                                toast = Toast.makeText(mContext, mContext.getResources().getString(R.string.error_not_number), Toast.LENGTH_SHORT);
-
-                            toast.show();
+                            showToast(mContext.getResources().getString(R.string.error_not_number));
                         }
                     }
                 }
@@ -860,8 +856,6 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             final TextView start_frequency = (TextView)view.findViewById(R.id.manual_search_dtv_start_frequency);
 
             TextWatcher textWatcher = new TextWatcher() {
-                private Toast toast = null;
-
                 public void beforeTextChanged(CharSequence s, int start, int count, int after) {
                 }
 
@@ -874,10 +868,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                         char c = s.charAt(pos);
                         if (c < '0' || c > '9') {
                             s.delete(pos, pos + 1);
-                            if (toast == null)
-                                toast = Toast.makeText(mContext, mContext.getResources().getString(R.string.error_not_number), Toast.LENGTH_SHORT);
-
-                            toast.show();
+                            showToast(mContext.getResources().getString(R.string.error_not_number));
                         } else{
                             String number = edit.getText().toString();
                             if (number == null || number.length() == 0)
@@ -1203,9 +1194,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 isSearching = false;
                 if (channelNumber == 0 && radioNumber == 0) {
                     ((TvSettingsActivity) mContext).finish();
-                    Toast.makeText(mContext,
-                        mContext.getResources().getString(R.string.searched) + " 0 " + mContext.getResources().getString(R.string.channel),
-                        Toast.LENGTH_SHORT).show();
+                    showToast(mContext.getResources().getString(R.string.searched) + " 0 " + mContext.getResources().getString(R.string.channel));
                 } else {
                     String prompt = mContext.getResources().getString(R.string.searched);
                     if (channelNumber != 0) {
@@ -1215,8 +1204,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                     }
                     if (radioNumber != 0)
                         prompt += " " + radioNumber + " " + mContext.getResources().getString(R.string.radio_channel);
-
-                    Toast.makeText(mContext, prompt, Toast.LENGTH_SHORT).show();
+                    showToast(prompt);
                 }
                 break;
             default:
@@ -1252,6 +1240,19 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             }
         });
         button_ok.setOnFocusChangeListener(this);
+    }
+
+    private void showToast(String text){
+        LayoutInflater inflater =(LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View layout = inflater.inflate(R.layout.layout_toast, null);
+
+        TextView propmt =(TextView)layout.findViewById(R.id.toast_content);
+        propmt.setText(text);
+
+        toast = new Toast(mContext);
+        toast.setDuration(Toast.LENGTH_SHORT);
+        toast.setView(layout);
+        toast.show();
     }
 
     public void stopAllAction(){

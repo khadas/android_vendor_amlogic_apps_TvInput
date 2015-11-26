@@ -583,7 +583,9 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
             if (no_signal.getVisibility() != View.VISIBLE)
                 return;
             no_signal.setVisibility(View.INVISIBLE);
-        } else {
+        } else if (mSourceMenuLayout.getVisibility() != View.VISIBLE
+            && mSourceInfoLayout.getVisibility() != View.VISIBLE
+            && mChannelListLayout.getVisibility() != View.VISIBLE) {
             no_signal.setVisibility(View.VISIBLE);
             no_signal.requestLayout();
             popupSourceInfo(Utils.HIDE_VIEW);

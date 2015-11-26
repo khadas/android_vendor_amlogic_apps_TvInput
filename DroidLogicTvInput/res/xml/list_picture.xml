@@ -55,10 +55,5 @@
         android:key="dnr"
         android:title="@string/dnr" >
     </Preference>
-
-    <Preference
-        android:key="settings_3d"
-        android:title="@string/settings_3d" >
-    </Preference>
 </PreferenceScreen>
 

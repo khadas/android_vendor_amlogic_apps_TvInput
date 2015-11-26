@@ -872,33 +872,52 @@ public class SettingsManager {
     }
 
     public void setBrightness (int step) {
-        mTvControlManager.SetBrightness(setPictureUserMode(KEY_BRIGHTNESS) + step, mTvSource, 1);
+        if (mTvControlManager.GetPQMode(mTvSource) == 3)
+            mTvControlManager.SetBrightness(mTvControlManager.GetBrightness(mTvSource) + step, mTvSource, 1);
+        else
+            mTvControlManager.SetBrightness(setPictureUserMode(KEY_BRIGHTNESS) + step, mTvSource, 1);
     }
 
     public void setContrast (int step) {
-        mTvControlManager.SetContrast(setPictureUserMode(KEY_CONTRAST) + step, mTvSource, 1);
+        if (mTvControlManager.GetPQMode(mTvSource) == 3)
+            mTvControlManager.SetContrast(mTvControlManager.GetContrast(mTvSource) + step, mTvSource, 1);
+        else
+            mTvControlManager.SetContrast(setPictureUserMode(KEY_CONTRAST) + step, mTvSource, 1);
     }
 
     public void setColor (int step) {
-        mTvControlManager.SetSaturation(setPictureUserMode(KEY_COLOR) + step,
-            mTvSource, mTvControlManager.GetCurrentSignalInfo().fmt, 1);
+        if (mTvControlManager.GetPQMode(mTvSource) == 3)
+            mTvControlManager.SetSaturation(mTvControlManager.GetSaturation(mTvSource) + step,
+                mTvSource, mTvControlManager.GetCurrentSignalInfo().fmt, 1);
+        else
+            mTvControlManager.SetSaturation(setPictureUserMode(KEY_COLOR) + step,
+                mTvSource, mTvControlManager.GetCurrentSignalInfo().fmt, 1);
     }
 
     public void setSharpness (int step) {
-        mTvControlManager.SetSharpness(setPictureUserMode(KEY_SHARPNESS) + step, mTvSource, 1, 0, 1);
+        if (mTvControlManager.GetPQMode(mTvSource) == 3)
+            mTvControlManager.SetSharpness(mTvControlManager.GetSharpness(mTvSource) + step, mTvSource, 1, 0, 1);
+        else
+            mTvControlManager.SetSharpness(setPictureUserMode(KEY_SHARPNESS) + step, mTvSource, 1, 0, 1);
     }
 
     public void setTint (int step) {
-        if (isShowTint())
-            mTvControlManager.SetHue(setPictureUserMode(KEY_TINT) + step, mTvSource,
-                mTvControlManager.GetCurrentSignalInfo().fmt, 1);
+        if (isShowTint()) {
+            if (mTvControlManager.GetPQMode(mTvSource) == 3)
+                mTvControlManager.SetHue(mTvControlManager.GetHue(mTvSource) + step, mTvSource,
+                    mTvControlManager.GetCurrentSignalInfo().fmt, 1);
+            else
+                mTvControlManager.SetHue(setPictureUserMode(KEY_TINT) + step, mTvSource,
+                    mTvControlManager.GetCurrentSignalInfo().fmt, 1);
+        }
     }
 
     public void setBacklight (int step) {
-        if (step == PERCENT_INCREASE)
+        int value = mTvControlManager.GetBacklight(mTvSource) + step;
+        if (value >= 0 && value <= 100) {
             mTvControlManager.SetBacklight(mTvControlManager.GetBacklight(mTvSource) + 1, mTvSource, 1);
-        else
             mTvControlManager.SetBacklight(mTvControlManager.GetBacklight(mTvSource) - 1, mTvSource, 1);
+        }
     }
 
     public void setColorTemperature(String mode) {
@@ -979,20 +998,26 @@ public class SettingsManager {
 
     public void setTreble (int step) {
         int treble_value = mTvControlManager.GetCurAudioTrebleVolume() + step;
-        mTvControlManager.SetAudioTrebleVolume(treble_value);
-        mTvControlManager.SaveCurAudioTrebleVolume(treble_value);
+        if (treble_value >= 0 && treble_value <= 100) {
+            mTvControlManager.SetAudioTrebleVolume(treble_value);
+            mTvControlManager.SaveCurAudioTrebleVolume(treble_value);
+        }
     }
 
     public void setBass (int step) {
         int bass_value = mTvControlManager.GetCurAudioBassVolume() + step;
-        mTvControlManager.SetAudioBassVolume(bass_value);
-        mTvControlManager.SaveCurAudioBassVolume(bass_value);;
+        if (bass_value >= 0 && bass_value <= 100) {
+            mTvControlManager.SetAudioBassVolume(bass_value);
+            mTvControlManager.SaveCurAudioBassVolume(bass_value);
+        }
     }
 
     public void setBalance (int step) {
         int balance_value = mTvControlManager.GetCurAudioBalance() + step;
-        mTvControlManager.SetAudioBalance(balance_value);
-        mTvControlManager.SaveCurAudioBalance(balance_value);
+        if (balance_value >= 0 && balance_value <= 100) {
+            mTvControlManager.SetAudioBalance(balance_value);
+            mTvControlManager.SaveCurAudioBalance(balance_value);
+        }
     }
 
     public void setSpdif (String mode) {
