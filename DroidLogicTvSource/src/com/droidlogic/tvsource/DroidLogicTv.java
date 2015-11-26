@@ -418,6 +418,8 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         switch (keyCode) {
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_SOURCE_LIST:
                 popupSourceMenu(isSourceMenuShowing ? Utils.HIDE_VIEW : Utils.SHOW_VIEW);
+                if (!isSourceMenuShowing)
+                    popupSourceInfo(Utils.SHOW_VIEW);
                 return true;
             case DroidLogicKeyEvent.KEYCODE_MENU://show setup activity
                 popupSourceMenu(Utils.HIDE_VIEW);
