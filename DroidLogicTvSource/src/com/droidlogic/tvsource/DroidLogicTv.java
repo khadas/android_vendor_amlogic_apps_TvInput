@@ -68,6 +68,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     private int mSigType;
 
     private boolean isNoSignal;
+    private boolean isScreamed;
 //    private boolean isNoSignalShowing;
     private boolean isSourceMenuShowing;
 //    private boolean isSourceInfoShowing;
@@ -579,6 +580,10 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
 
     private void popupNoSignal(boolean show_or_hide) {//true:show
         TextView no_signal = (TextView)findViewById(R.id.no_signal);
+        if (isScreamed)
+            no_signal.setText(mContext.getResources().getString(R.string.av_scambled));
+        else
+            no_signal.setText(mContext.getResources().getString(R.string.no_signal));
         if (!show_or_hide) {
             if (no_signal.getVisibility() != View.VISIBLE)
                 return;
@@ -771,6 +776,9 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
                     break;
             }
             popupSourceInfo(Utils.SHOW_VIEW);
+        } else if (eventType.equals(DroidLogicTvUtils.AV_SIG_SCAMBLED)) {
+            isScreamed = true;
+            popupNoSignal(Utils.SHOW_VIEW);
         }
     }
 
@@ -923,6 +931,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
             Utils.logd(TAG, "====onVideoAvailable==inputId =" + inputId);
 
             isNoSignal = false;
+            isScreamed = false;
             popupNoSignal(Utils.HIDE_VIEW);
             remove_nosignal_time();
         }
