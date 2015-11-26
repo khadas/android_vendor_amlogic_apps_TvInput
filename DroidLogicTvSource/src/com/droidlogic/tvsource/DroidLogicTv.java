@@ -33,6 +33,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.PowerManager;
 import android.os.SystemClock;
 import android.os.SystemProperties;
 import android.os.Handler.Callback;
@@ -117,6 +118,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     private static final int IS_KEY_HOME   = 1;
     private static final int IS_KEY_OTHER  = 2;
     private boolean mSourceHasReleased = false;
+    PowerManager.WakeLock mScreenLock = null;
 
     BroadcastReceiver mReceiver=new BroadcastReceiver(){
         public void onReceive(Context context, Intent intent) {
@@ -145,6 +147,8 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         setContentView(R.layout.main);
         init();
         initTimeSuspend(this);
+        mScreenLock = ((PowerManager)this.getSystemService (Context.POWER_SERVICE)).newWakeLock(
+            PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ON_AFTER_RELEASE, TAG);
 
         IntentFilter intentFilter = new IntentFilter(DroidLogicTvUtils.ACTION_TIMEOUT_SUSPEND);
         intentFilter.addAction(DroidLogicTvUtils.ACTION_UPDATE_TV_PLAY);
@@ -272,6 +276,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     protected void onResume() {
         Utils.logd(TAG, "== onResume ====");
         closeTouchSound();
+        closeScreenOffTimeout();
 
         initMainView();
         if (hasStopped || needUpdateSource) {
@@ -811,6 +816,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
             releaseBeforeExit();
         }
         restoreTouchSound();
+        openScreenOffTimeout();
         if (sdialog != null)
             sdialog.dismiss();
         super.onStop();
@@ -1106,6 +1112,18 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
             am.loadSoundEffects();
         } else {
             am.unloadSoundEffects();
+        }
+    }
+
+    protected void closeScreenOffTimeout() {
+        if (mScreenLock.isHeld() == false) {
+            mScreenLock.acquire();
+        }
+    }
+
+    protected void openScreenOffTimeout() {
+        if (mScreenLock.isHeld() == true) {
+            mScreenLock.release();
         }
     }
 }
