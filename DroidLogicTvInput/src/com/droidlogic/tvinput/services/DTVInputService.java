@@ -67,7 +67,7 @@ public class DTVInputService extends DroidLogicTvInputService {
         return mSession;
     }
 
-    public class DTVSessionImpl extends TvInputBaseSession {
+    public class DTVSessionImpl extends TvInputBaseSession implements TvControlManager.AVPlaybackListener{
         private final Context mContext;
         private TvInputManager mTvInputManager;
         private TvContentRating mLastBlockedRating;
@@ -126,8 +126,10 @@ public class DTVInputService extends DroidLogicTvInputService {
             ChannelInfo ch = mTvDataBaseManager.getChannelInfo(uri);
             if (ch != null) {
                 playProgram(ch);
+                TvControlManager.open().SetAVPlaybackListener(this);
             } else {
                 Log.w(TAG, "Failed to get channel info for " + uri);
+                TvControlManager.open().SetAVPlaybackListener(null);
             }
         }
 
@@ -136,7 +138,6 @@ public class DTVInputService extends DroidLogicTvInputService {
             int mode = Utils.type2mode(info.getType());
             if (mode == TVChannelParams.MODE_DTMB) {
                 TvControlManager mTvControlManager = TvControlManager.open();
-                info.print();
                 mTvControlManager.PlayDTVProgram(
                         mode,
                         info.getFrequency(),
@@ -187,6 +188,17 @@ public class DTVInputService extends DroidLogicTvInputService {
                 Log.d(TAG, "notifyContentAllowed");
                 notifyContentAllowed();
             }
+        }
+
+        @Override
+        public void onEvent(TvControlManager.AVPlaybackEvent ev) {
+            Log.d(TAG, "AV evt:"+ev.mMsgType);
+            if (ev.mMsgType == TvControlManager.EVENT_AV_SCAMBLED)
+                mSession.notifySessionEvent(DroidLogicTvUtils.AV_SIG_SCAMBLED, null);
+            else if (ev.mMsgType == TvControlManager.EVENT_AV_PLAYBACK_NODATA)
+                ;
+            else if (ev.mMsgType == TvControlManager.EVENT_AV_PLAYBACK_RESUME)
+                notifyVideoAvailable();
         }
     }
 

@@ -10,6 +10,7 @@
     <string name="source_bt_hdmi1">HDMI1</string>
     <string name="source_bt_hdmi2">HDMI2</string>
     <string name="no_signal">No Signal</string>
+    <string name="av_scambled">CHANNEL SCAMBLED</string>
 
     <string name="radio_label">Digtal Radio</string>
 
