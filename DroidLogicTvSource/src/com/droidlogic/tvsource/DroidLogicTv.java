@@ -326,7 +326,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         mSigType = mSourceInput.getSigType();
         Uri channel_uri = mSourceInput.getUri();
         Utils.logd(TAG, "channelUri switching to is " + channel_uri);
-
+        isScrambled = false;
         mSourceView.tune(mSourceInput.getInputId(), channel_uri);
         popupSourceMenu(Utils.HIDE_VIEW);
         popupSourceInfo(Utils.SHOW_VIEW);
@@ -381,7 +381,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
                 mSourceInput.setChannelVideoFormat("");
                 break;
             case DroidLogicTvUtils.SIG_INFO_TYPE_AV:
-                mSourceInput.setChannelType("");
+                mSourceInput.setAVType("");
                 break;
             default:
                 break;
@@ -724,8 +724,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         } else {
             int index = mSourceInput.getChannelIndex();
             mInfoNumber.setText(index != -1 ? Integer.toString(index) : "");
-            mInfoName.setText(TextUtils.isEmpty(mSourceInput.getChannelType()) ? "" : mSourceInput
-                    .getChannelType().substring(5));
+            mInfoName.setText(mSourceInput.getChannelType());
         }
     }
 
@@ -748,7 +747,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         if (isNoSignal) {
             mInfoName.setText("");
         } else {
-            mInfoName.setText(mSourceInput.getChannelType());
+            mInfoName.setText(mSourceInput.getAVType());
         }
     }
 
@@ -775,7 +774,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
                     break;
                 case DroidLogicTvUtils.SIG_INFO_TYPE_AV:
                     args = eventArgs.getString(DroidLogicTvUtils.SIG_INFO_ARGS);
-                    mSourceInput.setChannelType(args);
+                    mSourceInput.setAVType(args);
                     break;
                 default:
                     break;

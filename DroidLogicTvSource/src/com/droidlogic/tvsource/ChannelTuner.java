@@ -358,7 +358,25 @@ public class ChannelTuner {
     public String getChannelType() {
         if (mCurrentChannel == null)
             return "";
-        return mCurrentChannel.getType();
+        String colorSystemString = "";
+        String soundSystemString = "";
+        if (mCurrentChannel.getVideoStd() == 1)
+            colorSystemString = "PAL";
+        else if (mCurrentChannel.getVideoStd() == 2)
+            colorSystemString = "NTSC";
+        else
+            colorSystemString = "PAL";
+        if (mCurrentChannel.getAudioStd() == 0)
+            soundSystemString = "D/K";
+        else if (mCurrentChannel.getAudioStd() == 1)
+            soundSystemString = "I";
+        else if (mCurrentChannel.getAudioStd() == 2)
+            soundSystemString = "B/G";
+        else if (mCurrentChannel.getAudioStd() == 3)
+            soundSystemString = "M";
+        else
+            soundSystemString = "D/K";
+        return colorSystemString + "_" + soundSystemString;
     }
 
     public String getChannelNumber() {

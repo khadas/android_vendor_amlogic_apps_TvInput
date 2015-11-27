@@ -27,6 +27,7 @@ public class SourceButton extends Button implements OnClickListener{
     private int mHardwareDeviceId = -1;
     private int mSourceType;
     private int mIsHardware = -1;
+    private String mAvType = "";
 
     private OnSourceClickListener mListener;
 
@@ -142,8 +143,12 @@ public class SourceButton extends Button implements OnClickListener{
         return mChannelTuner.getChannelVideoFormat();
     }
 
-    public void setChannelType(String type) {
-        mChannelTuner.setChannelType(type);
+    public void setAVType(String type) {
+        mAvType = type;
+    }
+
+    public String getAVType() {
+        return mAvType;
     }
 
     public void setChannelVideoFormat(String format) {

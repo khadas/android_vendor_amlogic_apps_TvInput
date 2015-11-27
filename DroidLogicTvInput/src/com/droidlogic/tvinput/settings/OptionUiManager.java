@@ -900,7 +900,6 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 break;
             }
         }
-        Log.d("fuhao", "the_freq = " + the_freq);
         return the_freq;
     }
 
@@ -987,7 +986,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             TextView frequency_band = (TextView) optionView.findViewById(R.id.auto_search_frequency_band_atv);
             TextView searched_number = (TextView) optionView.findViewById(R.id.auto_search_searched_number_atv);
             if (frequency != null && frequency_band != null && searched_number != null) {
-                double freq = event.freq/(1000 * 1000);
+                double freq = event.freq;
+                freq /= 1000 * 1000;
                 frequency.setText(Double.toString(freq) + mContext.getResources().getString(R.string.mhz));
                 frequency_band.setText(parseFrequencyBand(freq));
                 searched_number.setText(mContext.getResources().getString(R.string.searched_number) + ": " + channelNumber);
@@ -1159,7 +1159,6 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                         e.printStackTrace();
                     }
                 }
-
                 setProgress(event.precent);
                 if (optionTag == OPTION_MANUAL_SEARCH)
                     setManualSearchInfo(event);
