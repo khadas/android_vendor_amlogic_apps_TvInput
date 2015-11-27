@@ -2,6 +2,7 @@
 <resources>
     <string name="app_name">电视</string>
     <string name="auto_shutdown_info">秒后将会关机，请按任意键取消</string>
+    <string name="av_scambled">频道加密</string>
 
     <!-- for channel list -->
     <string name="tab_atv">频道列表</string>

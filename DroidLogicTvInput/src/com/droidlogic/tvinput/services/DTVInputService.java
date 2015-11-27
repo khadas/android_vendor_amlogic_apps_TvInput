@@ -193,8 +193,8 @@ public class DTVInputService extends DroidLogicTvInputService {
         @Override
         public void onEvent(TvControlManager.AVPlaybackEvent ev) {
             Log.d(TAG, "AV evt:"+ev.mMsgType);
-            if (ev.mMsgType == TvControlManager.EVENT_AV_SCAMBLED)
-                mSession.notifySessionEvent(DroidLogicTvUtils.AV_SIG_SCAMBLED, null);
+            if (ev.mMsgType == TvControlManager.EVENT_AV_SCRAMBLED)
+                mSession.notifySessionEvent(DroidLogicTvUtils.AV_SIG_SCRAMBLED, null);
             else if (ev.mMsgType == TvControlManager.EVENT_AV_PLAYBACK_NODATA)
                 ;
             else if (ev.mMsgType == TvControlManager.EVENT_AV_PLAYBACK_RESUME)
