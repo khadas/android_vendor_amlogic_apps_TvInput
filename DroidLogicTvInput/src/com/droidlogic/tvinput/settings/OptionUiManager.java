@@ -1118,20 +1118,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
 
     @Override
     public void onEvent(TvControlManager.ScannerEvent event) {
-        //Log.d("fuhao", "searching---precent = " + event.precent + ",arg0.quality = " + event.quality + ",strength = " + event.strength);
         ChannelInfo channel = null;
         String name = null;
-        if (event.lock == 1) {
-            // get a channel
-            if (event.mode == TVChannelParams.MODE_ANALOG) {
-                channelNumber++;
-            } else {
-                if (event.srvType == 1)
-                    channelNumber++;
-                else if (event.srvType == 2)
-                    radioNumber++;
-            }
-        }
+
         switch (event.type) {
             case TvControlManager.EVENT_DTV_PROG_DATA:
                 channel = createDtvChannelInfo(event);
@@ -1146,18 +1135,38 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 channel.print();
                 break;
             case TvControlManager.EVENT_SCAN_PROGRESS:
-                if (event.programName != null) {
+                Log.d(TAG, event.precent + "%\tfreq["+event.freq+"] lock["+event.lock+"] strength["+event.strength+"] quality["+event.quality+"]");
+
+                int isNewProgram = 0;
+
+                if ((event.mode == TVChannelParams.MODE_ANALOG) && (event.lock == 0x11)) {//trick here
+
+                    isNewProgram = 1;
+
+                } else if ((event.mode != TVChannelParams.MODE_ANALOG) && (event.programName.length() != 0)) {
+
                     try {
-                        String composedName = new String(event.programName);
-                        name = TVMultilingualText.getText(composedName);
+                        name = TVMultilingualText.getText(event.programName);
                         if (name == null || name.isEmpty()) {
-                            name = TVMultilingualText.getText(composedName, "first");
+                            name = TVMultilingualText.getText(event.programName, "first");
                         }
-                        Log.d(TAG, "New Program : " + name + ", type " + event.srvType);
                     }
                     catch (Exception e) {
                         e.printStackTrace();
                     }
+
+                    isNewProgram = 2;
+                }
+
+                if (isNewProgram == 1) {
+                    channelNumber++;
+                    Log.d(TAG, "New ATV Program");
+                } else if (isNewProgram == 2) {
+                    if (event.srvType == 1)
+                        channelNumber++;
+                    else if (event.srvType == 2)
+                        radioNumber++;
+                    Log.d(TAG, "New DTV Program : [" + name + "] type[" + event.srvType + "]");
                 }
                 setProgress(event.precent);
                 if (optionTag == OPTION_MANUAL_SEARCH)
