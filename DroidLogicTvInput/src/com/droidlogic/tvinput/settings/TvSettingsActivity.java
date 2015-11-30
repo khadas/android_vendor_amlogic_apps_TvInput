@@ -66,10 +66,20 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
         tabSettings.setOnClickListener(this);
         tabSettings.setOnFocusChangeListener(this);
 
+        tabPicture.setNextFocusDownId(tabSound.getId());
+        tabSound.setNextFocusUpId(tabPicture.getId());
+        tabChannel.setNextFocusUpId(tabSound.getId());
+        tabChannel.setNextFocusDownId(tabSettings.getId());
+
         if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_HDMI ||
             mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_AV) {
+            tabSound.setNextFocusDownId(tabSettings.getId());
+            tabSettings.setNextFocusUpId(tabSound.getId());
             tabChannel.setVisibility(View.GONE);
             findViewById(R.id.title_channel).setVisibility(View.GONE);
+        } else {
+            tabSound.setNextFocusDownId(tabChannel.getId());
+            tabSettings.setNextFocusUpId(tabChannel.getId());
         }
 
         if (savedInstanceState == null)
@@ -114,6 +124,9 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
                     mTvControlManager.DtvStopScan();
                     return true;
                 }
+                break;
+            case KeyEvent.KEYCODE_MENU:
+                finish();
                 break;
             default:
                 break;

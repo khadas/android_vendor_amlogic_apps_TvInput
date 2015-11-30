@@ -72,7 +72,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     private boolean isScrambled;
 //    private boolean isNoSignalShowing;
     private boolean isSourceMenuShowing;
-//    private boolean isSourceInfoShowing;
+    private boolean isSourceInfoShowing;
 
     private Timer delayTimer = null;
     private int delayCounter = 0;
@@ -470,7 +470,10 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
                 }
                 return true;
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_TVINFO:
-                popupSourceInfo(Utils.SHOW_VIEW);
+                if (isSourceInfoShowing)
+                    popupSourceInfo(Utils.HIDE_VIEW);
+                else
+                    popupSourceInfo(Utils.SHOW_VIEW);
                 return true;
             case DroidLogicKeyEvent.KEYCODE_BACK:
                 if (isSourceMenuShowing) {
@@ -606,9 +609,11 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         if (!show_or_hide) {
             if (mSourceInfoLayout.getVisibility() != View.VISIBLE)
                 return;
+            isSourceInfoShowing = false;
             destroyDelayTimer();
             mSourceInfoLayout.setVisibility(View.INVISIBLE);
         } else {
+            isSourceInfoShowing = true;
             switch (mSigType) {
                 case DroidLogicTvUtils.SIG_INFO_TYPE_ATV:
                     initATVInfo();
