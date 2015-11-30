@@ -9,6 +9,7 @@ import android.media.tv.TvContentRating;
 import android.media.tv.TvInputManager;
 import android.media.tv.TvInputInfo;
 import android.media.tv.TvInputHardwareInfo;
+import android.media.tv.TvTrackInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -25,11 +26,19 @@ import com.droidlogic.app.tv.ChannelInfo;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Map;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
 import com.droidlogic.app.tv.TvControlManager;
 
 public class DTVInputService extends DroidLogicTvInputService {
 
     private static final String TAG = "DTVInputService";
+
+    private static final String PID = "pid";
+    private static final String FMT = "fmt";
 
     private DTVSessionImpl mSession;
 
@@ -73,12 +82,14 @@ public class DTVInputService extends DroidLogicTvInputService {
         private TvContentRating mLastBlockedRating;
         private TvContentRating mCurrentContentRating;
         private final Set<TvContentRating> mUnblockedRatingSet = new HashSet<>();
+        private ChannelInfo mCurrentChannel;
 
         protected DTVSessionImpl(Context context, String inputId, int deviceId) {
             super(context, inputId, deviceId);
 
             mContext = context;
             mLastBlockedRating = null;
+            mCurrentChannel = null;
         }
 
         @Override
@@ -127,6 +138,8 @@ public class DTVInputService extends DroidLogicTvInputService {
             if (ch != null) {
                 playProgram(ch);
                 TvControlManager.open().SetAVPlaybackListener(this);
+                notifyTracks(ch);
+                mCurrentChannel = ch;
             } else {
                 Log.w(TAG, "Failed to get channel info for " + uri);
                 TvControlManager.open().SetAVPlaybackListener(null);
@@ -200,6 +213,65 @@ public class DTVInputService extends DroidLogicTvInputService {
             else if (ev.mMsgType == TvControlManager.EVENT_AV_PLAYBACK_RESUME)
                 notifyVideoAvailable();
         }
+
+        @Override
+        public boolean onSelectTrack(int type, String trackId) {
+            Log.d(TAG, "onSelectTrack: [type:"+type+"] [id:"+trackId+"]");
+
+            if (mCurrentChannel == null)
+                return false;
+
+            if (type == TvTrackInfo.TYPE_AUDIO) {
+
+                TvControlManager mTvControlManager = TvControlManager.open();
+                Map<String, String> parsedMap = ChannelInfo.stringToMap(trackId);
+                mTvControlManager.DtvSwitchAudioTrack(Integer.parseInt(parsedMap.get("pid")),
+                                        Integer.parseInt(parsedMap.get("fmt")),
+                                        0);
+
+                notifyTrackSelected(type, trackId);
+
+                TvDataBaseManager mTvDataBaseManager = new TvDataBaseManager(mContext);
+                mCurrentChannel.setAudioTrackIndex(Integer.parseInt(parsedMap.get("id")));
+                mTvDataBaseManager.updateChannelInfo(mCurrentChannel);
+                return true;
+            }
+            return false;
+        }
+
+        private void notifyTracks(ChannelInfo ch) {
+            int[] audioPids = ch.getAudioPids();
+            int AudioTracksCount = audioPids.length;
+            if (AudioTracksCount != 0) {
+                Log.d(TAG, "notify audio tracks:");
+                String[] audioLanguages = ch.getAudioLangs();
+                int[] audioFormats = ch.getAudioFormats();
+                List < TvTrackInfo > tracks = new ArrayList<>();
+                String SelectedId = null;
+                for (int i=0; i<AudioTracksCount; i++) {
+                    Map<String, String> map = new HashMap<String, String>();
+                    map.put("id", String.valueOf(i));
+                    map.put("pid", String.valueOf(audioPids[i]));
+                    map.put("fmt", String.valueOf(audioFormats[i]));
+                    String Id = ChannelInfo.mapToString(map);
+                    TvTrackInfo AudioTrack =
+                        new TvTrackInfo.Builder(TvTrackInfo.TYPE_AUDIO, Id)
+                                       .setLanguage(audioLanguages[i])
+                                       .setAudioChannelCount(2)
+                                       .build();
+                    tracks.add(AudioTrack);
+                    if (ch.getAudioTrackIndex() == i)
+                        SelectedId = Id;
+                    Log.d(TAG, "\t"+i+": ["+audioLanguages[i]+"] [pid:"+audioPids[i]+"] [fmt:"+audioFormats[i]+"]");
+                }
+                notifyTracksChanged(tracks);
+                if (SelectedId != null) {
+                    Log.d(TAG, "\tselected: ["+SelectedId+"]");
+                    notifyTrackSelected(TvTrackInfo.TYPE_AUDIO, SelectedId);
+                }
+            }
+        }
+
     }
 
     public static final class TvInput {
