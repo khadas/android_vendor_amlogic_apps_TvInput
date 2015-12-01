@@ -28,6 +28,7 @@ public class SourceButton extends Button implements OnClickListener{
     private int mSourceType;
     private int mIsHardware = -1;
     private String mAvType = "";
+    private int recentChannelIndex = -1;
 
     private OnSourceClickListener mListener;
 
@@ -247,6 +248,7 @@ public class SourceButton extends Button implements OnClickListener{
     }
 
     public boolean moveToChannel(int index, boolean isRadio) {
+        setRecentChannelIndex(getChannelIndex());
         return mChannelTuner.moveToChannel(index, isRadio);
     }
 
@@ -254,11 +256,29 @@ public class SourceButton extends Button implements OnClickListener{
      * @return {@code true} move successfully, otherwise, move failed.
      */
     public boolean moveToOffset(int offset) {
+        setRecentChannelIndex(getChannelIndex());
         return isPassthrough() ? false : mChannelTuner.moveToOffset(offset);
     }
 
     public boolean moveToIndex(int index) {
-        return isPassthrough() ? false : mChannelTuner.moveToIndex(index);
+        int saveIndex = getChannelIndex();
+        if (isPassthrough() ? false : mChannelTuner.moveToIndex(index)) {
+            setRecentChannelIndex(saveIndex);
+            return true;
+        } else
+            return false;
+    }
+
+    public boolean moveToRecentChannel() {
+        if (recentChannelIndex != getChannelIndex())
+            return moveToIndex(recentChannelIndex);
+        else
+            return false;
+    }
+
+    private void setRecentChannelIndex(int index) {
+        if (recentChannelIndex != index)
+            recentChannelIndex = index;
     }
 
     @Override
