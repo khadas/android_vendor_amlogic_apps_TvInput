@@ -76,7 +76,6 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
 
     private Timer delayTimer = null;
     private int delayCounter = 0;
-    private Timer channelSwitchTimer = null;
     private volatile int mNoSignalShutdownCount = -1;
     private TextView mTimePromptText = null;
 
@@ -84,8 +83,7 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     private static final int MSG_INFO_DELAY             = 0;
     private static final int MSG_SOURCE_DELAY           = 1;
     private static final int MSG_CHANNEL_LIST_DELAY     = 2;
-    private static final int MSG_CHANNEL_KEY_SWITCH     = 3;
-    private static final int MSG_CHANNEL_NUM_SWITCH     = 4;
+    private static final int MSG_CHANNEL_NUM_SWITCH     = 3;
 
     private static final int TIME_INFO_DELAY = 5;
     private static final int TIME_SOURCE_DELAY = 5;
@@ -102,7 +100,6 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     private TextView mInfoName;
     private TextView mInfoNumber;
     private int mPreSigType = -1;
-    private boolean isSwitchingChannel = false;
     private boolean isNumberSwitching = false;
     private String keyInputNumber = "";
 
@@ -495,6 +492,9 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
             case DroidLogicKeyEvent.KEYCODE_CHANNEL_DOWN:
                 processKeyInputChannel(-1);
                 return true;
+            case DroidLogicKeyEvent.KEYCODE_ALT_RIGHT://look back key
+                processKeyLookBack();
+                return true;
             case DroidLogicKeyEvent.KEYCODE_0:
             case DroidLogicKeyEvent.KEYCODE_1:
             case DroidLogicKeyEvent.KEYCODE_2:
@@ -517,53 +517,31 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
         if (mSourceInput.isPassthrough())
             return;
 
-        destroyChannelSwitchTimer();
-        if (mSourceInput.moveToOffset(offset)) {
-            isSwitchingChannel = true;
-            popupSourceInfo(Utils.SHOW_VIEW);
-        }
-        channelSwitch(MSG_CHANNEL_KEY_SWITCH, 500);
+        if (mSourceInput.moveToOffset(offset))
+            switchToSourceInput();
     }
 
     private void processNumberInputChannel(int keyCode) {
         if (mSourceInput.isPassthrough())
             return;
 
-        destroyChannelSwitchTimer();
+        mHandler.removeMessages(MSG_CHANNEL_NUM_SWITCH);
         isNumberSwitching = true;
         int val = keyCode - DroidLogicKeyEvent.KEYCODE_0;
         if (keyInputNumber.length() <= 8)
             keyInputNumber = keyInputNumber + val;
         popupSourceInfo(Utils.SHOW_VIEW);
-        isSwitchingChannel = mSourceInput.moveToIndex(Integer.parseInt(keyInputNumber));
-        channelSwitch(MSG_CHANNEL_NUM_SWITCH, 2000);
+        mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_CHANNEL_NUM_SWITCH), 2000);
+    }
+
+    public void processKeyLookBack() {
+        if (mSourceInput.moveToRecentChannel())
+            switchToSourceInput();
     }
 
     public void processDeleteCurrentChannel(int number) {
-        destroyChannelSwitchTimer();
-        isSwitchingChannel = mSourceInput.moveToIndex(number);
-        channelSwitch(MSG_CHANNEL_NUM_SWITCH, 500);
-    }
-
-    private void destroyChannelSwitchTimer() {
-        if (channelSwitchTimer != null) {
-            channelSwitchTimer.cancel();
-            channelSwitchTimer = null;
-            isSwitchingChannel = false;
-        }
-    }
-
-    private void channelSwitch(final int what, final int delay) {
-        destroyChannelSwitchTimer();
-        channelSwitchTimer = new Timer();
-        TimerTask task = new TimerTask(){
-            @Override
-            public void run() {
-                mHandler.removeMessages(what);
-                mHandler.sendMessageDelayed(mHandler.obtainMessage(what), delay);
-            }
-        };
-        channelSwitchTimer.schedule(task, 0);
+        if (mSourceInput.moveToIndex(number))
+            switchToSourceInput();
     }
 
     private void popupSourceMenu(boolean show_or_hide) {//ture:show
@@ -901,15 +879,10 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
                     popupSourceInfo(Utils.SHOW_VIEW);
                 }
                 break;
-            case MSG_CHANNEL_KEY_SWITCH:
-                if (isSwitchingChannel)
-                    switchToSourceInput();
-                isSwitchingChannel = false;
-                break;
             case MSG_CHANNEL_NUM_SWITCH:
-                if (isSwitchingChannel)
+                if (mSourceInput.moveToIndex(Integer.parseInt(keyInputNumber))) {
                     switchToSourceInput();
-                isSwitchingChannel = false;
+                }
                 isNumberSwitching = false;
                 keyInputNumber = "";
                 popupSourceInfo(Utils.SHOW_VIEW);
