@@ -40,6 +40,7 @@ import android.os.Handler.Callback;
 import android.os.Message;
 import android.provider.Settings;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -287,7 +288,8 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
             reset_shutdown_time();
         hasStopped = false;
         needUpdateSource = true;
-        reset_nosignal_time();
+        if (isNoSignal)
+            reset_nosignal_time();
 
         popupSourceInfo(Utils.SHOW_VIEW);
         super.onResume();
@@ -414,7 +416,8 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         Utils.logd(TAG, "====keycode =" + keyCode);
-        reset_nosignal_time();
+        if (isNoSignal)
+            reset_nosignal_time();
         if (isSourceMenuShowing) {
             createDelayTimer(MSG_SOURCE_DELAY, TIME_SOURCE_DELAY);
         }
@@ -953,13 +956,14 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
                 case TvInputManager.VIDEO_UNAVAILABLE_REASON_UNKNOWN:
                 case TvInputManager.VIDEO_UNAVAILABLE_REASON_TUNING:
                 case TvInputManager.VIDEO_UNAVAILABLE_REASON_BUFFERING:
-                    isNoSignal = true;
                     popupNoSignal(Utils.SHOW_VIEW);
                     break;
                 default:
                     break;
             }
-            reset_nosignal_time();
+            if (!isNoSignal)
+                reset_nosignal_time();
+            isNoSignal = true;
         }
     }
 
@@ -1002,11 +1006,9 @@ public class DroidLogicTv extends Activity implements Callback, OnSourceClickLis
     };
 
     private void reset_nosignal_time() {
-        if (isNoSignal) {
-            mNoSignalShutdownCount = 300;//5min
-            no_signal_handler.removeCallbacks(no_signal_runnable);
-            no_signal_handler.postDelayed(no_signal_runnable, 0);
-        }
+        mNoSignalShutdownCount = 300;//5min
+        no_signal_handler.removeCallbacks(no_signal_runnable);
+        no_signal_handler.postDelayed(no_signal_runnable, 0);
     }
 
     private void remove_nosignal_time() {
