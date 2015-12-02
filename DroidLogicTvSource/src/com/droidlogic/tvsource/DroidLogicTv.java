@@ -411,6 +411,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 popupSourceMenu(Utils.HIDE_VIEW);
                 popupSourceInfo(Utils.HIDE_VIEW);
                 popupChannelList(Utils.HIDE_VIEW);
+                popupNoSignal(Utils.HIDE_VIEW);
                 mCurrentKeyType = IS_KEY_OTHER;
                 startSetupActivity();
                 return true;
