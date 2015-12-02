@@ -791,12 +791,9 @@ public class SettingsManager {
     }
 
     private String getStartupSettingStatus () {
-        Intent intent = new Intent(Intent.ACTION_MAIN);
-        intent.addCategory(Intent.CATEGORY_HOME);
+        int type = Settings.System.getInt(mContext.getContentResolver(), "tv_start_up_enter_app", 0);
 
-        final ResolveInfo res = mContext.getPackageManager().resolveActivity(intent, 0);
-
-        if (res.activityInfo.packageName.equals(LAUNCHER_NAME))
+        if (type == 0)
             return mResources.getString(R.string.launcher);
         else
             return mResources.getString(R.string.tv);
@@ -1175,22 +1172,7 @@ public class SettingsManager {
     }
 
     public void setStartupSetting (int type) {
-        IntentFilter  mHomeFilter = new IntentFilter(Intent.ACTION_MAIN);
-        mHomeFilter.addCategory(Intent.CATEGORY_HOME);
-        mHomeFilter.addCategory(Intent.CATEGORY_DEFAULT);
-
-        PackageManager packageManager = mContext.getPackageManager();
-        ComponentName component_launcher= new ComponentName(LAUNCHER_NAME, LAUNCHER_ACTIVITY);
-        ComponentName component_tv = new ComponentName(TV_NAME, TV_ACTIVITY);
-        ComponentName[] components = new ComponentName[] {component_launcher, component_tv};
-
-        if (type == 0) {
-            packageManager.replacePreferredActivity(mHomeFilter, IntentFilter.MATCH_CATEGORY_EMPTY,
-                components, component_launcher);
-        } else {
-            packageManager.replacePreferredActivity(mHomeFilter, IntentFilter.MATCH_CATEGORY_EMPTY,
-                components, component_tv);
-        }
+        Settings.System.putInt(mContext.getContentResolver(), "tv_start_up_enter_app", type);
     }
 
     public void doFactoryReset() {
