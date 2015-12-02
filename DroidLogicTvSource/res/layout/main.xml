@@ -11,19 +11,10 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:id="@+id/main_view">
-        <LinearLayout
+        <com.droidlogic.tvsource.ui.SourceInputListLayout
 	        android:id="@+id/menu_layout"
 	        android:layout_width="wrap_content"
-	        android:layout_height="fill_parent"
-	        android:orientation="vertical"
-	        android:visibility="invisible"
-	        android:background="@drawable/bg_source">
-	        <TextView
-	            android:layout_width="wrap_content"
-	            android:layout_height="wrap_content"
-	            android:enabled="false"
-	            android:layout_marginTop="50dp"/>
-        </LinearLayout>
+	        android:layout_height="fill_parent" />
         <TextView
             android:id="@+id/no_signal"
             android:layout_width="wrap_content"
@@ -45,7 +36,7 @@
             android:paddingLeft="2dp"
             android:paddingBottom="2dp"
             android:orientation="vertical" />
-        <com.droidlogic.tvsource.ChannelListLayout
+        <com.droidlogic.tvsource.ui.ChannelListLayout
             android:id="@+id/channel_list"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

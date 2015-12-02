@@ -1,4 +1,4 @@
-package com.droidlogic.tvsource;
+package com.droidlogic.tvsource.ui;
 
 import com.droidlogic.app.tv.ChannelInfo;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
@@ -29,6 +29,7 @@ public class SourceButton extends Button implements OnClickListener{
     private int mIsHardware = -1;
     private String mAvType = "";
     private int recentChannelIndex = -1;
+    private int mState = 0;
 
     private OnSourceClickListener mListener;
 
@@ -245,6 +246,10 @@ public class SourceButton extends Button implements OnClickListener{
     public void setTvInputInfo(TvInputInfo info) {
         mInputInfo = info;
         init();
+    }
+
+    public void setState(int state) {
+        mState = state;
     }
 
     public boolean moveToChannel(int index, boolean isRadio) {

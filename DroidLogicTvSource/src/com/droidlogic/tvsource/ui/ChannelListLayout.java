@@ -1,7 +1,8 @@
-package com.droidlogic.tvsource;
+package com.droidlogic.tvsource.ui;
 
 import com.droidlogic.app.tv.ChannelInfo;
 import com.droidlogic.tvsource.R;
+import com.droidlogic.tvsource.Utils;
 
 import android.content.Context;
 import android.content.res.ColorStateList;

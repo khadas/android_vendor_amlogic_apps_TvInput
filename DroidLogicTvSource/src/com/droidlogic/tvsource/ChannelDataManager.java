@@ -4,10 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
-import android.content.UriMatcher;
 import android.database.ContentObserver;
 import android.database.IContentObserver;
-import android.media.tv.TvContract;
 import android.media.tv.TvContract.Channels;
 import android.net.Uri;
 import android.os.Handler;
