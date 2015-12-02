@@ -58,6 +58,10 @@ public abstract class TvInputBaseSession extends TvInputService.Session implemen
         Log.d(TAG, "==== TvInputBaseSession ===="+this);
     }
 
+    public String getInputId() {
+        return mInputId;
+    }
+
     private void initThread(String inputId) {
         mHandlerThread = new HandlerThread(inputId);
         mHandlerThread.start();
@@ -121,6 +125,12 @@ public abstract class TvInputBaseSession extends TvInputService.Session implemen
 
     public void doUnblockContent(TvContentRating rating) {}
 
+    public void stopTvPlay() {
+        if (mHardware != null) {
+            mHardware.setSurface(null, null);
+        }
+    }
+
     @Override
     public void onRelease() {
         if (mSessionHandler == null)
@@ -133,7 +143,7 @@ public abstract class TvInputBaseSession extends TvInputService.Session implemen
         if (DEBUG)
             Log.d(TAG, "==== onSetSurface ===="+this);
         if (mSurface != null && surface == null) {//TvView destroyed, or session need release
-            doRelease();
+            stopTvPlay();
         } else if (mSurface == null && surface == null) {
             Log.d(TAG, "==== surface has been released ===="+this);
         }

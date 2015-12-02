@@ -62,8 +62,10 @@ public class DTVInputService extends DroidLogicTvInputService {
     @Override
     public Session onCreateSession(String inputId) {
         super.onCreateSession(inputId);
-        mSession = new DTVSessionImpl(this, inputId, getHardwareDeviceId(inputId));
-        registerInputSession(mSession);
+        if (mSession == null || !TextUtils.equals(inputId, mSession.getInputId())) {
+            mSession = new DTVSessionImpl(this, inputId, getHardwareDeviceId(inputId));
+            registerInputSession(mSession);
+        }
         return mSession;
     }
 
@@ -82,8 +84,15 @@ public class DTVInputService extends DroidLogicTvInputService {
         }
 
         @Override
+        public void stopTvPlay() {
+            super.stopTvPlay();
+            releasePlayer();
+        }
+
+        @Override
         public void doRelease() {
             super.doRelease();
+            mSession = null;
             releasePlayer();
         }
 
