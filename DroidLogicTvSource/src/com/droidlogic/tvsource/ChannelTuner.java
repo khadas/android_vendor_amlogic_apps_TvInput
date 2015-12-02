@@ -398,13 +398,13 @@ public class ChannelTuner {
     }
 
     public void setChannelType(String type) {
-        if (mCurrentChannel == null || TextUtils.isEmpty(type))
+        if (mCurrentChannel == null)
             return;
         mCurrentChannel.setType(type);
     }
 
     public void setChannelVideoFormat(String format) {
-        if (mCurrentChannel == null || TextUtils.isEmpty(format))
+        if (mCurrentChannel == null)
             return;
         mCurrentChannel.setVideoFormat(format);
     }
