@@ -59,5 +59,15 @@
 	        android:layout_marginLeft="60dp"
 	        android:textSize="30sp"
 	        android:visibility="gone" />
+	    <ImageView
+	        android:id="@+id/image_mute"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_alignParentTop="true"
+	        android:layout_alignParentRight="true"
+	        android:layout_marginTop="70dp"
+	        android:layout_marginRight="70dp"
+	        android:src="@drawable/mute"
+	        android:visibility="gone" />
     </RelativeLayout>
 </FrameLayout>

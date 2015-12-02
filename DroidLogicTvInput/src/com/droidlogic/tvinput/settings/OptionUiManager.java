@@ -804,7 +804,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                     TvControlManager.atv_video_std_e.ATV_VIDEO_STD_PAL, TvControlManager.atv_audio_std_e.ATV_AUDIO_STD_DK);
                 isSearching = true;
                 mSettingsManager.setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
-                mSettingsManager.sendSearchBroadcast();
+                mSettingsManager.sendBroadcastToTvapp("search_channel");
             }
         } else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
             OptionEditText edit = (OptionEditText) parent.findViewById(R.id.manual_search_dtv_channel);
@@ -814,7 +814,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             mTvControlManager.DtvManualScan(getDvbFrequencyByPd(Integer.valueOf(channel)));
             isSearching = true;
             mSettingsManager.setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
-            mSettingsManager.sendSearchBroadcast();
+            mSettingsManager.sendBroadcastToTvapp("search_channel");
         }
     }
 
@@ -976,7 +976,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             mTvControlManager.DtvAutoScan();
         isSearching = true;
         mSettingsManager.setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
-        mSettingsManager.sendSearchBroadcast();
+        mSettingsManager.sendBroadcastToTvapp("search_channel");
     }
 
     private void setAutoSearchFrequency(TvControlManager.ScannerEvent event) {

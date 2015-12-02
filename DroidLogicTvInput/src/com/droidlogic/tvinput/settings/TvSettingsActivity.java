@@ -17,6 +17,7 @@ import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.view.inputmethod.InputMethodManager;
 import android.util.Log;
+import android.media.AudioManager;
 import android.media.tv.TvInputInfo;
 
 import com.droidlogic.app.tv.DroidLogicTvUtils;
@@ -41,6 +42,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
     private ImageButton tabChannel;
     private ImageButton tabSettings;
     private TvControlManager mTvControlManager;
+    private AudioManager mAudioManager = null;
     private boolean isFinished = false;
 
     @Override
@@ -52,6 +54,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
 
         mSettingsManager = new SettingsManager(this, getIntent());
         mTvControlManager = mSettingsManager.getTvControlManager();
+        mAudioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
 
         tabPicture= (ImageButton) findViewById(R.id.button_picture);
         tabSound= (ImageButton) findViewById(R.id.button_sound);
@@ -128,6 +131,22 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
             case KeyEvent.KEYCODE_MENU:
                 finish();
                 break;
+            case KeyEvent.KEYCODE_VOLUME_UP:
+            case KeyEvent.KEYCODE_VOLUME_DOWN:
+                if (mAudioManager.isMasterMute()) {
+                    mAudioManager.setMasterMute(false, AudioManager.FLAG_PLAY_SOUND);
+                    mSettingsManager.sendBroadcastToTvapp("unmute");
+                }
+                break;
+            case KeyEvent.KEYCODE_VOLUME_MUTE:
+                if (mAudioManager.isMasterMute()) {
+                    mAudioManager.setMasterMute(false, AudioManager.FLAG_PLAY_SOUND);
+                    mSettingsManager.sendBroadcastToTvapp("unmute");
+                }else {
+                    mAudioManager.setMasterMute(true, AudioManager.FLAG_PLAY_SOUND);
+                    mSettingsManager.sendBroadcastToTvapp("mute");
+                }
+                return true;
             default:
                 break;
         }

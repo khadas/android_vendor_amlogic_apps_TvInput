@@ -115,8 +115,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private static final int IS_KEY_OTHER  = 2;
     private boolean mSourceHasReleased = false;
     PowerManager.WakeLock mScreenLock = null;
+    private AudioManager mAudioManager = null;
 
-    BroadcastReceiver mReceiver=new BroadcastReceiver(){
+    BroadcastReceiver mReceiver = new BroadcastReceiver(){
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (action.equals(DroidLogicTvUtils.ACTION_TIMEOUT_SUSPEND))
@@ -128,9 +129,18 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     + " uri=" + mSourceInput.getUri());
                     processDeleteCurrentChannel(Integer.parseInt(channelNumber));
                 } else {
-                    Utils.logd(TAG, "recevie search channel intent");
-                    mMainView.setBackground(null);
-                    isPlayingRadio = false;
+                    String operation = intent.getStringExtra("tv_play_extra");
+                    Utils.logd(TAG, "recevie intent : operation is " + operation);
+
+                    if (!TextUtils.isEmpty(operation)) {
+                        if (operation.equals("search_channel")) {
+                            mMainView.setBackground(null);
+                            isPlayingRadio = false;
+                        } else if (operation.equals("mute"))
+                            showMuteIcon(true);
+                        else if (operation.equals("unmute"))
+                            showMuteIcon(false);
+                    }
                 }
             }
         }
@@ -145,6 +155,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         initTimeSuspend(this);
         mScreenLock = ((PowerManager)this.getSystemService (Context.POWER_SERVICE)).newWakeLock(
             PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ON_AFTER_RELEASE, TAG);
+        mAudioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
 
         IntentFilter intentFilter = new IntentFilter(DroidLogicTvUtils.ACTION_TIMEOUT_SUSPEND);
         intentFilter.addAction(DroidLogicTvUtils.ACTION_UPDATE_TV_PLAY);
@@ -270,6 +281,11 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         needUpdateSource = true;
         if (isNoSignal)
             reset_nosignal_time();
+
+        if (mAudioManager.isMasterMute())
+            showMuteIcon(true);
+        else
+            showMuteIcon(false);
 
         super.onResume();
     }
@@ -491,6 +507,22 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             case DroidLogicKeyEvent.KEYCODE_9:
                 processNumberInputChannel(keyCode);
                 break;
+            case KeyEvent.KEYCODE_VOLUME_UP:
+            case KeyEvent.KEYCODE_VOLUME_DOWN:
+                if (mAudioManager.isMasterMute()) {
+                    mAudioManager.setMasterMute(false, AudioManager.FLAG_PLAY_SOUND);
+                    showMuteIcon(false);
+                }
+                break;
+            case KeyEvent.KEYCODE_VOLUME_MUTE:
+                if (mAudioManager.isMasterMute()) {
+                    mAudioManager.setMasterMute(false, AudioManager.FLAG_PLAY_SOUND);
+                    showMuteIcon(false);
+                } else {
+                    mAudioManager.setMasterMute(true, AudioManager.FLAG_PLAY_SOUND);
+                    showMuteIcon(true);
+                }
+                return true;
             default:
                 break;
         }
@@ -737,6 +769,14 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         } else {
             mInfoName.setText(mSourceInput.getChannelVideoFormat());
         }
+    }
+
+    private void showMuteIcon (boolean isShow) {
+        View icon_mute = findViewById(R.id.image_mute);
+        if (isShow)
+            icon_mute.setVisibility(View.VISIBLE);
+        else
+            icon_mute.setVisibility(View.GONE);
     }
 
     private void processSessionEvent(String inputId, String eventType, Bundle eventArgs) {
@@ -1109,17 +1149,15 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private void closeTouchSound() {
         save_system_sound = Settings.System.getInt(getApplicationContext().getContentResolver(), Settings.System.SOUND_EFFECTS_ENABLED, 0);
         Settings.System.putInt(getApplicationContext().getContentResolver(), Settings.System.SOUND_EFFECTS_ENABLED, 0);
-        final AudioManager am = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
-        am.unloadSoundEffects();
+        mAudioManager.unloadSoundEffects();
     }
 
     private void restoreTouchSound() {
         Settings.System.putInt(getApplicationContext().getContentResolver(), Settings.System.SOUND_EFFECTS_ENABLED, save_system_sound);
-        final AudioManager am = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
         if (save_system_sound != 0) {
-            am.loadSoundEffects();
+            mAudioManager.loadSoundEffects();
         } else {
-            am.unloadSoundEffects();
+            mAudioManager.unloadSoundEffects();
         }
     }
 

@@ -1220,9 +1220,9 @@ public class SettingsManager {
         }
     }
 
-    public void sendSearchBroadcast() {
-        Intent intent = new Intent();
-        intent.setAction(DroidLogicTvUtils.ACTION_UPDATE_TV_PLAY);
+    public void sendBroadcastToTvapp(String extra) {
+        Intent intent = new Intent(DroidLogicTvUtils.ACTION_UPDATE_TV_PLAY);
+        intent.putExtra("tv_play_extra", extra);
         mContext.sendBroadcast(intent);
     }
 }
