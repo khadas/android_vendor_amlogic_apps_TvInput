@@ -59,8 +59,10 @@ public class ATVInputService extends DroidLogicTvInputService {
 
     @Override
     public Session onCreateSession(String inputId) {
-        mSession = new ATVSessionImpl(this, inputId, getHardwareDeviceId(inputId));
-        registerInputSession(mSession);
+        if (mSession == null || !TextUtils.equals(inputId, mSession.getInputId())) {
+            mSession = new ATVSessionImpl(this, inputId, getHardwareDeviceId(inputId));
+            registerInputSession(mSession);
+        }
         return mSession;
     }
 
@@ -79,8 +81,15 @@ public class ATVInputService extends DroidLogicTvInputService {
         }
 
         @Override
+        public void stopTvPlay() {
+            super.stopTvPlay();
+            releasePlayer();
+        }
+
+        @Override
         public void doRelease() {
             super.doRelease();
+            mSession = null;
             releasePlayer();
         }
 

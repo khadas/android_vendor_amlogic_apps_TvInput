@@ -770,9 +770,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
      * clear info for pass through, and release session.
      */
     private void releaseBeforeExit() {
-        Utils.logd(TAG, "==== releaseBeforeExit ====");
         preSwitchSourceInput();
-        mSourceView.reset();
         mSourceHasReleased = true;
     }
 

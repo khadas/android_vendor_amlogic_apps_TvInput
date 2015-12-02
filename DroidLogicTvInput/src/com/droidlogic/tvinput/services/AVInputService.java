@@ -23,14 +23,22 @@ public class AVInputService extends DroidLogicTvInputService {
     @Override
     public Session onCreateSession(String inputId) {
         super.onCreateSession(inputId);
-        mSession = new AVInputSession(getApplicationContext(), inputId, getHardwareDeviceId(inputId));
-        registerInputSession(mSession);
+        if (mSession == null || !TextUtils.equals(inputId, mSession.getInputId())) {
+            mSession = new AVInputSession(getApplicationContext(), inputId, getHardwareDeviceId(inputId));
+            registerInputSession(mSession);
+        }
         return mSession;
     }
 
     public class AVInputSession extends TvInputBaseSession {
         public AVInputSession(Context context, String inputId, int deviceId) {
             super(context, inputId, deviceId);
+        }
+
+        @Override
+        public void doRelease() {
+            super.doRelease();
+            mSession = null;
         }
 
         @Override
