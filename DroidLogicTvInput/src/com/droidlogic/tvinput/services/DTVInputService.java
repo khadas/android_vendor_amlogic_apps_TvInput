@@ -119,7 +119,8 @@ public class DTVInputService extends DroidLogicTvInputService {
             mUnblockedRatingSet.clear();
 
             if (Utils.getChannelId(uri) < 0) {
-                notifyVideoUnavailable(TvInputManager.VIDEO_UNAVAILABLE_REASON_UNKNOWN);
+                TvControlManager mTvControlManager = TvControlManager.open();
+                mTvControlManager.PlayDTVProgram(TVChannelParams.MODE_DTMB, 0, 0, 0, 0, 0, -1, -1, 0, 0);
                 return;
             }
             TvDataBaseManager mTvDataBaseManager = new TvDataBaseManager(mContext);
