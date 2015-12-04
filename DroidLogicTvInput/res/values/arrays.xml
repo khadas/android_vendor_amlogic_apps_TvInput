@@ -11,4 +11,13 @@
         <item>HDMI2</item>   <!-- HDMI2 -->
         <item>HDMI3</item>   <!-- HDMI3 -->
     </string-array>
+
+    <string-array name="def_lan">
+        <item>eng</item>
+		<item>chi</item>
+        <item>zho</item>
+        <item>ita</item>
+        <item>spa</item>
+        <item>ara</item>
+    </string-array>
 </resources>

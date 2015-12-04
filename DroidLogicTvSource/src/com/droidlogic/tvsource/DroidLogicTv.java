@@ -1,6 +1,7 @@
 package com.droidlogic.tvsource;
 
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -44,6 +45,7 @@ import android.os.Handler.Callback;
 import android.os.Message;
 import android.provider.Settings;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -149,6 +151,23 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                             showMuteIcon(false);
                     }
                 }
+            } else if (action.equals(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH)) {
+                int switchVal = intent.getIntExtra(DroidLogicTvUtils.EXTRA_SUBTITLE_SWITCH_VALUE, 0);
+                if (switchVal == 1) {//on
+                    List<TvTrackInfo> sTrackList = mSourceView.getTracks(TvTrackInfo.TYPE_SUBTITLE);
+                    if (sTrackList.size() > 0) {
+                        String def_lan = Settings.System.getString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DEFAULT_LANGUAGE);
+                        for (TvTrackInfo track : sTrackList) {
+                            if (track.getLanguage().equals(def_lan)) {
+                                mSourceView.selectTrack(TvTrackInfo.TYPE_SUBTITLE, track.getId());
+                                return;
+                            }
+                        }
+                        mSourceView.selectTrack(TvTrackInfo.TYPE_SUBTITLE, sTrackList.get(0).getId());
+                    }
+                } else {
+                    mSourceView.selectTrack(TvTrackInfo.TYPE_SUBTITLE, null);
+                }
             }
         }
     };
@@ -166,6 +185,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
 
         IntentFilter intentFilter = new IntentFilter(DroidLogicTvUtils.ACTION_TIMEOUT_SUSPEND);
         intentFilter.addAction(DroidLogicTvUtils.ACTION_UPDATE_TV_PLAY);
+        intentFilter.addAction(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH);
         registerReceiver(mReceiver, intentFilter);
     }
 
@@ -456,44 +476,12 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 return true;
             case DroidLogicKeyEvent.KEYCODE_MEDIA_AUDIO_CONTROL:
                 if (mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_DTV) {
-                    String audioTrackId = mSourceView.getSelectedTrack(TvTrackInfo.TYPE_AUDIO);
-                    if (audioTrackId != null) {
-                        List<TvTrackInfo> aTrackList = mSourceView.getTracks(TvTrackInfo.TYPE_AUDIO);
-                        int aTrackIndex = 0;
-                        for (aTrackIndex = 0;aTrackIndex < aTrackList.size();aTrackIndex++) {
-                            if (aTrackList.get(aTrackIndex).getId().equals(audioTrackId)) {
-                                break;
-                            }
-                        }
-                        if (isToastShow) {
-                            aTrackIndex = (aTrackIndex + 1) % aTrackList.size();
-                            mSourceView.selectTrack(TvTrackInfo.TYPE_AUDIO, aTrackList.get(aTrackIndex).getId());
-                        }
-                        showCustomToast("Audio Track", aTrackList.get(aTrackIndex).getLanguage());
-                    }
-                    else
-                        showCustomToast("Audio Track", "noTrack");
+                    doTrackKey(TvTrackInfo.TYPE_AUDIO);
                 }
                 return true;
             case DroidLogicKeyEvent.KEYCODE_TV_SUBTITLE:
                 if (mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_DTV) {
-                    String subtitleTrackId = mSourceView.getSelectedTrack(TvTrackInfo.TYPE_SUBTITLE);
-                    if (subtitleTrackId != null) {
-                        List<TvTrackInfo> sTrackList = mSourceView.getTracks(TvTrackInfo.TYPE_SUBTITLE);
-                        int sTrackIndex = 0;
-                        for (sTrackIndex = 0;sTrackIndex < sTrackList.size();sTrackIndex++) {
-                            if (sTrackList.get(sTrackIndex).getId().equals(subtitleTrackId)) {
-                                break;
-                            }
-                        }
-                        if (isToastShow) {
-                            sTrackIndex = (sTrackIndex + 1) % sTrackList.size();
-                            mSourceView.selectTrack(TvTrackInfo.TYPE_SUBTITLE, sTrackList.get(sTrackIndex).getId());
-                        }
-                        showCustomToast("Subtitle Track", sTrackList.get(sTrackIndex).getLanguage());
-                    }
-                    else
-                        showCustomToast("Subtitle Track", "noTrack");
+                    doTrackKey(TvTrackInfo.TYPE_SUBTITLE);
                 }
                 return true;
             case DroidLogicKeyEvent.KEYCODE_FAV:
@@ -571,6 +559,66 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 break;
         }
         return super.onKeyDown(keyCode, event);
+    }
+
+    private void doTrackKey(int type) {
+        if (type == TvTrackInfo.TYPE_SUBTITLE) {
+            List<TvTrackInfo> sTrackList = mSourceView.getTracks(TvTrackInfo.TYPE_SUBTITLE);
+            if (sTrackList != null && sTrackList.size() != 0) {
+                String subtitleTrackId = mSourceView.getSelectedTrack(TvTrackInfo.TYPE_SUBTITLE);
+                if (!isToastShow && subtitleTrackId == null) {
+                    showCustomToast("Subtitle Track", "off");
+                    return;
+                }
+
+                int sTrackIndex = 0;
+                for (sTrackIndex = 0;sTrackIndex < sTrackList.size();sTrackIndex++) {
+                    if (sTrackList.get(sTrackIndex).getId().equals(subtitleTrackId)) {
+                        break;
+                    }
+                }
+
+                if (isToastShow) {
+                    sTrackIndex ++;
+                    if (subtitleTrackId == null)
+                        sTrackIndex = 0;
+                    if (sTrackIndex == 0) {
+                        mSourceView.selectTrack(TvTrackInfo.TYPE_SUBTITLE, sTrackList.get(sTrackIndex).getId());
+                        showCustomToast("Subtitle Track", sTrackList.get(sTrackIndex).getLanguage());
+                        return;
+                    }
+                    if (sTrackIndex == sTrackList.size()) {
+                        mSourceView.selectTrack(TvTrackInfo.TYPE_SUBTITLE, null);
+                        showCustomToast("Subtitle Track", "off");
+                        return;
+                    }
+                    mSourceView.selectTrack(TvTrackInfo.TYPE_SUBTITLE, sTrackList.get(sTrackIndex).getId());
+                    showCustomToast("Subtitle Track", sTrackList.get(sTrackIndex).getLanguage());
+                } else {
+                    showCustomToast("Subtitle Track", sTrackList.get(sTrackIndex).getLanguage());
+                }
+            }
+            else
+                showCustomToast("Subtitle Track", "noTrack");
+        } else if (type == TvTrackInfo.TYPE_AUDIO) {
+            String audioTrackId = mSourceView.getSelectedTrack(TvTrackInfo.TYPE_AUDIO);
+            if (audioTrackId != null) {
+                List<TvTrackInfo> aTrackList = mSourceView.getTracks(TvTrackInfo.TYPE_AUDIO);
+                int aTrackIndex = 0;
+                for (aTrackIndex = 0;aTrackIndex < aTrackList.size();aTrackIndex++) {
+                    if (aTrackList.get(aTrackIndex).getId().equals(audioTrackId)) {
+                        break;
+                    }
+                }
+                if (isToastShow) {
+                    aTrackIndex = (aTrackIndex + 1) % aTrackList.size();
+                    mSourceView.selectTrack(TvTrackInfo.TYPE_AUDIO, aTrackList.get(aTrackIndex).getId());
+                }
+                showCustomToast("Audio Track", aTrackList.get(aTrackIndex).getLanguage());
+            }
+            else
+                showCustomToast("Audio Track", "noTrack");
+        }
     }
 
     public void processKeyInputChannel(int offset) {
@@ -1071,6 +1119,30 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     break;
                 default:
                     break;
+            }
+        }
+
+        @Override
+        public void onTracksChanged(String inputId, List<TvTrackInfo> tracks) {
+            if (tracks == null)
+                return;
+            List<TvTrackInfo> subTracks = new ArrayList<TvTrackInfo>();
+            for (TvTrackInfo track : tracks) {
+                if (track.getType() == TvTrackInfo.TYPE_SUBTITLE)
+                    subTracks.add(track);
+            }
+            int switchVal = Settings.System.getInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_SUBTITLE_SWITCH, 0);
+            String def_lan = Settings.System.getString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DEFAULT_LANGUAGE);
+            if (switchVal == 0)
+                mSourceView.selectTrack(TvTrackInfo.TYPE_SUBTITLE, null);
+            else {
+                for (TvTrackInfo track : subTracks) {
+                    if (track.getLanguage().equals(def_lan)) {
+                        mSourceView.selectTrack(TvTrackInfo.TYPE_SUBTITLE, track.getId());
+                        return;
+                    }
+                }
+                mSourceView.selectTrack(TvTrackInfo.TYPE_SUBTITLE, (subTracks.size() == 0 ? null : subTracks.get(0).getId()));
             }
         }
     }

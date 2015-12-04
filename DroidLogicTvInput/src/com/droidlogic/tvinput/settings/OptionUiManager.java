@@ -1,10 +1,13 @@
 package com.droidlogic.tvinput.settings;
 
+import android.R.integer;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
+import android.content.Intent;
 import android.media.tv.TvContract.Channels;
 import android.os.PowerManager;
+import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -76,6 +79,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     public static final int OPTION_AUTO_SEARCH = 310;
     public static final int OPTION_CHANNEL_EDIT = 311;
     public static final int OPTION_SWITCH_CHANNEL = 312;
+    public static final int OPTION_DEFAULT_LANGUAGE = 313;
+    public static final int OPTION_SUBTITLE_SWITCH = 314;
 
     public static final int OPTION_SLEEP_TIMER = 400;
     public static final int OPTION_MENU_TIME = 401;
@@ -199,7 +204,13 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         } else if (item_name.equals(mResources.getString(R.string.channel_info))) {
             optionTag = OPTION_CHANNEL_INFO;
             optionKey = SettingsManager.KEY_CHANNEL_INFO;
-        } else if (item_name.equals(mResources.getString(R.string.color_system))) {
+        } else if (item_name.equals(mContext.getResources().getString(R.string.defalut_lan))) {
+            optionTag = OPTION_DEFAULT_LANGUAGE;
+            optionKey = SettingsManager.KEY_DEFAULT_LANGUAGE;
+        } else if (item_name.equals(mContext.getResources().getString(R.string.sub_switch))) {
+            optionTag = OPTION_SUBTITLE_SWITCH;
+            optionKey = SettingsManager.KEY_SUBTITLE_SWITCH;
+        } else if (item_name.equals(mContext.getResources().getString(R.string.color_system))) {
             optionTag = OPTION_COLOR_SYSTEM;
             optionKey = SettingsManager.KEY_COLOR_SYSTEM;
         } else if (item_name.equals(mResources.getString(R.string.sound_system))) {
@@ -290,11 +301,14 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             case OPTION_BASS_BOOST:
                 return R.layout.layout_sound_bass_boost;
                 // channel
-            case OPTION_CHANNEL_INFO:
-            case OPTION_AUDIO_TRACK:
-                return R.layout.layout_option_list;
             case OPTION_SOUND_CHANNEL:
                 return R.layout.layout_channel_sound_channel;
+            case OPTION_CHANNEL_INFO:
+            case OPTION_AUDIO_TRACK:
+            case OPTION_DEFAULT_LANGUAGE:
+                return R.layout.layout_option_list;
+            case OPTION_SUBTITLE_SWITCH:
+                return R.layout.layout_channel_subtitle_switch;
             case OPTION_COLOR_SYSTEM:
                 return R.layout.layout_channel_color_system;
             case OPTION_SOUND_SYSTEM:
@@ -544,6 +558,17 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 break;
             case R.id.sound_channel_right_channel:
                 mSettingsManager.setSoundChannel(SettingsManager.STATUS_RIGHT_CHANNEL);
+            case R.id.sub_off:
+                mSettingsManager.setSubtitleSwitch(0);
+                Intent intent = new Intent(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH);
+                intent.putExtra(DroidLogicTvUtils.EXTRA_SUBTITLE_SWITCH_VALUE, 0);
+                mContext.sendBroadcast(intent);
+                break;
+            case R.id.sub_on:
+                mSettingsManager.setSubtitleSwitch(1);
+                intent = new Intent(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH);
+                intent.putExtra(DroidLogicTvUtils.EXTRA_SUBTITLE_SWITCH_VALUE, 1);
+                mContext.sendBroadcast(intent);
                 break;
             // color system
             case R.id.color_system_pal:
@@ -1035,6 +1060,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             isSearching = true;
             mSettingsManager.setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
             mSettingsManager.sendBroadcastToTvapp("search_channel");
+            Intent intent = new Intent(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH);
+            intent.putExtra(DroidLogicTvUtils.EXTRA_SUBTITLE_SWITCH_VALUE, 0);
+            mContext.sendBroadcast(intent);
         }
     }
 
@@ -1192,8 +1220,12 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         mTvDataBaseManager.deleteChannels(mSettingsManager.getInputId());
         if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV)
             mTvControlManager.AtvAutoScan(TvControlManager.atv_video_std_e.ATV_VIDEO_STD_PAL, TvControlManager.atv_audio_std_e.ATV_AUDIO_STD_I, 0);
-        else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV)
+        else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
             mTvControlManager.DtvAutoScan();
+            Intent intent = new Intent(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH);
+            intent.putExtra(DroidLogicTvUtils.EXTRA_SUBTITLE_SWITCH_VALUE, 0);
+            mContext.sendBroadcast(intent);
+        }
         isSearching = true;
         mSettingsManager.setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
         mSettingsManager.sendBroadcastToTvapp("search_channel");
@@ -1240,6 +1272,24 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             return Integer.valueOf(str.replaceAll("%", ""));
         else
             return -1;
+    }
+
+    /**
+     * get default language's idx
+     * @param strArray audio track language array or subtitle track language array
+     * @return default language's index,if can't find,return 0 as default
+     */
+    private int getidxByDefLan(String[] strArray) {
+        if (strArray == null)
+            return 0;
+        String[] defLanArray = mContext.getResources().getStringArray(R.array.def_lan);
+        for (int i = 0;i < strArray.length; i++) {
+            for (String lan : defLanArray) {
+                if (strArray[i].equals(lan))
+                    return i;
+            }
+        }
+        return 0;
     }
 
     private ChannelInfo createDtvChannelInfo (TvControlManager.ScannerEvent event) {
@@ -1289,7 +1339,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             .setAudioLangs(event.alangs)
             .setAudioStd(0)
             .setIsAutoStd(event.isAutoStd)
-            .setAudioTrackIndex(0)
+            .setAudioTrackIndex(getidxByDefLan(event.alangs))
             .setAudioCompensation(0)
             .setPcrPid(event.pcr)
             .setFrequency(event.freq)
@@ -1299,6 +1349,13 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             .setIsFavourite(false)
             .setPassthrough(false)
             .setLocked(false)
+            .setSubtitleTypes(event.stypes)
+            .setSubtitlePids(event.sids)
+            .setSubtitleStypes(event.sstypes)
+            .setSubtitleId1s(event.sid1s)
+            .setSubtitleId2s(event.sid2s)
+            .setSubtitleLangs(event.slangs)
+            .setSubtitleTrackIndex(getidxByDefLan(event.slangs))
             .build();
     }
 

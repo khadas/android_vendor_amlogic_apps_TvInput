@@ -139,6 +139,7 @@ public class ATVInputService extends DroidLogicTvInputService {
         }
 
         private boolean playProgram(ChannelInfo info) {
+            info.print();
             TvControlManager mTvControlManager = TvControlManager.open();
             mTvControlManager.PlayATVProgram(info.getFrequency(), info.getVideoStd(), info.getAudioStd(), info.getFineTune(), info.getAudioCompensation());
             checkContentBlockNeeded();

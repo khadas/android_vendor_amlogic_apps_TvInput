@@ -45,6 +45,8 @@
     <string name="audio_track">音轨</string>
     <string name="sound_channel">声道</string>
     <string name="channel_info">频道信息</string>
+    <string name="defalut_lan">默认语言</string>
+    <string name="sub_switch">字幕开关</string>
     <string name="color_system">色彩制式</string>
     <string name="sound_system">声音制式</string>
     <string name="volume_compensate">音量补偿</string>

@@ -14,6 +14,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
 
 import com.droidlogic.tvinput.Utils;
 
@@ -97,6 +98,7 @@ public class DTVInputService extends DroidLogicTvInputService {
         @Override
         public void stopTvPlay() {
             super.stopTvPlay();
+            stopSubtitle();
             releasePlayer();
         }
 
@@ -104,6 +106,7 @@ public class DTVInputService extends DroidLogicTvInputService {
         public void doRelease() {
             super.doRelease();
             mSession = null;
+            stopSubtitle();
             releasePlayer();
         }
 
@@ -174,6 +177,9 @@ public class DTVInputService extends DroidLogicTvInputService {
                         info.getAudioCompensation());
             } else
                 Log.d(TAG, "channel type[" + info.getType() + "] not supported yet.");
+
+            startSubtitle(info);
+
             checkContentBlockNeeded();
             return true;
         }
@@ -193,6 +199,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             // Children restricted content might be blocked by TV app as well,
             // but TIS should do its best not to show any single frame of
             // blocked content.
+            stopSubtitle();
             releasePlayer();
 
             Log.d(TAG, "notifyContentBlocked [rating:" + mCurrentContentRating + "]");
@@ -241,28 +248,72 @@ public class DTVInputService extends DroidLogicTvInputService {
 
                 notifyTrackSelected(type, trackId);
 
-                TvDataBaseManager mTvDataBaseManager = new TvDataBaseManager(mContext);
-                mCurrentChannel.setAudioTrackIndex(Integer.parseInt(parsedMap.get("id")));
-                mTvDataBaseManager.updateChannelInfo(mCurrentChannel);
+                //TvDataBaseManager mTvDataBaseManager = new TvDataBaseManager(mContext);
+                //mCurrentChannel.setAudioTrackIndex(Integer.parseInt(parsedMap.get("id")));
+                //mTvDataBaseManager.updateChannelInfo(mCurrentChannel);
+                return true;
+
+            } else if (type == TvTrackInfo.TYPE_SUBTITLE) {
+                if (trackId == null) {
+                    stopSubtitle();
+                    notifyTrackSelected(type, trackId);
+                    return true;
+                }
+
+                TvControlManager mTvControlManager = TvControlManager.open();
+                Map<String, String> parsedMap = ChannelInfo.stringToMap(trackId);
+                startSubtitle(Integer.parseInt(parsedMap.get("type")),
+                                Integer.parseInt(parsedMap.get("pid")),
+                                Integer.parseInt(parsedMap.get("stype")),
+                                Integer.parseInt(parsedMap.get("uid1")),
+                                Integer.parseInt(parsedMap.get("uid2")));
+
+                notifyTrackSelected(type, trackId);
+
+                //TvDataBaseManager mTvDataBaseManager = new TvDataBaseManager(mContext);
+                //mCurrentChannel.setSubtitleTrackIndex(Integer.parseInt(parsedMap.get("id")));
+                //mTvDataBaseManager.updateChannelInfo(mCurrentChannel);
                 return true;
             }
             return false;
         }
 
+        @Override
+        public View onCreateOverlayView() {
+            return initSubtitleView();
+        }
+
+        @Override
+        public void onOverlayViewSizeChanged(int width, int height) {
+            Log.d(TAG, "onOverlayViewSizeChanged["+width+","+height+"]");
+        }
+
         private void notifyTracks(ChannelInfo ch) {
+            List < TvTrackInfo > tracks = null;
+            String AudioSelectedId = null;
+            String SubSelectedId = null;
+
             int[] audioPids = ch.getAudioPids();
-            int AudioTracksCount = audioPids.length;
+            int AudioTracksCount = (audioPids == null) ? 0 : audioPids.length;
             if (AudioTracksCount != 0) {
                 Log.d(TAG, "notify audio tracks:");
                 String[] audioLanguages = ch.getAudioLangs();
                 int[] audioFormats = ch.getAudioFormats();
-                List < TvTrackInfo > tracks = new ArrayList<>();
-                String SelectedId = null;
+
+                if (tracks == null)
+                    tracks = new ArrayList<>();
+
                 for (int i=0; i<AudioTracksCount; i++) {
+                    boolean isDefault = false;
+                    if (ch.getAudioTrackIndex() == i)
+                        isDefault = true;
+
                     Map<String, String> map = new HashMap<String, String>();
                     map.put("id", String.valueOf(i));
                     map.put("pid", String.valueOf(audioPids[i]));
                     map.put("fmt", String.valueOf(audioFormats[i]));
+                    //if (isDefault)
+                    //    map.put("default", String.valueOf(1));
                     String Id = ChannelInfo.mapToString(map);
                     TvTrackInfo AudioTrack =
                         new TvTrackInfo.Builder(TvTrackInfo.TYPE_AUDIO, Id)
@@ -270,18 +321,153 @@ public class DTVInputService extends DroidLogicTvInputService {
                                        .setAudioChannelCount(2)
                                        .build();
                     tracks.add(AudioTrack);
-                    if (ch.getAudioTrackIndex() == i)
-                        SelectedId = Id;
+                    if (isDefault)
+                        AudioSelectedId = Id;
                     Log.d(TAG, "\t"+i+": ["+audioLanguages[i]+"] [pid:"+audioPids[i]+"] [fmt:"+audioFormats[i]+"]");
                 }
-                notifyTracksChanged(tracks);
-                if (SelectedId != null) {
-                    Log.d(TAG, "\tselected: ["+SelectedId+"]");
-                    notifyTrackSelected(TvTrackInfo.TYPE_AUDIO, SelectedId);
+            }
+
+            int[] subPids = ch.getSubtitlePids();
+            int SubTracksCount = (subPids == null) ? 0 : subPids.length;
+            if (SubTracksCount != 0) {
+                Log.d(TAG, "notify subtitle tracks:");
+                String[] subLanguages = ch.getSubtitleLangs();
+                int[] subTypes = ch.getSubtitleTypes();
+                int[] subStypes = ch.getSubtitleStypes();
+                int[] subId1s = ch.getSubtitleId1s();
+                int[] subId2s = ch.getSubtitleId2s();
+
+                if (tracks == null)
+                    tracks = new ArrayList<>();
+
+                for (int i=0; i<SubTracksCount; i++) {
+                    boolean isDefault = false;
+                    if (ch.getSubtitleTrackIndex() == i)
+                        isDefault = true;
+
+                    Map<String, String> map = new HashMap<String, String>();
+                    map.put("id", String.valueOf(i));
+                    map.put("pid", String.valueOf(subPids[i]));
+                    map.put("type", String.valueOf(subTypes[i]));
+                    map.put("stype", String.valueOf(subStypes[i]));
+                    map.put("uid1", String.valueOf(subId1s[i]));
+                    map.put("uid2", String.valueOf(subId2s[i]));
+                    //if (isDefault)
+                    //    map.put("default", String.valueOf(1));
+                    String Id = ChannelInfo.mapToString(map);
+                    TvTrackInfo SubtitleTrack =
+                        new TvTrackInfo.Builder(TvTrackInfo.TYPE_SUBTITLE, Id)
+                                       .setLanguage(subLanguages[i])
+                                       .build();
+                    tracks.add(SubtitleTrack);
+                    if (isDefault && subtitleAutoStart)
+                        SubSelectedId = Id;
+                    Log.d(TAG, "\t"+i+": ["+subLanguages[i]+"] [pid:"+subPids[i]+"] [type:"+subTypes[i]+"]");
+                    Log.d(TAG, "\t"+"   [id1:"+subId1s[i]+"] [id2:"+subId2s[i]+"] [stype:"+subStypes[i]+"]");
                 }
+
+            }
+
+            if (tracks != null)
+                notifyTracksChanged(tracks);
+            Log.d(TAG, "\tselected: ["+AudioSelectedId+"]");
+            notifyTrackSelected(TvTrackInfo.TYPE_AUDIO, AudioSelectedId);
+
+            Log.d(TAG, "\tselected: ["+SubSelectedId+"]");
+            notifyTrackSelected(TvTrackInfo.TYPE_SUBTITLE, SubSelectedId);
+        }
+
+
+        private DTVSubtitleView mSubtitleView = null;
+        private static final int TYPE_DVB_SUBTITLE = 1;
+        private static final int TYPE_DTV_TELETEXT = 2;
+        private static final int TYPE_ATV_TELETEXT = 3;
+        private static final int TYPE_DTV_CC = 4;
+        private static final int TYPE_ATV_CC = 5;
+
+        private static final boolean subtitleAutoStart = false;
+
+        private void startSubtitle(ChannelInfo channelInfo) {
+
+            if (!subtitleAutoStart)
+                return ;
+
+            if (channelInfo.getSubtitlePids() != null) {
+                int idx = channelInfo.getSubtitleTrackIndex();
+                startSubtitle(channelInfo.getSubtitleTypes()[idx],
+                                channelInfo.getSubtitlePids()[idx],
+                                channelInfo.getSubtitleStypes()[idx],
+                                channelInfo.getSubtitleId1s()[idx],
+                                channelInfo.getSubtitleId2s()[idx]);
+            } else {
+                stopSubtitle();
             }
         }
 
+        private int getTeletextRegionID(String ttxRegionName){
+            final String[] supportedRegions= {"English", "Deutsch", "Svenska/Suomi/Magyar",
+                                              "Italiano", "Français", "Português/Español",
+                                              "Cesky/Slovencina", "Türkçe", "Ellinika","Alarabia / English"};
+            final int[] regionIDMaps = {16, 17, 18, 19, 20, 21, 14, 22, 55 , 64};
+
+            int i;
+            for (i=0; i<supportedRegions.length; i++) {
+                if (supportedRegions[i].equals(ttxRegionName))
+                    break;
+            }
+
+            if (i >= supportedRegions.length) {
+                Log.d(TAG, "Teletext defaut region " + ttxRegionName +
+                    " not found, using 'English' as default!");
+                i = 0;
+            }
+
+            Log.d(TAG, "Teletext default region id: " + regionIDMaps[i]);
+            return regionIDMaps[i];
+        }
+
+        private View initSubtitleView() {
+            if (mSubtitleView == null) {
+                mSubtitleView = new DTVSubtitleView(mContext);
+            }
+            return mSubtitleView;
+        }
+
+        private void startSubtitle(int type, int pid, int stype, int id1, int id2) {
+
+            initSubtitleView();
+
+            mSubtitleView.stop();
+
+            if (type == TYPE_DVB_SUBTITLE) {
+
+                DTVSubtitleView.DVBSubParams params =
+                    new DTVSubtitleView.DVBSubParams(0, pid, id1, id2);
+                mSubtitleView.setSubParams(params);
+
+            } else if (type == TYPE_DTV_TELETEXT) {
+
+                int pgno;
+                pgno = (id1==0) ? 800 : id1*100;
+                pgno += (id2 & 15) + ((id2 >> 4) & 15) * 10 + ((id2 >> 8) & 15) * 100;
+                DTVSubtitleView.DTVTTParams params =
+                    new DTVSubtitleView.DTVTTParams(0, pid, pgno, 0x3F7F, getTeletextRegionID("English"));
+                mSubtitleView.setSubParams(params);
+
+            }
+            mSubtitleView.setActive(true);
+            mSubtitleView.startSub(); //DVBSub/EBUSub/CC
+
+            setOverlayViewEnabled(true);
+
+        }
+
+        private void stopSubtitle() {
+            if (mSubtitleView != null) {
+                setOverlayViewEnabled(false);
+                mSubtitleView.stop();
+            }
+        }
     }
 
     public static final class TvInput {

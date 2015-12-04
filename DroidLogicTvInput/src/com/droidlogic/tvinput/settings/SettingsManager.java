@@ -1,5 +1,6 @@
 package com.droidlogic.tvinput.settings;
 
+import android.R.integer;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.ComponentName;
@@ -15,6 +16,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.HashMap;
 
 import android.media.tv.TvInputInfo;
@@ -59,6 +61,8 @@ public class SettingsManager {
     public static final String KEY_AUIDO_TRACK                         = "audio_track";
     public static final String KEY_SOUND_CHANNEL                        = "sound_channel";
     public static final String KEY_CHANNEL_INFO                         = "channel_info";
+    public static final String KEY_DEFAULT_LANGUAGE                 = "default_language";
+    public static final String KEY_SUBTITLE_SWITCH                  = "sub_switch";
     public static final String KEY_COLOR_SYSTEM                     = "color_system";
     public static final String KEY_SOUND_SYSTEM                     = "sound_system";
     public static final String KEY_VOLUME_COMPENSATE                = "volume_compensate";
@@ -219,7 +223,6 @@ public class SettingsManager {
 
     public String getStatus (String key) {
         Log.d(TAG, " current screen is :" + currentTag + ", item is :" + key);
-
         //picture
         if (key.equals(KEY_PICTURE_MODE)) {
             return getPictureModeStatus();
@@ -271,6 +274,10 @@ public class SettingsManager {
             return getAudioTrackStatus();
         } else if (key.equals(KEY_SOUND_CHANNEL)) {
             return getSoundChannelStatus();
+        } else if (key.equals(KEY_DEFAULT_LANGUAGE)) {
+            return getDefaultLanStatus();
+        } else if (key.equals(KEY_SUBTITLE_SWITCH)) {
+            return getSubtitleSwitchStatus();
         } else if (key.equals(KEY_COLOR_SYSTEM)) {
             return getColorSystemStatus();
         } else if (key.equals(KEY_SOUND_SYSTEM)) {
@@ -590,6 +597,54 @@ public class SettingsManager {
         list.add(item);
 
         return list;
+    }
+
+    public ArrayList<HashMap<String,Object>> getDefaultLanguageList () {
+        ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
+
+        String[] def_lanArray = mResources.getStringArray(R.array.def_lan);
+        for (String lanNameString : def_lanArray) {
+            HashMap<String,Object> item = new HashMap<String,Object>();
+            item.put(STRING_NAME, lanNameString);
+            list.add(item);
+        }
+
+        return list;
+    }
+
+    private String getDefaultLanStatus () {
+        String ret = Settings.System.getString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DEFAULT_LANGUAGE);
+        String[] lanArray;
+        if (ret == null) {
+            lanArray =  mResources.getStringArray(R.array.def_lan);
+            for (String lang : lanArray) {
+                if (lang.equals(Locale.getDefault().getISO3Language()))
+                    return lang;
+            }
+            ret = lanArray[0];
+        } else {
+            if (ret.equals("")) {
+                lanArray =  mResources.getStringArray(R.array.def_lan);
+                for (String lang : lanArray) {
+                    if (lang.equals(Locale.getDefault().getISO3Language()))
+                        return lang;
+                }
+                ret = lanArray[0];
+            }
+        }
+        return ret;
+    }
+
+    private String getSubtitleSwitchStatus () {
+        int switchVal = Settings.System.getInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_SUBTITLE_SWITCH, 0);
+        switch (switchVal) {
+            case 0:
+                return mResources.getString(R.string.off);
+            case 1:
+                return mResources.getString(R.string.on);
+            default:
+                return mResources.getString(R.string.off);
+        }
     }
 
     public String getColorSystemStatus () {
@@ -1088,6 +1143,25 @@ public class SettingsManager {
             mTvControlManager.DtvSetAudioChannleMod(2);
     }
 
+    public void setDefLanguage (int position) {
+        String[] def_lanArray = mResources.getStringArray(R.array.def_lan);
+        Settings.System.putString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DEFAULT_LANGUAGE, def_lanArray[position]);
+        ArrayList<ChannelInfo> mVideoChannels = mTvDataBaseManager.getChannelList(mInputId, Channels.SERVICE_TYPE_AUDIO_VIDEO);
+        int trackIdx = 0;
+        for (ChannelInfo channel : mVideoChannels) {
+            if (channel.getAudioLangs() != null) {
+                String[] strArray = channel.getAudioLangs();
+                for (trackIdx = 0;trackIdx < strArray.length;trackIdx++) {
+                    if (def_lanArray[position].equals(strArray[trackIdx]))
+                        break;
+                }
+                trackIdx %= strArray.length;
+                channel.setAudioTrackIndex(trackIdx);
+                mTvDataBaseManager.updateChannelInfo(channel);
+            }
+        }
+    }
+
     public void setColorSystem(int mode) {
         if (currentChannel != null) {
             currentChannel.setVideoStd(mode);
@@ -1176,10 +1250,16 @@ public class SettingsManager {
         Settings.System.putInt(mContext.getContentResolver(), "tv_start_up_enter_app", type);
     }
 
+    public void setSubtitleSwitch (int switchVal) {
+        Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_SUBTITLE_SWITCH, switchVal);
+    }
+
     public void doFactoryReset() {
         setSleepTimer(DEFAULT_SLEEP_TIMER);
         setMenuTime(DEFUALT_MENU_TIME);
         setStartupSetting(0);
+        setDefLanguage(0);
+        setSubtitleSwitch(0);
        // SystemControlManager mSystemControlManager = new SystemControlManager(mContext);
        // mSystemControlManager.setBootenv("ubootenv.var.upgrade_step", "1");
 
