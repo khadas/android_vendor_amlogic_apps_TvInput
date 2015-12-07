@@ -10,12 +10,12 @@
         android:key="channel_info"
         android:title="@string/channel_info" >
     </Preference>
-
+<!--
     <Preference
         android:key="audio_track"
         android:title="@string/audio_track" >
     </Preference>
-
+-->
     <Preference
         android:key="sound_channel"
         android:title="@string/sound_channel" >

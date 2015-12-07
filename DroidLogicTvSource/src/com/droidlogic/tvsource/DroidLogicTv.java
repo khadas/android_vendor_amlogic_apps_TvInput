@@ -1,6 +1,8 @@
 package com.droidlogic.tvsource;
 
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -13,6 +15,7 @@ import com.droidlogic.tvsource.ui.SourceButton;
 import com.droidlogic.tvsource.ui.SourceInputListLayout;
 import com.droidlogic.tvsource.ui.SourceInputListLayout.onSourceInputClickListener;
 
+import android.R.integer;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
@@ -29,6 +32,7 @@ import android.hardware.input.InputManager;
 import android.media.AudioManager;
 import android.media.tv.TvInputInfo;
 import android.media.tv.TvInputManager;
+import android.media.tv.TvTrackInfo;
 import android.media.tv.TvView;
 import android.media.tv.TvContract.Channels;
 import android.net.Uri;
@@ -42,12 +46,16 @@ import android.os.Handler.Callback;
 import android.os.Message;
 import android.provider.Settings;
 import android.text.TextUtils;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.View.OnAttachStateChangeListener;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class DroidLogicTv extends Activity implements Callback, onSourceInputClickListener, OnChannelSelectListener {
     private static final String TAG = "DroidLogicTv";
@@ -116,6 +124,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private boolean mSourceHasReleased = false;
     PowerManager.WakeLock mScreenLock = null;
     private AudioManager mAudioManager = null;
+
+    private Toast toast = null;//use to show audio&subtitle track
+    private boolean isToastShow = false;//use to show prompt
 
     BroadcastReceiver mReceiver = new BroadcastReceiver(){
         public void onReceive(Context context, Intent intent) {
@@ -436,13 +447,54 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_VIEWMODE:
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_VOICEMODE:
             case DroidLogicKeyEvent.KEYCODE_TV_SLEEP:
-            case DroidLogicKeyEvent.KEYCODE_MEDIA_AUDIO_CONTROL:
             case DroidLogicKeyEvent.KEYCODE_GUIDE:
                 popupSourceMenu(Utils.HIDE_VIEW);
                 popupSourceInfo(Utils.HIDE_VIEW);
                 popupChannelList(Utils.HIDE_VIEW);
                 mCurrentKeyType = IS_KEY_OTHER;
                 startSettingActivity(keyCode);
+                return true;
+            case DroidLogicKeyEvent.KEYCODE_MEDIA_AUDIO_CONTROL:
+                if (mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_DTV) {
+                    String audioTrackId = mSourceView.getSelectedTrack(TvTrackInfo.TYPE_AUDIO);
+                    if (audioTrackId != null) {
+                        List<TvTrackInfo> aTrackList = mSourceView.getTracks(TvTrackInfo.TYPE_AUDIO);
+                        int aTrackIndex = 0;
+                        for (aTrackIndex = 0;aTrackIndex < aTrackList.size();aTrackIndex++) {
+                            if (aTrackList.get(aTrackIndex).getId().equals(audioTrackId)) {
+                                break;
+                            }
+                        }
+                        if (isToastShow) {
+                            aTrackIndex = (aTrackIndex + 1) % aTrackList.size();
+                            mSourceView.selectTrack(TvTrackInfo.TYPE_AUDIO, aTrackList.get(aTrackIndex).getId());
+                        }
+                        showCustomToast("Audio Track", aTrackList.get(aTrackIndex).getLanguage());
+                    }
+                    else
+                        showCustomToast("Audio Track", "noTrack");
+                }
+                return true;
+            case DroidLogicKeyEvent.KEYCODE_TV_SUBTITLE:
+                if (mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_DTV) {
+                    String subtitleTrackId = mSourceView.getSelectedTrack(TvTrackInfo.TYPE_SUBTITLE);
+                    if (subtitleTrackId != null) {
+                        List<TvTrackInfo> sTrackList = mSourceView.getTracks(TvTrackInfo.TYPE_SUBTITLE);
+                        int sTrackIndex = 0;
+                        for (sTrackIndex = 0;sTrackIndex < sTrackList.size();sTrackIndex++) {
+                            if (sTrackList.get(sTrackIndex).getId().equals(subtitleTrackId)) {
+                                break;
+                            }
+                        }
+                        if (isToastShow) {
+                            sTrackIndex = (sTrackIndex + 1) % sTrackList.size();
+                            mSourceView.selectTrack(TvTrackInfo.TYPE_SUBTITLE, sTrackList.get(sTrackIndex).getId());
+                        }
+                        showCustomToast("Subtitle Track", sTrackList.get(sTrackIndex).getLanguage());
+                    }
+                    else
+                        showCustomToast("Subtitle Track", "noTrack");
+                }
                 return true;
             case DroidLogicKeyEvent.KEYCODE_FAV:
                 if (mChannelListLayout.isShow()) {
@@ -592,7 +644,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             no_signal.setVisibility(View.INVISIBLE);
         } else if (mSourceMenuLayout.getVisibility() != View.VISIBLE
             && mSourceInfoLayout.getVisibility() != View.VISIBLE
-            && mChannelListLayout.getVisibility() != View.VISIBLE) {
+            && mChannelListLayout.getVisibility() != View.VISIBLE
+            && !isToastShow) {
             no_signal.setVisibility(View.VISIBLE);
             no_signal.requestLayout();
             popupSourceInfo(Utils.HIDE_VIEW);
@@ -1171,5 +1224,41 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         if (mScreenLock.isHeld() == true) {
             mScreenLock.release();
         }
+    }
+
+    private void showCustomToast(String titleStr, String statusStr) {
+        LayoutInflater inflater = getLayoutInflater();
+        View layout = inflater.inflate(R.layout.layout_hotkey, null);
+
+        TextView title =(TextView)layout.findViewById(R.id.toast_title);
+        TextView status =(TextView)layout.findViewById(R.id.toast_status);
+
+        title.setText(titleStr);
+        status.setText(statusStr);
+
+        if (toast == null) {
+            toast = new Toast(this);
+            toast.setDuration(3000);
+            toast.setGravity(Gravity.CENTER_VERTICAL, 400, 300);
+        }
+        toast.setView(layout);
+        View view = toast.getView();
+        view.addOnAttachStateChangeListener(new OnAttachStateChangeListener() {
+            @Override
+            public void onViewDetachedFromWindow(View v) {
+                if (isNoSignal) {
+                    popupNoSignal(Utils.SHOW_VIEW);
+                }
+                isToastShow = false;
+            }
+
+            @Override
+            public void onViewAttachedToWindow(View v) {
+                popupNoSignal(Utils.HIDE_VIEW);
+                popupSourceInfo(Utils.HIDE_VIEW);
+                isToastShow = true;
+            }
+        });
+        toast.show();
     }
 }
