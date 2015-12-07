@@ -1022,9 +1022,13 @@ public class SettingsManager {
             mTvControlManager.SetAudioSPDIFSwitch(0);
             mTvControlManager.SaveCurAudioSPDIFSwitch(0);
         } else if (mode.equals(STATUS_AUTO)) {
+            mTvControlManager.SetAudioSPDIFSwitch(1);
+            mTvControlManager.SaveCurAudioSPDIFSwitch(1);
             mTvControlManager.SetAudioSPDIFMode(0);
             mTvControlManager.SaveCurAudioSPDIFMode(0);
         } else if (mode.equals(STATUS_PCM)) {
+            mTvControlManager.SetAudioSPDIFSwitch(1);
+            mTvControlManager.SaveCurAudioSPDIFSwitch(1);
             mTvControlManager.SetAudioSPDIFMode(1);
             mTvControlManager.SaveCurAudioSPDIFMode(1);
         }
