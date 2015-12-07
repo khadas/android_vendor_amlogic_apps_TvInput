@@ -14,14 +14,14 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.droidlogic.tvinput.DroidLogicTvInputService;
-import com.droidlogic.tvinput.TvInputBaseSession;
 import com.droidlogic.tvinput.Utils;
 
+import com.droidlogic.app.tv.DroidLogicTvInputService;
 import com.droidlogic.app.tv.TvDataBaseManager;
 import com.droidlogic.app.tv.TVChannelParams;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.app.tv.ChannelInfo;
+import com.droidlogic.app.tv.TvInputBaseSession;
 
 import java.util.HashSet;
 import java.util.Set;
