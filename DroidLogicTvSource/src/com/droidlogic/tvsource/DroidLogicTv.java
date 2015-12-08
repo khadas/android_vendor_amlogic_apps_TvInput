@@ -467,9 +467,12 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 }
                 return true;
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_TVINFO:
-                if (isSourceInfoShowing)
+                if (isSourceInfoShowing) {
                     popupSourceInfo(Utils.HIDE_VIEW);
-                else
+                    if (isNoSignal) {
+                        popupNoSignal(Utils.SHOW_VIEW);
+                    }
+                } else
                     popupSourceInfo(Utils.SHOW_VIEW);
                 return true;
             case DroidLogicKeyEvent.KEYCODE_BACK:
