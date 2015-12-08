@@ -1173,6 +1173,11 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                     setManualSearchInfo(event);
                 else
                     setAutoSearchFrequency(event);
+
+                if ((event.mode == TVChannelParams.MODE_ANALOG) && (optionTag == OPTION_MANUAL_SEARCH)
+                    && event.precent == 100)
+                    mTvControlManager.DtvStopScan();
+
                 break;
             case TvControlManager.EVENT_ATV_PROG_DATA:
                 channel = createAtvChannelInfo(event);
