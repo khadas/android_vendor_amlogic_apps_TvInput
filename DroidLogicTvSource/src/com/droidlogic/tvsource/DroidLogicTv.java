@@ -272,6 +272,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         closeTouchSound();
         closeScreenOffTimeout();
 
+        mSourceView.setVisibility(View.VISIBLE);
         initMainView();
         startPlay();
         prepareForSourceRelease();
@@ -830,6 +831,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         if (!mSourceHasReleased) {
             releaseBeforeExit();
         }
+        mSourceView.setVisibility(View.GONE);
         restoreTouchSound();
         openScreenOffTimeout();
         if (sdialog != null)
