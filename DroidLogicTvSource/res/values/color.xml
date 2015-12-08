@@ -9,4 +9,6 @@
     <color name="source_info_number">#1E1E1E</color>
     <color name="source_info_value">#1E1E1E</color>
     <color name="channel_list_tab_focus">#009587</color>
+    <color name="color_text_item">#FF65686F</color>
+	<color name="color_text_focused">#FFFFFFFF</color>
 </resources>
