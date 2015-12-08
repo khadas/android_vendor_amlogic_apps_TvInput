@@ -67,53 +67,22 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
     }
 
     public int add(String inputId) {
-        int input_list = mTvInputManager.getTvInputList().size();
-        Utils.logd(TAG, "==== add, size=" + input_list + "count=" + mSourceCount);
-        if (TextUtils.isEmpty(inputId) || mSourceCount == input_list)
+        int input_list_size = mTvInputManager.getTvInputList().size();
+        Utils.logd(TAG, "==== add, input list size=" + input_list_size + "count=" + mSourceCount);
+        if (TextUtils.isEmpty(inputId) || mSourceCount == input_list_size)
             return 0;
-        TvInputInfo info = mTvInputManager.getTvInputInfo(inputId);
-        SourceButton sb = new SourceButton(mContext, info);
-        if (sb.isHardware()) {
-            initSourceInput(sb);
-            if (maxHardwareIndex == 0) {
-                mRoot.addView(sb, 1);
-                maxHardwareIndex++;
-                mSourceCount++;
-            } else {
-                int lo = 1;
-                int hi = maxHardwareIndex;
-
-                while (lo <= hi) {
-                    final int mid = (lo + hi) >>> 1;
-                    final SourceButton temp = (SourceButton) mRoot.getChildAt(mid);
-                    final int temp_id = temp.getDeviceId();
-                    if (temp_id < sb.getDeviceId()) {
-                        lo = mid + 1;
-                    } else if (temp_id > sb.getDeviceId()) {
-                        hi = mid - 1;
-                    }
-                }
-                mRoot.addView(sb, lo);
-                maxHardwareIndex++;
-                mSourceCount++;
-            }
-        } else {
-            mRoot.addView(sb);
-            mSourceCount++;
-        }
-        sb.setOnSourceClickListener(this);
-        if (curSourceInput == null && mTvInputManager.getTvInputList().size() == mSourceCount) {
-            preSourceInput = defSourceInput;
-            curSourceInput = defSourceInput;
+        if (mSourceCount < input_list_size) {
+            Utils.logd(TAG, "update all source input.");
+            refresh();
         }
         return 1;
     }
 
     public int refresh() {
-        Utils.logd(TAG, "==== refresh");
         maxHardwareIndex = 0;
         mSourceCount = 0;
         List<TvInputInfo> input_list = mTvInputManager.getTvInputList();
+        Utils.logd(TAG, "==== refresh, input_list size =" + input_list.size());
         if (input_list.size() < 1) {
             return mSourceCount;
         }
