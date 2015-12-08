@@ -912,8 +912,7 @@ public class SettingsManager {
     public void setBacklight (int step) {
         int value = mTvControlManager.GetBacklight(mTvSource) + step;
         if (value >= 0 && value <= 100) {
-            mTvControlManager.SetBacklight(mTvControlManager.GetBacklight(mTvSource) + 1, mTvSource, 1);
-            mTvControlManager.SetBacklight(mTvControlManager.GetBacklight(mTvSource) - 1, mTvSource, 1);
+            mTvControlManager.SetBacklight(value, mTvSource, 1);
         }
     }
 

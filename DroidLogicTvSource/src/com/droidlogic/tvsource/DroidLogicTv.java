@@ -879,6 +879,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     @Override
     protected void onStop() {
         Utils.logd(TAG, "==== onStop ====");
+        if (toast != null)
+            toast.cancel();
         hasStopped = true;
         if (!mSourceHasReleased) {
             releaseBeforeExit();
