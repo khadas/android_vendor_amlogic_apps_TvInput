@@ -54,6 +54,7 @@ public class SourceButton extends Button implements OnClickListener{
         setText(getLabel());
         setTextAppearance(mContext, R.style.tv_source_button);
         setBackgroundResource(R.drawable.bg_source_bt);
+        setFocusableInTouchMode(true);
 
         initDeviceId();
         initSourceType();

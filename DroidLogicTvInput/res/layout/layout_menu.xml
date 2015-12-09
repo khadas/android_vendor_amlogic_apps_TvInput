@@ -10,6 +10,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="50dp"
         android:gravity="center_horizontal"
+        android:focusableInTouchMode="true"
         android:background="@color/transparent"
         android:src="@drawable/button_picture"
         />
@@ -29,6 +30,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
         android:gravity="center_horizontal"
+        android:focusableInTouchMode="true"
         android:background="@color/transparent"
         android:src="@drawable/button_sound"
         />
@@ -48,6 +50,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
         android:gravity="center_horizontal"
+        android:focusableInTouchMode="true"
         android:background="@color/transparent"
         android:src="@drawable/button_channel"
         />
@@ -67,6 +70,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
         android:gravity="center_horizontal"
+        android:focusableInTouchMode="true"
         android:background="@color/transparent"
         android:src="@drawable/button_settings"
         />
