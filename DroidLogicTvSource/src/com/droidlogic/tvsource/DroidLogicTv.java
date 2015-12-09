@@ -1,7 +1,6 @@
 package com.droidlogic.tvsource;
 
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -15,7 +14,6 @@ import com.droidlogic.tvsource.ui.SourceButton;
 import com.droidlogic.tvsource.ui.SourceInputListLayout;
 import com.droidlogic.tvsource.ui.SourceInputListLayout.onSourceInputClickListener;
 
-import android.R.integer;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
@@ -46,7 +44,6 @@ import android.os.Handler.Callback;
 import android.os.Message;
 import android.provider.Settings;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -78,8 +75,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private boolean isNoSignal;
     private boolean isScrambled;
 //    private boolean isNoSignalShowing;
-    private boolean isSourceMenuShowing;
+    private boolean isSourceListShowing;
     private boolean isSourceInfoShowing;
+    private boolean isMenuShowing;
 
     private Timer delayTimer = null;
     private int delayCounter = 0;
@@ -290,6 +288,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         if (hasStopped)
             reset_shutdown_time();
         hasStopped = false;
+        isMenuShowing = false;
         needUpdateSource = true;
         if (isNoSignal)
             reset_nosignal_time();
@@ -423,7 +422,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         Utils.logd(TAG, "====keycode =" + keyCode);
         if (isNoSignal)
             reset_nosignal_time();
-        if (isSourceMenuShowing) {
+        if (isSourceListShowing) {
             createDelayTimer(MSG_SOURCE_DELAY, TIME_SOURCE_DELAY);
         }
         if (mChannelListLayout.isShow()) {
@@ -431,8 +430,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         }
         switch (keyCode) {
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_SOURCE_LIST:
-                popupSourceMenu(isSourceMenuShowing ? Utils.HIDE_VIEW : Utils.SHOW_VIEW);
-                if (!isSourceMenuShowing)
+                popupSourceMenu(isSourceListShowing ? Utils.HIDE_VIEW : Utils.SHOW_VIEW);
+                if (!isSourceListShowing)
                     popupSourceInfo(Utils.SHOW_VIEW);
                 return true;
             case DroidLogicKeyEvent.KEYCODE_MENU://show setup activity
@@ -441,6 +440,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 popupChannelList(Utils.HIDE_VIEW);
                 popupNoSignal(Utils.HIDE_VIEW);
                 mCurrentKeyType = IS_KEY_OTHER;
+                isMenuShowing = true;
                 startSetupActivity();
                 return true;
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_DISPAYMODE:
@@ -529,7 +529,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     popupSourceInfo(Utils.SHOW_VIEW);
                 return true;
             case DroidLogicKeyEvent.KEYCODE_BACK:
-                if (isSourceMenuShowing) {
+                if (isSourceListShowing) {
                     popupSourceMenu(Utils.HIDE_VIEW);
                     popupSourceInfo(Utils.SHOW_VIEW);
                     return true;
@@ -621,10 +621,10 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             if (mSourceMenuLayout.getVisibility() != View.VISIBLE)
                 return;
             destroyDelayTimer();
-            isSourceMenuShowing = false;
+            isSourceListShowing = false;
             mSourceMenuLayout.setVisibility(View.INVISIBLE);
         } else {
-            isSourceMenuShowing = true;
+            isSourceListShowing = true;
             mSourceMenuLayout.setVisibility(View.VISIBLE);
             mSourceMenuLayout.requestLayout();
             mSourceInput.requestFocus();
@@ -649,7 +649,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         } else if (mSourceMenuLayout.getVisibility() != View.VISIBLE
             && mSourceInfoLayout.getVisibility() != View.VISIBLE
             && mChannelListLayout.getVisibility() != View.VISIBLE
-            && !isToastShow) {
+            && !isToastShow && !isMenuShowing) {
             no_signal.setVisibility(View.VISIBLE);
             no_signal.requestLayout();
             popupSourceInfo(Utils.HIDE_VIEW);
