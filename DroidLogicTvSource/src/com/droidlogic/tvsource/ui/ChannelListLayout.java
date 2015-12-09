@@ -135,7 +135,7 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
             case Utils.ATV_LIST:
             case Utils.ATV_FAV_LIST:
                 mAdapter.setFavorite(mType == Utils.ATV_FAV_LIST ? true : false);
-                mAdapter.setList(mType == Utils.DTV_FAV_LIST ? getFavList(videoList) : videoList);
+                mAdapter.setList(mType == Utils.ATV_FAV_LIST ? getFavList(videoList) : videoList);
                 mListView.setAdapter(mAdapter);
                 break;
             case Utils.DTV_LIST:
