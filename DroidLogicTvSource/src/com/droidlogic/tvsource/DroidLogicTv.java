@@ -874,6 +874,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         if (mCurrentKeyType == IS_KEY_EXIT || mCurrentKeyType == IS_KEY_HOME) {
             releaseBeforeExit();
         }
+        // search is longer then 5min
+        remove_nosignal_time();
         super.onPause();
     }
 
@@ -889,8 +891,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         mSourceView.setVisibility(View.GONE);
         restoreTouchSound();
         openScreenOffTimeout();
-        if (sdialog != null)
-            sdialog.dismiss();
+        remove_shutdown_time();
         super.onStop();
     }
 
@@ -1197,7 +1198,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     }
 
     private void remove_shutdown_time() {
-        sdialog.dismiss();
+        if (sdialog != null)
+            sdialog.dismiss();
         SystemProperties.set("tv.sleep_timer", "0");
         timeSuspend_handler.removeCallbacks(timeSuspend_runnable);
     }
