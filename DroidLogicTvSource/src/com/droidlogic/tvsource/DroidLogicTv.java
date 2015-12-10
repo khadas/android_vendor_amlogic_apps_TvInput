@@ -543,10 +543,18 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     return true;
                 }
             case DroidLogicKeyEvent.KEYCODE_CHANNEL_UP:
-                processKeyInputChannel(1);
+                if (event.getRepeatCount() == 0) {
+                    processKeyInputChannel(1);
+                } else {
+                    processkeyLongPressChannel(event.getRepeatCount() + 1);
+                }
                 return true;
             case DroidLogicKeyEvent.KEYCODE_CHANNEL_DOWN:
-                processKeyInputChannel(-1);
+                if (event.getRepeatCount() == 0) {
+                    processKeyInputChannel(-1);
+                } else {
+                    processkeyLongPressChannel(-(event.getRepeatCount() + 1));
+                }
                 return true;
             case DroidLogicKeyEvent.KEYCODE_ALT_RIGHT://look back key
                 processKeyLookBack();
@@ -591,6 +599,33 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
 
         if (mSourceInput.moveToOffset(offset))
             switchToSourceInput();
+    }
+
+    private void processkeyLongPressChannel(int offset) {
+        if (mSourceInput.isPassthrough())
+            return;
+
+        int index = mSourceInput.getChannelIndex();
+        int size = 0;
+        mHandler.removeMessages(MSG_CHANNEL_NUM_SWITCH);
+        isNumberSwitching = true;
+        if (mSourceInput.isRadioChannel()) {
+            size = mSourceInput.getChannelRadioList().size();
+            if (size == 0)
+                return;
+        } else {
+             size = mSourceInput.getChannelVideoList().size();
+            if (size == 0)
+                return;
+        }
+
+        if (offset > 0)
+            keyInputNumber = Integer.toString((index + offset) % size);
+        else
+            keyInputNumber = Integer.toString((size + (index + offset) % size) % size);
+
+        popupSourceInfo(Utils.SHOW_VIEW);
+        mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_CHANNEL_NUM_SWITCH), 300);
     }
 
     private void processNumberInputChannel(int keyCode) {

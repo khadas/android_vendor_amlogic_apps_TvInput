@@ -693,7 +693,7 @@ public class SettingsManager {
                 else
                     item.put(STRING_ICON, 0);
 
-                item.put(STRING_NAME, info.getDisplayName());
+                item.put(STRING_NAME, i + ". " + info.getDisplayName());
                 list.add(item);
             }
         } else {
