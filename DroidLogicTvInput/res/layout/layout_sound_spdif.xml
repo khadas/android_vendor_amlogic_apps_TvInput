@@ -28,19 +28,6 @@
         android:textColor="@color/color_text_item"
         />
     <TextView
-        android:id="@+id/spdif_auto"
-        android:layout_width="262dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:layout_marginLeft="31dp"
-        android:paddingLeft="50dp"
-        android:background="@drawable/item_background"
-        android:focusable="true"
-        android:text="@string/auto"
-        android:textSize="26sp"
-        android:textColor="@color/color_text_item"
-        />
-    <TextView
         android:id="@+id/spdif_pcm"
         android:layout_width="262dp"
         android:layout_height="wrap_content"
@@ -50,6 +37,19 @@
         android:background="@drawable/item_background"
         android:focusable="true"
         android:text="@string/pcm"
+        android:textSize="26sp"
+        android:textColor="@color/color_text_item"
+        />
+    <TextView
+        android:id="@+id/spdif_raw"
+        android:layout_width="262dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="31dp"
+        android:paddingLeft="50dp"
+        android:background="@drawable/item_background"
+        android:focusable="true"
+        android:text="@string/raw"
         android:textSize="26sp"
         android:textColor="@color/color_text_item"
         />
