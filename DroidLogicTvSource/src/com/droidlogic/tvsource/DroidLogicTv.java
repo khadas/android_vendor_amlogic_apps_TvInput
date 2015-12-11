@@ -1054,7 +1054,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
 
         @Override
         public void onInputStateChanged(String inputId, int state) {
-            Utils.logd(TAG, "==== onInputRemoved, inputId=" + inputId + ", state=" + state);
+            Utils.logd(TAG, "==== onInputStateChanged, inputId=" + inputId + ", state=" + state);
             mSourceMenuLayout.stateChange(inputId, state);
             mSourceInput = mSourceMenuLayout.getCurSourceInput();
             startPlay();
