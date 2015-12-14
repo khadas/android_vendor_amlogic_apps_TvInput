@@ -74,7 +74,7 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
     public int add(String inputId) {
         int input_list_size = mTvInputManager.getTvInputList().size();
         int count = getSourceCount();
-        Utils.logd(TAG, "==== add, input list size=" + input_list_size + "count=" + count);
+        Utils.logd(TAG, "==== add, input list size=" + input_list_size + ", count=" + count);
         if (TextUtils.isEmpty(inputId) || count == input_list_size)
             return ACTION_FAILED;
         if (count < input_list_size) {
@@ -157,11 +157,11 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
     }
 
     public int stateChange(String inputId, int state) {
-        return ACTION_SUCCESS;
+        return INPUT_NEED_RESET;
     }
 
     public int update(String inputId) {
-        return ACTION_SUCCESS;
+        return INPUT_NEED_RESET;
     }
 
     public SourceButton getCurSourceInput() {

@@ -263,6 +263,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private void startPlay() {
         if (mSourceMenuLayout.getSourceCount() == 0)
             return;
+        initMainView();
         if (hasStopped || needUpdateSource) {
             switchToSourceInput();
         }
@@ -276,7 +277,6 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         closeScreenOffTimeout();
 
         mSourceView.setVisibility(View.VISIBLE);
-        initMainView();
         showUi(Utils.UI_TYPE_ALL_HIDE, false);
         startPlay();
         prepareForSourceRelease();
@@ -376,6 +376,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
      * save channel number and clear something about pass through input.
      */
     private void preSwitchSourceInput() {
+        if (mSourceInput == null)
+            return;
         switch (mSigType) {
             case DroidLogicTvUtils.SIG_INFO_TYPE_HDMI:
                 mSourceInput.setChannelVideoFormat("");
@@ -980,9 +982,10 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             Utils.logd(TAG, "==== onInputAdded, inputId=" + inputId);
             int input_need_reset = mSourceMenuLayout.add(inputId);
             if (mSourceInput != null
-                    && TextUtils.equals(mSourceInput.getInputId(), mSourceMenuLayout
-                            .getCurSourceInput().getInputId()))
+                    && TextUtils.equals(mSourceInput.getInputId(),
+                            mSourceMenuLayout.getCurSourceInput().getInputId()))
                 return;
+            preSwitchSourceInput();
             mSourceInput = mSourceMenuLayout.getCurSourceInput();
             if (input_need_reset == SourceInputListLayout.INPUT_NEED_RESET)
                 startPlay();
@@ -992,6 +995,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         public void onInputRemoved(String inputId) {
             Utils.logd(TAG, "==== onInputRemoved, inputId=" + inputId);
             int input_need_reset = mSourceMenuLayout.remove(inputId);
+            preSwitchSourceInput();
             mSourceInput = mSourceMenuLayout.getCurSourceInput();
             if (input_need_reset == SourceInputListLayout.INPUT_NEED_RESET)
                 startPlay();
@@ -1001,6 +1005,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         public void onInputStateChanged(String inputId, int state) {
             Utils.logd(TAG, "==== onInputStateChanged, inputId=" + inputId + ", state=" + state);
             int input_need_reset =  mSourceMenuLayout.stateChange(inputId, state);
+            preSwitchSourceInput();
             mSourceInput = mSourceMenuLayout.getCurSourceInput();
             if (input_need_reset == SourceInputListLayout.INPUT_NEED_RESET)
                 startPlay();
@@ -1010,6 +1015,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         public void onInputUpdated(String inputId) {
             Utils.logd(TAG, "==== onInputUpdated, inputId=" + inputId);
             int input_need_reset =  mSourceMenuLayout.update(inputId);
+            preSwitchSourceInput();
             mSourceInput = mSourceMenuLayout.getCurSourceInput();
             if (input_need_reset == SourceInputListLayout.INPUT_NEED_RESET)
                 startPlay();
