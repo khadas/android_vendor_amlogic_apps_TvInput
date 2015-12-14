@@ -121,7 +121,7 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
     }
 
     private void switchToChannelList() {
-        if (mType == Utils.ATV_FAV_LIST || mType == Utils.ATV_LIST)
+        if (mType == Utils.UI_TYPE_ATV_FAV_LIST || mType == Utils.UI_TYPE_ATV_CHANNEL_LIST)
             return;
         tabFlag = !tabFlag;
         initTab();
@@ -132,19 +132,19 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
         if (mAdapter == null)
             mAdapter = new MyAdapter(mContext);
         switch (mType) {
-            case Utils.ATV_LIST:
-            case Utils.ATV_FAV_LIST:
-                mAdapter.setFavorite(mType == Utils.ATV_FAV_LIST ? true : false);
-                mAdapter.setList(mType == Utils.ATV_FAV_LIST ? getFavList(videoList) : videoList);
+            case Utils.UI_TYPE_ATV_CHANNEL_LIST:
+            case Utils.UI_TYPE_ATV_FAV_LIST:
+                mAdapter.setFavorite(mType == Utils.UI_TYPE_ATV_FAV_LIST ? true : false);
+                mAdapter.setList(mType == Utils.UI_TYPE_ATV_FAV_LIST ? getFavList(videoList) : videoList);
                 mListView.setAdapter(mAdapter);
                 break;
-            case Utils.DTV_LIST:
-            case Utils.DTV_FAV_LIST:
-                mAdapter.setFavorite(mType == Utils.DTV_FAV_LIST ? true : false);
+            case Utils.UI_TYPE_DTV_CHANNEL_LIST:
+            case Utils.UI_TYPE_DTV_FAV_LIST:
+                mAdapter.setFavorite(mType == Utils.UI_TYPE_DTV_FAV_LIST ? true : false);
                 if (tabFlag) {
-                    mAdapter.setList(mType == Utils.DTV_FAV_LIST ? getFavList(videoList) : videoList);
+                    mAdapter.setList(mType == Utils.UI_TYPE_DTV_FAV_LIST ? getFavList(videoList) : videoList);
                 } else {
-                    mAdapter.setList(mType == Utils.DTV_FAV_LIST ? getFavList(radioList) : radioList);
+                    mAdapter.setList(mType == Utils.UI_TYPE_DTV_FAV_LIST ? getFavList(radioList) : radioList);
                 }
                 mListView.setAdapter(mAdapter);
                 break;
@@ -155,14 +155,14 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
 
     private void initTab() {
         switch (mType) {
-            case Utils.ATV_FAV_LIST:
-            case Utils.ATV_LIST:
+            case Utils.UI_TYPE_ATV_FAV_LIST:
+            case Utils.UI_TYPE_ATV_CHANNEL_LIST:
                 tabAtv.setBackgroundResource(R.drawable.atv_tab_focus);
                 tabDtv.setVisibility(INVISIBLE);
                 tabAtv.setVisibility(VISIBLE);
                 break;
-            case Utils.DTV_FAV_LIST:
-            case Utils.DTV_LIST:
+            case Utils.UI_TYPE_DTV_FAV_LIST:
+            case Utils.UI_TYPE_DTV_CHANNEL_LIST:
                 tabAtv.setVisibility(INVISIBLE);
                 if (tabFlag) {
                     textViewFocus(tabDtvv);
@@ -196,21 +196,8 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
         view.setBackgroundResource(R.drawable.dtv_tab_unfocus);
     }
 
-    public boolean isShow() {
-        return this.getVisibility() == VISIBLE;
-    }
-
-    public void show() {
-        this.setVisibility(VISIBLE);
-        this.requestLayout();
-        this.requestFocus();
-    }
-
-    public void hide() {
-        if (!isShow())
-            return;
-        tabFlag = true;
-        this.setVisibility(INVISIBLE);
+    public int getType() {
+        return mType;
     }
 
     public interface OnChannelSelectListener {
