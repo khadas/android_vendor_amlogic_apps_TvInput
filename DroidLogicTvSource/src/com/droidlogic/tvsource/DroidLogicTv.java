@@ -1035,37 +1035,41 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         @Override
         public void onInputAdded(String inputId) {
             Utils.logd(TAG, "==== onInputAdded, inputId=" + inputId);
-            mSourceMenuLayout.add(inputId);
+            int input_need_reset = mSourceMenuLayout.add(inputId);
             if (mSourceInput != null
                     && TextUtils.equals(mSourceInput.getInputId(), mSourceMenuLayout
                             .getCurSourceInput().getInputId()))
                 return;
             mSourceInput = mSourceMenuLayout.getCurSourceInput();
-            startPlay();
+            if (input_need_reset == SourceInputListLayout.INPUT_NEED_RESET)
+                startPlay();
         }
 
         @Override
         public void onInputRemoved(String inputId) {
             Utils.logd(TAG, "==== onInputRemoved, inputId=" + inputId);
-            mSourceMenuLayout.remove(inputId);
+            int input_need_reset = mSourceMenuLayout.remove(inputId);
             mSourceInput = mSourceMenuLayout.getCurSourceInput();
-            startPlay();
+            if (input_need_reset == SourceInputListLayout.INPUT_NEED_RESET)
+                startPlay();
         }
 
         @Override
         public void onInputStateChanged(String inputId, int state) {
             Utils.logd(TAG, "==== onInputStateChanged, inputId=" + inputId + ", state=" + state);
-            mSourceMenuLayout.stateChange(inputId, state);
+            int input_need_reset =  mSourceMenuLayout.stateChange(inputId, state);
             mSourceInput = mSourceMenuLayout.getCurSourceInput();
-            startPlay();
+            if (input_need_reset == SourceInputListLayout.INPUT_NEED_RESET)
+                startPlay();
         }
 
         @Override
         public void onInputUpdated(String inputId) {
             Utils.logd(TAG, "==== onInputUpdated, inputId=" + inputId);
-            mSourceMenuLayout.update(inputId);
+            int input_need_reset =  mSourceMenuLayout.update(inputId);
             mSourceInput = mSourceMenuLayout.getCurSourceInput();
-            startPlay();
+            if (input_need_reset == SourceInputListLayout.INPUT_NEED_RESET)
+                startPlay();
         }
     }
 

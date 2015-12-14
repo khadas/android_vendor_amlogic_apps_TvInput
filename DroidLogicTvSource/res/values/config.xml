@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <bool name="source_need_gone">false</bool>
+    <bool name="disable_unavaiable_input">true</bool>
 </resources>
