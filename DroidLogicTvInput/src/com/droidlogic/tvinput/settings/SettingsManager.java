@@ -293,6 +293,8 @@ public class SettingsManager {
             return getVolumeCompensateStatus();
         } else if (key.equals(KEY_SWITCH_CHANNEL)) {
             return getSwitchChannelStatus();
+        } else if (key.equals(KEY_FINE_TUNE)) {
+            return getFineTuneStatus();
         }
         //settings
         else if (key.equals(KEY_SLEEP_TIMER)) {
@@ -539,12 +541,12 @@ public class SettingsManager {
         if (currentChannel != null) {
             HashMap<String,Object> item = new HashMap<String,Object>();
             item.put(STRING_NAME, mResources.getString(R.string.channel_l));
-            item.put(STRING_STATUS, currentChannel.getDisplayName());
+            item.put(STRING_STATUS, Integer.toString(getFrequency() + getFineTune()));
             list.add(item);
 
             item = new HashMap<String,Object>();
             item.put(STRING_NAME, mResources.getString(R.string.frequency_l));
-            item.put(STRING_STATUS, Integer.toString(currentChannel.getFrequency()));
+            item.put(STRING_STATUS, Integer.toString(getFrequency() + getFineTune()));
             list.add(item);
 
             if (mTvSource == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
@@ -688,8 +690,56 @@ public class SettingsManager {
             return null;
     }
 
+
+    private static final int FineTuneRange = 2*1000*1000; /*Hz*/
+    private static final int FineTuneStepSize = 50*1000; /*Hz*/
+    public int getFrequency () {
+        if (currentChannel != null)
+            return currentChannel.getFrequency();
+        else {
+            return -1;
+        }
+    }
+
+    private String getFineTuneStatus() {
+        return Integer.toString(2 * (getFineTuneProgress() - 50)) + "%";
+    }
+
+    public int getFineTune () {
+        if (currentChannel != null)
+            return currentChannel.getFineTune();
+        return 0;
+    }
+
     public int getFineTuneProgress () {
-        return 50;
+        if (currentChannel != null) {
+            int finetune = currentChannel.getFineTune();
+            return 50 + ((finetune * 50) / FineTuneRange);
+        } else {
+            return 50;
+        }
+    }
+
+
+    public void setFineTuneStep(int step) {
+        if (currentChannel != null) {
+            int finetune = currentChannel.getFineTune() + (step * FineTuneStepSize);
+            if ((finetune > FineTuneRange) || (finetune < -1*FineTuneRange))
+                return;
+            setFineTune(finetune);
+        }
+    }
+
+    public void setFineTune(int finetune) {
+        if (currentChannel != null) {
+            Log.d(TAG, "FineTune["+finetune+"]");
+            currentChannel.setFinetune(finetune);
+            mTvDataBaseManager.updateChannelInfo(currentChannel);
+            mTvControlManager.SetFrontendParms(TvControlManager.tv_fe_type_e.TV_FE_ANALOG,
+                currentChannel.getFrequency() + currentChannel.getFineTune(),
+                currentChannel.getVideoStd(), currentChannel.getAudioStd(),
+                0, 0);
+        }
     }
 
     private int mSearchProgress;
@@ -1187,7 +1237,7 @@ public class SettingsManager {
             currentChannel.setVideoStd(mode);
             mTvDataBaseManager.updateChannelInfo(currentChannel);
             mTvControlManager.SetFrontendParms(TvControlManager.tv_fe_type_e.TV_FE_ANALOG, currentChannel.getFrequency(),
-                currentChannel.getVideoStd(), currentChannel.getAudioStd(), 0, 0);
+                currentChannel.getVideoStd(), currentChannel.getAudioStd(), 0, currentChannel.getFineTune());
         }
     }
 
@@ -1196,7 +1246,7 @@ public class SettingsManager {
             currentChannel.setAudioStd(mode);
             mTvDataBaseManager.updateChannelInfo(currentChannel);
             mTvControlManager.SetFrontendParms(TvControlManager.tv_fe_type_e.TV_FE_ANALOG, currentChannel.getFrequency(),
-                currentChannel.getVideoStd(), currentChannel.getAudioStd(), 0, 0);
+                currentChannel.getVideoStd(), currentChannel.getAudioStd(), 0, currentChannel.getFineTune());
         }
     }
 

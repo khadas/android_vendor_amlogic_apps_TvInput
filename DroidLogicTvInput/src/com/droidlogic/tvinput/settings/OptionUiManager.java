@@ -678,8 +678,10 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             break;
         // fine tune
         case R.id.fine_tune_increase:
+            setFineTune(1);
             break;
         case R.id.fine_tune_decrease:
+            setFineTune(-1);
             break;
         // manual search
         case R.id.manual_search_start:
@@ -1125,7 +1127,11 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         case OPTION_FINE_TUNE:
             progress = mSettingsManager.getFineTuneProgress();
             setProgress(progress);
-            setFineTuneFrequency(progress);
+
+            int freq = mSettingsManager.getFrequency();
+            if (freq != -1) {
+                setFineTuneFrequency(freq + mSettingsManager.getFineTune());
+            }
             break;
         case OPTION_MANUAL_SEARCH:
             progress = mSettingsManager.getManualSearchProgress();
@@ -1166,6 +1172,38 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 if (child instanceof TextView)
                 {
                     ((TextView) child).setText(Integer.toString(progress) + "%");
+                }
+                else if (child instanceof ImageView)
+                {
+                    ((ImageView) child).setImageResource(getProgressResourceId(progress));
+                }
+            }
+        }
+    }
+
+    public void setProgressOffset(int progress)
+    {
+        RelativeLayout progressLayout = null;
+        ViewGroup optionView = (ViewGroup) ((TvSettingsActivity) mContext).mOptionLayout.getChildAt(0);
+
+        for (int i = 0; i < optionView.getChildCount(); i++)
+        {
+            View view = optionView.getChildAt(i);
+            if (view instanceof RelativeLayout)
+            {
+                progressLayout = (RelativeLayout) view;
+                break;
+            }
+        }
+
+        if (progressLayout != null)
+        {
+            for (int i = 0; i < progressLayout.getChildCount(); i++)
+            {
+                View child = progressLayout.getChildAt(i);
+                if (child instanceof TextView)
+                {
+                    ((TextView) child).setText((progress >= 50 ? "+" : "") + Integer.toString(2*(progress-50)) + "%");
                 }
                 else if (child instanceof ImageView)
                 {
@@ -1230,17 +1268,23 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         return R.drawable.progress_10;
     }
 
-    private void setFineTuneFrequency(int progress)
+    private void setFineTune(int step) {
+        mSettingsManager.setFineTuneStep(step);
+        //setProgressOffset(mSettingsManager.getFineTuneProgress());
+    }
+
+    private void setFineTuneFrequency(int freq)
     {
         ViewGroup optionView = (ViewGroup) ((TvSettingsActivity) mContext).mOptionLayout.getChildAt(0);
 
         TextView frequency = (TextView) optionView.findViewById(R.id.fine_tune_frequency);
         TextView frequency_band = (TextView) optionView.findViewById(R.id.fine_tune_frequency_band);
-
         if (frequency != null && frequency_band != null)
         {
-            frequency.setText("535.25MHZ");
-            frequency_band.setText("UHF");
+            double f = freq;
+            f /= 1000 * 1000;
+            frequency.setText(Double.toString(f) + mContext.getResources().getString(R.string.mhz));
+            frequency_band.setText(parseFrequencyBand(f));
         }
     }
 

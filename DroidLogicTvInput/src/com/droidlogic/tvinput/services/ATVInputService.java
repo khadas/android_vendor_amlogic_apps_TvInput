@@ -174,7 +174,11 @@ public class ATVInputService extends DroidLogicTvInputService
         {
             info.print();
             TvControlManager tcm = TvControlManager.getInstance();
-            tcm.PlayATVProgram(info.getFrequency(), info.getVideoStd(), info.getAudioStd(), info.getFineTune(), info.getAudioCompensation());
+            tcm.PlayATVProgram(info.getFrequency() + info.getFineTune(),
+                info.getVideoStd(),
+                info.getAudioStd(),
+                0,
+                info.getAudioCompensation());
             checkContentBlockNeeded();
             return true;
         }
