@@ -16,7 +16,6 @@ import java.util.ArrayList;
 
 import com.droidlogic.app.tv.ChannelInfo;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
-import com.droidlogic.app.tv.TvControlManager;
 import com.droidlogic.app.tv.TvDataBaseManager;
 
 public class ChannelTuner {
@@ -197,7 +196,7 @@ public class ChannelTuner {
             else if (mVideoChannels.size() > 0)
                 updateCurrentScreen(mVideoChannels.get(DEFAULT_INDEX));
             else
-                TvControlManager.open().StopPlayProgram();
+                updateCurrentScreen(null);
         } else {
             if (isRadioChannel(mCurrentChannel))
                 mCurrentChannel = mRadioChannels.get(index);
@@ -216,7 +215,7 @@ public class ChannelTuner {
                 updateCurrentScreen(channelList.get(DEFAULT_INDEX));
             else if (channelList.size() == 0) {
                 mCurrentChannel = null;
-                TvControlManager.open().StopPlayProgram();
+                updateCurrentScreen(null);
             }
         }
 
@@ -244,7 +243,11 @@ public class ChannelTuner {
     private void updateCurrentScreen(ChannelInfo info) {
         mCurrentChannel = info;
         Intent intent = new Intent(DroidLogicTvUtils.ACTION_UPDATE_TV_PLAY);
-        intent.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, Integer.toString(getChannelIndex(mCurrentChannel)));
+
+        if (info != null)
+            intent.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, Integer.toString(getChannelIndex(mCurrentChannel)));
+        else
+            intent.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, "-1");
         mContext.sendBroadcast(intent);
     }
 

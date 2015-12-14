@@ -129,8 +129,11 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 String channelNumber = intent.getStringExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER);
                 if (channelNumber != null) {
                     Utils.logd(TAG, "delete or skipped current channel, switch to: name=" + mSourceInput.getChannelName()
-                    + " uri=" + mSourceInput.getUri());
-                    processDeleteCurrentChannel(Integer.parseInt(channelNumber));
+                        + " uri=" + mSourceInput.getUri());
+                    if (Integer.parseInt(channelNumber) >= 0)
+                        processDeleteCurrentChannel(Integer.parseInt(channelNumber));
+                    else
+                        switchToSourceInput();
                 } else {
                     String operation = intent.getStringExtra("tv_play_extra");
                     Utils.logd(TAG, "recevie intent : operation is " + operation);
