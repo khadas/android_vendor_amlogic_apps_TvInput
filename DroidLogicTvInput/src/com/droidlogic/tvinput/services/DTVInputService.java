@@ -305,7 +305,7 @@ public class DTVInputService extends DroidLogicTvInputService {
         if (hardwareInfo.getDeviceId() != DroidLogicTvUtils.DEVICE_ID_DTV)
             return null;
 
-        Log.d(TAG, "=====onHardwareAdded=====" + hardwareInfo.toString());
+        Log.d(TAG, "=====onHardwareAdded=====" + hardwareInfo.getDeviceId());
 
         TvInputInfo info = null;
         ResolveInfo rInfo = getResolveInfo(DTVInputService.class.getName());

@@ -60,6 +60,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
 
     private Context mContext;
     private TvInputManager mTvInputManager;
+    private TvInputChangeCallback mTvInputChangeCallback;
     private ChannelDataManager mChannelDataManager;
 
     private TvView mSourceView;
@@ -172,13 +173,15 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         mContext = getApplicationContext();
         mHandler = new Handler(this);
 
+        initThread(mThreadName);
         mTvInputManager = (TvInputManager)getSystemService(Context.TV_INPUT_SERVICE);
-        mTvInputManager.registerCallback(new TvInputStateChange(), mHandler);
+        mTvInputChangeCallback = new TvInputChangeCallback();
+        mTvInputManager.registerCallback(mTvInputChangeCallback, new Handler());
         mChannelDataManager = new ChannelDataManager(mContext);
 
         mTimePromptText = (TextView) findViewById(R.id.textView_time_prompt);
         mSourceView = (TvView) findViewById(R.id.source_view);
-        mSourceView.setCallback(new DroidLogicInputCallback());
+        mSourceView.setCallback(new TvViewInputCallback());
 
         mMainView = (RelativeLayout)findViewById(R.id.main_view);
 
@@ -188,7 +191,6 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         mChannelListLayout = (ChannelListLayout)findViewById(R.id.channel_list);
         mChannelListLayout.setOnChannelSelectListener(this);
 
-        initThread(mThreadName);
         initSourceMenuLayout();
         setStartUpInfo();
     }
@@ -912,6 +914,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     @Override
     protected void onDestroy() {
         Utils.logd(TAG, "==== onDestroy ====");
+        mTvInputManager.unregisterCallback(mTvInputChangeCallback);
         releaseThread();
         unregisterReceiver(mReceiver);
         mChannelDataManager.release();
@@ -978,7 +981,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         return false;
     }
 
-    private final class TvInputStateChange extends TvInputManager.TvInputCallback {
+    private final class TvInputChangeCallback extends TvInputManager.TvInputCallback {
 
         @Override
         public void onInputAdded(String inputId) {
@@ -1025,7 +1028,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         }
     }
 
-    private final class DroidLogicInputCallback extends TvView.TvInputCallback {
+    private final class TvViewInputCallback extends TvView.TvInputCallback {
 
         @Override
         public void onEvent(String inputId, String eventType, Bundle eventArgs) {
