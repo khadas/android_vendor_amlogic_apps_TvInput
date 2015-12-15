@@ -80,6 +80,7 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
         if (count < input_list_size) {
             Utils.logd(TAG, "update all source input.");
             refresh();
+            return INPUT_NEED_RESET;
         }
         return ACTION_SUCCESS;
     }
