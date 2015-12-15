@@ -477,7 +477,7 @@ public class SettingsManager {
 
     public int getCurrentChannelNumber() {
         if (currentChannel != null)
-            return currentChannel.getDisplayNumber();
+            return currentChannel.getNumber();
 
         return -1;
     }
@@ -726,7 +726,7 @@ public class SettingsManager {
         if (channelList != null && channelList.size() > 0) {
             for (int i = 0; i < channelList.size(); i++) {
                 ChannelInfo info = channelList.get(i);
-                if (info != null && info.getDisplayNumber() == channelNumber)
+                if (info != null && info.getNumber() == channelNumber)
                     return info;
             }
         }

@@ -1054,7 +1054,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             .setType(Utils.mode2type(event.mode))
             .setServiceType(serviceType)
             .setServiceId(event.serviceID)
-            .setDisplayNumber(display_number)
+            .setDisplayNumber(Integer.toString(display_number))
             .setDisplayName(name)
             .setLogoUrl(null)
             .setOriginalNetworkId(event.orig_net_id)
@@ -1088,7 +1088,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             .setType(Utils.mode2type(event.mode))
             .setServiceType(Channels.SERVICE_TYPE_AUDIO_VIDEO)//default is SERVICE_TYPE_AUDIO_VIDEO
             .setServiceId(0)
-            .setDisplayNumber(tvDisplayNumber)
+            .setDisplayNumber(Integer.toString(tvDisplayNumber))
             .setDisplayName(mContext.getResources().getString(R.string.atv_program))
             .setLogoUrl(null)
             .setOriginalNetworkId(0)
@@ -1313,14 +1313,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             }
 
             need_delete_channel = true;
-
-            //Log.d(TAG, "v:"+mVideoChannels.size()+" a:"+mRadioChannels.size());
-            //for (ChannelInfo c : mVideoChannels)
-            //    Log.d(TAG, "need rm v["+c.getDisplayName()+"]["+c.getFrequency()+"]["+c.getDisplayNumber()+"]");
-            //for (ChannelInfo c : mRadioChannels)
-            //    Log.d(TAG, "need rm a["+c.getDisplayName()+"]["+c.getFrequency()+"]["+c.getDisplayNumber()+"]");
         }
-        Log.d(TAG, "insert ["+channel.getDisplayNumber()+"]["+channel.getFrequency()+"]["+channel.getServiceType()+"]["+channel.getDisplayName()+"]");
+        Log.d(TAG, "insert ["+channel.getNumber()+"]["+channel.getFrequency()+"]["+channel.getServiceType()+"]["+channel.getDisplayName()+"]");
     }
 
     private void onTvChannelStoreEnd() {
@@ -1333,9 +1327,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             mTvDataBaseManager.deleteChannelsContinuous(mRadioChannels);
 
             for (ChannelInfo c : mVideoChannels)
-                Log.d(TAG, "rm v["+c.getDisplayNumber()+"]["+c.getDisplayName()+"]["+c.getFrequency()+"]");
+                Log.d(TAG, "rm v["+c.getNumber()+"]["+c.getDisplayName()+"]["+c.getFrequency()+"]");
             for (ChannelInfo c : mRadioChannels)
-                Log.d(TAG, "rm a["+c.getDisplayNumber()+"]["+c.getDisplayName()+"]["+c.getFrequency()+"]");
+                Log.d(TAG, "rm a["+c.getNumber()+"]["+c.getDisplayName()+"]["+c.getFrequency()+"]");
         }
 
         need_delete_channel = false;

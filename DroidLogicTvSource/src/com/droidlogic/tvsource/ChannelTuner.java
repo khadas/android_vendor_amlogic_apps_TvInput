@@ -327,7 +327,7 @@ public class ChannelTuner {
     private int createNewChannelIndex (ArrayList<ChannelInfo> channelList, ChannelInfo channel) {
         if (channelList != null && channel != null) {
             for (int i = 0; i < channelList.size(); i++) {
-                if (channel.getDisplayNumber() < channelList.get(i).getDisplayNumber())
+                if (channel.getNumber() < channelList.get(i).getNumber())
                     return i;
             }
             return channelList.size();
@@ -385,7 +385,7 @@ public class ChannelTuner {
     public String getChannelNumber() {
         if (mCurrentChannel == null)
             return "";
-        return Integer.toString(mCurrentChannel.getDisplayNumber());
+        return Integer.toString(mCurrentChannel.getNumber());
     }
 
     public String getChannelName() {
@@ -438,17 +438,17 @@ public class ChannelTuner {
         if (mVideoChannels != null) {
             for (int i = 0; i < mVideoChannels.size(); i++) {
                 ChannelInfo info = mVideoChannels.get(i);
-                Log.d(TAG, "==== video: number=" + info.getDisplayNumber() + " name=" + info.getDisplayName());
+                Log.d(TAG, "==== video: number=" + info.getNumber() + " name=" + info.getDisplayName());
             }
         }
 
         if (mRadioChannels!= null) {
             for (int i = 0; i < mRadioChannels.size(); i++) {
                 ChannelInfo info = mRadioChannels.get(i);
-                Log.d(TAG, "==== radio: number=" + info.getDisplayNumber() + " name=" + info.getDisplayName());
+                Log.d(TAG, "==== radio: number=" + info.getNumber() + " name=" + info.getDisplayName());
             }
         }
         if (mCurrentChannel != null)
-            Log.d(TAG, "==== current channel: number" + mCurrentChannel.getDisplayNumber() + " name=" + mCurrentChannel.getDisplayName());
+            Log.d(TAG, "==== current channel: number" + mCurrentChannel.getNumber() + " name=" + mCurrentChannel.getDisplayName());
     }
 }

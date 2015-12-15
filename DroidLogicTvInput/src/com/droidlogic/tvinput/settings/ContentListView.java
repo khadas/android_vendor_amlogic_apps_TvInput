@@ -55,17 +55,13 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
                         || (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV
                             && currentTag.equals(SettingsManager.KEY_CHANNEL) && selectedPosition == 2))
                         return true;
-
-                    mOptionUiManager.stopAllAction();
                     break;
                 case KeyEvent.KEYCODE_DPAD_DOWN:
                     if (selectedPosition == getChildCount() -1)
                         return true;
-                    mOptionUiManager.stopAllAction();
                     break;
                 case KeyEvent.KEYCODE_DPAD_LEFT:
                     selectedPosition = 0;
-                    mOptionUiManager.stopAllAction();
                     break;
                 case KeyEvent.KEYCODE_DPAD_RIGHT:
                     setMenuAlpha(false);

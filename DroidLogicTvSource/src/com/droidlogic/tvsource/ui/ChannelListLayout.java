@@ -94,7 +94,7 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
         for (int i = 0; i < list.size(); i++) {
             ChannelInfo info = list.valueAt(i);
             if (info.isFavourite())
-                favList.put(info.getDisplayNumber(), info);
+                favList.put(info.getNumber(), info);
         }
         return favList;
     }
@@ -255,7 +255,7 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
             Utils.logd(TAG, "==== position =" + position + ", count =" + getCount());
             if (channel == null)
                 return null;
-            Utils.logd(TAG, "==== number =" + channel.getDisplayNumber());
+            Utils.logd(TAG, "==== number =" + channel.getNumber());
             Utils.logd(TAG, "==== name =" + channel.getDisplayName());
             holder.channelNum.setText(Integer.toString(position));
             holder.channelName.setText(channel.getDisplayName());
