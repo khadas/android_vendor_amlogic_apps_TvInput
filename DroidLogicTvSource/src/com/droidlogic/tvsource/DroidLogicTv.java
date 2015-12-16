@@ -993,6 +993,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 return;
             preSwitchSourceInput();
             mSourceInput = mSourceMenuLayout.getCurSourceInput();
+            if (mSourceMenuLayout.getVisibility() == View.VISIBLE) {
+                showUi(Utils.UI_TYPE_SOURCE_LIST, true);
+            }
             if (input_need_reset == SourceInputListLayout.INPUT_NEED_RESET)
                 startPlay();
         }
@@ -1003,6 +1006,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             int input_need_reset = mSourceMenuLayout.remove(inputId);
             preSwitchSourceInput();
             mSourceInput = mSourceMenuLayout.getCurSourceInput();
+            if (mSourceMenuLayout.getVisibility() == View.VISIBLE) {
+                showUi(Utils.UI_TYPE_SOURCE_LIST, true);
+            }
             if (input_need_reset == SourceInputListLayout.INPUT_NEED_RESET)
                 startPlay();
         }
@@ -1013,6 +1019,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             int input_need_reset =  mSourceMenuLayout.stateChange(inputId, state);
             preSwitchSourceInput();
             mSourceInput = mSourceMenuLayout.getCurSourceInput();
+            if (mSourceMenuLayout.getVisibility() == View.VISIBLE) {
+                showUi(Utils.UI_TYPE_SOURCE_LIST, true);
+            }
             if (input_need_reset == SourceInputListLayout.INPUT_NEED_RESET)
                 startPlay();
         }
@@ -1023,6 +1032,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             int input_need_reset =  mSourceMenuLayout.update(inputId);
             preSwitchSourceInput();
             mSourceInput = mSourceMenuLayout.getCurSourceInput();
+            if (mSourceMenuLayout.getVisibility() == View.VISIBLE) {
+                showUi(Utils.UI_TYPE_SOURCE_LIST, true);
+            }
             if (input_need_reset == SourceInputListLayout.INPUT_NEED_RESET)
                 startPlay();
         }

@@ -20,6 +20,7 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
     private LinearLayout mRoot;
     private TvInputManager mTvInputManager;
     private boolean mDisableUnavaiableInput;
+    private int mMaxHardwareNumber = 0;
 
     private SourceButton defSourceInput;
     private SourceButton preSourceInput;
@@ -49,6 +50,14 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
         mDisableUnavaiableInput = getResources().getBoolean(R.bool.disable_unavaiable_input);
     }
 
+    public int stateChange(String inputId, int state) {
+        return INPUT_NEED_RESET;
+    }
+
+    public int update(String inputId) {
+        return INPUT_NEED_RESET;
+    }
+
     public int remove(String inputId) {
         if (getSourceCount() == 0 || TextUtils.isEmpty(inputId))
             return ACTION_FAILED;
@@ -58,6 +67,8 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
         for (; i<count+1; i++) {
             SourceButton tmp = (SourceButton) mRoot.getChildAt(i);
             if (TextUtils.equals(tmp.getInputId(), inputId)) {
+                if (tmp.isHardware())
+                    mMaxHardwareNumber--;
                 mRoot.removeViewAt(i);
                 if (TextUtils.equals(inputId, curSourceInput.getInputId())) {
                     preSourceInput = defSourceInput;
@@ -77,16 +88,53 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
         Utils.logd(TAG, "==== add, input list size=" + input_list_size + ", count=" + count);
         if (TextUtils.isEmpty(inputId) || count == input_list_size)
             return ACTION_FAILED;
-        if (count < input_list_size) {
+        if (count == 0 && count < input_list_size) {
             Utils.logd(TAG, "update all source input.");
             refresh();
             return INPUT_NEED_RESET;
+        }
+        TvInputInfo info = mTvInputManager.getTvInputInfo(inputId);
+        SourceButton sb = new SourceButton(mContext, info);
+        if (sb.isHardware()) {
+            initSourceInput(sb);
+            if (mMaxHardwareNumber == 0) {
+                mRoot.addView(sb, 1);
+                mMaxHardwareNumber++;
+            } else {
+                int lo = 1;
+                int hi = mMaxHardwareNumber;
+
+                while (lo <= hi) {
+                    final int mid = (lo + hi) >>> 1;
+                    final SourceButton temp = (SourceButton) mRoot.getChildAt(mid);
+                    final int temp_id = temp.getDeviceId();
+                    if (temp_id < sb.getDeviceId()) {
+                        lo = mid + 1;
+                    } else if (temp_id > sb.getDeviceId()) {
+                        hi = mid - 1;
+                    } else {
+                        break;
+                    }
+                }
+                if (lo > hi) {
+                    mRoot.addView(sb, lo);
+                    mMaxHardwareNumber++;
+                    sb.setOnSourceClickListener(this);
+                }
+            }
+        } else {
+            mRoot.addView(sb);
+            sb.setOnSourceClickListener(this);
+        }
+        if (curSourceInput == null && input_list_size == getSourceCount()) {
+            preSourceInput = defSourceInput;
+            curSourceInput = defSourceInput;
         }
         return ACTION_SUCCESS;
     }
 
     public int refresh() {
-        int max_hardware_num = 0;
+        mMaxHardwareNumber = 0;
         List<TvInputInfo> input_list = mTvInputManager.getTvInputList();
         Utils.logd(TAG, "==== refresh, input_list size =" + input_list.size());
         if (input_list.size() < 1) {
@@ -100,12 +148,12 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
             SourceButton sb = new SourceButton(mContext, info);
             if (sb.isHardware()) {
                 initSourceInput(sb);
-                if (max_hardware_num == 0) {
+                if (mMaxHardwareNumber == 0) {
                     mRoot.addView(sb, 1);
-                    max_hardware_num++;
+                    mMaxHardwareNumber++;
                 } else {
                     int lo = 1;
-                    int hi = max_hardware_num;
+                    int hi = mMaxHardwareNumber;
 
                     while (lo <= hi) {
                         final int mid = (lo + hi) >>> 1;
@@ -115,15 +163,20 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
                             lo = mid + 1;
                         } else if (temp_id > sb.getDeviceId()) {
                             hi = mid - 1;
+                        } else {
+                            break;
                         }
                     }
-                    mRoot.addView(sb, lo);
-                    max_hardware_num++;
+                    if (lo > hi) {
+                        mRoot.addView(sb, lo);
+                        mMaxHardwareNumber++;
+                        sb.setOnSourceClickListener(this);
+                    }
                 }
             } else {
                 mRoot.addView(sb);
+                sb.setOnSourceClickListener(this);
             }
-            sb.setOnSourceClickListener(this);
         }
         if (curSourceInput == null) {
             preSourceInput = defSourceInput;
@@ -155,14 +208,6 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
         defaultAtvChannel = atv_channel;
         defaultDtvChannel = dtv_channel;
         defaultDtvType = is_radio;
-    }
-
-    public int stateChange(String inputId, int state) {
-        return INPUT_NEED_RESET;
-    }
-
-    public int update(String inputId) {
-        return INPUT_NEED_RESET;
     }
 
     public SourceButton getCurSourceInput() {
