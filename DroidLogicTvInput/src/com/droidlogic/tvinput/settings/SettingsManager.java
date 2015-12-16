@@ -99,6 +99,9 @@ public class SettingsManager {
     public static final String STATUS_3D_DU_MODE                    = "down up mode";
     public static final String STATUS_3D_TO_2D                      = "3D to 2D";
     public static final String STATUS_PCM                            = "pcm";
+    public static final String STATUS_STEREO                         = "stereo";
+    public static final String STATUS_LEFT_CHANNEL                  = "left channel";
+    public static final String STATUS_RIGHT_CHANNEL                 = "right channel";
 
     public static final String STATUS_DEFAULT_PERCENT               = "50%";
     public static final double STATUS_DEFAUT_FREQUENCY              = 44250000;
@@ -352,7 +355,7 @@ public class SettingsManager {
         return mTvControlManager.GetHue(mTvSource) + "%";
     }
 
-    private String getColorTemperatureStatus () {
+    public String getColorTemperatureStatus () {
         int itemPosition = mTvControlManager.GetColorTemperature(mTvSource);
         if (itemPosition == 0)
             return mResources.getString(R.string.standard);
@@ -374,7 +377,7 @@ public class SettingsManager {
             return mResources.getString(R.string.auto);
     }
 
-    private String getDnrStatus () {
+    public String getDnrStatus () {
         int itemPosition = mTvControlManager.GetNoiseReductionMode(mTvSource);
         if (itemPosition == 0)
             return mResources.getString(R.string.off);
@@ -439,7 +442,7 @@ public class SettingsManager {
         return mTvControlManager.GetCurAudioBalance() + "%";
     }
 
-    private String getSpdifStatus () {
+    public String getSpdifStatus () {
         if (mTvControlManager.GetCurAudioSPDIFSwitch() == 0)
             return mResources.getString(R.string.off);
         int itemPosition = mTvControlManager.GetCurAudioSPDIFMode();
@@ -451,7 +454,7 @@ public class SettingsManager {
             return null;
     }
 
-    private String getSurroundStatus () {
+    public String getSurroundStatus () {
         int itemPosition = mTvControlManager.GetCurAudioSrsSurround();
         if (itemPosition == 0)
             return mResources.getString(R.string.off);
@@ -459,7 +462,7 @@ public class SettingsManager {
             return mResources.getString(R.string.on);
     }
 
-    private String getDialogClarityStatus () {
+    public String getDialogClarityStatus () {
         int itemPosition = mTvControlManager.GetCurAudioSrsDialogClarity();
         if (itemPosition == 0)
             return mResources.getString(R.string.off);
@@ -467,7 +470,7 @@ public class SettingsManager {
             return mResources.getString(R.string.on);
     }
 
-    private String getBassBoostStatus () {
+    public String getBassBoostStatus () {
         int itemPosition = mTvControlManager.GetCurAudioSrsTruBass();
         if (itemPosition == 0)
             return mResources.getString(R.string.off);
@@ -503,7 +506,7 @@ public class SettingsManager {
             return null;
     }
 
-    private String getSoundChannelStatus () {
+    public String getSoundChannelStatus () {
         switch (mTvControlManager.DtvGetAudioChannleMod()) {
             case 0:
                 return mResources.getString(R.string.stereo);
@@ -589,7 +592,7 @@ public class SettingsManager {
         return list;
     }
 
-    private String getColorSystemStatus () {
+    public String getColorSystemStatus () {
         if (currentChannel != null) {
             switch (currentChannel.getVideoStd())
             {
@@ -604,7 +607,7 @@ public class SettingsManager {
         return null;
     }
 
-    private String getSoundSystemStatus () {
+    public String getSoundSystemStatus () {
         if (currentChannel != null) {
             switch (currentChannel.getAudioStd())
             {
@@ -734,7 +737,7 @@ public class SettingsManager {
         return null;
     }
 
-    private String getSwitchChannelStatus () {
+    public String getSwitchChannelStatus () {
         if (mTvControlManager.SSMReadBlackoutEnalbe() == 0)
             return mResources.getString(R.string.static_frame);
         else
@@ -774,7 +777,7 @@ public class SettingsManager {
         return ret;
     }
 
-    private String getMenuTimeStatus () {
+    public String getMenuTimeStatus () {
         int seconds = Settings.System.getInt(mContext.getContentResolver(), KEY_MENU_TIME, DEFUALT_MENU_TIME);
         switch (seconds) {
             case 10:
@@ -790,7 +793,7 @@ public class SettingsManager {
         }
     }
 
-    private String getStartupSettingStatus () {
+    public String getStartupSettingStatus () {
         int type = Settings.System.getInt(mContext.getContentResolver(), "tv_start_up_enter_app", 0);
 
         if (type == 0)
@@ -799,7 +802,7 @@ public class SettingsManager {
             return mResources.getString(R.string.tv);
     }
 
-    private String getDynamicBacklightStatus () {
+    public String getDynamicBacklightStatus () {
         int itemPosition = mTvControlManager.isAutoBackLighting();
         if (itemPosition == 0)
             return mResources.getString(R.string.off);
@@ -1076,18 +1079,13 @@ public class SettingsManager {
         }
     }
 
-    public void setSoundChannel (int position) {
-        switch (position) {
-            case 0:
-                mTvControlManager.DtvSetAudioChannleMod(0);
-                break;
-            case 1:
-                mTvControlManager.DtvSetAudioChannleMod(1);
-                break;
-            case 2:
-                mTvControlManager.DtvSetAudioChannleMod(2);
-                break;
-        }
+    public void setSoundChannel (String mode) {
+        if (mode.equals(STATUS_STEREO))
+            mTvControlManager.DtvSetAudioChannleMod(0);
+        else if (mode.equals(STATUS_LEFT_CHANNEL))
+            mTvControlManager.DtvSetAudioChannleMod(1);
+        else if (mode.equals(STATUS_RIGHT_CHANNEL))
+            mTvControlManager.DtvSetAudioChannleMod(2);
     }
 
     public void setColorSystem(int mode) {

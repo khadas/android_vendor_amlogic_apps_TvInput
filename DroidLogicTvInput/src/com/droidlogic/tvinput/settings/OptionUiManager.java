@@ -1,6 +1,8 @@
 package com.droidlogic.tvinput.settings;
 
 import android.content.Context;
+import android.content.res.Resources;
+import android.graphics.drawable.Drawable;
 import android.media.tv.TvContract.Channels;
 import android.os.PowerManager;
 import android.text.Editable;
@@ -86,7 +88,10 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     public static final int ATV_MIN_KHZ = 42250;
     public static final int ATV_MAX_KHZ = 868250;
 
+    private static final int PADDING_LEFT = 50;
+
     private Context mContext;
+    private Resources mResources;
     private SettingsManager mSettingsManager;
     private TvControlManager mTvControlManager;
     private TvDataBaseManager mTvDataBaseManager;
@@ -110,127 +115,128 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         mTvControlManager = mSettingsManager.getTvControlManager();
         mTvDataBaseManager = mSettingsManager.getTvDataBaseManager();
         mTvControlManager.setScannerListener(this);
+        mResources = mContext.getResources();
     }
 
     public void setOptionTag(int position) {
         String item_name = ((TvSettingsActivity) mContext).getCurrentFragment().getContentList().get(position).get(ContentFragment.ITEM_NAME)
                 .toString();
         // Picture
-        if (item_name.equals(mContext.getResources().getString(R.string.picture_mode))) {
+        if (item_name.equals(mResources.getString(R.string.picture_mode))) {
             optionTag = OPTION_PICTURE_MODE;
             optionKey = SettingsManager.KEY_PICTURE_MODE;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.brightness))) {
+        } else if (item_name.equals(mResources.getString(R.string.brightness))) {
             optionTag = OPTION_BRIGHTNESS;
             optionKey = SettingsManager.KEY_BRIGHTNESS;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.contrast))) {
+        } else if (item_name.equals(mResources.getString(R.string.contrast))) {
             optionTag = OPTION_CONTRAST;
             optionKey = SettingsManager.KEY_CONTRAST;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.color))) {
+        } else if (item_name.equals(mResources.getString(R.string.color))) {
             optionTag = OPTION_COLOR;
             optionKey = SettingsManager.KEY_COLOR;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.sharpness))) {
+        } else if (item_name.equals(mResources.getString(R.string.sharpness))) {
             optionTag = OPTION_SHARPNESS;
             optionKey = SettingsManager.KEY_SHARPNESS;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.backlight))) {
+        } else if (item_name.equals(mResources.getString(R.string.backlight))) {
             optionTag = OPTION_BACKLIGHT;
             optionKey = SettingsManager.KEY_BACKLIGHT;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.tint))) {
+        } else if (item_name.equals(mResources.getString(R.string.tint))) {
             optionTag = OPTION_TINT;
             optionKey = SettingsManager.KEY_TINT;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.color_temperature))) {
+        } else if (item_name.equals(mResources.getString(R.string.color_temperature))) {
             optionTag = OPTION_COLOR_TEMPERATURE;
             optionKey = SettingsManager.KEY_COLOR_TEMPERATURE;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.aspect_ratio))) {
+        } else if (item_name.equals(mResources.getString(R.string.aspect_ratio))) {
             optionTag = OPTION_ASPECT_RATIO;
             optionKey = SettingsManager.KEY_ASPECT_RATIO;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.dnr))) {
+        } else if (item_name.equals(mResources.getString(R.string.dnr))) {
             optionTag = OPTION_DNR;
             optionKey = SettingsManager.KEY_DNR;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.settings_3d))) {
+        } else if (item_name.equals(mResources.getString(R.string.settings_3d))) {
             optionTag = OPTION_3D_SETTINGS;
             optionKey = SettingsManager.KEY_3D_SETTINGS;
         }
         // Sound
-        else if (item_name.equals(mContext.getResources().getString(R.string.sound_mode))) {
+        else if (item_name.equals(mResources.getString(R.string.sound_mode))) {
             optionTag = OPTION_SOUND_MODE;
             optionKey = SettingsManager.KEY_SOUND_MODE;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.treble))) {
+        } else if (item_name.equals(mResources.getString(R.string.treble))) {
             optionTag = OPTION_TREBLE;
             optionKey = SettingsManager.KEY_TREBLE;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.bass))) {
+        } else if (item_name.equals(mResources.getString(R.string.bass))) {
             optionTag = OPTION_BASS;
             optionKey = SettingsManager.KEY_BASS;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.balance))) {
+        } else if (item_name.equals(mResources.getString(R.string.balance))) {
             optionTag = OPTION_BALANCE;
             optionKey = SettingsManager.KEY_BALANCE;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.spdif))) {
+        } else if (item_name.equals(mResources.getString(R.string.spdif))) {
             optionTag = OPTION_SPDIF;
             optionKey = SettingsManager.KEY_SPDIF;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.dialog_clarity))) {
+        } else if (item_name.equals(mResources.getString(R.string.dialog_clarity))) {
             optionTag = OPTION_DIALOG_CLARITY;
             optionKey = SettingsManager.KEY_DIALOG_CLARITY;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.bass_boost))) {
+        } else if (item_name.equals(mResources.getString(R.string.bass_boost))) {
             optionTag = OPTION_BASS_BOOST;
             optionKey = SettingsManager.KEY_BASS_BOOST;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.surround))) {
+        } else if (item_name.equals(mResources.getString(R.string.surround))) {
             optionTag = OPTION_SURROUND;
             optionKey = SettingsManager.KEY_SURROUND;
         }
         // Channel
-        else if (item_name.equals(mContext.getResources().getString(R.string.current_channel))) {
+        else if (item_name.equals(mResources.getString(R.string.current_channel))) {
             optionTag = OPTION_CURRENT_CHANNEL;
             optionKey = SettingsManager.KEY_CURRENT_CHANNEL;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.frequency))) {
+        } else if (item_name.equals(mResources.getString(R.string.frequency))) {
             optionTag = OPTION_FREQUENCY;
             optionKey = SettingsManager.KEY_FREQUNCY;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.audio_track))) {
+        } else if (item_name.equals(mResources.getString(R.string.audio_track))) {
             optionTag = OPTION_AUDIO_TRACK;
             optionKey = SettingsManager.KEY_AUIDO_TRACK;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.sound_channel))) {
+        } else if (item_name.equals(mResources.getString(R.string.sound_channel))) {
             optionTag = OPTION_SOUND_CHANNEL;
             optionKey = SettingsManager.KEY_SOUND_CHANNEL;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.channel_info))) {
+        } else if (item_name.equals(mResources.getString(R.string.channel_info))) {
             optionTag = OPTION_CHANNEL_INFO;
             optionKey = SettingsManager.KEY_CHANNEL_INFO;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.color_system))) {
+        } else if (item_name.equals(mResources.getString(R.string.color_system))) {
             optionTag = OPTION_COLOR_SYSTEM;
             optionKey = SettingsManager.KEY_COLOR_SYSTEM;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.sound_system))) {
+        } else if (item_name.equals(mResources.getString(R.string.sound_system))) {
             optionTag = OPTION_SOUND_SYSTEM;
             optionKey = SettingsManager.KEY_SOUND_SYSTEM;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.volume_compensate))) {
+        } else if (item_name.equals(mResources.getString(R.string.volume_compensate))) {
             optionTag = OPTION_VOLUME_COMPENSATE;
             optionKey = SettingsManager.KEY_VOLUME_COMPENSATE;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.fine_tune))) {
+        } else if (item_name.equals(mResources.getString(R.string.fine_tune))) {
             optionTag = OPTION_FINE_TUNE;
             optionKey = SettingsManager.KEY_FINE_TUNE;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.manual_search))) {
+        } else if (item_name.equals(mResources.getString(R.string.manual_search))) {
             optionTag = OPTION_MANUAL_SEARCH;
             optionKey = SettingsManager.KEY_MANUAL_SEARCH;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.auto_search))) {
+        } else if (item_name.equals(mResources.getString(R.string.auto_search))) {
             optionTag = OPTION_AUTO_SEARCH;
             optionKey = SettingsManager.KEY_AUTO_SEARCH;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.channel_edit))) {
+        } else if (item_name.equals(mResources.getString(R.string.channel_edit))) {
             optionTag = OPTION_CHANNEL_EDIT;
             optionKey = SettingsManager.KEY_CHANNEL_EDIT;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.switch_channel))) {
+        } else if (item_name.equals(mResources.getString(R.string.switch_channel))) {
             optionTag = OPTION_SWITCH_CHANNEL;
             optionKey = SettingsManager.KEY_SWITCH_CHANNEL;
         }
         // Settings
-        else if (item_name.equals(mContext.getResources().getString(R.string.sleep_timer))) {
+        else if (item_name.equals(mResources.getString(R.string.sleep_timer))) {
             optionTag = OPTION_SLEEP_TIMER;
             optionKey = SettingsManager.KEY_SLEEP_TIMER;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.menu_time))) {
+        } else if (item_name.equals(mResources.getString(R.string.menu_time))) {
             optionTag = OPTION_MENU_TIME;
             optionKey = SettingsManager.KEY_MENU_TIME;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.startup_setting))) {
+        } else if (item_name.equals(mResources.getString(R.string.startup_setting))) {
             optionTag = OPTION_STARTUP_SETTING;
             optionKey = SettingsManager.KEY_STARTUP_SETTING;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.dynamic_backlight))) {
+        } else if (item_name.equals(mResources.getString(R.string.dynamic_backlight))) {
             optionTag = OPTION_DYNAMIC_BACKLIGHT;
             optionKey = SettingsManager.KEY_DYNAMIC_BACKLIGHT;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.restore_factory))) {
+        } else if (item_name.equals(mResources.getString(R.string.restore_factory))) {
             optionTag = OPTION_RESTORE_FACTORY;
             optionKey = SettingsManager.KEY_RESTORE_FACTORY;
         }
@@ -285,8 +291,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 // channel
             case OPTION_CHANNEL_INFO:
             case OPTION_AUDIO_TRACK:
-            case OPTION_SOUND_CHANNEL:
                 return R.layout.layout_option_list;
+            case OPTION_SOUND_CHANNEL:
+                return R.layout.layout_channel_sound_channel;
             case OPTION_COLOR_SYSTEM:
                 return R.layout.layout_channel_color_system;
             case OPTION_SOUND_SYSTEM:
@@ -527,6 +534,16 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 mSettingsManager.setBassBoost(SettingsManager.STATUS_OFF);
                 break;
             // ====Channel====
+            //sound channel
+            case R.id.sound_channel_stereo:
+                mSettingsManager.setSoundChannel(SettingsManager.STATUS_STEREO);
+                break;
+            case R.id.sound_channel_left_channel:
+                mSettingsManager.setSoundChannel(SettingsManager.STATUS_LEFT_CHANNEL);
+                break;
+            case R.id.sound_channel_right_channel:
+                mSettingsManager.setSoundChannel(SettingsManager.STATUS_RIGHT_CHANNEL);
+                break;
             // color system
             case R.id.color_system_pal:
                 mSettingsManager.setColorSystem(TvControlManager.tvin_color_system_e.COLOR_SYSTEM_PAL.toInt());
@@ -632,17 +649,219 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             default:
                 break;
         }
+        setChoosedIcon();
         setProgressStatus();
         ((TvSettingsActivity) mContext).getCurrentFragment().refreshList();
+    }
+
+ public void setChoosedIcon() {
+        ViewGroup parent = (ViewGroup) ((TvSettingsActivity) mContext).mOptionLayout.getChildAt(0);
+
+        switch (optionTag) {
+        // picture
+            case OPTION_PICTURE_MODE:
+                if (mSettingsManager.getPictureModeStatus().equals(mResources.getString(R.string.standard))) {
+                    setIcon(parent, R.id.picture_mode_standard);
+                } else if (mSettingsManager.getPictureModeStatus().equals(mResources.getString(R.string.vivid))) {
+                    setIcon(parent, R.id.picture_mode_vivid);
+                } else if (mSettingsManager.getPictureModeStatus().equals(mResources.getString(R.string.soft))) {
+                    setIcon(parent, R.id.picture_mode_soft);
+                } else if (mSettingsManager.getPictureModeStatus().equals(mResources.getString(R.string.user))) {
+                    setIcon(parent, R.id.picture_mode_user);
+                }
+                break;
+            case OPTION_COLOR_TEMPERATURE:
+                if (mSettingsManager.getColorTemperatureStatus().equals(mResources.getString(R.string.standard))) {
+                    setIcon(parent, R.id.color_temperature_standard);
+                } else if (mSettingsManager.getColorTemperatureStatus().equals(mResources.getString(R.string.warm))) {
+                    setIcon(parent, R.id.color_temperature_warm);
+                } else if (mSettingsManager.getColorTemperatureStatus().equals(mResources.getString(R.string.cool))) {
+                    setIcon(parent, R.id.color_temperature_cool);
+                }
+                break;
+            case OPTION_ASPECT_RATIO:
+                if (mSettingsManager.getAspectRatioStatus().equals(mResources.getString(R.string.full_screen))) {
+                    setIcon(parent, R.id.apect_ratio_full_screen);
+                } else if (mSettingsManager.getAspectRatioStatus().equals(mResources.getString(R.string.four2three))) {
+                    setIcon(parent, R.id.apect_ratio_four2three);
+                } else if (mSettingsManager.getAspectRatioStatus().equals(mResources.getString(R.string.auto))) {
+                    setIcon(parent, R.id.apect_ratio_auto);
+                } else if (mSettingsManager.getAspectRatioStatus().equals(mResources.getString(R.string.panorama))) {
+                    setIcon(parent, R.id.apect_ratio_panorama);
+                }
+                break;
+            case OPTION_DNR:
+                if (mSettingsManager.getDnrStatus().equals(mResources.getString(R.string.off))) {
+                    setIcon(parent, R.id.dnr_off);
+                } else if (mSettingsManager.getDnrStatus().equals(mResources.getString(R.string.low))) {
+                    setIcon(parent, R.id.dnr_low);
+                } else if (mSettingsManager.getDnrStatus().equals(mResources.getString(R.string.medium))) {
+                    setIcon(parent, R.id.dnr_medium);
+                } else if (mSettingsManager.getDnrStatus().equals(mResources.getString(R.string.high))) {
+                    setIcon(parent, R.id.dnr_high);
+                } else if (mSettingsManager.getDnrStatus().equals(mResources.getString(R.string.auto))) {
+                    setIcon(parent, R.id.dnr_auto);
+                }
+                break;
+                // sound
+            case OPTION_SOUND_MODE:
+                if (mSettingsManager.getSoundModeStatus().equals(mResources.getString(R.string.standard))) {
+                    setIcon(parent, R.id.sound_mode_standard);
+                } else if (mSettingsManager.getSoundModeStatus().equals(mResources.getString(R.string.music))) {
+                    setIcon(parent, R.id.sound_mode_music);
+                } else if (mSettingsManager.getSoundModeStatus().equals(mResources.getString(R.string.news))) {
+                    setIcon(parent, R.id.sound_mode_news);
+                } else if (mSettingsManager.getSoundModeStatus().equals(mResources.getString(R.string.movie))) {
+                    setIcon(parent, R.id.sound_mode_movie);
+                } else if (mSettingsManager.getSoundModeStatus().equals(mResources.getString(R.string.user))) {
+                    setIcon(parent, R.id.sound_mode_user);
+                }
+                break;
+            case OPTION_SPDIF:
+                if (mSettingsManager.getSpdifStatus().equals(mResources.getString(R.string.off))) {
+                    setIcon(parent, R.id.spdif_off);
+                } else if (mSettingsManager.getSpdifStatus().equals(mResources.getString(R.string.auto))) {
+                    setIcon(parent, R.id.spdif_auto);
+                } else if (mSettingsManager.getSpdifStatus().equals(mResources.getString(R.string.pcm))) {
+                    setIcon(parent, R.id.spdif_pcm);
+                }
+                break;
+            case OPTION_SURROUND:
+                if (mSettingsManager.getSurroundStatus().equals(mResources.getString(R.string.off))) {
+                    setIcon(parent, R.id.surround_off);
+                } else if (mSettingsManager.getSurroundStatus().equals(mResources.getString(R.string.on))) {
+                    setIcon(parent, R.id.surround_on);
+                }
+                break;
+            case OPTION_DIALOG_CLARITY:
+                if (mSettingsManager.getDialogClarityStatus().equals(mResources.getString(R.string.off))) {
+                    setIcon(parent, R.id.dialog_clarity_off);
+                } else if (mSettingsManager.getDialogClarityStatus().equals(mResources.getString(R.string.on))) {
+                    setIcon(parent, R.id.dialog_clarity_on);
+                }
+                break;
+            case OPTION_BASS_BOOST:
+                if (mSettingsManager.getBassBoostStatus().equals(mResources.getString(R.string.off))) {
+                    setIcon(parent, R.id.bass_boost_off);
+                } else if (mSettingsManager.getBassBoostStatus().equals(mResources.getString(R.string.on))) {
+                    setIcon(parent, R.id.bass_boost_on);
+                }
+                break;
+                // channel
+            case OPTION_SOUND_CHANNEL:
+                if (mSettingsManager.getSoundChannelStatus().equals(mResources.getString(R.string.stereo))) {
+                    setIcon(parent, R.id.sound_channel_stereo);
+                } else if (mSettingsManager.getSoundChannelStatus().equals(mResources.getString(R.string.left_channel))) {
+                    setIcon(parent, R.id.sound_channel_left_channel);
+                } else if (mSettingsManager.getSoundChannelStatus().equals(mResources.getString(R.string.right_channel))) {
+                    setIcon(parent, R.id.sound_channel_right_channel);
+                }
+                break;
+            case OPTION_COLOR_SYSTEM:
+                if (mSettingsManager.getColorSystemStatus().equals(mResources.getString(R.string.pal))) {
+                    setIcon(parent, R.id.color_system_pal);
+                } else if (mSettingsManager.getColorSystemStatus().equals(mResources.getString(R.string.ntsc))) {
+                    setIcon(parent, R.id.color_system_ntsc);
+                }
+                break;
+            case OPTION_SOUND_SYSTEM:
+               if (mSettingsManager.getSoundSystemStatus().equals(mResources.getString(R.string.sound_system_dk))) {
+                    setIcon(parent, R.id.sound_system_dk);
+                } else if (mSettingsManager.getSoundSystemStatus().equals(mResources.getString(R.string.sound_system_i))) {
+                    setIcon(parent, R.id.sound_system_i);
+                } else if (mSettingsManager.getSoundSystemStatus().equals(mResources.getString(R.string.sound_system_bg))) {
+                    setIcon(parent, R.id.sound_system_bg);
+                } else if (mSettingsManager.getSoundSystemStatus().equals(mResources.getString(R.string.sound_system_m))) {
+                    setIcon(parent, R.id.sound_system_m);
+                }
+                break;
+            case OPTION_SWITCH_CHANNEL:
+                if (mSettingsManager.getSwitchChannelStatus().equals(mResources.getString(R.string.static_frame))) {
+                    setIcon(parent, R.id.switch_channel_static_frame);
+                } else if (mSettingsManager.getSwitchChannelStatus().equals(mResources.getString(R.string.black_frame))) {
+                    setIcon(parent, R.id.switch_channel_black_frame);
+                }
+                break;
+                // settings
+            case OPTION_SLEEP_TIMER:
+               if (mSettingsManager.getSleepTimerStatus().equals(mResources.getString(R.string.off))) {
+                    setIcon(parent, R.id.sleep_timer_off);
+                } else if (mSettingsManager.getSleepTimerStatus().equals(mResources.getString(R.string.time_15min))) {
+                    setIcon(parent, R.id.sleep_timer_15min);
+                } else if (mSettingsManager.getSleepTimerStatus().equals(mResources.getString(R.string.time_30min))) {
+                    setIcon(parent, R.id.sleep_timer_30min);
+                } else if (mSettingsManager.getSleepTimerStatus().equals(mResources.getString(R.string.time_45min))) {
+                    setIcon(parent, R.id.sleep_timer_45min);
+                } else if (mSettingsManager.getSleepTimerStatus().equals(mResources.getString(R.string.time_60min))) {
+                    setIcon(parent, R.id.sleep_timer_60min);
+                } else if (mSettingsManager.getSleepTimerStatus().equals(mResources.getString(R.string.time_90min))) {
+                    setIcon(parent, R.id.sleep_timer_90min);
+                } else if (mSettingsManager.getSleepTimerStatus().equals(mResources.getString(R.string.time_120min))) {
+                    setIcon(parent, R.id.sleep_timer_120min);
+                }
+                break;
+            case OPTION_MENU_TIME:
+               if (mSettingsManager.getMenuTimeStatus().equals(mResources.getString(R.string.time_10s))) {
+                    setIcon(parent, R.id.menu_time_10s);
+                } else if (mSettingsManager.getMenuTimeStatus().equals(mResources.getString(R.string.time_20s))) {
+                    setIcon(parent, R.id.menu_time_20s);
+                } else if (mSettingsManager.getMenuTimeStatus().equals(mResources.getString(R.string.time_40s))) {
+                    setIcon(parent, R.id.menu_time_40s);
+                } else if (mSettingsManager.getMenuTimeStatus().equals(mResources.getString(R.string.time_60s))) {
+                    setIcon(parent, R.id.menu_time_60s);
+                }
+                break;
+            case OPTION_STARTUP_SETTING:
+               if (mSettingsManager.getStartupSettingStatus().equals(mResources.getString(R.string.launcher))) {
+                    setIcon(parent, R.id.startup_setting_launcher);
+                } else if (mSettingsManager.getStartupSettingStatus().equals(mResources.getString(R.string.tv))) {
+                    setIcon(parent, R.id.startup_setting_tv);
+                }
+                break;
+            case OPTION_DYNAMIC_BACKLIGHT:
+               if (mSettingsManager.getDynamicBacklightStatus().equals(mResources.getString(R.string.off))) {
+                    setIcon(parent, R.id.dynamic_backlight_off);
+                } else if (mSettingsManager.getDynamicBacklightStatus().equals(mResources.getString(R.string.on))) {
+                    setIcon(parent, R.id.dynamic_backlight_on);
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void setIcon(ViewGroup parent, int id) {
+        TextView choosed = (TextView)parent.findViewById(id);
+        setIconStyle(choosed);
+        for (int i = 1; i < parent.getChildCount(); i++) {
+            View child = parent.getChildAt(i);
+            if (child != null  && child instanceof TextView) {
+                if (child.getId() != id) {
+                    ((TextView)child).setCompoundDrawables(null, null , null , null );
+                    ((TextView)child).setPaddingRelative(ContentListView.dipToPx(mContext, (float)PADDING_LEFT), 0, 0, 0);
+                }
+            }
+        }
+    }
+
+    private void setIconStyle(TextView text) {
+        Drawable drawable = mResources.getDrawable(R.drawable.icon_option_choosed);
+        drawable.setBounds(0, 0, drawable.getMinimumWidth(), drawable.getMinimumHeight());
+
+        int padding = 15;
+        text.setCompoundDrawablePadding(padding);
+        text.setCompoundDrawables(drawable, null , null , null );
+        text.setPaddingRelative(ContentListView.dipToPx(mContext, (float)PADDING_LEFT)
+                - (drawable.getMinimumWidth() + padding), 0, 0, 0);
     }
 
     @Override
     public void onFocusChange(View v, boolean hasFocus) {
         if (v instanceof TextView) {
             if (hasFocus) {
-                ((TextView) v).setTextColor(mContext.getResources().getColor(R.color.color_text_focused));
+                ((TextView) v).setTextColor(mResources.getColor(R.color.color_text_focused));
             } else
-                ((TextView) v).setTextColor(mContext.getResources().getColor(R.color.color_text_item));
+                ((TextView) v).setTextColor(mResources.getColor(R.color.color_text_item));
         }
     }
 
@@ -794,9 +1013,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             int to =  Integer.valueOf(str_end);
 
             if (from < ATV_MIN_KHZ || to > ATV_MAX_KHZ)
-                showToast(mContext.getResources().getString(R.string.error_atv_error_1));
+                showToast(mResources.getString(R.string.error_atv_error_1));
             else if (from > to)
-                showToast(mContext.getResources().getString(R.string.error_atv_error_2));
+                showToast(mResources.getString(R.string.error_atv_error_2));
             else {
                 mSettingsManager.setManualSearchProgress(0);
                 mSettingsManager.setManualSearchSearchedNumber(0);
@@ -841,7 +1060,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                         char c = s.charAt(pos);
                         if (c < '0' || c > '9') {
                             s.delete(pos, pos + 1);
-                            showToast(mContext.getResources().getString(R.string.error_not_number));
+                            showToast(mResources.getString(R.string.error_not_number));
                         }
                     }
                 }
@@ -868,7 +1087,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                         char c = s.charAt(pos);
                         if (c < '0' || c > '9') {
                             s.delete(pos, pos + 1);
-                            showToast(mContext.getResources().getString(R.string.error_not_number));
+                            showToast(mResources.getString(R.string.error_not_number));
                         } else{
                             String number = edit.getText().toString();
                             if (number == null || number.length() == 0)
@@ -885,8 +1104,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     }
 
     private String parseChannelFrequency(double freq) {
-        String frequency = mContext.getResources().getString(R.string.start_frequency);
-        frequency += Double.toString(freq / (1000 * 1000)) + mContext.getResources().getString(R.string.mhz);
+        String frequency = mResources.getString(R.string.start_frequency);
+        frequency += Double.toString(freq / (1000 * 1000)) + mResources.getString(R.string.mhz);
         return frequency;
     }
 
@@ -921,9 +1140,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             }
 
             if (frequency != null && frequency_band != null && searched_number != null) {
-                frequency.setText(Double.toString(freq) + mContext.getResources().getString(R.string.mhz));
+                frequency.setText(Double.toString(freq) + mResources.getString(R.string.mhz));
                 frequency_band.setText(parseFrequencyBand(freq));
-                searched_number.setText(mContext.getResources().getString(R.string.searched_number) + ": " + channelNumber);
+                searched_number.setText(mResources.getString(R.string.searched_number) + ": " + channelNumber);
             }
         } else if (event != null && mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
             OptionListView listView = (OptionListView)optionView.findViewById(R.id.manual_search_dtv_info);
@@ -940,28 +1159,28 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
 
         HashMap<String,Object> item = new HashMap<String,Object>();
-        item.put(SettingsManager.STRING_NAME, mContext.getResources().getString(R.string.frequency_l) + ":");
+        item.put(SettingsManager.STRING_NAME, mResources.getString(R.string.frequency_l) + ":");
         item.put(SettingsManager.STRING_STATUS, Double.toString(event.freq/(1000 * 1000)) +
-            mContext.getResources().getString(R.string.mhz));
+            mResources.getString(R.string.mhz));
         list.add(item);
 
         item = new HashMap<String,Object>();
-        item.put(SettingsManager.STRING_NAME, mContext.getResources().getString(R.string.quality) + ":");
-        item.put(SettingsManager.STRING_STATUS, event.quality + mContext.getResources().getString(R.string.db));
+        item.put(SettingsManager.STRING_NAME, mResources.getString(R.string.quality) + ":");
+        item.put(SettingsManager.STRING_STATUS, event.quality + mResources.getString(R.string.db));
         list.add(item);
 
         item = new HashMap<String,Object>();
-        item.put(SettingsManager.STRING_NAME, mContext.getResources().getString(R.string.strength) + ":");
+        item.put(SettingsManager.STRING_NAME, mResources.getString(R.string.strength) + ":");
         item.put(SettingsManager.STRING_STATUS, event.strength + "%");
         list.add(item);
 
         item = new HashMap<String,Object>();
-        item.put(SettingsManager.STRING_NAME, mContext.getResources().getString(R.string.tv_channel) + ":");
+        item.put(SettingsManager.STRING_NAME, mResources.getString(R.string.tv_channel) + ":");
         item.put(SettingsManager.STRING_STATUS, channelNumber);
         list.add(item);
 
         item = new HashMap<String,Object>();
-        item.put(SettingsManager.STRING_NAME, mContext.getResources().getString(R.string.radio_channel) + ":");
+        item.put(SettingsManager.STRING_NAME, mResources.getString(R.string.radio_channel) + ":");
         item.put(SettingsManager.STRING_STATUS, radioNumber);
         list.add(item);
 
@@ -988,9 +1207,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             if (frequency != null && frequency_band != null && searched_number != null) {
                 double freq = event.freq;
                 freq /= 1000 * 1000;
-                frequency.setText(Double.toString(freq) + mContext.getResources().getString(R.string.mhz));
+                frequency.setText(Double.toString(freq) + mResources.getString(R.string.mhz));
                 frequency_band.setText(parseFrequencyBand(freq));
-                searched_number.setText(mContext.getResources().getString(R.string.searched_number) + ": " + channelNumber);
+                searched_number.setText(mResources.getString(R.string.searched_number) + ": " + channelNumber);
             }
         } else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
             OptionListView listView = (OptionListView)optionView.findViewById(R.id.auto_search_dtv_info);
@@ -1089,7 +1308,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             .setServiceType(Channels.SERVICE_TYPE_AUDIO_VIDEO)//default is SERVICE_TYPE_AUDIO_VIDEO
             .setServiceId(0)
             .setDisplayNumber(Integer.toString(tvDisplayNumber))
-            .setDisplayName(mContext.getResources().getString(R.string.atv_program))
+            .setDisplayName(mResources.getString(R.string.atv_program))
             .setLogoUrl(null)
             .setOriginalNetworkId(0)
             .setTransportStreamId(0)
@@ -1207,16 +1426,16 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 isSearching = false;
                 if (channelNumber == 0 && radioNumber == 0) {
                     ((TvSettingsActivity) mContext).finish();
-                    showToast(mContext.getResources().getString(R.string.searched) + " 0 " + mContext.getResources().getString(R.string.channel));
+                    showToast(mResources.getString(R.string.searched) + " 0 " + mResources.getString(R.string.channel));
                 } else {
-                    String prompt = mContext.getResources().getString(R.string.searched);
+                    String prompt = mResources.getString(R.string.searched);
                     if (channelNumber != 0) {
-                        prompt += " " + channelNumber + " " + mContext.getResources().getString(R.string.tv_channel);
+                        prompt += " " + channelNumber + " " + mResources.getString(R.string.tv_channel);
                         if (radioNumber != 0)
                             prompt += ",";
                     }
                     if (radioNumber != 0)
-                        prompt += " " + radioNumber + " " + mContext.getResources().getString(R.string.radio_channel);
+                        prompt += " " + radioNumber + " " + mResources.getString(R.string.radio_channel);
                     showToast(prompt);
                 }
                 break;

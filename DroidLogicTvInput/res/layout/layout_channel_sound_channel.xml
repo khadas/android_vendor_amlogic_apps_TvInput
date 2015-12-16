@@ -10,12 +10,12 @@
         android:layout_marginTop="43dp"
         android:layout_marginLeft="31dp"
         android:paddingLeft="15dp"
-        android:text="@string/color_system"
+        android:text="@string/sound_channel"
         android:textSize="27sp"
         android:textColor="@color/color_text_item"
         />
     <TextView
-        android:id="@+id/color_system_pal"
+        android:id="@+id/sound_channel_stereo"
         android:layout_width="262dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
@@ -23,12 +23,12 @@
         android:paddingLeft="50dp"
         android:background="@drawable/item_background"
         android:focusable="true"
-        android:text="@string/pal"
+        android:text="@string/stereo"
         android:textSize="26sp"
         android:textColor="@color/color_text_item"
         />
     <TextView
-        android:id="@+id/color_system_ntsc"
+        android:id="@+id/sound_channel_left_channel"
         android:layout_width="262dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
@@ -36,8 +36,22 @@
         android:paddingLeft="50dp"
         android:background="@drawable/item_background"
         android:focusable="true"
-        android:text="@string/ntsc"
+        android:text="@string/left_channel"
+        android:textSize="26sp"
+        android:textColor="@color/color_text_item"
+        />
+    <TextView
+        android:id="@+id/sound_channel_right_channel"
+        android:layout_width="262dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="31dp"
+        android:paddingLeft="50dp"
+        android:background="@drawable/item_background"
+        android:focusable="true"
+        android:text="@string/right_channel"
         android:textSize="26sp"
         android:textColor="@color/color_text_item"
         />
 </LinearLayout>
+
