@@ -82,7 +82,7 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         ChannelInfo channel = (ChannelInfo)mAdapter.getItem(position);
-        int index = (int) mAdapter.getItemId(position);
+        int index = getChannelIndex(channel);
 
         if (channel != null) {
             mListener.onSelect(index, !tabFlag);
@@ -97,6 +97,22 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
                 favList.put(info.getNumber(), info);
         }
         return favList;
+    }
+
+    private int getChannelIndex (ChannelInfo channel) {
+        if (ChannelInfo.isRadioChannel(channel)) {
+            for (int i = 0; i < radioList.size(); i++) {
+                if (ChannelInfo.isSameChannel(channel, radioList.get(i)))
+                    return i;
+            }
+            return -1;
+        } else {
+            for (int i = 0; i < videoList.size(); i++) {
+                if (ChannelInfo.isSameChannel(channel, videoList.get(i)))
+                    return i;
+            }
+            return -1;
+        }
     }
 
     @Override
@@ -257,7 +273,7 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
                 return null;
             Utils.logd(TAG, "==== number =" + channel.getNumber());
             Utils.logd(TAG, "==== name =" + channel.getDisplayName());
-            holder.channelNum.setText(Integer.toString(position));
+            holder.channelNum.setText(Integer.toString(getChannelIndex(channel)));
             holder.channelName.setText(channel.getDisplayName());
             if (mIsFav) {
                 holder.favImg.setImageResource(R.drawable.list_fav);
