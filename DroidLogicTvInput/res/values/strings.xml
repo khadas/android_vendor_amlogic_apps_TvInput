@@ -103,6 +103,7 @@
     <string name="news">news</string>
     <string name="movie">movie</string>
     <string name="pcm">pcm</string>
+    <string name="raw">raw</string>
     <string name="pal">PAL</string>
     <string name="ntsc">NTSC</string>
     <string name="sound_system_dk">D/K</string>

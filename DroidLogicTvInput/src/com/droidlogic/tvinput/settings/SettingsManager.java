@@ -106,6 +106,7 @@ public class SettingsManager {
     public static final String STATUS_STEREO                         = "stereo";
     public static final String STATUS_LEFT_CHANNEL                  = "left channel";
     public static final String STATUS_RIGHT_CHANNEL                 = "right channel";
+    public static final String STATUS_RAW                            = "raw";
 
     public static final String STATUS_DEFAULT_PERCENT               = "50%";
     public static final double STATUS_DEFAUT_FREQUENCY              = 44250000;
@@ -454,9 +455,9 @@ public class SettingsManager {
             return mResources.getString(R.string.off);
         int itemPosition = mTvControlManager.GetCurAudioSPDIFMode();
         if (itemPosition == 0)
-            return mResources.getString(R.string.auto);
-        else if (itemPosition == 1)
             return mResources.getString(R.string.pcm);
+        else if (itemPosition == 1)
+            return mResources.getString(R.string.raw);
         else
             return null;
     }
@@ -1078,12 +1079,12 @@ public class SettingsManager {
         if (mode.equals(STATUS_OFF)) {
             mTvControlManager.SetAudioSPDIFSwitch(0);
             mTvControlManager.SaveCurAudioSPDIFSwitch(0);
-        } else if (mode.equals(STATUS_AUTO)) {
+        } else if (mode.equals(STATUS_PCM)) {
             mTvControlManager.SetAudioSPDIFSwitch(1);
             mTvControlManager.SaveCurAudioSPDIFSwitch(1);
             mTvControlManager.SetAudioSPDIFMode(0);
             mTvControlManager.SaveCurAudioSPDIFMode(0);
-        } else if (mode.equals(STATUS_PCM)) {
+        } else if (mode.equals(STATUS_RAW)) {
             mTvControlManager.SetAudioSPDIFSwitch(1);
             mTvControlManager.SaveCurAudioSPDIFSwitch(1);
             mTvControlManager.SetAudioSPDIFMode(1);

@@ -521,11 +521,11 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             case R.id.spdif_off:
                 mSettingsManager.setSpdif(SettingsManager.STATUS_OFF);
                 break;
-            case R.id.spdif_auto:
-                mSettingsManager.setSpdif(SettingsManager.STATUS_AUTO);
-                break;
             case R.id.spdif_pcm:
                 mSettingsManager.setSpdif(SettingsManager.STATUS_PCM);
+                break;
+            case R.id.spdif_raw:
+                mSettingsManager.setSpdif(SettingsManager.STATUS_RAW);
                 break;
             // Surround
             case R.id.surround_on:
@@ -746,8 +746,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             case OPTION_SPDIF:
                 if (TextUtils.equals(mSettingsManager.getSpdifStatus(), mResources.getString(R.string.off))) {
                     setIcon(parent, R.id.spdif_off);
-                } else if (TextUtils.equals(mSettingsManager.getSpdifStatus(), mResources.getString(R.string.auto))) {
-                    setIcon(parent, R.id.spdif_auto);
+                } else if (TextUtils.equals(mSettingsManager.getSpdifStatus(), mResources.getString(R.string.raw))) {
+                    setIcon(parent, R.id.spdif_raw);
                 } else if (TextUtils.equals(mSettingsManager.getSpdifStatus(), mResources.getString(R.string.pcm))) {
                     setIcon(parent, R.id.spdif_pcm);
                 }
