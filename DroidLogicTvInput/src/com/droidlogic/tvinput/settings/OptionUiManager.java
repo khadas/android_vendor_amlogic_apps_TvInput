@@ -6,6 +6,7 @@ import android.graphics.drawable.Drawable;
 import android.media.tv.TvContract.Channels;
 import android.os.PowerManager;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
@@ -660,168 +661,168 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         switch (optionTag) {
         // picture
             case OPTION_PICTURE_MODE:
-                if (mSettingsManager.getPictureModeStatus().equals(mResources.getString(R.string.standard))) {
+                if (TextUtils.equals(mSettingsManager.getPictureModeStatus(), mResources.getString(R.string.standard))) {
                     setIcon(parent, R.id.picture_mode_standard);
-                } else if (mSettingsManager.getPictureModeStatus().equals(mResources.getString(R.string.vivid))) {
+                } else if (TextUtils.equals(mSettingsManager.getPictureModeStatus(), mResources.getString(R.string.vivid))) {
                     setIcon(parent, R.id.picture_mode_vivid);
-                } else if (mSettingsManager.getPictureModeStatus().equals(mResources.getString(R.string.soft))) {
+                } else if (TextUtils.equals(mSettingsManager.getPictureModeStatus(), mResources.getString(R.string.soft))) {
                     setIcon(parent, R.id.picture_mode_soft);
-                } else if (mSettingsManager.getPictureModeStatus().equals(mResources.getString(R.string.user))) {
+                } else if (TextUtils.equals(mSettingsManager.getPictureModeStatus(), mResources.getString(R.string.user))) {
                     setIcon(parent, R.id.picture_mode_user);
                 }
                 break;
             case OPTION_COLOR_TEMPERATURE:
-                if (mSettingsManager.getColorTemperatureStatus().equals(mResources.getString(R.string.standard))) {
+                if (TextUtils.equals(mSettingsManager.getColorTemperatureStatus(), mResources.getString(R.string.standard))) {
                     setIcon(parent, R.id.color_temperature_standard);
-                } else if (mSettingsManager.getColorTemperatureStatus().equals(mResources.getString(R.string.warm))) {
+                } else if (TextUtils.equals(mSettingsManager.getColorTemperatureStatus(), mResources.getString(R.string.warm))) {
                     setIcon(parent, R.id.color_temperature_warm);
-                } else if (mSettingsManager.getColorTemperatureStatus().equals(mResources.getString(R.string.cool))) {
+                } else if (TextUtils.equals(mSettingsManager.getColorTemperatureStatus(), mResources.getString(R.string.cool))) {
                     setIcon(parent, R.id.color_temperature_cool);
                 }
                 break;
             case OPTION_ASPECT_RATIO:
-                if (mSettingsManager.getAspectRatioStatus().equals(mResources.getString(R.string.full_screen))) {
+                if (TextUtils.equals(mSettingsManager.getAspectRatioStatus(), mResources.getString(R.string.full_screen))) {
                     setIcon(parent, R.id.apect_ratio_full_screen);
-                } else if (mSettingsManager.getAspectRatioStatus().equals(mResources.getString(R.string.four2three))) {
+                } else if (TextUtils.equals(mSettingsManager.getAspectRatioStatus(), mResources.getString(R.string.four2three))) {
                     setIcon(parent, R.id.apect_ratio_four2three);
-                } else if (mSettingsManager.getAspectRatioStatus().equals(mResources.getString(R.string.auto))) {
+                } else if (TextUtils.equals(mSettingsManager.getAspectRatioStatus(), mResources.getString(R.string.auto))) {
                     setIcon(parent, R.id.apect_ratio_auto);
-                } else if (mSettingsManager.getAspectRatioStatus().equals(mResources.getString(R.string.panorama))) {
+                } else if (TextUtils.equals(mSettingsManager.getAspectRatioStatus(), mResources.getString(R.string.panorama))) {
                     setIcon(parent, R.id.apect_ratio_panorama);
                 }
                 break;
             case OPTION_DNR:
-                if (mSettingsManager.getDnrStatus().equals(mResources.getString(R.string.off))) {
+                if (TextUtils.equals(mSettingsManager.getDnrStatus(), mResources.getString(R.string.off))) {
                     setIcon(parent, R.id.dnr_off);
-                } else if (mSettingsManager.getDnrStatus().equals(mResources.getString(R.string.low))) {
+                } else if (TextUtils.equals(mSettingsManager.getDnrStatus(), mResources.getString(R.string.low))) {
                     setIcon(parent, R.id.dnr_low);
-                } else if (mSettingsManager.getDnrStatus().equals(mResources.getString(R.string.medium))) {
+                } else if (TextUtils.equals(mSettingsManager.getDnrStatus(), mResources.getString(R.string.medium))) {
                     setIcon(parent, R.id.dnr_medium);
-                } else if (mSettingsManager.getDnrStatus().equals(mResources.getString(R.string.high))) {
+                } else if (TextUtils.equals(mSettingsManager.getDnrStatus(), mResources.getString(R.string.high))) {
                     setIcon(parent, R.id.dnr_high);
-                } else if (mSettingsManager.getDnrStatus().equals(mResources.getString(R.string.auto))) {
+                } else if (TextUtils.equals(mSettingsManager.getDnrStatus(), mResources.getString(R.string.auto))) {
                     setIcon(parent, R.id.dnr_auto);
                 }
                 break;
                 // sound
             case OPTION_SOUND_MODE:
-                if (mSettingsManager.getSoundModeStatus().equals(mResources.getString(R.string.standard))) {
+                if (TextUtils.equals(mSettingsManager.getSoundModeStatus(), mResources.getString(R.string.standard))) {
                     setIcon(parent, R.id.sound_mode_standard);
-                } else if (mSettingsManager.getSoundModeStatus().equals(mResources.getString(R.string.music))) {
+                } else if (TextUtils.equals(mSettingsManager.getSoundModeStatus(), mResources.getString(R.string.music))) {
                     setIcon(parent, R.id.sound_mode_music);
-                } else if (mSettingsManager.getSoundModeStatus().equals(mResources.getString(R.string.news))) {
+                } else if (TextUtils.equals(mSettingsManager.getSoundModeStatus(), mResources.getString(R.string.news))) {
                     setIcon(parent, R.id.sound_mode_news);
-                } else if (mSettingsManager.getSoundModeStatus().equals(mResources.getString(R.string.movie))) {
+                } else if (TextUtils.equals(mSettingsManager.getSoundModeStatus(), mResources.getString(R.string.movie))) {
                     setIcon(parent, R.id.sound_mode_movie);
-                } else if (mSettingsManager.getSoundModeStatus().equals(mResources.getString(R.string.user))) {
+                } else if (TextUtils.equals(mSettingsManager.getSoundModeStatus(), mResources.getString(R.string.user))) {
                     setIcon(parent, R.id.sound_mode_user);
                 }
                 break;
             case OPTION_SPDIF:
-                if (mSettingsManager.getSpdifStatus().equals(mResources.getString(R.string.off))) {
+                if (TextUtils.equals(mSettingsManager.getSpdifStatus(), mResources.getString(R.string.off))) {
                     setIcon(parent, R.id.spdif_off);
-                } else if (mSettingsManager.getSpdifStatus().equals(mResources.getString(R.string.auto))) {
+                } else if (TextUtils.equals(mSettingsManager.getSpdifStatus(), mResources.getString(R.string.auto))) {
                     setIcon(parent, R.id.spdif_auto);
-                } else if (mSettingsManager.getSpdifStatus().equals(mResources.getString(R.string.pcm))) {
+                } else if (TextUtils.equals(mSettingsManager.getSpdifStatus(), mResources.getString(R.string.pcm))) {
                     setIcon(parent, R.id.spdif_pcm);
                 }
                 break;
             case OPTION_SURROUND:
-                if (mSettingsManager.getSurroundStatus().equals(mResources.getString(R.string.off))) {
+                if (TextUtils.equals(mSettingsManager.getSurroundStatus(), mResources.getString(R.string.off))) {
                     setIcon(parent, R.id.surround_off);
-                } else if (mSettingsManager.getSurroundStatus().equals(mResources.getString(R.string.on))) {
+                } else if (TextUtils.equals(mSettingsManager.getSurroundStatus(), mResources.getString(R.string.on))) {
                     setIcon(parent, R.id.surround_on);
                 }
                 break;
             case OPTION_DIALOG_CLARITY:
-                if (mSettingsManager.getDialogClarityStatus().equals(mResources.getString(R.string.off))) {
+                if (TextUtils.equals(mSettingsManager.getDialogClarityStatus(), mResources.getString(R.string.off))) {
                     setIcon(parent, R.id.dialog_clarity_off);
-                } else if (mSettingsManager.getDialogClarityStatus().equals(mResources.getString(R.string.on))) {
+                } else if (TextUtils.equals(mSettingsManager.getDialogClarityStatus(), mResources.getString(R.string.on))) {
                     setIcon(parent, R.id.dialog_clarity_on);
                 }
                 break;
             case OPTION_BASS_BOOST:
-                if (mSettingsManager.getBassBoostStatus().equals(mResources.getString(R.string.off))) {
+                if (TextUtils.equals(mSettingsManager.getBassBoostStatus(), mResources.getString(R.string.off))) {
                     setIcon(parent, R.id.bass_boost_off);
-                } else if (mSettingsManager.getBassBoostStatus().equals(mResources.getString(R.string.on))) {
+                } else if (TextUtils.equals(mSettingsManager.getBassBoostStatus(), mResources.getString(R.string.on))) {
                     setIcon(parent, R.id.bass_boost_on);
                 }
                 break;
                 // channel
             case OPTION_SOUND_CHANNEL:
-                if (mSettingsManager.getSoundChannelStatus().equals(mResources.getString(R.string.stereo))) {
+                if (TextUtils.equals(mSettingsManager.getSoundChannelStatus(), mResources.getString(R.string.stereo))) {
                     setIcon(parent, R.id.sound_channel_stereo);
-                } else if (mSettingsManager.getSoundChannelStatus().equals(mResources.getString(R.string.left_channel))) {
+                } else if (TextUtils.equals(mSettingsManager.getSoundChannelStatus(), mResources.getString(R.string.left_channel))) {
                     setIcon(parent, R.id.sound_channel_left_channel);
-                } else if (mSettingsManager.getSoundChannelStatus().equals(mResources.getString(R.string.right_channel))) {
+                } else if (TextUtils.equals(mSettingsManager.getSoundChannelStatus(), mResources.getString(R.string.right_channel))) {
                     setIcon(parent, R.id.sound_channel_right_channel);
                 }
                 break;
             case OPTION_COLOR_SYSTEM:
-                if (mSettingsManager.getColorSystemStatus().equals(mResources.getString(R.string.pal))) {
+                if (TextUtils.equals(mSettingsManager.getColorSystemStatus(), mResources.getString(R.string.pal))) {
                     setIcon(parent, R.id.color_system_pal);
-                } else if (mSettingsManager.getColorSystemStatus().equals(mResources.getString(R.string.ntsc))) {
+                } else if (TextUtils.equals(mSettingsManager.getColorSystemStatus(), mResources.getString(R.string.ntsc))) {
                     setIcon(parent, R.id.color_system_ntsc);
                 }
                 break;
             case OPTION_SOUND_SYSTEM:
-               if (mSettingsManager.getSoundSystemStatus().equals(mResources.getString(R.string.sound_system_dk))) {
+               if (TextUtils.equals(mSettingsManager.getSoundSystemStatus(), mResources.getString(R.string.sound_system_dk))) {
                     setIcon(parent, R.id.sound_system_dk);
-                } else if (mSettingsManager.getSoundSystemStatus().equals(mResources.getString(R.string.sound_system_i))) {
+                } else if (TextUtils.equals(mSettingsManager.getSoundSystemStatus(), mResources.getString(R.string.sound_system_i))) {
                     setIcon(parent, R.id.sound_system_i);
-                } else if (mSettingsManager.getSoundSystemStatus().equals(mResources.getString(R.string.sound_system_bg))) {
+                } else if (TextUtils.equals(mSettingsManager.getSoundSystemStatus(), mResources.getString(R.string.sound_system_bg))) {
                     setIcon(parent, R.id.sound_system_bg);
-                } else if (mSettingsManager.getSoundSystemStatus().equals(mResources.getString(R.string.sound_system_m))) {
+                } else if (TextUtils.equals(mSettingsManager.getSoundSystemStatus(), mResources.getString(R.string.sound_system_m))) {
                     setIcon(parent, R.id.sound_system_m);
                 }
                 break;
             case OPTION_SWITCH_CHANNEL:
-                if (mSettingsManager.getSwitchChannelStatus().equals(mResources.getString(R.string.static_frame))) {
+                if (TextUtils.equals(mSettingsManager.getSwitchChannelStatus(), mResources.getString(R.string.static_frame))) {
                     setIcon(parent, R.id.switch_channel_static_frame);
-                } else if (mSettingsManager.getSwitchChannelStatus().equals(mResources.getString(R.string.black_frame))) {
+                } else if (TextUtils.equals(mSettingsManager.getSwitchChannelStatus(), mResources.getString(R.string.black_frame))) {
                     setIcon(parent, R.id.switch_channel_black_frame);
                 }
                 break;
                 // settings
             case OPTION_SLEEP_TIMER:
-               if (mSettingsManager.getSleepTimerStatus().equals(mResources.getString(R.string.off))) {
+               if (TextUtils.equals(mSettingsManager.getSleepTimerStatus(), mResources.getString(R.string.off))) {
                     setIcon(parent, R.id.sleep_timer_off);
-                } else if (mSettingsManager.getSleepTimerStatus().equals(mResources.getString(R.string.time_15min))) {
+                } else if (TextUtils.equals(mSettingsManager.getSleepTimerStatus(), mResources.getString(R.string.time_15min))) {
                     setIcon(parent, R.id.sleep_timer_15min);
-                } else if (mSettingsManager.getSleepTimerStatus().equals(mResources.getString(R.string.time_30min))) {
+                } else if (TextUtils.equals(mSettingsManager.getSleepTimerStatus(), mResources.getString(R.string.time_30min))) {
                     setIcon(parent, R.id.sleep_timer_30min);
-                } else if (mSettingsManager.getSleepTimerStatus().equals(mResources.getString(R.string.time_45min))) {
+                } else if (TextUtils.equals(mSettingsManager.getSleepTimerStatus(), mResources.getString(R.string.time_45min))) {
                     setIcon(parent, R.id.sleep_timer_45min);
-                } else if (mSettingsManager.getSleepTimerStatus().equals(mResources.getString(R.string.time_60min))) {
+                } else if (TextUtils.equals(mSettingsManager.getSleepTimerStatus(), mResources.getString(R.string.time_60min))) {
                     setIcon(parent, R.id.sleep_timer_60min);
-                } else if (mSettingsManager.getSleepTimerStatus().equals(mResources.getString(R.string.time_90min))) {
+                } else if (TextUtils.equals(mSettingsManager.getSleepTimerStatus(), mResources.getString(R.string.time_90min))) {
                     setIcon(parent, R.id.sleep_timer_90min);
-                } else if (mSettingsManager.getSleepTimerStatus().equals(mResources.getString(R.string.time_120min))) {
+                } else if (TextUtils.equals(mSettingsManager.getSleepTimerStatus(), mResources.getString(R.string.time_120min))) {
                     setIcon(parent, R.id.sleep_timer_120min);
                 }
                 break;
             case OPTION_MENU_TIME:
-               if (mSettingsManager.getMenuTimeStatus().equals(mResources.getString(R.string.time_10s))) {
+               if (TextUtils.equals(mSettingsManager.getMenuTimeStatus(), mResources.getString(R.string.time_10s))) {
                     setIcon(parent, R.id.menu_time_10s);
-                } else if (mSettingsManager.getMenuTimeStatus().equals(mResources.getString(R.string.time_20s))) {
+                } else if (TextUtils.equals(mSettingsManager.getMenuTimeStatus(), mResources.getString(R.string.time_20s))) {
                     setIcon(parent, R.id.menu_time_20s);
-                } else if (mSettingsManager.getMenuTimeStatus().equals(mResources.getString(R.string.time_40s))) {
+                } else if (TextUtils.equals(mSettingsManager.getMenuTimeStatus(), mResources.getString(R.string.time_40s))) {
                     setIcon(parent, R.id.menu_time_40s);
-                } else if (mSettingsManager.getMenuTimeStatus().equals(mResources.getString(R.string.time_60s))) {
+                } else if (TextUtils.equals(mSettingsManager.getMenuTimeStatus(), mResources.getString(R.string.time_60s))) {
                     setIcon(parent, R.id.menu_time_60s);
                 }
                 break;
             case OPTION_STARTUP_SETTING:
-               if (mSettingsManager.getStartupSettingStatus().equals(mResources.getString(R.string.launcher))) {
+               if (TextUtils.equals(mSettingsManager.getStartupSettingStatus(), mResources.getString(R.string.launcher))) {
                     setIcon(parent, R.id.startup_setting_launcher);
-                } else if (mSettingsManager.getStartupSettingStatus().equals(mResources.getString(R.string.tv))) {
+                } else if (TextUtils.equals(mSettingsManager.getStartupSettingStatus(), mResources.getString(R.string.tv))) {
                     setIcon(parent, R.id.startup_setting_tv);
                 }
                 break;
             case OPTION_DYNAMIC_BACKLIGHT:
-               if (mSettingsManager.getDynamicBacklightStatus().equals(mResources.getString(R.string.off))) {
+               if (TextUtils.equals(mSettingsManager.getDynamicBacklightStatus(), mResources.getString(R.string.off))) {
                     setIcon(parent, R.id.dynamic_backlight_off);
-                } else if (mSettingsManager.getDynamicBacklightStatus().equals(mResources.getString(R.string.on))) {
+                } else if (TextUtils.equals(mSettingsManager.getDynamicBacklightStatus(), mResources.getString(R.string.on))) {
                     setIcon(parent, R.id.dynamic_backlight_on);
                 }
                 break;
