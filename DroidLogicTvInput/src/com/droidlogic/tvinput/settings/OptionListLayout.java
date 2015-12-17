@@ -56,13 +56,6 @@ public class OptionListLayout implements OnItemClickListener{
                     R.layout.layout_option_single_text,
                     new String[]{SettingsManager.STRING_NAME}, new int[]{R.id.text_name});
                 break;
-            case OptionUiManager.OPTION_SOUND_CHANNEL:
-                title.setText(mContext.getResources().getString(R.string.sound_channel));
-                optionListData = ((TvSettingsActivity)mContext).getSettingsManager().getSoundChannelList();
-                optionAdapter = new SimpleAdapter(mContext, optionListData,
-                    R.layout.layout_option_single_text,
-                    new String[]{SettingsManager.STRING_NAME}, new int[]{R.id.text_name});
-                break;
             case OptionUiManager.OPTION_DEFAULT_LANGUAGE:
                 title.setText(mContext.getResources().getString(R.string.defalut_lan));
                 optionListData = ((TvSettingsActivity)mContext).getSettingsManager().getDefaultLanguageList();

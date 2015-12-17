@@ -151,7 +151,6 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
             mOptionUiManager.setOptionListener(view);
             if (mOptionUiManager.getOptionTag() == OptionUiManager.OPTION_CHANNEL_INFO
                 || mOptionUiManager.getOptionTag() == OptionUiManager.OPTION_AUDIO_TRACK
-                || mOptionUiManager.getOptionTag() == OptionUiManager.OPTION_SOUND_CHANNEL
                 || mOptionUiManager.getOptionTag() == OptionUiManager.OPTION_DEFAULT_LANGUAGE) {
                 OptionListLayout optionListLayout = new OptionListLayout(mContext, view, mOptionUiManager.getOptionTag());
             } else if (mOptionUiManager.getOptionTag() == OptionUiManager.OPTION_CHANNEL_EDIT) {

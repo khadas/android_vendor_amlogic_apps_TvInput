@@ -636,7 +636,7 @@ public class SettingsManager {
         return ret;
     }
 
-    private String getSubtitleSwitchStatus () {
+    public String getSubtitleSwitchStatus () {
         int switchVal = Settings.System.getInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_SUBTITLE_SWITCH, 0);
         switch (switchVal) {
             case 0:

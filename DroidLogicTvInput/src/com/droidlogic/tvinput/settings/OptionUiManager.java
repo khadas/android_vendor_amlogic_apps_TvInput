@@ -774,6 +774,22 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 }
                 break;
                 // channel
+                /*
+            case OPTION_DEFAULT_LANGUAGE:
+                if (TextUtils.equals(mSettingsManager.getDefaultLanStatus(), mResources.getString(R.string.on))) {
+                     setIcon(parent, R.id.sub_on);
+                 } else if (TextUtils.equals(mSettingsManager.getStartupSettingStatus(), mResources.getString(R.string.off))) {
+                     setIcon(parent, R.id.sub_off);
+                 }
+                 break;
+                 */
+            case OPTION_SUBTITLE_SWITCH:
+                if (TextUtils.equals(mSettingsManager.getSubtitleSwitchStatus(), mResources.getString(R.string.on))) {
+                     setIcon(parent, R.id.sub_on);
+                 } else if (TextUtils.equals(mSettingsManager.getSubtitleSwitchStatus(), mResources.getString(R.string.off))) {
+                     setIcon(parent, R.id.sub_off);
+                 }
+                 break;
             case OPTION_SOUND_CHANNEL:
                 if (TextUtils.equals(mSettingsManager.getSoundChannelStatus(), mResources.getString(R.string.stereo))) {
                     setIcon(parent, R.id.sound_channel_stereo);
