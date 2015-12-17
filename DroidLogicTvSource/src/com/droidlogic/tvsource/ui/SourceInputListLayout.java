@@ -100,6 +100,7 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
             if (mMaxHardwareNumber == 0) {
                 mRoot.addView(sb, 1);
                 mMaxHardwareNumber++;
+                sb.setOnSourceClickListener(this);
             } else {
                 int lo = 1;
                 int hi = mMaxHardwareNumber;
@@ -113,6 +114,7 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
                     } else if (temp_id > sb.getDeviceId()) {
                         hi = mid - 1;
                     } else {
+                        sb = null;
                         break;
                     }
                 }
@@ -151,6 +153,7 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
                 if (mMaxHardwareNumber == 0) {
                     mRoot.addView(sb, 1);
                     mMaxHardwareNumber++;
+                    sb.setOnSourceClickListener(this);
                 } else {
                     int lo = 1;
                     int hi = mMaxHardwareNumber;
@@ -164,6 +167,7 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
                         } else if (temp_id > sb.getDeviceId()) {
                             hi = mid - 1;
                         } else {
+                            sb = null;
                             break;
                         }
                     }
