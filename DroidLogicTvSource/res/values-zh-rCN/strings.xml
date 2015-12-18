@@ -9,6 +9,11 @@
     <string name="tab_dtv_video">电视</string>
     <string name="tab_dtv_radio">广播</string>
 
+    <string name="audio_track">音轨</string>
+    <string name="subtitle">字幕</string>
+    <string name="no">无</string>
+    <string name="off">关闭</string>
+
     <!-- for time suspend ui -->
     <string name="suspend_dialog_title">待机倒计时</string>
 	  <string name="cancel_suspend">取消倒计时</string>

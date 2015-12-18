@@ -567,7 +567,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             if (sTrackList != null && sTrackList.size() != 0) {
                 String subtitleTrackId = mSourceView.getSelectedTrack(TvTrackInfo.TYPE_SUBTITLE);
                 if (!isToastShow && subtitleTrackId == null) {
-                    showCustomToast("Subtitle Track", "off");
+                    showCustomToast(getResources().getString(R.string.subtitle), getResources().getString(R.string.off));
                     return;
                 }
 
@@ -584,22 +584,22 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                         sTrackIndex = 0;
                     if (sTrackIndex == 0) {
                         mSourceView.selectTrack(TvTrackInfo.TYPE_SUBTITLE, sTrackList.get(sTrackIndex).getId());
-                        showCustomToast("Subtitle Track", sTrackList.get(sTrackIndex).getLanguage());
+                        showCustomToast(getResources().getString(R.string.subtitle), sTrackList.get(sTrackIndex).getLanguage());
                         return;
                     }
                     if (sTrackIndex == sTrackList.size()) {
                         mSourceView.selectTrack(TvTrackInfo.TYPE_SUBTITLE, null);
-                        showCustomToast("Subtitle Track", "off");
+                        showCustomToast(getResources().getString(R.string.subtitle), getResources().getString(R.string.off));
                         return;
                     }
                     mSourceView.selectTrack(TvTrackInfo.TYPE_SUBTITLE, sTrackList.get(sTrackIndex).getId());
-                    showCustomToast("Subtitle Track", sTrackList.get(sTrackIndex).getLanguage());
+                    showCustomToast(getResources().getString(R.string.subtitle), sTrackList.get(sTrackIndex).getLanguage());
                 } else {
-                    showCustomToast("Subtitle Track", sTrackList.get(sTrackIndex).getLanguage());
+                    showCustomToast(getResources().getString(R.string.subtitle), sTrackList.get(sTrackIndex).getLanguage());
                 }
             }
             else
-                showCustomToast("Subtitle Track", "noTrack");
+                showCustomToast(getResources().getString(R.string.subtitle), getResources().getString(R.string.no));
         } else if (type == TvTrackInfo.TYPE_AUDIO) {
             String audioTrackId = mSourceView.getSelectedTrack(TvTrackInfo.TYPE_AUDIO);
             if (audioTrackId != null) {
@@ -614,10 +614,10 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     aTrackIndex = (aTrackIndex + 1) % aTrackList.size();
                     mSourceView.selectTrack(TvTrackInfo.TYPE_AUDIO, aTrackList.get(aTrackIndex).getId());
                 }
-                showCustomToast("Audio Track", aTrackList.get(aTrackIndex).getLanguage());
+                showCustomToast(getResources().getString(R.string.audio_track), aTrackList.get(aTrackIndex).getLanguage());
             }
             else
-                showCustomToast("Audio Track", "noTrack");
+                showCustomToast(getResources().getString(R.string.audio_track), getResources().getString(R.string.no));
         }
     }
 
