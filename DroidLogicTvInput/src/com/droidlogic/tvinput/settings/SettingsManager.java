@@ -1053,17 +1053,37 @@ public class SettingsManager {
 
     public void setTreble (int step) {
         int treble_value = mTvControlManager.GetCurAudioTrebleVolume() + step;
+
+        int bass_value = -1;
+        if (mTvControlManager.GetCurAudioSoundMode() != 4)
+            bass_value = mTvControlManager.GetCurAudioBassVolume();
+
         if (treble_value >= 0 && treble_value <= 100) {
             mTvControlManager.SetAudioTrebleVolume(treble_value);
             mTvControlManager.SaveCurAudioTrebleVolume(treble_value);
+        }
+
+        if (bass_value != -1) {
+            mTvControlManager.SetAudioBassVolume(bass_value);
+            mTvControlManager.SaveCurAudioBassVolume(bass_value);
         }
     }
 
     public void setBass (int step) {
         int bass_value = mTvControlManager.GetCurAudioBassVolume() + step;
+
+        int treble_value = -1;
+        if (mTvControlManager.GetCurAudioSoundMode() != 4)
+            treble_value = mTvControlManager.GetCurAudioTrebleVolume();
+
         if (bass_value >= 0 && bass_value <= 100) {
             mTvControlManager.SetAudioBassVolume(bass_value);
             mTvControlManager.SaveCurAudioBassVolume(bass_value);
+        }
+
+        if (treble_value != -1) {
+            mTvControlManager.SetAudioTrebleVolume(treble_value);
+            mTvControlManager.SaveCurAudioTrebleVolume(treble_value);
         }
     }
 
