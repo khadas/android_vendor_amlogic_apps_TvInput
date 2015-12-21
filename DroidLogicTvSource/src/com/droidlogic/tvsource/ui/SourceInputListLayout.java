@@ -51,11 +51,11 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
     }
 
     public int stateChange(String inputId, int state) {
-        return INPUT_NEED_RESET;
+        return ACTION_FAILED;
     }
 
     public int update(String inputId) {
-        return INPUT_NEED_RESET;
+        return ACTION_FAILED;
     }
 
     public int remove(String inputId) {
