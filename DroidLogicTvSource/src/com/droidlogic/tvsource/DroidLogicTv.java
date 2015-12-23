@@ -1035,56 +1035,72 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         public void onInputAdded(String inputId) {
             Utils.logd(TAG, "==== onInputAdded, inputId=" + inputId);
             int input_need_reset = mSourceMenuLayout.add(inputId);
-            if (mSourceInput != null
-                    && TextUtils.equals(mSourceInput.getInputId(),
-                            mSourceMenuLayout.getCurSourceInput().getInputId()))
+            Utils.logd(TAG, "==== input_need_reset=" + input_need_reset);
+            if (input_need_reset == SourceInputListLayout.ACTION_FAILED)
                 return;
-            preSwitchSourceInput();
-            mSourceInput = mSourceMenuLayout.getCurSourceInput();
+
             if (mSourceMenuLayout.getVisibility() == View.VISIBLE) {
                 showUi(Utils.UI_TYPE_SOURCE_LIST, true);
             }
-            if (input_need_reset == SourceInputListLayout.INPUT_NEED_RESET)
+            if (input_need_reset == SourceInputListLayout.INPUT_NEED_RESET) {
+                preSwitchSourceInput();
+                mSourceInput = mSourceMenuLayout.getCurSourceInput();
                 startPlay();
+            }
         }
 
         @Override
         public void onInputRemoved(String inputId) {
             Utils.logd(TAG, "==== onInputRemoved, inputId=" + inputId);
             int input_need_reset = mSourceMenuLayout.remove(inputId);
-            preSwitchSourceInput();
-            mSourceInput = mSourceMenuLayout.getCurSourceInput();
+            Utils.logd(TAG, "==== input_need_reset=" + input_need_reset);
+            if (input_need_reset == SourceInputListLayout.ACTION_FAILED)
+                return;
+
             if (mSourceMenuLayout.getVisibility() == View.VISIBLE) {
                 showUi(Utils.UI_TYPE_SOURCE_LIST, true);
             }
-            if (input_need_reset == SourceInputListLayout.INPUT_NEED_RESET)
+            if (input_need_reset == SourceInputListLayout.INPUT_NEED_RESET) {
+                preSwitchSourceInput();
+                mSourceInput = mSourceMenuLayout.getCurSourceInput();
                 startPlay();
+            }
         }
 
         @Override
         public void onInputStateChanged(String inputId, int state) {
             Utils.logd(TAG, "==== onInputStateChanged, inputId=" + inputId + ", state=" + state);
             int input_need_reset =  mSourceMenuLayout.stateChange(inputId, state);
-            preSwitchSourceInput();
-            mSourceInput = mSourceMenuLayout.getCurSourceInput();
+            Utils.logd(TAG, "==== input_need_reset=" + input_need_reset);
+            if (input_need_reset == SourceInputListLayout.ACTION_FAILED)
+                return;
+
             if (mSourceMenuLayout.getVisibility() == View.VISIBLE) {
                 showUi(Utils.UI_TYPE_SOURCE_LIST, true);
             }
-            if (input_need_reset == SourceInputListLayout.INPUT_NEED_RESET)
+            if (input_need_reset == SourceInputListLayout.INPUT_NEED_RESET) {
+                preSwitchSourceInput();
+                mSourceInput = mSourceMenuLayout.getCurSourceInput();
                 startPlay();
+            }
         }
 
         @Override
         public void onInputUpdated(String inputId) {
             Utils.logd(TAG, "==== onInputUpdated, inputId=" + inputId);
             int input_need_reset =  mSourceMenuLayout.update(inputId);
-            preSwitchSourceInput();
-            mSourceInput = mSourceMenuLayout.getCurSourceInput();
+            Utils.logd(TAG, "==== input_need_reset=" + input_need_reset);
+            if (input_need_reset == SourceInputListLayout.ACTION_FAILED)
+                return;
+
             if (mSourceMenuLayout.getVisibility() == View.VISIBLE) {
                 showUi(Utils.UI_TYPE_SOURCE_LIST, true);
             }
-            if (input_need_reset == SourceInputListLayout.INPUT_NEED_RESET)
+            if (input_need_reset == SourceInputListLayout.INPUT_NEED_RESET) {
+                preSwitchSourceInput();
+                mSourceInput = mSourceMenuLayout.getCurSourceInput();
                 startPlay();
+            }
         }
     }
 
