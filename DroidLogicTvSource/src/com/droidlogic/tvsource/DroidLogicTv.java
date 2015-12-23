@@ -455,10 +455,10 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         }
 
         switch (keyCode) {
-            case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_SOURCE_LIST:
+            case KeyEvent.KEYCODE_TV_INPUT:
                 showUi(Utils.UI_TYPE_SOURCE_LIST, false);
                 return true;
-            case DroidLogicKeyEvent.KEYCODE_MENU://show setup activity
+            case KeyEvent.KEYCODE_MENU://show setup activity
                 showUi(Utils.UI_TYPE_ALL_HIDE, false);
                 mCurrentKeyType = IS_KEY_OTHER;
                 isMenuShowing = true;
@@ -474,12 +474,12 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 mCurrentKeyType = IS_KEY_OTHER;
                 startSettingActivity(keyCode);
                 return true;
-            case DroidLogicKeyEvent.KEYCODE_MEDIA_AUDIO_CONTROL:
+            case KeyEvent.KEYCODE_MEDIA_AUDIO_TRACK:
                 if (mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_DTV) {
                     doTrackKey(TvTrackInfo.TYPE_AUDIO);
                 }
                 return true;
-            case DroidLogicKeyEvent.KEYCODE_TV_SUBTITLE:
+            case KeyEvent.KEYCODE_CAPTIONS:
                 if (mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_DTV) {
                     doTrackKey(TvTrackInfo.TYPE_SUBTITLE);
                 }
@@ -496,10 +496,10 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 else if (mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_DTV)
                     showUi(Utils.UI_TYPE_DTV_CHANNEL_LIST, false);
                 return true;
-            case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_TVINFO:
+            case KeyEvent.KEYCODE_INFO:
                 showUi(Utils.UI_TYPE_SOURCE_INFO, false);
                 return true;
-            case DroidLogicKeyEvent.KEYCODE_BACK:
+            case KeyEvent.KEYCODE_BACK:
                 switch (mUiType ) {
                     case Utils.UI_TYPE_SOURCE_LIST:
                     case Utils.UI_TYPE_ATV_CHANNEL_LIST:
@@ -510,33 +510,33 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     break;
                 }
                 return true;
-            case DroidLogicKeyEvent.KEYCODE_CHANNEL_UP:
+            case KeyEvent.KEYCODE_CHANNEL_UP:
                 if (event.getRepeatCount() == 0) {
                     processKeyInputChannel(1);
                 } else {
                     processkeyLongPressChannel(event.getRepeatCount() + 1);
                 }
                 return true;
-            case DroidLogicKeyEvent.KEYCODE_CHANNEL_DOWN:
+            case KeyEvent.KEYCODE_CHANNEL_DOWN:
                 if (event.getRepeatCount() == 0) {
                     processKeyInputChannel(-1);
                 } else {
                     processkeyLongPressChannel(-(event.getRepeatCount() + 1));
                 }
                 return true;
-            case DroidLogicKeyEvent.KEYCODE_ALT_RIGHT://look back key
+            case KeyEvent.KEYCODE_LAST_CHANNEL:
                 processKeyLookBack();
                 return true;
-            case DroidLogicKeyEvent.KEYCODE_0:
-            case DroidLogicKeyEvent.KEYCODE_1:
-            case DroidLogicKeyEvent.KEYCODE_2:
-            case DroidLogicKeyEvent.KEYCODE_3:
-            case DroidLogicKeyEvent.KEYCODE_4:
-            case DroidLogicKeyEvent.KEYCODE_5:
-            case DroidLogicKeyEvent.KEYCODE_6:
-            case DroidLogicKeyEvent.KEYCODE_7:
-            case DroidLogicKeyEvent.KEYCODE_8:
-            case DroidLogicKeyEvent.KEYCODE_9:
+            case KeyEvent.KEYCODE_0:
+            case KeyEvent.KEYCODE_1:
+            case KeyEvent.KEYCODE_2:
+            case KeyEvent.KEYCODE_3:
+            case KeyEvent.KEYCODE_4:
+            case KeyEvent.KEYCODE_5:
+            case KeyEvent.KEYCODE_6:
+            case KeyEvent.KEYCODE_7:
+            case KeyEvent.KEYCODE_8:
+            case KeyEvent.KEYCODE_9:
                 processNumberInputChannel(keyCode);
                 break;
             case KeyEvent.KEYCODE_VOLUME_UP:
