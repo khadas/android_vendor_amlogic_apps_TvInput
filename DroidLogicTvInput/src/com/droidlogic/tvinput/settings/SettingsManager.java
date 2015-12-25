@@ -28,6 +28,7 @@ import com.droidlogic.app.tv.TvControlManager;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.app.tv.TVMultilingualText;
 import com.droidlogic.tvinput.R;
+import com.droidlogic.tvinput.services.TimeSuspendService;
 
 public class SettingsManager {
     public static final String TAG = "SettingsManager";
@@ -1258,8 +1259,9 @@ public class SettingsManager {
 
     public void setSleepTimer (int mins) {
         SystemProperties.set("tv.sleep_timer", mins+"");
-        Intent intent = new Intent(DroidLogicTvUtils.ACTION_TIMEOUT_SUSPEND);
-        mContext.sendBroadcast(intent);//to tvapp
+        //Intent intent = new Intent(DroidLogicTvUtils.ACTION_TIMEOUT_SUSPEND);
+        //mContext.sendBroadcast(intent);//to tvapp
+        mContext.startService ( new Intent ( mContext, TimeSuspendService.class ) );
     }
 
     public void setMenuTime (int seconds) {
