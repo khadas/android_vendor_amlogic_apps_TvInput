@@ -3,8 +3,6 @@ package com.droidlogic.tvsource;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import com.droidlogic.app.DroidLogicKeyEvent;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
@@ -45,7 +43,6 @@ import android.os.Handler.Callback;
 import android.os.Message;
 import android.provider.Settings;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -79,6 +76,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private volatile int mNoSignalShutdownCount = -1;
     private TextView mTimePromptText = null;
 
+    //handler & message
     private Handler mHandler;
     private static final int MSG_UI_TIMEOUT              = 0;
     private static final int MSG_CHANNEL_NUM_SWITCH     = 1;
@@ -437,7 +435,12 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     }
 
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        boolean ret = processKeyEvent(event.getKeyCode(), event);
+        return ret ? ret : super.dispatchKeyEvent(event);
+    }
+
+    private boolean processKeyEvent(int keyCode, KeyEvent event) {
         Utils.logd(TAG, "====keycode =" + keyCode);
 
         if (mSignalState == SIGNAL_NOT_GOT)
@@ -454,11 +457,18 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             break;
         }
 
+        boolean down = event.getAction() == KeyEvent.ACTION_DOWN;
         switch (keyCode) {
             case KeyEvent.KEYCODE_TV_INPUT:
+                if (!down)
+                    return true;
+
                 showUi(Utils.UI_TYPE_SOURCE_LIST, false);
                 return true;
             case KeyEvent.KEYCODE_MENU://show setup activity
+                if (!down)
+                    return true;
+
                 showUi(Utils.UI_TYPE_ALL_HIDE, false);
                 mCurrentKeyType = IS_KEY_OTHER;
                 isMenuShowing = true;
@@ -470,36 +480,57 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_VOICEMODE:
             case DroidLogicKeyEvent.KEYCODE_TV_SLEEP:
             case DroidLogicKeyEvent.KEYCODE_GUIDE:
+                if (!down)
+                    return true;
+
                 showUi(Utils.UI_TYPE_ALL_HIDE, false);
                 mCurrentKeyType = IS_KEY_OTHER;
                 startSettingActivity(keyCode);
                 return true;
             case KeyEvent.KEYCODE_MEDIA_AUDIO_TRACK:
+                if (!down)
+                    return true;
+
                 if (mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_DTV) {
                     doTrackKey(TvTrackInfo.TYPE_AUDIO);
                 }
                 return true;
             case KeyEvent.KEYCODE_CAPTIONS:
+                if (!down)
+                    return true;
+
                 if (mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_DTV) {
                     doTrackKey(TvTrackInfo.TYPE_SUBTITLE);
                 }
                 return true;
             case DroidLogicKeyEvent.KEYCODE_FAV:
+                if (!down)
+                    return true;
+
                 if (mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_ATV)
                     showUi(Utils.UI_TYPE_ATV_FAV_LIST, false);
                 else if (mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_DTV)
                     showUi(Utils.UI_TYPE_DTV_FAV_LIST, false);
                 return true;
             case DroidLogicKeyEvent.KEYCODE_LIST:
+                if (!down)
+                    return true;
+
                 if (mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_ATV)
                     showUi(Utils.UI_TYPE_ATV_CHANNEL_LIST, false);
                 else if (mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_DTV)
                     showUi(Utils.UI_TYPE_DTV_CHANNEL_LIST, false);
                 return true;
             case KeyEvent.KEYCODE_INFO:
+                if (!down)
+                    return true;
+
                 showUi(Utils.UI_TYPE_SOURCE_INFO, false);
                 return true;
             case KeyEvent.KEYCODE_BACK:
+                if (!down)
+                    return true;
+
                 switch (mUiType ) {
                     case Utils.UI_TYPE_SOURCE_LIST:
                     case Utils.UI_TYPE_ATV_CHANNEL_LIST:
@@ -511,6 +542,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 }
                 return true;
             case KeyEvent.KEYCODE_CHANNEL_UP:
+                if (!down)
+                    return true;
+
                 if (event.getRepeatCount() == 0) {
                     processKeyInputChannel(1);
                 } else {
@@ -518,6 +552,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 }
                 return true;
             case KeyEvent.KEYCODE_CHANNEL_DOWN:
+                if (!down)
+                    return true;
+
                 if (event.getRepeatCount() == 0) {
                     processKeyInputChannel(-1);
                 } else {
@@ -525,6 +562,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 }
                 return true;
             case KeyEvent.KEYCODE_LAST_CHANNEL:
+                if (!down)
+                    return true;
+
                 processKeyLookBack();
                 return true;
             case KeyEvent.KEYCODE_0:
@@ -537,16 +577,25 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             case KeyEvent.KEYCODE_7:
             case KeyEvent.KEYCODE_8:
             case KeyEvent.KEYCODE_9:
+                if (!down)
+                    return true;
+
                 processNumberInputChannel(keyCode);
-                break;
+                return true;
             case KeyEvent.KEYCODE_VOLUME_UP:
             case KeyEvent.KEYCODE_VOLUME_DOWN:
+                if (!down)
+                    return true;
+
                 if (mAudioManager.isMasterMute()) {
                     mAudioManager.setMasterMute(false, AudioManager.FLAG_PLAY_SOUND);
                     showMuteIcon(false);
                 }
-                break;
+                return true;
             case KeyEvent.KEYCODE_VOLUME_MUTE:
+                if (!down)
+                    return true;
+
                 if (mAudioManager.isMasterMute()) {
                     mAudioManager.setMasterMute(false, AudioManager.FLAG_PLAY_SOUND);
                     showMuteIcon(false);
@@ -558,7 +607,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             default:
                 break;
         }
-        return super.onKeyDown(keyCode, event);
+        return false;
     }
 
     private void doTrackKey(int type) {
