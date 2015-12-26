@@ -4,7 +4,6 @@
 
     <android.media.tv.TvView
         android:id="@+id/source_view"
-        android:focusable="true"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" />
 
