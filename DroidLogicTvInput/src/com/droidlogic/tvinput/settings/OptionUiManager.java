@@ -551,13 +551,13 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             // ====Channel====
             //sound channel
             case R.id.sound_channel_stereo:
-                mSettingsManager.setSoundChannel(SettingsManager.STATUS_STEREO);
+                mSettingsManager.setSoundChannel(TvControlManager.LEFT_RIGHT_SOUND_CHANNEL.LEFT_RIGHT_SOUND_CHANNEL_STEREO.toInt());
                 break;
             case R.id.sound_channel_left_channel:
-                mSettingsManager.setSoundChannel(SettingsManager.STATUS_LEFT_CHANNEL);
+                mSettingsManager.setSoundChannel(TvControlManager.LEFT_RIGHT_SOUND_CHANNEL.LEFT_RIGHT_SOUND_CHANNEL_LEFT.toInt());
                 break;
             case R.id.sound_channel_right_channel:
-                mSettingsManager.setSoundChannel(SettingsManager.STATUS_RIGHT_CHANNEL);
+                mSettingsManager.setSoundChannel(TvControlManager.LEFT_RIGHT_SOUND_CHANNEL.LEFT_RIGHT_SOUND_CHANNEL_RIGHT.toInt());
             case R.id.sub_off:
                 mSettingsManager.setSubtitleSwitch(0);
                 Intent intent = new Intent(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH);

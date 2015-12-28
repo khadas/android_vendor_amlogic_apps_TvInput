@@ -515,16 +515,19 @@ public class SettingsManager {
     }
 
     public String getSoundChannelStatus () {
-        switch (mTvControlManager.DtvGetAudioChannleMod()) {
-            case 0:
-                return mResources.getString(R.string.stereo);
-            case 1:
-                return mResources.getString(R.string.left_channel);
-            case 2:
-                return mResources.getString(R.string.right_channel);
-            default:
-                return mResources.getString(R.string.stereo);
+        if (currentChannel != null) {
+            switch (currentChannel.getAudioChannel()) {
+                case 0:
+                    return mResources.getString(R.string.stereo);
+                case 1:
+                    return mResources.getString(R.string.left_channel);
+                case 2:
+                    return mResources.getString(R.string.right_channel);
+                default:
+                    return mResources.getString(R.string.stereo);
+            }
         }
+        return null;
     }
 
     public ArrayList<HashMap<String,Object>> getChannelInfo () {
@@ -1155,13 +1158,12 @@ public class SettingsManager {
         }
     }
 
-    public void setSoundChannel (String mode) {
-        if (mode.equals(STATUS_STEREO))
-            mTvControlManager.DtvSetAudioChannleMod(0);
-        else if (mode.equals(STATUS_LEFT_CHANNEL))
-            mTvControlManager.DtvSetAudioChannleMod(1);
-        else if (mode.equals(STATUS_RIGHT_CHANNEL))
-            mTvControlManager.DtvSetAudioChannleMod(2);
+    public void setSoundChannel (int mode) {
+       if (currentChannel != null) {
+           currentChannel.setAudioChannel(mode);
+           mTvDataBaseManager.updateChannelInfo(currentChannel);
+           mTvControlManager.DtvSetAudioChannleMod(currentChannel.getAudioChannel());
+       }
     }
 
     public void setDefLanguage (int position) {
