@@ -13,6 +13,7 @@
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:gravity="center"
+            android:focusable="true"
             android:textColor="@color/channel_list_tab_focus"
             android:textSize="@dimen/text_size_tab"
             android:text="@string/tab_atv"/>
@@ -27,6 +28,7 @@
                 android:layout_height="fill_parent"
                 android:layout_weight="1"
                 android:gravity="center"
+                android:focusable="true"
                 android:textColor="@color/color_text_main"
                 android:textSize="@dimen/text_size_tab"
                 android:text="@string/tab_dtv_video"/>
@@ -36,6 +38,7 @@
                 android:layout_height="fill_parent"
                 android:layout_weight="1"
                 android:gravity="center"
+                android:focusable="true"
                 android:textColor="@color/color_text_main"
                 android:textSize="@dimen/text_size_tab"
                 android:text="@string/tab_dtv_radio"/>

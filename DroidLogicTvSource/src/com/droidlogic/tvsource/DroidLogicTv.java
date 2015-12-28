@@ -580,7 +580,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             case KeyEvent.KEYCODE_VOLUME_UP:
             case KeyEvent.KEYCODE_VOLUME_DOWN:
                 if (!down)
-                    return true;
+                    break;
 
                 if (mAudioManager.isMasterMute()) {
                     mAudioManager.setMasterMute(false, AudioManager.FLAG_PLAY_SOUND);
@@ -589,7 +589,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 break;
             case KeyEvent.KEYCODE_VOLUME_MUTE:
                 if (!down)
-                    return true;
+                    break;
 
                 if (mAudioManager.isMasterMute()) {
                     mAudioManager.setMasterMute(false, AudioManager.FLAG_PLAY_SOUND);
@@ -598,7 +598,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     mAudioManager.setMasterMute(true, AudioManager.FLAG_PLAY_SOUND);
                     showMuteIcon(true);
                 }
-                return true;
+                break;
             default:
                 break;
         }
@@ -897,6 +897,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     prompt_no_signal.setVisibility(View.INVISIBLE);
 
                     mChannelListLayout.setVisibility(View.VISIBLE);
+                    mChannelListLayout.requestFocus();
                     mUiType = type;
                     mHandler.sendEmptyMessageDelayed(MSG_UI_TIMEOUT, DEFAULT_TIMEOUT);
                 } else {

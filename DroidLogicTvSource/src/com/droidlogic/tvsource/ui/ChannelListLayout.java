@@ -118,14 +118,15 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         Utils.logd(TAG, "==== event.keycode =" + event.getKeyCode());
+        boolean down = event.getAction() == KeyEvent.ACTION_DOWN;
         switch (event.getKeyCode()) {
             case KeyEvent.KEYCODE_DPAD_LEFT:
-                if (!tabFlag) {
+                if (!tabFlag && down) {
                     switchToChannelList();
                 }
                 break;
             case KeyEvent.KEYCODE_DPAD_RIGHT:
-                if (tabFlag) {
+                if (tabFlag && down) {
                     switchToChannelList();
                 }
                 break;
@@ -176,18 +177,21 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
                 tabAtv.setBackgroundResource(R.drawable.atv_tab_focus);
                 tabDtv.setVisibility(INVISIBLE);
                 tabAtv.setVisibility(VISIBLE);
+                tabAtv.requestFocus();
                 break;
             case Utils.UI_TYPE_DTV_FAV_LIST:
             case Utils.UI_TYPE_DTV_CHANNEL_LIST:
                 tabAtv.setVisibility(INVISIBLE);
+                tabDtv.setVisibility(VISIBLE);
                 if (tabFlag) {
                     textViewFocus(tabDtvv);
                     textViewUnfocus(tabDtvr);
+                    tabDtvv.requestFocus();
                 } else {
                     textViewFocus(tabDtvr);
                     textViewUnfocus(tabDtvv);
+                    tabDtvr.requestFocus();
                 }
-                tabDtv.setVisibility(VISIBLE);
                 break;
             default:
                 break;
