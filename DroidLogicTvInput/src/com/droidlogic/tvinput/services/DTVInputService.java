@@ -175,6 +175,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                         (info.getAudioFormats() != null) ? info.getAudioFormats()[info.getAudioTrackIndex()] : -1,
                         info.getPcrPid(),
                         info.getAudioCompensation());
+                mTvControlManager.DtvSetAudioChannleMod(info.getAudioChannel());
             } else
                 Log.d(TAG, "channel type[" + info.getType() + "] not supported yet.");
 
