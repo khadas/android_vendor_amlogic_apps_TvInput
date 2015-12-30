@@ -589,7 +589,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 break;
             case KeyEvent.KEYCODE_VOLUME_MUTE:
                 if (!down)
-                    break;
+                    return true;
 
                 if (mAudioManager.isMasterMute()) {
                     mAudioManager.setMasterMute(false, AudioManager.FLAG_PLAY_SOUND);
@@ -598,7 +598,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     mAudioManager.setMasterMute(true, AudioManager.FLAG_PLAY_SOUND);
                     showMuteIcon(true);
                 }
-                break;
+                return true;
             default:
                 break;
         }
