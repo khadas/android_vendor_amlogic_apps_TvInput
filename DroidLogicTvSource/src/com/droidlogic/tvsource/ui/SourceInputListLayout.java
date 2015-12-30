@@ -59,11 +59,11 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
     }
 
     public int remove(String inputId) {
+        Utils.logd(TAG, "==== remove, current id ="+ curSourceInput.getInputId());
         if (getSourceCount() == 0 || TextUtils.isEmpty(inputId))
             return ACTION_FAILED;
-        int i = 1;
         int count = getSourceCount();
-        Utils.logd(TAG, "==== remove, mSourceCount = " + count);
+        int i = 1;
         for (; i<count+1; i++) {
             SourceButton tmp = (SourceButton) mRoot.getChildAt(i);
             if (TextUtils.equals(tmp.getInputId(), inputId)) {
@@ -75,11 +75,10 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
                     curSourceInput = defSourceInput;
                     return INPUT_NEED_RESET;
                 }
-                break;
+                return ACTION_SUCCESS;
             }
         }
-        Utils.logd(TAG, "==== remove, mSourceCount = " + getSourceCount());
-        return ACTION_SUCCESS;
+        return ACTION_FAILED;
     }
 
     public int add(String inputId) {
