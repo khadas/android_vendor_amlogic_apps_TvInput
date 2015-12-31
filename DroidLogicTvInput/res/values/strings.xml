@@ -137,6 +137,7 @@
     <string name="launcher">launcher</string>
     <string name="tv">TV</string>
     <string name="radio">Radio</string>
+
     <string name="ensure_restore">ensure restore</string>
     <string name="ok">OK</string>
     <string name="warning">warning</string>
@@ -153,4 +154,11 @@
     <string name="suspend_dialog_title">Suspend Countdown</string>
     <string name="cancel_suspend">Cancel Countdown</string>
     <string name="countdown_tips">seconds later shut down!</string>
+
+    <string name="program_guide">Program guide</string>
+    <string name="program_information">Program details</string>
+    <string name="no_information">No information!</string>
+    <string name="no_program">No program!</string>
+    <string name="date">Date</string>
+    <string name="playing">Playing:</string>
 </resources>

@@ -228,10 +228,10 @@ public class ChannelTuner {
 
     private void updateCurrentScreen(ChannelInfo info) {
         mCurrentChannel = info;
-        Intent intent = new Intent(DroidLogicTvUtils.ACTION_UPDATE_TV_PLAY);
+        Intent intent = new Intent(DroidLogicTvUtils.ACTION_DELETE_CHANNEL);
 
         if (info != null)
-            intent.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, Integer.toString(getChannelIndex(mCurrentChannel)));
+            intent.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, getChannelIndex(mCurrentChannel));
         else
             intent.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, "-1");
         mContext.sendBroadcast(intent);

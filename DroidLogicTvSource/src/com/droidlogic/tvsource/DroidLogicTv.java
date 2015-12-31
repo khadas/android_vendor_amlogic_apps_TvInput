@@ -127,36 +127,40 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     BroadcastReceiver mReceiver = new BroadcastReceiver(){
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if (action.equals(DroidLogicTvUtils.ACTION_UPDATE_TV_PLAY)) {
-                String channelNumber = intent.getStringExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER);
-                if (channelNumber != null) {
-                    Utils.logd(TAG, "delete or skipped current channel, switch to: name=" + mSourceInput.getChannelName()
+            if (action.equals(DroidLogicTvUtils.ACTION_DELETE_CHANNEL)) {
+                int channelNumber = intent.getIntExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, -1);
+                Utils.logd(TAG, "delete or skipped current channel, switch to: name=" + mSourceInput.getChannelName()
                         + " uri=" + mSourceInput.getUri());
-                    if (Integer.parseInt(channelNumber) >= 0)
-                        processDeleteCurrentChannel(Integer.parseInt(channelNumber));
-                    else
-                        switchToSourceInput();
-
-                    Intent i = new Intent(DroidLogicTvUtils.ACTION_CHANNEL_CHANGED);
-                    i.putExtra(TvInputInfo.EXTRA_INPUT_ID, mSourceInput.getInputId());
-                    i.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_DEVICE_ID, mSourceInput.getDeviceId());
-                    i.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, mSourceInput.getChannelNumber());
-                    i.putExtra(DroidLogicTvUtils.EXTRA_IS_RADIO_CHANNEL, mSourceInput.isRadioChannel());
-                    context.sendBroadcast(i);
+                if (channelNumber >= 0) {
+                    processDeleteCurrentChannel(channelNumber);
                 } else {
-                    String operation = intent.getStringExtra("tv_play_extra");
-                    Utils.logd(TAG, "recevie intent : operation is " + operation);
-
-                    if (!TextUtils.isEmpty(operation)) {
-                        if (operation.equals("search_channel")) {
-                            mMainView.setBackground(null);
-                            isPlayingRadio = false;
-                        } else if (operation.equals("mute"))
-                            showMuteIcon(true);
-                        else if (operation.equals("unmute"))
-                            showMuteIcon(false);
+                    switchToSourceInput();
+                }
+                Intent i = new Intent(DroidLogicTvUtils.ACTION_CHANNEL_CHANGED);
+                i.putExtra(TvInputInfo.EXTRA_INPUT_ID, mSourceInput.getInputId());
+                i.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_DEVICE_ID, mSourceInput.getDeviceId());
+                i.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, mSourceInput.getChannelNumber());
+                i.putExtra(DroidLogicTvUtils.EXTRA_IS_RADIO_CHANNEL, mSourceInput.isRadioChannel());
+                context.sendBroadcast(i);
+            } else if (action.equals(DroidLogicTvUtils.ACTION_UPDATE_TV_PLAY)) {
+                String operation = intent.getStringExtra("tv_play_extra");
+                Utils.logd(TAG, "recevie intent : operation is " + operation);
+                if (!TextUtils.isEmpty(operation)) {
+                    if (operation.equals("search_channel")) {
+                        mMainView.setBackground(null);
+                        isPlayingRadio = false;
+                    } else if (operation.equals("mute")) {
+                        showMuteIcon(true);
+                    } else if (operation.equals("unmute")) {
+                        showMuteIcon(false);
                     }
                 }
+            } else if (action.equals(DroidLogicTvUtils.ACTION_SWITCH_CHANNEL)) {
+                int channelIndex = intent.getIntExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, -1);
+                boolean isRadioChannel = intent.getBooleanExtra(DroidLogicTvUtils.EXTRA_IS_RADIO_CHANNEL, false);
+
+                Utils.logd(TAG, "recevie intent :switch channel to index=" + channelIndex + " isRadio=" + isRadioChannel);
+                onSelect(channelIndex, isRadioChannel);
             } else if (action.equals(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH)) {
                 int switchVal = intent.getIntExtra(DroidLogicTvUtils.EXTRA_SUBTITLE_SWITCH_VALUE, 0);
                 if (switchVal == 1) {//on
@@ -197,6 +201,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         intentFilter.addAction(DroidLogicTvUtils.ACTION_UPDATE_TV_PLAY);
         intentFilter.addAction(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH);
         intentFilter.addAction(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
+        intentFilter.addAction(DroidLogicTvUtils.ACTION_DELETE_CHANNEL);
+        intentFilter.addAction(DroidLogicTvUtils.ACTION_SWITCH_CHANNEL);
         registerReceiver(mReceiver, intentFilter);
     }
 

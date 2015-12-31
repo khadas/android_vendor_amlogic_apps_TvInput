@@ -2,10 +2,14 @@
 <resources>
 	<color name="transparent">#00000000</color>
 	<color name="selected">#FF019587</color>
+	<color name="save_selected">#55019587</color>
+	<color name="divider_1">#44FFFFFF</color>
 	<color name="color_text_title">#FF37373C</color>
 	<color name="color_text_item">#FF65686F</color>
 	<color name="color_text_focused">#FFFFFFFF</color>
 	<color name="color_text_prompt">#FF808080</color>
 	<color name="color_text_edit">#FFCC0000</color>
 	<color name="color_text_hint">#FFBFBFBF</color>
+	<color name="color_text_blue_0">#FF39A8D5</color>
+	<color name="color_text_blue_1">#FF92D4EA</color>
 </resources>
