@@ -99,7 +99,7 @@ public class DTVInputService extends DroidLogicTvInputService {
         public void stopTvPlay() {
             super.stopTvPlay();
             stopSubtitle();
-            releasePlayer();
+//            releasePlayer();
         }
 
         @Override
@@ -107,7 +107,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             super.doRelease();
             mSession = null;
             stopSubtitle();
-            releasePlayer();
+//            releasePlayer();
         }
 
         @Override

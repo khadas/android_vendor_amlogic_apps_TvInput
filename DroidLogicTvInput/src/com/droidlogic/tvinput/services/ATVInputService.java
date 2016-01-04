@@ -83,14 +83,14 @@ public class ATVInputService extends DroidLogicTvInputService {
         @Override
         public void stopTvPlay() {
             super.stopTvPlay();
-            releasePlayer();
+//            releasePlayer();
         }
 
         @Override
         public void doRelease() {
             super.doRelease();
             mSession = null;
-            releasePlayer();
+//            releasePlayer();
         }
 
         @Override
@@ -126,7 +126,6 @@ public class ATVInputService extends DroidLogicTvInputService {
 
             if (Utils.getChannelId(uri) < 0) {
                 releasePlayer();
-                notifyVideoUnavailable(TvInputManager.VIDEO_UNAVAILABLE_REASON_UNKNOWN);
                 return;
             }
             TvDataBaseManager mTvDataBaseManager = new TvDataBaseManager(mContext);
