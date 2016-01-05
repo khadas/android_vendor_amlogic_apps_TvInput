@@ -96,10 +96,12 @@ public class DTVInputService extends DroidLogicTvInputService {
         }
 
         @Override
-        public void stopTvPlay() {
-            super.stopTvPlay();
-            stopSubtitle();
-//            releasePlayer();
+        public int stopTvPlay() {
+            int ret = super.stopTvPlay();
+            if (ret == ACTION_SUCCESS) {
+                stopSubtitle();
+            }
+            return ret;
         }
 
         @Override
@@ -111,15 +113,21 @@ public class DTVInputService extends DroidLogicTvInputService {
         }
 
         @Override
-        public void doSurfaceChanged(Uri uri) {
-            super.doSurfaceChanged(uri);
-            switchToSourceInput(uri);
+        public int doSurfaceChanged(Uri uri) {
+            int ret = super.doTune(uri);
+            if (ret == ACTION_SUCCESS) {
+                switchToSourceInput(uri);
+            }
+            return ret;
         }
 
         @Override
-        public void doTune(Uri uri) {
-            super.doTune(uri);
-            switchToSourceInput(uri);
+        public int doTune(Uri uri) {
+            int ret = super.doTune(uri);
+            if (ret == ACTION_SUCCESS) {
+                switchToSourceInput(uri);
+            }
+            return ret;
         }
 
         @Override

@@ -81,12 +81,6 @@ public class ATVInputService extends DroidLogicTvInputService {
         }
 
         @Override
-        public void stopTvPlay() {
-            super.stopTvPlay();
-//            releasePlayer();
-        }
-
-        @Override
         public void doRelease() {
             super.doRelease();
             mSession = null;
@@ -94,9 +88,12 @@ public class ATVInputService extends DroidLogicTvInputService {
         }
 
         @Override
-        public void doTune(Uri uri) {
-            super.doTune(uri);
-            switchToSourceInput(uri);
+        public int doTune(Uri uri) {
+            int ret = super.doTune(uri);
+            if (ret == ACTION_SUCCESS) {
+                switchToSourceInput(uri);
+            }
+            return ret;
         }
 
         @Override
@@ -108,9 +105,12 @@ public class ATVInputService extends DroidLogicTvInputService {
         }
 
         @Override
-        public void doSurfaceChanged(Uri uri) {
-            super.doSurfaceChanged(uri);
-            switchToSourceInput(uri);
+        public int doSurfaceChanged(Uri uri) {
+            int ret = super.doSurfaceChanged(uri);
+            if (ret == ACTION_SUCCESS) {
+                switchToSourceInput(uri);
+            }
+            return ret;
         }
 
         @Override
