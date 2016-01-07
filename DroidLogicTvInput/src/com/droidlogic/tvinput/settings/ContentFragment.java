@@ -100,7 +100,6 @@ public class ContentFragment extends Fragment {
     public static final String ITEM_STATUS = "item_status";
 
     private Context mContext;
-    private SettingsManager mSettingsManager;
     private View relatedButton;
     private int mContentList;
     ArrayList<HashMap<String, Object>> listItem = null;
@@ -117,7 +116,7 @@ public class ContentFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         mContext = getActivity();
-        mSettingsManager = ((TvSettingsActivity)mContext).getSettingsManager();
+
         View view = (View)inflater.inflate(R.layout.layout_content, container, false);
         content_title = (TextView)view.findViewById(R.id.content_title);
         content_list = (ContentListView)view.findViewById(R.id.content_list);
@@ -128,7 +127,6 @@ public class ContentFragment extends Fragment {
 
         mContentAdapter = new ContentAdapter(mContext, listItem);
         content_list.setAdapter(mContentAdapter);
-        content_list.setInitialSelection();
 
         return view;
     }
@@ -154,16 +152,16 @@ public class ContentFragment extends Fragment {
                 key.equals(SettingsManager.KEY_SOUND) ||
                 key.equals(SettingsManager.KEY_CHANNEL) ||
                 key.equals(SettingsManager.KEY_SETTINGS)) {
-                mSettingsManager.setTag(key);
+                getSettingsManager().setTag(key);
                 content_title.setText(title);
             } else {
-                if (key.equals(SettingsManager.KEY_TINT) && !mSettingsManager.isShowTint())
+                if (key.equals(SettingsManager.KEY_TINT) && !getSettingsManager().isShowTint())
                     return;
 
                 HashMap<String, Object> map = new HashMap<String, Object>();
                 map.put(ITEM_KEY, key);
                 map.put(ITEM_NAME, title);
-                map.put(ITEM_STATUS, mSettingsManager.getStatus(key));
+                map.put(ITEM_STATUS, getSettingsManager().getStatus(key));
                 listItem.add(map);
             }
         }
@@ -193,13 +191,16 @@ public class ContentFragment extends Fragment {
                 String key = listItem.get(i).get(ITEM_KEY).toString();
                 map.put(ITEM_KEY, key);
                 map.put(ITEM_NAME, listItem.get(i).get(ITEM_NAME).toString());
-                map.put(ITEM_STATUS, mSettingsManager.getStatus(key));
+                map.put(ITEM_STATUS, getSettingsManager().getStatus(key));
 
                 newList.add(map);
         }
-
         listItem.clear();
         listItem.addAll(newList);
         mContentAdapter.notifyDataSetChanged();
+    }
+
+    private SettingsManager getSettingsManager() {
+        return ((TvSettingsActivity)mContext).getSettingsManager();
     }
 }

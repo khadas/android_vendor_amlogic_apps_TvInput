@@ -26,8 +26,6 @@ import com.droidlogic.app.tv.TvControlManager;
 public class ContentListView extends ListView implements OnItemSelectedListener {
     private static final String TAG = "ContentListView";
     private Context mContext;
-    private SettingsManager mSettingsManager;
-    private OptionUiManager mOptionUiManager;
     private int selectedPosition = 0;
 
     public ContentListView (Context context){
@@ -37,8 +35,6 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
         super(context, attrs);
 
         mContext = context;
-        mSettingsManager = ((TvSettingsActivity)mContext).getSettingsManager();
-        mOptionUiManager = ((TvSettingsActivity)mContext).getOptionUiManager();
         setOnItemSelectedListener(this);
     }
 
@@ -50,10 +46,8 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             switch (event.getKeyCode()) {
                 case KeyEvent.KEYCODE_DPAD_UP:
-                    String currentTag = mSettingsManager.getTag();
-                    if (selectedPosition == 0
-                        || (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV
-                            && currentTag.equals(SettingsManager.KEY_CHANNEL) && selectedPosition == 2))
+                    String currentTag = getSettingsManager().getTag();
+                    if (selectedPosition == 0)
                         return true;
                     break;
                 case KeyEvent.KEYCODE_DPAD_DOWN:
@@ -142,24 +136,24 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
     private void createOptionChildView (View option_view, int position) {
         LayoutInflater inflater =(LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-        mOptionUiManager.setOptionTag(position);
-        int layout_option_child = mOptionUiManager.getLayoutId();
+        getOptionUiManager().setOptionTag(position);
+        int layout_option_child = getOptionUiManager().getLayoutId();
         if (layout_option_child > 0) {
             View view = inflater.inflate(layout_option_child, null);
             ((RelativeLayout)option_view).addView(view);
-            mOptionUiManager.setProgressStatus();
-            mOptionUiManager.setOptionListener(view);
-            if (mOptionUiManager.getOptionTag() == OptionUiManager.OPTION_CHANNEL_INFO
-                || mOptionUiManager.getOptionTag() == OptionUiManager.OPTION_AUDIO_TRACK
-                || mOptionUiManager.getOptionTag() == OptionUiManager.OPTION_DEFAULT_LANGUAGE) {
-                OptionListLayout optionListLayout = new OptionListLayout(mContext, view, mOptionUiManager.getOptionTag());
-            } else if (mOptionUiManager.getOptionTag() == OptionUiManager.OPTION_CHANNEL_EDIT) {
+            getOptionUiManager().setProgressStatus();
+            getOptionUiManager().setOptionListener(view);
+            if (getOptionUiManager().getOptionTag() == OptionUiManager.OPTION_CHANNEL_INFO
+                || getOptionUiManager().getOptionTag() == OptionUiManager.OPTION_AUDIO_TRACK
+                || getOptionUiManager().getOptionTag() == OptionUiManager.OPTION_DEFAULT_LANGUAGE) {
+                OptionListLayout optionListLayout = new OptionListLayout(mContext, view, getOptionUiManager().getOptionTag());
+            } else if (getOptionUiManager().getOptionTag() == OptionUiManager.OPTION_CHANNEL_EDIT) {
                 ChannelEdit channelEdit = new ChannelEdit(mContext, view);
             }
 
             //set options view's focus
-            if (mOptionUiManager.getOptionTag() == OptionUiManager.OPTION_MANUAL_SEARCH) {
-                mOptionUiManager.setManualSearchEditStyle(view);
+            if (getOptionUiManager().getOptionTag() == OptionUiManager.OPTION_MANUAL_SEARCH) {
+                getOptionUiManager().setManualSearchEditStyle(view);
             }
             View firstFocusableChild = null;
             View lastFocusableChild = null;
@@ -178,15 +172,7 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
                 lastFocusableChild.setNextFocusDownId(lastFocusableChild.getId());
             }
 
-            mOptionUiManager.setChoosedIcon();
-        }
-    }
-
-    public void setInitialSelection () {
-        String currentTag = mSettingsManager.getTag();
-        if ((mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV
-            && currentTag.equals(SettingsManager.KEY_CHANNEL))) {
-            setSelection(2);
+            getOptionUiManager().setChoosedIcon();
         }
     }
 
@@ -197,16 +183,18 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
     }
 
     private void setItemTextColor (View view, boolean focused) {
-        TextView item_name = (TextView)view.findViewById(R.id.item_name);
-        TextView item_status = (TextView)view.findViewById(R.id.item_status);
-        if (focused) {
-            int color_text_focused = mContext.getResources().getColor(R.color.color_text_focused);
-            item_name.setTextColor(color_text_focused);
-            item_status.setTextColor(color_text_focused);
-        } else {
-            int color_text_item = mContext.getResources().getColor(R.color.color_text_item);
-            item_name.setTextColor(color_text_item);
-            item_status.setTextColor(color_text_item);
+        if (view != null) {
+            TextView item_name = (TextView)view.findViewById(R.id.item_name);
+            TextView item_status = (TextView)view.findViewById(R.id.item_status);
+            if (focused) {
+                int color_text_focused = mContext.getResources().getColor(R.color.color_text_focused);
+                item_name.setTextColor(color_text_focused);
+                item_status.setTextColor(color_text_focused);
+            } else {
+                int color_text_item = mContext.getResources().getColor(R.color.color_text_item);
+                item_name.setTextColor(color_text_item);
+                item_status.setTextColor(color_text_item);
+            }
         }
     }
 
@@ -227,5 +215,13 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
     public static int dipToPx(Context context, float dpValue) {
         final float scale = context.getResources().getDisplayMetrics().density;
         return (int) (dpValue * scale + 0.5f);
+    }
+
+    private SettingsManager getSettingsManager() {
+        return ((TvSettingsActivity)mContext).getSettingsManager();
+    }
+
+    private OptionUiManager getOptionUiManager() {
+        return ((TvSettingsActivity)mContext).getOptionUiManager();
     }
 }

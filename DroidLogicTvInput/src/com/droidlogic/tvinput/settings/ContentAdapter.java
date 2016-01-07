@@ -62,15 +62,6 @@ public class ContentAdapter extends BaseAdapter {
         else
             holder.status.setText("");
 
-        //current channel and current frequency don't need focus
-        String key = mlistItem.get(position).get(ContentFragment.ITEM_KEY).toString();
-        if (((TvSettingsActivity)mContext).getSettingsManager().getTag().equals(SettingsManager.KEY_CHANNEL)) {
-            if (key.equals(SettingsManager.KEY_CURRENT_CHANNEL) || key.equals(SettingsManager.KEY_FREQUNCY)) {
-                holder.name.setTextColor(mContext.getResources().getColor(R.color.color_text_prompt));
-                holder.status.setTextColor(mContext.getResources().getColor(R.color.color_text_prompt));
-            }
-        }
-
         return convertView;
     }
 

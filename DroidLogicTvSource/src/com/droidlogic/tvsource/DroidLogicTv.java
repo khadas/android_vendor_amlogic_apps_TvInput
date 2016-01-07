@@ -136,6 +136,13 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                         processDeleteCurrentChannel(Integer.parseInt(channelNumber));
                     else
                         switchToSourceInput();
+
+                    Intent i = new Intent(DroidLogicTvUtils.ACTION_CHANNEL_CHANGED);
+                    i.putExtra(TvInputInfo.EXTRA_INPUT_ID, mSourceInput.getInputId());
+                    i.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_DEVICE_ID, mSourceInput.getDeviceId());
+                    i.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, mSourceInput.getChannelNumber());
+                    i.putExtra(DroidLogicTvUtils.EXTRA_IS_RADIO_CHANNEL, mSourceInput.isRadioChannel());
+                    context.sendBroadcast(i);
                 } else {
                     String operation = intent.getStringExtra("tv_play_extra");
                     Utils.logd(TAG, "recevie intent : operation is " + operation);

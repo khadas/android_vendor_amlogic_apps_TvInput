@@ -27,7 +27,6 @@ public class OptionListLayout implements OnItemClickListener{
 
     public OptionListLayout (Context context, View view, int tag) {
         mContext = context;
-        mSettingsManager = ((TvSettingsActivity)mContext).getSettingsManager();
         optionView = view;
         mTag = tag;
 
@@ -73,12 +72,16 @@ public class OptionListLayout implements OnItemClickListener{
     public void onItemClick (AdapterView<?> parent, View view, int position, long id) {
         switch (mTag) {
             case OptionUiManager.OPTION_AUDIO_TRACK:
-                mSettingsManager.setAudioTrack(position);
+                getSettingsManager().setAudioTrack(position);
                 break;
             case OptionUiManager.OPTION_DEFAULT_LANGUAGE:
-                mSettingsManager.setDefLanguage(position);
+                getSettingsManager().setDefLanguage(position);
                 break;
         }
         ((TvSettingsActivity) mContext).getCurrentFragment().refreshList();
+    }
+
+    private SettingsManager getSettingsManager() {
+        return ((TvSettingsActivity)mContext).getSettingsManager();
     }
 }

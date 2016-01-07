@@ -66,21 +66,19 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     public static final int OPTION_BASS_BOOST = 206;
     public static final int OPTION_SURROUND = 207;
 
-    public static final int OPTION_CURRENT_CHANNEL = 300;
-    public static final int OPTION_FREQUENCY = 301;
-    public static final int OPTION_AUDIO_TRACK = 302;
-    public static final int OPTION_SOUND_CHANNEL = 303;
-    public static final int OPTION_CHANNEL_INFO = 304;
-    public static final int OPTION_COLOR_SYSTEM = 305;
-    public static final int OPTION_SOUND_SYSTEM = 306;
-    public static final int OPTION_VOLUME_COMPENSATE = 307;
-    public static final int OPTION_FINE_TUNE = 308;
-    public static final int OPTION_MANUAL_SEARCH = 309;
-    public static final int OPTION_AUTO_SEARCH = 310;
-    public static final int OPTION_CHANNEL_EDIT = 311;
-    public static final int OPTION_SWITCH_CHANNEL = 312;
-    public static final int OPTION_DEFAULT_LANGUAGE = 313;
-    public static final int OPTION_SUBTITLE_SWITCH = 314;
+    public static final int OPTION_AUDIO_TRACK = 300;
+    public static final int OPTION_SOUND_CHANNEL = 301;
+    public static final int OPTION_CHANNEL_INFO = 302;
+    public static final int OPTION_COLOR_SYSTEM = 303;
+    public static final int OPTION_SOUND_SYSTEM = 304;
+    public static final int OPTION_VOLUME_COMPENSATE = 305;
+    public static final int OPTION_FINE_TUNE = 306;
+    public static final int OPTION_MANUAL_SEARCH = 307;
+    public static final int OPTION_AUTO_SEARCH = 38;
+    public static final int OPTION_CHANNEL_EDIT = 39;
+    public static final int OPTION_SWITCH_CHANNEL = 310;
+    public static final int OPTION_DEFAULT_LANGUAGE = 311;
+    public static final int OPTION_SUBTITLE_SWITCH = 312;
 
     public static final int OPTION_SLEEP_TIMER = 400;
     public static final int OPTION_MENU_TIME = 401;
@@ -117,11 +115,15 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
 
     public OptionUiManager(Context context) {
         mContext = context;
-        mSettingsManager = ((TvSettingsActivity) mContext).getSettingsManager();
+        setSettingsManager(((TvSettingsActivity)mContext).getSettingsManager());
         mTvControlManager = mSettingsManager.getTvControlManager();
         mTvDataBaseManager = mSettingsManager.getTvDataBaseManager();
         mTvControlManager.setScannerListener(this);
         mResources = mContext.getResources();
+    }
+
+    public void setSettingsManager(SettingsManager sm) {
+        mSettingsManager = sm;
     }
 
     public void setOptionTag(int position) {
@@ -189,13 +191,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             optionKey = SettingsManager.KEY_SURROUND;
         }
         // Channel
-        else if (item_name.equals(mResources.getString(R.string.current_channel))) {
-            optionTag = OPTION_CURRENT_CHANNEL;
-            optionKey = SettingsManager.KEY_CURRENT_CHANNEL;
-        } else if (item_name.equals(mResources.getString(R.string.frequency))) {
-            optionTag = OPTION_FREQUENCY;
-            optionKey = SettingsManager.KEY_FREQUNCY;
-        } else if (item_name.equals(mResources.getString(R.string.audio_track))) {
+        else if (item_name.equals(mResources.getString(R.string.audio_track))) {
             optionTag = OPTION_AUDIO_TRACK;
             optionKey = SettingsManager.KEY_AUIDO_TRACK;
         } else if (item_name.equals(mResources.getString(R.string.sound_channel))) {

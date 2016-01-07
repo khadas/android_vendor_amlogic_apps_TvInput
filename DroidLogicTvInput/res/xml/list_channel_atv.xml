@@ -7,13 +7,8 @@
     </Preference>
 
     <Preference
-        android:key="current_channel"
-        android:title="@string/current_channel" >
-    </Preference>
-
-    <Preference
-        android:key="frequency"
-        android:title="@string/frequency" >
+        android:key="channel_info"
+        android:title="@string/channel_info" >
     </Preference>
 
     <Preference

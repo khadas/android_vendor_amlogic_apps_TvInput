@@ -3,7 +3,10 @@ package com.droidlogic.tvinput.settings;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.provider.Settings;
 import android.os.Bundle;
 import android.os.Handler;
@@ -69,11 +72,11 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
         tabSettings.setOnClickListener(this);
         tabSettings.setOnFocusChangeListener(this);
 
+        tabPicture.setNextFocusUpId(tabPicture.getId());
         tabPicture.setNextFocusDownId(tabSound.getId());
         tabSound.setNextFocusUpId(tabPicture.getId());
         tabChannel.setNextFocusUpId(tabSound.getId());
         tabChannel.setNextFocusDownId(tabSettings.getId());
-
         if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_HDMI ||
             mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_AV) {
             tabSound.setNextFocusDownId(tabSettings.getId());
@@ -84,12 +87,17 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
             tabSound.setNextFocusDownId(tabChannel.getId());
             tabSettings.setNextFocusUpId(tabChannel.getId());
         }
+        tabSettings.setNextFocusDownId(tabSettings.getId());
 
         if (savedInstanceState == null)
             setDefaultFragment();
 
         mOptionUiManager = new OptionUiManager(this);
         startShowActivityTimer();
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(DroidLogicTvUtils.ACTION_CHANNEL_CHANGED);
+        registerReceiver(mReceiver, filter);
     }
 
     private void setDefaultFragment() {
@@ -249,9 +257,9 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
         super.finish();
     }
 
-    public void onStop()
-    {
+    public void onStop(){
         super.onStop();
+        unregisterReceiver(mReceiver);
     }
 
     public void startShowActivityTimer () {
@@ -271,5 +279,17 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
                 sendEmptyMessageDelayed(0, seconds * 1000);
             }
         }
+    };
+
+    private BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+            public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
+                if (action.equals(DroidLogicTvUtils.ACTION_CHANNEL_CHANGED)) {
+                    mSettingsManager.setCurrentChannelData(intent);
+                    mOptionUiManager.setSettingsManager(mSettingsManager);
+                    currentFragment.refreshList();
+                }
+            }
     };
 }

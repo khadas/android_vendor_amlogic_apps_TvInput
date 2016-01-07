@@ -57,8 +57,6 @@ public class SettingsManager {
     public static final String KEY_BASS_BOOST                       = "bass_boost";
 
     public static final String KEY_CHANNEL                          = "channel";
-    public static final String KEY_CURRENT_CHANNEL                  = "current_channel";
-    public static final String KEY_FREQUNCY                         = "frequency";
     public static final String KEY_AUIDO_TRACK                         = "audio_track";
     public static final String KEY_SOUND_CHANNEL                        = "sound_channel";
     public static final String KEY_CHANNEL_INFO                         = "channel_info";
@@ -139,21 +137,29 @@ public class SettingsManager {
         mContext = context;
         mTvDataBaseManager = new TvDataBaseManager(mContext);
 
+        setCurrentChannelData(intent);
+
+        mTvControlManager = TvControlManager.open();
+        mResources = mContext.getResources();
+    }
+
+    public void setCurrentChannelData(Intent intent) {
         mInputId = intent.getStringExtra(TvInputInfo.EXTRA_INPUT_ID);
         isRadioChannel = intent.getBooleanExtra(DroidLogicTvUtils.EXTRA_IS_RADIO_CHANNEL, false);
         mTvSource = parseTvSourceType(intent.getIntExtra(DroidLogicTvUtils.EXTRA_CHANNEL_DEVICE_ID, -1));
+
+        Log.d(TAG, "init SettingsManager curSource=" + mTvSource + " isRadio=" + isRadioChannel);
 
         if (mTvSource == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV
             || mTvSource == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
             String channelNumber = intent.getStringExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER);
             Log.d(TAG, "current channelNumber = " +  channelNumber);
-            if (!TextUtils.isEmpty(channelNumber))
+            if (!TextUtils.isEmpty(channelNumber)) {
                 currentChannel = getChannelByNumber(parseChannelEditType(), Integer.valueOf(channelNumber));
+            } else {
+                currentChannel = null;
+            }
         }
-
-        mTvControlManager = TvControlManager.open();
-        mResources = mContext.getResources();
-        Log.d(TAG, " curSource=" + mTvSource + " isRadio=" + isRadioChannel);
     }
 
     public void setTag (String tag) {
@@ -268,11 +274,9 @@ public class SettingsManager {
             return getBassBoostStatus();
         }
         //channel
-        else if (key.equals(KEY_CURRENT_CHANNEL) || key.equals(KEY_CHANNEL_INFO)) {
+        else if (key.equals(KEY_CHANNEL_INFO)) {
             return getCurrentChannelStatus();
-        } else if (key.equals(KEY_FREQUNCY)) {
-            return getFrequencyStatus();
-        } else if (key.equals(KEY_AUIDO_TRACK)) {
+        }else if (key.equals(KEY_AUIDO_TRACK)) {
             return getAudioTrackStatus();
         } else if (key.equals(KEY_SOUND_CHANNEL)) {
             return getSoundChannelStatus();
@@ -505,13 +509,6 @@ public class SettingsManager {
         return null;
     }
 
-    private String getFrequencyStatus () {
-        if (currentChannel != null)
-            return Integer.toString(currentChannel.getFrequency());
-
-        return null;
-    }
-
     private String getAudioTrackStatus () {
         if (currentChannel != null &&  currentChannel.getAudioLangs() != null)
             return currentChannel.getAudioLangs()[currentChannel.getAudioTrackIndex()];
@@ -537,7 +534,6 @@ public class SettingsManager {
 
     public ArrayList<HashMap<String,Object>> getChannelInfo () {
         ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
-
         if (currentChannel != null) {
             HashMap<String,Object> item = new HashMap<String,Object>();
             item.put(STRING_NAME, mResources.getString(R.string.channel_l));
@@ -549,30 +545,22 @@ public class SettingsManager {
             item.put(STRING_STATUS, Integer.toString(currentChannel.getFrequency()));
             list.add(item);
 
-            /*item = new HashMap<String,Object>();
-            item.put(STRING_NAME, mResources.getString(R.string.quality));
-            item.put(STRING_STATUS, "18dB");
-            list.add(item);
+            if (mTvSource == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
+                item = new HashMap<String,Object>();
+                item.put(STRING_NAME, mResources.getString(R.string.type));
+                item.put(STRING_STATUS, currentChannel.getType());
+                list.add(item);
 
-            item = new HashMap<String,Object>();
-            item.put(STRING_NAME, mResources.getString(R.string.strength));
-            item.put(STRING_STATUS, "0%");
-            list.add(item);*/
+                item = new HashMap<String,Object>();
+                item.put(STRING_NAME, mResources.getString(R.string.service_id));
+                item.put(STRING_STATUS, Integer.toString(currentChannel.getServiceId()));
+                list.add(item);
 
-            item = new HashMap<String,Object>();
-            item.put(STRING_NAME, mResources.getString(R.string.type));
-            item.put(STRING_STATUS, currentChannel.getType());
-            list.add(item);
-
-            item = new HashMap<String,Object>();
-            item.put(STRING_NAME, mResources.getString(R.string.service_id));
-            item.put(STRING_STATUS, Integer.toString(currentChannel.getServiceId()));
-            list.add(item);
-
-            item = new HashMap<String,Object>();
-            item.put(STRING_NAME, mResources.getString(R.string.pcr_id));
-            item.put(STRING_STATUS, Integer.toString(currentChannel.getPcrPid()));
-            list.add(item);
+                item = new HashMap<String,Object>();
+                item.put(STRING_NAME, mResources.getString(R.string.pcr_id));
+                item.put(STRING_STATUS, Integer.toString(currentChannel.getPcrPid()));
+                list.add(item);
+            }
         }
         return list;
     }

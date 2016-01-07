@@ -44,8 +44,6 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener, OnIt
     private static final int ACTION_OPERATIONS_FAVOURITE     = 7;
 
     private Context mContext;
-    private SettingsManager mSettingsManager;
-    private OptionUiManager mOptionUiManager;
     private View channelEditView = null;
     private TextView button_tv = null;
     private TextView button_radio = null;
@@ -63,8 +61,6 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener, OnIt
 
     public ChannelEdit (Context context, View view) {
         mContext = context;
-        mSettingsManager = ((TvSettingsActivity)mContext).getSettingsManager();
-        mOptionUiManager = ((TvSettingsActivity)mContext).getOptionUiManager();
         channelEditView = view;
 
         initChannelEditView();
@@ -83,9 +79,9 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener, OnIt
         operationsView = (ViewGroup)channelEditView.findViewById(R.id.channel_edit_operations);
         operationsEditView = (ViewGroup)channelEditView.findViewById(R.id.channel_edit_editname);
 
-        if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV)
+        if (getSettingsManager().getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV)
             channelType = TYPE_ATV;
-        else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV)
+        else if (getSettingsManager().getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV)
             channelType = TYPE_DTV_TV;
         ChannelListData = ((TvSettingsActivity)mContext).getSettingsManager().getChannelList(channelType);
 
@@ -97,12 +93,12 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener, OnIt
             .equals(mContext.getResources().getString(R.string.error_no_channel)))
             channelListView.setOnItemClickListener(this);
 
-        if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV) {
+        if (getSettingsManager().getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV) {
             button_tv.setVisibility(View.GONE);
             button_radio.setVisibility(View.GONE);
             operationsView.setVisibility(View.GONE);
             operationsEditView.setVisibility(View.GONE);
-        } else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
+        } else if (getSettingsManager().getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
             channelListView.setVisibility(View.GONE);
             operationsView.setVisibility(View.GONE);
             operationsEditView.setVisibility(View.GONE);
@@ -197,27 +193,27 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener, OnIt
 
     private void setChannelName () {
         EditText edit_name = (EditText)channelEditView.findViewById(R.id.edit_name);
-        mSettingsManager.setChannelName(channelType, currentChannelPosition, edit_name.getText().toString());
+        getSettingsManager().setChannelName(channelType, currentChannelPosition, edit_name.getText().toString());
     }
 
     private void swapChannelPosition () {
-        mSettingsManager.swapChannelPosition(channelType, needOperateChannelPosition, currentChannelPosition);
+        getSettingsManager().swapChannelPosition(channelType, needOperateChannelPosition, currentChannelPosition);
     }
 
     private void moveChannelPosition () {
-        mSettingsManager.moveChannelPosition(channelType, needOperateChannelPosition, currentChannelPosition);
+        getSettingsManager().moveChannelPosition(channelType, needOperateChannelPosition, currentChannelPosition);
     }
 
     private void skipChannel () {
-        mSettingsManager.skipChannel(channelType, currentChannelPosition);
+        getSettingsManager().skipChannel(channelType, currentChannelPosition);
     }
 
     private void deleteChannel () {
-        mSettingsManager.deleteChannel(channelType, currentChannelPosition);
+        getSettingsManager().deleteChannel(channelType, currentChannelPosition);
     }
 
     private void setFavouriteChannel () {
-        mSettingsManager.setFavouriteChannel(channelType, currentChannelPosition);
+        getSettingsManager().setFavouriteChannel(channelType, currentChannelPosition);
     }
 
     @Override
@@ -311,5 +307,9 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener, OnIt
     private void recoverActionState () {
         currentOperation = ACTION_INITIAL_STATE;
         needOperateChannelPosition = ACTION_INITIAL_STATE;
+    }
+
+    private SettingsManager getSettingsManager() {
+        return ((TvSettingsActivity)mContext).getSettingsManager();
     }
 }

@@ -25,7 +25,6 @@ import com.droidlogic.tvinput.R;
 public class OptionListView extends ListView implements OnItemSelectedListener {
     private static final String TAG = "OptionListView";
     private Context mContext;
-    private OptionUiManager mOptionUiManager;
     private int selectedPosition = 0;
 
     public OptionListView (Context context){
@@ -35,7 +34,6 @@ public class OptionListView extends ListView implements OnItemSelectedListener {
         super(context, attrs);
 
         mContext = context;
-        mOptionUiManager = ((TvSettingsActivity)mContext).getOptionUiManager();
         setOnItemSelectedListener(this);
     }
 
@@ -47,8 +45,8 @@ public class OptionListView extends ListView implements OnItemSelectedListener {
                     break;
                 case KeyEvent.KEYCODE_DPAD_UP:
                     if (selectedPosition == 0 &&
-                        (mOptionUiManager.getOptionTag() != OptionUiManager.OPTION_AUTO_SEARCH
-                        && mOptionUiManager.getOptionTag() != OptionUiManager.OPTION_MANUAL_SEARCH))
+                        (getOptionUiManager().getOptionTag() != OptionUiManager.OPTION_AUTO_SEARCH
+                        && getOptionUiManager().getOptionTag() != OptionUiManager.OPTION_MANUAL_SEARCH))
                         return true;
                     break;
                 case KeyEvent.KEYCODE_DPAD_DOWN:
@@ -126,6 +124,10 @@ public class OptionListView extends ListView implements OnItemSelectedListener {
             if (item_status!= null)
                 item_status.setTextColor(color_text_item);
         }
+    }
+
+    private OptionUiManager getOptionUiManager() {
+        return ((TvSettingsActivity)mContext).getOptionUiManager();
     }
 }
 
