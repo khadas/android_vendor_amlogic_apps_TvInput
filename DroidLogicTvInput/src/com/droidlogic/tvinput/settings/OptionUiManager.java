@@ -1475,7 +1475,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             case TvControlManager.EVENT_ATV_PROG_DATA:
                 channel = createAtvChannelInfo(event);
                 if (optionTag == OPTION_MANUAL_SEARCH)
-                    mTvDataBaseManager.updateOrinsertAtvChannel(channel);
+                    mTvDataBaseManager.updateOrinsertAtvChannel(mSettingsManager.getCurrentChannel(), channel);
                 else
                     mTvDataBaseManager.insertAtvChannel(channel, tvDisplayNumber);
                 tvDisplayNumber++;
