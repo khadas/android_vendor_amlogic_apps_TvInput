@@ -74,6 +74,9 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
                     preSourceInput = defSourceInput;
                     curSourceInput = defSourceInput;
                     return INPUT_NEED_RESET;
+                } else if (preSourceInput != null
+                        && TextUtils.equals(inputId, preSourceInput.getInputId())) {
+                    preSourceInput = defSourceInput;
                 }
                 return ACTION_SUCCESS;
             }
@@ -89,8 +92,7 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
             return ACTION_FAILED;
         if (count == 0 && count < input_list_size) {
             Utils.logd(TAG, "update all source input.");
-            refresh();
-            return INPUT_NEED_RESET;
+            return refresh();
         }
         TvInputInfo info = mTvInputManager.getTvInputInfo(inputId);
         SourceButton sb = new SourceButton(mContext, info);
@@ -130,6 +132,10 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
         if (curSourceInput == null && input_list_size == getSourceCount()) {
             preSourceInput = defSourceInput;
             curSourceInput = defSourceInput;
+            return INPUT_NEED_RESET;
+        } else if (preSourceInput == null && curSourceInput != null) {
+            preSourceInput = curSourceInput;
+            return INPUT_NEED_RESET;
         }
         return ACTION_SUCCESS;
     }
@@ -181,11 +187,13 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
                 sb.setOnSourceClickListener(this);
             }
         }
-        if (curSourceInput == null) {
+        if (defSourceInput == null) {
+            return ACTION_SUCCESS;
+        } else if (curSourceInput == null) {
             preSourceInput = defSourceInput;
             curSourceInput = defSourceInput;
         }
-        return ACTION_SUCCESS;
+        return INPUT_NEED_RESET;
     }
 
     private void initSourceInput(SourceButton sb) {
