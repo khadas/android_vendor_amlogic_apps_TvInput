@@ -4,6 +4,7 @@ package com.droidlogic.tvsource;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.droidlogic.app.SystemControlManager;
 import com.droidlogic.app.DroidLogicKeyEvent;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
 
@@ -56,6 +57,8 @@ import android.widget.Toast;
 public class DroidLogicTv extends Activity implements Callback, onSourceInputClickListener, OnChannelSelectListener {
     private static final String TAG = "DroidLogicTv";
     private static final String SHARE_NAME = "tv_app";
+
+    public static final String PROP_TV_PREVIEW = "tv.is.preview.window";
 
     private Context mContext;
     private TvInputManager mTvInputManager;
@@ -164,6 +167,11 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 } else {
                     mSourceView.selectTrack(TvTrackInfo.TYPE_SUBTITLE, null);
                 }
+            } else if (action.equals(Intent.ACTION_CLOSE_SYSTEM_DIALOGS)) {
+                String reason = intent.getStringExtra("reason");
+                if (TextUtils.equals(reason, "homekey")) {
+                    finish();
+                }
             }
         }
     };
@@ -181,6 +189,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         IntentFilter intentFilter = new IntentFilter(DroidLogicTvUtils.ACTION_TIMEOUT_SUSPEND);
         intentFilter.addAction(DroidLogicTvUtils.ACTION_UPDATE_TV_PLAY);
         intentFilter.addAction(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH);
+        intentFilter.addAction(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
         registerReceiver(mReceiver, intentFilter);
     }
 
@@ -296,6 +305,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         closeTouchSound();
         closeScreenOffTimeout();
 
+        SystemControlManager scm = new SystemControlManager(this);
+        scm.setProperty(PROP_TV_PREVIEW, "false");
         mSourceView.setVisibility(View.VISIBLE);
         showUi(Utils.UI_TYPE_ALL_HIDE, false);
         startPlay();
@@ -1019,6 +1030,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         SharedPreferences sp = getSharedPreferences(SHARE_NAME, Context.MODE_PRIVATE);
         Editor edit = sp.edit();
         edit.putInt("device_id", mSourceInput.getDeviceId());
+
+        Settings.System.putString(getContentResolver(), "tv_play_input_id", mSourceInput.getInputId());
+        Settings.System.putString(getContentResolver(), "tv_play_channel_uri", mSourceInput.getUri().toString());
 
         int index = mSourceInput.getChannelIndex();
         if (index < 0) {
