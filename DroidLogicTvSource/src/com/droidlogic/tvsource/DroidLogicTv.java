@@ -386,6 +386,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private void startSettingActivity (int keycode) {
         if (mSourceInput == null)
             return;
+
         TvInputInfo info = mSourceInput.geTvInputInfo();
         Intent intent = info.createSettingsIntent();
         if (intent != null) {
@@ -501,6 +502,12 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             case DroidLogicKeyEvent.KEYCODE_GUIDE:
                 if (!down)
                     return true;
+
+                if (keyCode == DroidLogicKeyEvent.KEYCODE_GUIDE
+                        && (mSourceInput.getSourceType() != DroidLogicTvUtils.SOURCE_TYPE_DTV
+                        || mSignalState == SIGNAL_NOT_GOT)) {
+                    return true;
+                }
 
                 showUi(Utils.UI_TYPE_ALL_HIDE, false);
                 mCurrentKeyType = IS_KEY_OTHER;

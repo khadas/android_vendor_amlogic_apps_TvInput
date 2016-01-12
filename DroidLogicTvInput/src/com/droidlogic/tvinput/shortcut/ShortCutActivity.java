@@ -387,6 +387,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
         for (int j = 0; j < channel_programs.size(); j++) {
             Program program = channel_programs.get(j);
             String[] dateAndTime = getDateAndTime(program.getStartTimeUtcMillis());
+            String[] endTime = getDateAndTime(program.getEndTimeUtcMillis());
             String month_and_date = dateAndTime[1] + "." + dateAndTime[2];
 
             if (!tmp_date.equals(month_and_date)) {
@@ -404,8 +405,9 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
 
                 ArrayMap<String,Object> item_program = new ArrayMap<String,Object>();
                 if (mTvTime.getTime() >= program.getStartTimeUtcMillis() && mTvTime.getTime() <= program.getEndTimeUtcMillis()) {
-                    item_program.put(GuideListView.ITEM_1, dateAndTime[3] + ":" + dateAndTime[4] + "  "
-                        + getResources().getString(R.string.playing));
+                    item_program.put(GuideListView.ITEM_1, dateAndTime[3] + ":" + dateAndTime[4]
+                        + "~" + endTime[3] + ":" + endTime[4]
+                        + " " + mResources.getString(R.string.playing));
                 } else {
                     item_program.put(GuideListView.ITEM_1, dateAndTime[3] + ":" + dateAndTime[4]);
                 }
@@ -415,10 +417,12 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
             } else {
                 ArrayMap<String,Object> item_program = new ArrayMap<String,Object>();
                 if (mTvTime.getTime() >= program.getStartTimeUtcMillis() && mTvTime.getTime() <= program.getEndTimeUtcMillis()) {
-                    item_program.put(GuideListView.ITEM_1, dateAndTime[3] + ":" + dateAndTime[4] + "  "
-                        + getResources().getString(R.string.playing));
+                    item_program.put(GuideListView.ITEM_1, dateAndTime[3] + ":" + dateAndTime[4]
+                        + "~" + endTime[3] + ":" + endTime[4]
+                        + " " + mResources.getString(R.string.playing));
                 } else {
-                    item_program.put(GuideListView.ITEM_1, dateAndTime[3] + ":" + dateAndTime[4]);
+                    item_program.put(GuideListView.ITEM_1, dateAndTime[3] + ":" + dateAndTime[4]
+                        + "~" + endTime[3] + ":" + endTime[4]);
                 }
                 item_program.put(GuideListView.ITEM_2, program.getTitle());
                 item_program.put(GuideListView.ITEM_3, program.getDescription());
@@ -489,7 +493,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
 
         if (list_program.size() > 0) {
             for (int i = 0; i < list_program.size(); i++) {
-                if (list_program.get(i).get(GuideListView.ITEM_1).toString().contains(getResources().getString(R.string.playing))) {
+                if (list_program.get(i).get(GuideListView.ITEM_1).toString().contains(mResources.getString(R.string.playing))) {
                     lv_program.setSelection(i);
                     return;
                 }
@@ -526,7 +530,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
                 if (description != null) {
                     tx_program_description.setText(description.toString());
                 } else {
-                    tx_program_description.setText(getResources().getString(R.string.no_information));
+                    tx_program_description.setText(mResources.getString(R.string.no_information));
                 }
                 break;
         }
