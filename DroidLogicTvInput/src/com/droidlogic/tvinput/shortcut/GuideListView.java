@@ -28,11 +28,16 @@ public class GuideListView extends ListView implements OnItemSelectedListener {
     public static final String ITEM_1               = "item1";
     public static final String ITEM_2               = "item2";
     public static final String ITEM_3               = "item3";
+    public static final String ITEM_4               = "item4";
+    public static final String ITEM_5               = "item5";
+
+    public static final String STATUS_PLAYING      = "playing ";
+    public static final String STATUS_APPOINTED    = "appointed ";
 
     private Context mContext;
     private int selectedPosition = 0;
     private ViewGroup rootView = null;
-     private ListItemSelectedListener mListItemSelectedListener;
+    private ListItemSelectedListener mListItemSelectedListener;
 
 
     public GuideListView(Context context){

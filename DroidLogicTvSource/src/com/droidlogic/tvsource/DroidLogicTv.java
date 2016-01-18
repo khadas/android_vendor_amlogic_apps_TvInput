@@ -7,6 +7,9 @@ import java.util.List;
 import com.droidlogic.app.SystemControlManager;
 import com.droidlogic.app.DroidLogicKeyEvent;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
+import com.droidlogic.app.tv.Program;
+import com.droidlogic.app.tv.TvDataBaseManager;
+import com.droidlogic.app.tv.TVTime;
 
 import com.droidlogic.tvsource.ui.ChannelListLayout;
 import com.droidlogic.tvsource.ui.ChannelListLayout.OnChannelSelectListener;
@@ -44,15 +47,23 @@ import android.os.Handler.Callback;
 import android.os.Message;
 import android.provider.Settings;
 import android.text.TextUtils;
+import android.util.ArrayMap;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View.OnAttachStateChangeListener;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class DroidLogicTv extends Activity implements Callback, onSourceInputClickListener, OnChannelSelectListener {
     private static final String TAG = "DroidLogicTv";
@@ -72,6 +83,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private SourceInputListLayout mSourceMenuLayout;
     private LinearLayout mSourceInfoLayout;
     private ChannelListLayout mChannelListLayout;
+    private LinearLayout mProgramListLayout;
 
     private int mSigType;
     private boolean isMenuShowing;
@@ -83,7 +95,14 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private Handler mHandler;
     private static final int MSG_UI_TIMEOUT              = 0;
     private static final int MSG_CHANNEL_NUM_SWITCH     = 1;
+    private static final int MSG_APPOINTED_PROGRAM_PLAYING = 2;
+    private static final int MSG_APPOINTED_PROGRAM_CHECKING = 3;
+
     private static final int DEFAULT_TIMEOUT             =5000;
+
+    private static final int PROGRAM_SCAN_TIME           = 30000;
+    private static final String ITEM_PROGRAM_NAME           = "program_name";
+    private static final String ITEM_CHANNEL_ID             = "channel_id";
 
     private int mUiType = Utils.UI_TYPE_ALL_HIDE;
 
@@ -120,6 +139,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private boolean mSourceHasReleased = false;
     PowerManager.WakeLock mScreenLock = null;
     private AudioManager mAudioManager = null;
+
+    ArrayList<ArrayMap<String,Object>> list_programs = new ArrayList<ArrayMap<String,Object>>();
+    SimpleAdapter adapter_programs = null;
 
     private Toast toast = null;//use to show audio&subtitle track
     private boolean isToastShow = false;//use to show prompt
@@ -227,6 +249,32 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         mSourceInfoLayout = (LinearLayout)findViewById(R.id.info_layout);
         mChannelListLayout = (ChannelListLayout)findViewById(R.id.channel_list);
         mChannelListLayout.setOnChannelSelectListener(this);
+        mProgramListLayout = (LinearLayout)findViewById(R.id.program_layout);
+        ListView lv_program = (ListView)findViewById(R.id.program_list);
+        adapter_programs = new SimpleAdapter(this, list_programs,
+                R.layout.layout_item_single_text,
+                new String[]{ITEM_PROGRAM_NAME}, new int[]{R.id.text_name});
+        lv_program.setAdapter(adapter_programs);
+        lv_program.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                int channelId = Integer.valueOf(list_programs.get(position).get(ITEM_CHANNEL_ID).toString());
+                for (int i = 0; i < mSourceInput.getChannelVideoList().size(); i++) {
+                    if (channelId == mSourceInput.getChannelVideoList().get(i).getId()) {
+                        onSelect(i, false);
+                        showUi(Utils.UI_TYPE_ALL_HIDE, true);
+                        return;
+                    }
+                }
+                for (int i = 0; i < mSourceInput.getChannelRadioList().size(); i++) {
+                    if (channelId == mSourceInput.getChannelRadioList().get(i).getId()) {
+                        onSelect(i, true);
+                        showUi(Utils.UI_TYPE_ALL_HIDE, true);
+                    }
+                }
+            }
+        });
+        mHandler.sendEmptyMessageDelayed(MSG_APPOINTED_PROGRAM_CHECKING, PROGRAM_SCAN_TIME);
 
         initSourceMenuLayout();
         setStartUpInfo();
@@ -472,8 +520,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             case Utils.UI_TYPE_DTV_CHANNEL_LIST:
             case Utils.UI_TYPE_ATV_FAV_LIST:
             case Utils.UI_TYPE_DTV_FAV_LIST:
-            mHandler.removeMessages(MSG_UI_TIMEOUT);
-            mHandler.sendEmptyMessageDelayed(MSG_UI_TIMEOUT, DEFAULT_TIMEOUT);
+            case Utils.UI_TYPE_APPOINTED_PROGRAM:
+                mHandler.removeMessages(MSG_UI_TIMEOUT);
+                mHandler.sendEmptyMessageDelayed(MSG_UI_TIMEOUT, DEFAULT_TIMEOUT);
             break;
         }
 
@@ -563,7 +612,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     case Utils.UI_TYPE_DTV_CHANNEL_LIST:
                     case Utils.UI_TYPE_ATV_FAV_LIST:
                     case Utils.UI_TYPE_DTV_FAV_LIST:
-                    showUi(Utils.UI_TYPE_SOURCE_INFO, true);
+                        showUi(Utils.UI_TYPE_SOURCE_INFO, true);
+                    case Utils.UI_TYPE_APPOINTED_PROGRAM:
+                        showUi(Utils.UI_TYPE_ALL_HIDE, true);
                     break;
                 }
                 return true;
@@ -935,6 +986,23 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     mHandler.sendEmptyMessage(MSG_UI_TIMEOUT);
                 }
                 break;
+            case Utils.UI_TYPE_APPOINTED_PROGRAM:
+                mHandler.removeMessages(MSG_UI_TIMEOUT);
+                if (forceShow || mProgramListLayout.getVisibility() != View.VISIBLE) {
+                    mSourceInfoLayout.setVisibility(View.INVISIBLE);
+                    prompt_no_signal.setVisibility(View.INVISIBLE);
+                    mChannelListLayout.setVisibility(View.INVISIBLE);
+                    mSourceMenuLayout.setVisibility(View.INVISIBLE);
+
+                    mProgramListLayout.setVisibility(View.VISIBLE);
+                    mProgramListLayout.requestLayout();
+                    mUiType = type;
+
+                    mHandler.sendEmptyMessageDelayed(MSG_UI_TIMEOUT, 2 * DEFAULT_TIMEOUT);
+                } else {
+                    mHandler.sendEmptyMessage(MSG_UI_TIMEOUT);
+                }
+                break;
             case Utils.UI_TYPE_NO_SINAL:
                 if (mSignalState == SIGNAL_SCRAMBLED)
                     prompt_no_signal.setText(mContext.getResources().getString(R.string.av_scambled));
@@ -960,6 +1028,10 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 mSourceMenuLayout.setVisibility(View.INVISIBLE);
                 mSourceInfoLayout.setVisibility(View.INVISIBLE);
                 prompt_no_signal.setVisibility(View.INVISIBLE);
+
+                if (forceShow)
+                    mProgramListLayout.setVisibility(View.INVISIBLE);
+
                 mUiType = type;
                 break;
         }
@@ -1081,13 +1153,14 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                         showUi(Utils.UI_TYPE_NO_SINAL, false);
                         break;
                     case Utils.UI_TYPE_SOURCE_LIST:
-                        showUi(Utils.UI_TYPE_SOURCE_INFO, true);
-                        break;
                     case Utils.UI_TYPE_ATV_CHANNEL_LIST:
                     case Utils.UI_TYPE_DTV_CHANNEL_LIST:
                     case Utils.UI_TYPE_ATV_FAV_LIST:
                     case Utils.UI_TYPE_DTV_FAV_LIST:
                         showUi(Utils.UI_TYPE_SOURCE_INFO, true);
+                        break;
+                    case Utils.UI_TYPE_APPOINTED_PROGRAM:
+                        showUi(Utils.UI_TYPE_ALL_HIDE, true);
                         break;
                     case Utils.UI_TYPE_NO_SINAL:
                         break;
@@ -1100,6 +1173,16 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 isNumberSwitching = false;
                 keyInputNumber = "";
                 showUi(Utils.UI_TYPE_SOURCE_INFO, true);
+                break;
+            case MSG_APPOINTED_PROGRAM_PLAYING:
+                if (mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_DTV  && mSignalState != SIGNAL_NOT_GOT
+                        && list_programs.size() > 0) {
+                    adapter_programs.notifyDataSetChanged();
+                    showUi(Utils.UI_TYPE_APPOINTED_PROGRAM, true);
+                }
+                break;
+            case MSG_APPOINTED_PROGRAM_CHECKING:
+                new Thread(checkAppointedProgramRunnable).start();
                 break;
             default:
                 break;
@@ -1290,6 +1373,39 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             mTimePromptText.setVisibility(View.GONE);
         no_signal_handler.removeCallbacks(no_signal_runnable);
     }
+
+    private void checkAppointedProgram() {
+        TVTime tt = new TVTime(mContext);
+        TvDataBaseManager tm = new TvDataBaseManager(mContext);
+        List<Program> programList = tm.getAppointedPrograms();
+        list_programs.clear();
+
+        for (int i = 0; i < programList.size(); i++) {
+            Program program = programList.get(i);
+            if (tt.getTime() > program.getEndTimeUtcMillis()) {
+                program.setIsAppointed(false);
+                tm.updateProgram(program);
+            }
+            if (tt.getTime() >= program.getStartTimeUtcMillis() - PROGRAM_SCAN_TIME) {
+                ArrayMap<String,Object> item = new ArrayMap<String,Object>();
+                item.put(ITEM_PROGRAM_NAME, program.getTitle());
+                item.put(ITEM_CHANNEL_ID, Long.toString(program.getChannelId()));
+                list_programs.add(item);
+
+                program.setIsAppointed(false);
+                tm.updateProgram(program);
+            }
+        }
+        mHandler.sendEmptyMessage(MSG_APPOINTED_PROGRAM_PLAYING);
+    }
+
+    private Runnable checkAppointedProgramRunnable = new Runnable() {
+        @Override
+        public void run() {
+            checkAppointedProgram();
+            mHandler.sendEmptyMessageDelayed(MSG_APPOINTED_PROGRAM_CHECKING, PROGRAM_SCAN_TIME);
+        }
+    };
 
     private int save_system_sound = -1;
     private void closeTouchSound() {

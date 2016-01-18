@@ -31,6 +31,7 @@ import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.GridView;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
@@ -49,17 +50,21 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
     private static final String TAG = "ShortCutActivity";
 
     private static final int MSG_FINISH = 0;
-    private static final int MSG_UPDATE_PROGRAM = 1;
+    private static final int MSG_UPDATE_DATE = 1;
+    private static final int MSG_UPDATE_PROGRAM = 2;
 
     private static final int TOAST_SHOW_TIME = 3000;
+
+    private static final long DAY_TO_MS = 86400000;
 
     private SettingsManager mSettingsManager;
     private TvDataBaseManager mTvDataBaseManager;
     private Resources mResources;
     private Toast toast = null;
+    private Toast guide_toast = null;
 
     private GuideListView lv_channel;
-    private GuideListView lv_week;
+    private GuideListView lv_date;
     private GuideListView lv_program;
     private TextView tx_date;
     private TextView tx_program_description;
@@ -67,11 +72,10 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
     private ArrayList<ArrayMap<String,Object>> list_channels  = new ArrayList<ArrayMap<String,Object>>();
     private ArrayList<ArrayMap<String,Object>> list_date = new ArrayList<ArrayMap<String,Object>>();
     private ArrayList<ArrayMap<String,Object>> list_program = new ArrayList<ArrayMap<String,Object>>();
-    ArrayList<ArrayList<ArrayList<ArrayMap<String,Object>>>> channel_data = new ArrayList<ArrayList<ArrayList<ArrayMap<String,Object>>>>();
     private SimpleAdapter channelsAdapter;
-    private SimpleAdapter weekAdapter;
-    private SimpleAdapter programAdapter;
     private int currentChannelIndex = -1;
+    private int currentDateIndex = -1;
+    private int currentProgramIndex = -1;
     private TVTime mTvTime = null;
 
     @Override
@@ -276,8 +280,11 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
                 case MSG_FINISH:
                     finish();
                     break;
+                case MSG_UPDATE_DATE:
+                    showDateList();
+                    break;
                 case MSG_UPDATE_PROGRAM:
-                    setDate();
+                    showProgramList();
                     break;
                 default:
                     break;
@@ -299,11 +306,22 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
         }
     };
 
-    private Runnable getProgramDataRunnable = new Runnable() {
+    private Runnable getdateRunnable = new Runnable() {
         @Override
         public void run() {
             try {
-                loadChannelData();
+                loadDateList();
+            } catch (RuntimeException e) {
+                e.printStackTrace();
+            }
+        }
+    };
+
+    private Runnable getProgramRunnable = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                loadProgramList();
             } catch (RuntimeException e) {
                 e.printStackTrace();
             }
@@ -320,12 +338,11 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
         tx_program_description = (TextView)findViewById(R.id.guide_details_content);
 
         lv_channel = (GuideListView)findViewById(R.id.list_guide_channel);
-        lv_week = (GuideListView)findViewById(R.id.list_guide_week);
+        lv_date = (GuideListView)findViewById(R.id.list_guide_week);
         lv_program = (GuideListView)findViewById(R.id.list_guide_programs);
 
         channelInfoList = mTvDataBaseManager.getChannelList(mSettingsManager.getInputId(), Channels.SERVICE_TYPE_AUDIO_VIDEO);
         channelInfoList.addAll(mTvDataBaseManager.getChannelList(mSettingsManager.getInputId(), Channels.SERVICE_TYPE_AUDIO));
-        new Thread(getProgramDataRunnable).start();
 
         list_channels = getChannelList(channelInfoList);
         channelsAdapter = new SimpleAdapter(this, list_channels,
@@ -335,8 +352,9 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
 
         lv_channel.setListItemSelectedListener(this);
         lv_channel.setOnItemClickListener(this);
-        lv_week.setListItemSelectedListener(this);
+        lv_date.setListItemSelectedListener(this);
         lv_program.setListItemSelectedListener(this);
+        lv_program.setOnItemClickListener(this);
     }
 
     public ArrayList<ArrayMap<String,Object>> getChannelList (ArrayList<ChannelInfo> channelInfoList) {
@@ -368,139 +386,127 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
         return list;
     }
 
-    private void loadChannelData() {
-        channel_data.clear();
-        for (int i = 0; i < channelInfoList.size(); i++) {
-            channel_data.add(getChannleData(channelInfoList.get(i)));
-        }
-    }
-
-    public ArrayList<ArrayList<ArrayMap<String,Object>>> getChannleData (ChannelInfo channel) {
-        Uri uri = TvContract.buildChannelUri(channel.getId());
-        List<Program> channel_programs = mTvDataBaseManager.getPrograms(uri);
-        ArrayList<ArrayList<ArrayMap<String,Object>>> list_all_program = new ArrayList<ArrayList<ArrayMap<String,Object>>>();
-        list_all_program.clear();
-
-        String tmp_date = "";
-        ArrayList<ArrayMap<String,Object>> list_item_program = null;
-
-        for (int j = 0; j < channel_programs.size(); j++) {
-            Program program = channel_programs.get(j);
-            String[] dateAndTime = getDateAndTime(program.getStartTimeUtcMillis());
-            String[] endTime = getDateAndTime(program.getEndTimeUtcMillis());
-            String month_and_date = dateAndTime[1] + "." + dateAndTime[2];
-
-            if (!tmp_date.equals(month_and_date)) {
-                tmp_date = month_and_date;
-
-                if (list_item_program != null) {
-                    list_all_program.add(list_item_program);
-                }
-
-                list_item_program = new ArrayList<ArrayMap<String,Object>>();
-
-                ArrayMap<String,Object> item_date = new ArrayMap<String,Object>();
-                item_date.put(GuideListView.ITEM_1, month_and_date);
-                list_item_program.add(item_date);
-
-                ArrayMap<String,Object> item_program = new ArrayMap<String,Object>();
-                if (mTvTime.getTime() >= program.getStartTimeUtcMillis() && mTvTime.getTime() <= program.getEndTimeUtcMillis()) {
-                    item_program.put(GuideListView.ITEM_1, dateAndTime[3] + ":" + dateAndTime[4]
-                        + "~" + endTime[3] + ":" + endTime[4]
-                        + " " + mResources.getString(R.string.playing));
-                } else {
-                    item_program.put(GuideListView.ITEM_1, dateAndTime[3] + ":" + dateAndTime[4]);
-                }
-                item_program.put(GuideListView.ITEM_2, program.getTitle());
-                item_program.put(GuideListView.ITEM_3, program.getDescription());
-                list_item_program.add(item_program);
-            } else {
-                ArrayMap<String,Object> item_program = new ArrayMap<String,Object>();
-                if (mTvTime.getTime() >= program.getStartTimeUtcMillis() && mTvTime.getTime() <= program.getEndTimeUtcMillis()) {
-                    item_program.put(GuideListView.ITEM_1, dateAndTime[3] + ":" + dateAndTime[4]
-                        + "~" + endTime[3] + ":" + endTime[4]
-                        + " " + mResources.getString(R.string.playing));
-                } else {
-                    item_program.put(GuideListView.ITEM_1, dateAndTime[3] + ":" + dateAndTime[4]
-                        + "~" + endTime[3] + ":" + endTime[4]);
-                }
-                item_program.put(GuideListView.ITEM_2, program.getTitle());
-                item_program.put(GuideListView.ITEM_3, program.getDescription());
-                list_item_program.add(item_program);
-            }
-        }
-        if (list_item_program != null)
-            list_all_program.add(list_item_program);
-
-        return list_all_program;
-    }
-
-    public void setDate() {
-        handler.removeMessages(MSG_UPDATE_PROGRAM);
+    private void loadDateList() {
         list_date.clear();
+        currentDateIndex = -1;
 
-        if (channel_data.size() > currentChannelIndex) {
-            ArrayList<ArrayList<ArrayMap<String,Object>>> list = channel_data.get(currentChannelIndex);
-            if (list.size() > 0) {
-                for (int i = 0; i < list.size(); i++) {
-                    list_date.add(list.get(i).get(0));
-                }
-            } else {
+        int saveChannelIndex = currentChannelIndex;
+        ChannelInfo currentChannel = channelInfoList.get(saveChannelIndex);
+        List<Program> channel_programs = mTvDataBaseManager.getPrograms(TvContract.buildProgramsUriForChannel(currentChannel.getId()));
+        if (channel_programs.size() > 0) {
+            long firstProgramTime = channel_programs.get(0).getStartTimeUtcMillis();
+            long lastProgramTime = channel_programs.get(channel_programs.size() -1).getStartTimeUtcMillis();
+            int time_offset = TimeZone.getDefault().getOffset(firstProgramTime);
+
+            long tmp_time = (firstProgramTime) - ((firstProgramTime + time_offset) % DAY_TO_MS);
+            int count = 0;
+            while ((tmp_time <= lastProgramTime) && count < 12) {
+                count++;
+                if (mTvTime.getTime() >= tmp_time && mTvTime.getTime() < tmp_time + DAY_TO_MS)
+                    currentDateIndex = count - 1;
+
                 ArrayMap<String,Object> item = new ArrayMap<String,Object>();
-                item.put(GuideListView.ITEM_1, mResources.getString(R.string.no_program));
+                String[] dateAndTime = getDateAndTime(tmp_time);
+                item.put(GuideListView.ITEM_1, dateAndTime[1] + "." + dateAndTime[2]);
+                item.put(GuideListView.ITEM_2, Long.toString(tmp_time));
+                tmp_time = tmp_time + DAY_TO_MS;
+                item.put(GuideListView.ITEM_3, Long.toString(tmp_time - 1));
+                if (saveChannelIndex != currentChannelIndex) {
+                    return;
+                }
                 list_date.add(item);
             }
-            //weekAdapter.notifyDataSetChanged();
-            weekAdapter = new SimpleAdapter(this, list_date,
-                    R.layout.layout_guide_single_text_center,
-                    new String[]{GuideListView.ITEM_1}, new int[]{R.id.text_name});
-            lv_week.setAdapter(weekAdapter);
-
-            if (list_date.size() > 0) {
-                for (int i = 0; i < list_date.size(); i++) {
-                    String[] dateAndTime = getDateAndTime(mTvTime.getTime());
-                    if ((dateAndTime[1] + "." + dateAndTime[2]).equals(list_date.get(i).get(GuideListView.ITEM_1).toString())) {
-                        lv_week.setSelection(i);
-                        return;
-                    }
-                }
-                lv_week.setSelection(0);
-            }
-        }else {
-            handler.sendEmptyMessageDelayed(MSG_UPDATE_PROGRAM, 200);
-        }
-    }
-
-    public void setPrograms (int position) {
-        list_program.clear();
-
-        ArrayList<ArrayList<ArrayMap<String,Object>>> list = channel_data.get(currentChannelIndex);
-        if (list.size() > 0) {
-            ArrayList<ArrayMap<String,Object>> programs = list.get(position);
-            list_program.addAll(programs);
-            list_program.remove(0);
         } else {
             ArrayMap<String,Object> item = new ArrayMap<String,Object>();
             item.put(GuideListView.ITEM_1, mResources.getString(R.string.no_program));
+
+            if (saveChannelIndex != currentChannelIndex) {
+                return;
+            }
+            list_date.add(item);
+        }
+        if (saveChannelIndex == currentChannelIndex)
+            handler.sendEmptyMessage(MSG_UPDATE_DATE);
+    }
+
+    private void showDateList() {
+        ArrayList<ArrayMap<String,Object>> list = new ArrayList<ArrayMap<String,Object>>();
+        list.addAll(list_date);
+
+        SimpleAdapter dateAdapter = new SimpleAdapter(this, list,
+                R.layout.layout_guide_single_text_center,
+                new String[]{GuideListView.ITEM_1}, new int[]{R.id.text_name});
+        lv_date.setAdapter(dateAdapter);
+
+        currentDateIndex = (currentDateIndex != -1 ? currentDateIndex : 0);
+        lv_date.setSelection(currentDateIndex);
+    }
+
+    private void loadProgramList() {
+        list_program.clear();
+        currentProgramIndex = -1;
+
+        int saveChannelIndex = currentChannelIndex;
+        if (list_date.get(currentDateIndex).get(GuideListView.ITEM_2) != null) {
+            long dayStartTime = Long.valueOf(list_date.get(currentDateIndex).get(GuideListView.ITEM_2).toString());
+            long dayEndTime = Long.valueOf(list_date.get(currentDateIndex).get(GuideListView.ITEM_3).toString());
+            ChannelInfo currentChannel = channelInfoList.get(saveChannelIndex);
+            List<Program> programs = mTvDataBaseManager.getPrograms(TvContract.buildProgramsUriForChannel(currentChannel.getId(),
+                    dayStartTime, dayEndTime));
+
+            for (int i = 0; i < programs.size(); i++) {
+                Program program = programs.get(i);
+                String[] dateAndTime = getDateAndTime(program.getStartTimeUtcMillis());
+                String[] endTime = getDateAndTime(program.getEndTimeUtcMillis());
+                String month_and_date = dateAndTime[1] + "." + dateAndTime[2];
+                String status = "";
+
+                ArrayMap<String,Object> item_program = new ArrayMap<String,Object>();
+
+                item_program.put(GuideListView.ITEM_1, dateAndTime[3] + ":" + dateAndTime[4]
+                            + "~" + endTime[3] + ":" + endTime[4]);
+                item_program.put(GuideListView.ITEM_2, program.getTitle());
+                item_program.put(GuideListView.ITEM_3, program.getDescription());
+                item_program.put(GuideListView.ITEM_4, Long.toString(program.getProgramId()));
+
+                if (mTvTime.getTime() >= program.getStartTimeUtcMillis() && mTvTime.getTime() <= program.getEndTimeUtcMillis()) {
+                    currentProgramIndex = i;
+                    status = GuideListView.STATUS_PLAYING;
+                } else if (program.isAppointed()){
+                    status = GuideListView.STATUS_APPOINTED;
+                }
+                item_program.put(GuideListView.ITEM_5, status);
+
+                if (saveChannelIndex != currentChannelIndex) {
+                    return;
+                }
+                list_program.add(item_program);
+            }
+        }
+        if (list_program.size() == 0) {
+            ArrayMap<String,Object> item = new ArrayMap<String,Object>();
+            item.put(GuideListView.ITEM_1, mResources.getString(R.string.no_program));
+
+            if (saveChannelIndex != currentChannelIndex) {
+                return;
+            }
             list_program.add(item);
         }
 
-        programAdapter = new SimpleAdapter(this, list_program,
-                R.layout.layout_guide_double_text,
-                new String[] {GuideListView.ITEM_1, GuideListView.ITEM_2},
-                new int[] {R.id.text_name, R.id.text_status});
-        lv_program.setAdapter(programAdapter);
-
-        if (list_program.size() > 0) {
-            for (int i = 0; i < list_program.size(); i++) {
-                if (list_program.get(i).get(GuideListView.ITEM_1).toString().contains(mResources.getString(R.string.playing))) {
-                    lv_program.setSelection(i);
-                    return;
-                }
-            }
-            lv_program.setSelection(0);
-        }
+        if (saveChannelIndex == currentChannelIndex)
+            handler.sendEmptyMessage(MSG_UPDATE_PROGRAM);
     }
+
+    private void showProgramList() {
+        ArrayList<ArrayMap<String,Object>> list = new ArrayList<ArrayMap<String,Object>>();
+        list.addAll(list_program);
+
+        GuideAdapter programAdapter = new GuideAdapter(this, list);
+        lv_program.setAdapter(programAdapter);
+        currentProgramIndex = (currentProgramIndex != -1 ? currentProgramIndex: 0);
+        lv_program.setSelection(currentProgramIndex);
+    }
+
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -508,32 +514,68 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
             case R.id.list_guide_channel:
                 sendSwitchChannelBroadcast(position);
                 break;
+            case R.id.list_guide_programs:
+                if (list_program.size() > position) {
+                    Object programId_object = list_program.get(position).get(GuideListView.ITEM_4);
+                    if (programId_object != null) {
+                        long programId = Long.valueOf(list_program.get(position).get(GuideListView.ITEM_4).toString());
+                        Program program = mTvDataBaseManager.getProgram(programId);
+                        String appointed_status;
+
+                        if (mTvTime.getTime() < program.getStartTimeUtcMillis()) {
+                            if (program.isAppointed()) {
+                                program.setIsAppointed(false);
+                                ((ImageView)view.findViewById(R.id.img_appointed)).setImageResource(0);
+                                appointed_status = mResources.getString(R.string.appointed_cancel);
+                            } else {
+                                program.setIsAppointed(true);
+                                ((ImageView)view.findViewById(R.id.img_appointed)).setImageResource(R.drawable.appointed);
+                                appointed_status = mResources.getString(R.string.appointed_success);
+                            }
+                            mTvDataBaseManager.updateProgram(program);
+
+                        } else {
+                            appointed_status = mResources.getString(R.string.appointed_expired);
+                        }
+                        showGuideToast(appointed_status);
+                    }
+                }
         }
     }
 
     @Override
-    public void onListItemSelected(View parent, int position) {
+    public void onListItemSelected(View parent, int position) {;
         switch (parent.getId()) {
             case R.id.list_guide_channel:
-                lv_week.setAdapter(null);
+                lv_date.setAdapter(null);
                 lv_program.setAdapter(null);
                 currentChannelIndex = position;
-                setDate();
+                new Thread(getdateRunnable).start();
                 break;
             case R.id.list_guide_week:
-                if (list_date.size() > 0) {
-                    setPrograms(position);
-                }
+                currentDateIndex = position;
+                new Thread(getProgramRunnable).start();
                 break;
             case R.id.list_guide_programs:
-                Object description = list_program.get(position).get(GuideListView.ITEM_3);
-                if (description != null) {
-                    tx_program_description.setText(description.toString());
-                } else {
-                    tx_program_description.setText(mResources.getString(R.string.no_information));
+                if (currentProgramIndex == position) {
+                    Object description = list_program.get(position).get(GuideListView.ITEM_3);
+                    if (description != null) {
+                        tx_program_description.setText(description.toString());
+                    } else {
+                        tx_program_description.setText(mResources.getString(R.string.no_information));
+                    }
                 }
                 break;
         }
+    }
+
+    private void showGuideToast(String status){
+        if (guide_toast == null) {
+            guide_toast = Toast.makeText(this, status, Toast.LENGTH_SHORT);
+        } else {
+            guide_toast.setText(status);
+        }
+        guide_toast.show();
     }
 
     private void sendSwitchChannelBroadcast(int position) {
@@ -544,6 +586,12 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
         intent.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, channelIndex);
         intent.putExtra(DroidLogicTvUtils.EXTRA_IS_RADIO_CHANNEL, isRadio);
         sendBroadcast(intent);
+    }
+
+    private String getdate(long dateTime) {
+        SimpleDateFormat sDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        sDateFormat.setTimeZone(TimeZone.getDefault());
+        return sDateFormat.format(new Date(dateTime + 0));
     }
 
     public String[] getDateAndTime(long dateTime) {

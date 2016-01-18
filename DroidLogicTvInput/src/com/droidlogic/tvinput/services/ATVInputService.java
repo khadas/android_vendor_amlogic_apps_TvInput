@@ -123,7 +123,7 @@ public class ATVInputService extends DroidLogicTvInputService {
 
         private void switchToSourceInput(Uri uri) {
             mUnblockedRatingSet.clear();
-
+            Log.d(TAG, "@@@@@@@@@@@@@@@@@@@@@ huhu="+ uri);
             if (Utils.getChannelId(uri) < 0) {
                 releasePlayer();
                 return;
