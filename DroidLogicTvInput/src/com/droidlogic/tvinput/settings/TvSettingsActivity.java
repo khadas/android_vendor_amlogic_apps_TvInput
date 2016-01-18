@@ -47,6 +47,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
     private TvControlManager mTvControlManager;
     private AudioManager mAudioManager = null;
     private boolean isFinished = false;
+    private boolean isExiting = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,9 +96,6 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
         mOptionUiManager = new OptionUiManager(this);
         startShowActivityTimer();
 
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(DroidLogicTvUtils.ACTION_CHANNEL_CHANGED);
-        registerReceiver(mReceiver, filter);
     }
 
     private void setDefaultFragment() {
@@ -253,13 +251,35 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
     @Override
     public void finish() {
         isFinished = true;
+        // if press power in atv searching, suspend progress has called onPause/onStop,
+        // and then receive scan exit or store end message, and it calls finish(),
+        // so it will go back to tv app and play program, and can't go to sleep.
+        if (isExiting)
+            return;
         setResult(mSettingsManager.getActivityResult());
         super.finish();
     }
 
+    public void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume");
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(DroidLogicTvUtils.ACTION_CHANNEL_CHANGED);
+        registerReceiver(mReceiver, filter);
+        isExiting = false;
+        if (isFinished)
+            finish();
+    }
+
+    public void onPause() {
+        super.onPause();
+        Log.d(TAG, "onPause");
+        isExiting = true;
+        unregisterReceiver(mReceiver);
+    }
+
     public void onStop(){
         super.onStop();
-        unregisterReceiver(mReceiver);
     }
 
     public void startShowActivityTimer () {
