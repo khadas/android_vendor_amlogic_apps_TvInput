@@ -125,6 +125,13 @@ public class ATVInputService extends DroidLogicTvInputService {
             mUnblockedRatingSet.clear();
             Log.d(TAG, "@@@@@@@@@@@@@@@@@@@@@ huhu="+ uri);
             if (Utils.getChannelId(uri) < 0) {
+                Log.d(TAG, "ChannelId < 0, stop Play");
+                TvControlManager mTvControlManager = TvControlManager.open();
+                mTvControlManager.SetFrontendParms(TvControlManager.tv_fe_type_e.TV_FE_ANALOG,
+                    45250000,//try to get the tune into unlock status
+                    TvControlManager.tvin_color_system_e.COLOR_SYSTEM_PAL.toInt(),
+                    TvControlManager.atv_audio_std_e.ATV_AUDIO_STD_DK.toInt(),
+                    0, 0);
                 releasePlayer();
                 notifyVideoUnavailable(TvInputManager.VIDEO_UNAVAILABLE_REASON_UNKNOWN);
                 return;
