@@ -126,6 +126,7 @@ public class ATVInputService extends DroidLogicTvInputService {
 
             if (Utils.getChannelId(uri) < 0) {
                 releasePlayer();
+                notifyVideoUnavailable(TvInputManager.VIDEO_UNAVAILABLE_REASON_UNKNOWN);
                 return;
             }
             TvDataBaseManager mTvDataBaseManager = new TvDataBaseManager(mContext);
