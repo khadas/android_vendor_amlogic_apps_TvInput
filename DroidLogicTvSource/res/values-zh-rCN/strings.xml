@@ -18,4 +18,6 @@
     <string name="suspend_dialog_title">待机倒计时</string>
 	  <string name="cancel_suspend">取消倒计时</string>
 	  <string name="countdown_tips">秒后关机</string>
+
+	  <string name="choose_program">预约节目将要开始</string>
 </resources>

@@ -17,6 +17,7 @@ public class Utils {
     public static final int UI_TYPE_DTV_FAV_LIST = 5;
     public static final int UI_TYPE_NO_SINAL = 6;
     public static final int UI_TYPE_ALL_HIDE = 7;
+    public static final int UI_TYPE_APPOINTED_PROGRAM = 8;
 
     public static void logd(String tag, String msg) {
         if (DEBUG)

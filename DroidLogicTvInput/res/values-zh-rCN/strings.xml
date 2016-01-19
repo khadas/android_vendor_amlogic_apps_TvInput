@@ -141,7 +141,9 @@
     <string name="program_guide">节目预告</string>
     <string name="program_information">节目详情</string>
     <string name="no_information">无详细信息</string>
-    <string name="no_program">无频道</string>
+    <string name="no_program">无节目</string>
     <string name="date">日期</string>
-    <string name="playing">正播：</string>
+    <string name="appointed_success">预约成功</string>
+    <string name="appointed_cancel">取消预约</string>
+    <string name="appointed_expired">节目已过期！</string>
 </resources>

@@ -160,7 +160,7 @@ public class DTVInputService extends DroidLogicTvInputService {
 
         private void switchToSourceInput(Uri uri) {
             mUnblockedRatingSet.clear();
-
+            Log.d(TAG, "@@@@@@@@@@@@@@@@@@@@@ huhu="+ uri);
             if (Utils.getChannelId(uri) < 0) {
                 TvControlManager mTvControlManager = TvControlManager.open();
                 mTvControlManager.PlayDTVProgram(TVChannelParams.MODE_DTMB, 0, 0, 0, 0, 0, -1, -1, 0, 0);

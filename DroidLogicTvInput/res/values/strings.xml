@@ -160,5 +160,7 @@
     <string name="no_information">No information!</string>
     <string name="no_program">No program!</string>
     <string name="date">Date</string>
-    <string name="playing">Playing:</string>
+    <string name="appointed_success">Appointment success</string>
+    <string name="appointed_cancel">Cancel appointment</string>
+    <string name="appointed_expired">Program expired!</string>
 </resources>

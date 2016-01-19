@@ -26,4 +26,5 @@
     <string name="no">null</string>
     <string name="off">off</string>
 
+	<string name="choose_program">Reservation program soon to play</string>
 </resources>
