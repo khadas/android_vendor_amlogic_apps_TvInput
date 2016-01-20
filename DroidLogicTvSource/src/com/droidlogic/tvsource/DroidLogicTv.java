@@ -259,19 +259,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 int channelId = Integer.valueOf(list_programs.get(position).get(ITEM_CHANNEL_ID).toString());
-                for (int i = 0; i < mSourceInput.getChannelVideoList().size(); i++) {
-                    if (channelId == mSourceInput.getChannelVideoList().get(i).getId()) {
-                        onSelect(i, false);
-                        showUi(Utils.UI_TYPE_ALL_HIDE, true);
-                        return;
-                    }
-                }
-                for (int i = 0; i < mSourceInput.getChannelRadioList().size(); i++) {
-                    if (channelId == mSourceInput.getChannelRadioList().get(i).getId()) {
-                        onSelect(i, true);
-                        showUi(Utils.UI_TYPE_ALL_HIDE, true);
-                    }
-                }
+                switchToDtvChannel(channelId);
             }
         });
         mHandler.sendEmptyMessageDelayed(MSG_APPOINTED_PROGRAM_CHECKING, PROGRAM_SCAN_TIME);
@@ -416,6 +404,36 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         mSignalState = SIGNAL_GOT;
         mSourceView.tune(mSourceInput.getInputId(), channel_uri);
         showUi(Utils.UI_TYPE_SOURCE_INFO, true);
+    }
+
+    private void switchToDtvChannel(int channelId) {
+        SourceButton dtvSourceButton = mSourceMenuLayout.getDtvSourceButton();
+        if (dtvSourceButton == null) {
+            return;
+        }
+        int index = -1;
+        boolean isRadio = false;
+        for (int i = 0; i < dtvSourceButton.getChannelVideoList().size(); i++) {
+            if (channelId == dtvSourceButton.getChannelVideoList().get(i).getId()) {
+                index = i;
+                isRadio = false;
+                break;
+            }
+        }
+        if (index == -1) {
+            for (int i = 0; i < dtvSourceButton.getChannelRadioList().size(); i++) {
+                if (channelId == dtvSourceButton.getChannelRadioList().get(i).getId()) {
+                    index = i;
+                    isRadio = true;
+                    break;
+                }
+            }
+        }
+        if (index != -1) {
+            showUi(Utils.UI_TYPE_ALL_HIDE, true);
+            dtvSourceButton.moveToChannel(index, isRadio);
+            mSourceMenuLayout.onButtonClick(dtvSourceButton);
+        }
     }
 
     private void startSetupActivity () {
@@ -606,6 +624,10 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 if (!down)
                     return true;
 
+                if (mProgramListLayout.getVisibility() == View.VISIBLE) {
+                    mProgramListLayout.setVisibility(View.INVISIBLE);
+                }
+
                 switch (mUiType ) {
                     case Utils.UI_TYPE_SOURCE_LIST:
                     case Utils.UI_TYPE_ATV_CHANNEL_LIST:
@@ -613,8 +635,6 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     case Utils.UI_TYPE_ATV_FAV_LIST:
                     case Utils.UI_TYPE_DTV_FAV_LIST:
                         showUi(Utils.UI_TYPE_SOURCE_INFO, true);
-                    case Utils.UI_TYPE_APPOINTED_PROGRAM:
-                        showUi(Utils.UI_TYPE_ALL_HIDE, true);
                     break;
                 }
                 return true;
@@ -1175,8 +1195,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 showUi(Utils.UI_TYPE_SOURCE_INFO, true);
                 break;
             case MSG_APPOINTED_PROGRAM_PLAYING:
-                if (mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_DTV  && mSignalState != SIGNAL_NOT_GOT
-                        && list_programs.size() > 0) {
+                if (list_programs.size() > 0) {
                     adapter_programs.notifyDataSetChanged();
                     showUi(Utils.UI_TYPE_APPOINTED_PROGRAM, true);
                 }
@@ -1380,18 +1399,17 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         List<Program> programList = tm.getAppointedPrograms();
         list_programs.clear();
 
+        Utils.logd(TAG, "==== checkAppointedProgram program size=" + programList.size());
         for (int i = 0; i < programList.size(); i++) {
             Program program = programList.get(i);
-            if (tt.getTime() > program.getEndTimeUtcMillis()) {
-                program.setIsAppointed(false);
-                tm.updateProgram(program);
-            }
+            Utils.logd(TAG, "==== checkAppointedProgram TvTime=" + tt.getTime()
+                    + " program start=" + program.getStartTimeUtcMillis());
             if (tt.getTime() >= program.getStartTimeUtcMillis() - PROGRAM_SCAN_TIME) {
                 ArrayMap<String,Object> item = new ArrayMap<String,Object>();
                 item.put(ITEM_PROGRAM_NAME, program.getTitle());
                 item.put(ITEM_CHANNEL_ID, Long.toString(program.getChannelId()));
                 list_programs.add(item);
-
+                Utils.logd(TAG, "==== checkAppointedProgram Appointed Program=" + program.getTitle());
                 program.setIsAppointed(false);
                 tm.updateProgram(program);
             }

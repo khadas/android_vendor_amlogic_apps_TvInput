@@ -25,6 +25,7 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
     private SourceButton defSourceInput;
     private SourceButton preSourceInput;
     private SourceButton curSourceInput;
+    private SourceButton dtvSourceInput;
 
     private onSourceInputClickListener mClickListener;
 
@@ -96,6 +97,9 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
         }
         TvInputInfo info = mTvInputManager.getTvInputInfo(inputId);
         SourceButton sb = new SourceButton(mContext, info);
+        if (sb.getSigType() == DroidLogicTvUtils.SIG_INFO_TYPE_DTV) {
+            dtvSourceInput = sb;
+        }
         if (sb.isHardware()) {
             initSourceInput(sb);
             if (mMaxHardwareNumber == 0) {
@@ -153,6 +157,9 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
         }
         for (TvInputInfo info : input_list) {
             SourceButton sb = new SourceButton(mContext, info);
+            if (sb.getSigType() == DroidLogicTvUtils.SIG_INFO_TYPE_DTV) {
+                dtvSourceInput = sb;
+            }
             if (sb.isHardware()) {
                 initSourceInput(sb);
                 if (mMaxHardwareNumber == 0) {
@@ -239,6 +246,10 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
         preSourceInput = curSourceInput;
         curSourceInput = sb;
         mClickListener.onSourceInputClick();
+    }
+
+    public SourceButton getDtvSourceButton() {
+        return dtvSourceInput;
     }
 
     public void setOnSourceInputClickListener(onSourceInputClickListener l) {

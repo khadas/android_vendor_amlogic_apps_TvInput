@@ -557,13 +557,11 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
                 new Thread(getProgramRunnable).start();
                 break;
             case R.id.list_guide_programs:
-                if (currentProgramIndex == position) {
-                    Object description = list_program.get(position).get(GuideListView.ITEM_3);
-                    if (description != null) {
-                        tx_program_description.setText(description.toString());
-                    } else {
-                        tx_program_description.setText(mResources.getString(R.string.no_information));
-                    }
+                Object description = list_program.get(position).get(GuideListView.ITEM_3);
+                if (description != null) {
+                    tx_program_description.setText(description.toString());
+                } else {
+                    tx_program_description.setText(mResources.getString(R.string.no_information));
                 }
                 break;
         }
