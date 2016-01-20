@@ -59,6 +59,12 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
         return ACTION_FAILED;
     }
 
+    /**
+     * invoked when device hot plug-out.
+     * if current device is plugging out, previous source and current source will both change to ATV,
+     * and re-tune channel to ATV.
+     * if previous source but not current is plugging out, previous source will change to ATV.
+     */
     public int remove(String inputId) {
         Utils.logd(TAG, "==== remove, current id ="+ curSourceInput.getInputId());
         if (getSourceCount() == 0 || TextUtils.isEmpty(inputId))
@@ -85,6 +91,10 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
         return ACTION_FAILED;
     }
 
+    /**
+     * invoked when device hot plug-in.
+     * get all devices at first time, otherwise, add device one by one.
+     */
     public int add(String inputId) {
         int input_list_size = mTvInputManager.getTvInputList().size();
         int count = getSourceCount();
@@ -194,7 +204,7 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
                 sb.setOnSourceClickListener(this);
             }
         }
-        if (defSourceInput == null) {
+        if (defSourceInput == null) {//device ATV hasn't been added, return and wait
             return ACTION_SUCCESS;
         } else if (curSourceInput == null) {
             preSourceInput = defSourceInput;
@@ -238,6 +248,10 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
 
     public int getSourceCount() {
         return mRoot.getChildCount() - 1;
+    }
+
+    public void setPreSourceInput(SourceButton sb) {
+        preSourceInput = sb;
     }
 
     @Override
