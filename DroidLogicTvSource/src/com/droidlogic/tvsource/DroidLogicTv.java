@@ -431,8 +431,12 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         }
         if (index != -1) {
             showUi(Utils.UI_TYPE_ALL_HIDE, true);
-            dtvSourceButton.moveToChannel(index, isRadio);
-            mSourceMenuLayout.onButtonClick(dtvSourceButton);
+            if (mSourceInput.getSourceType() != DroidLogicTvUtils.SOURCE_TYPE_DTV) {
+                dtvSourceButton.moveToChannel(index, isRadio);
+                mSourceMenuLayout.onButtonClick(dtvSourceButton);
+            } else {
+                onSelect(index, isRadio);
+            }
         }
     }
 
@@ -1017,8 +1021,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     mProgramListLayout.setVisibility(View.VISIBLE);
                     mProgramListLayout.requestLayout();
                     mUiType = type;
-
-                    mHandler.sendEmptyMessageDelayed(MSG_UI_TIMEOUT, 2 * DEFAULT_TIMEOUT);
+                    Utils.logd(TAG, "==== UI_TYPE_APPOINTED_PROGRAM");
+                    mHandler.sendEmptyMessageDelayed(MSG_UI_TIMEOUT, 4 * DEFAULT_TIMEOUT);
                 } else {
                     mHandler.sendEmptyMessage(MSG_UI_TIMEOUT);
                 }
@@ -1049,8 +1053,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 mSourceInfoLayout.setVisibility(View.INVISIBLE);
                 prompt_no_signal.setVisibility(View.INVISIBLE);
 
-                if (forceShow)
+                if (forceShow) {
                     mProgramListLayout.setVisibility(View.INVISIBLE);
+                }
 
                 mUiType = type;
                 break;
@@ -1195,13 +1200,12 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 showUi(Utils.UI_TYPE_SOURCE_INFO, true);
                 break;
             case MSG_APPOINTED_PROGRAM_PLAYING:
-                if (list_programs.size() > 0) {
                     adapter_programs.notifyDataSetChanged();
                     showUi(Utils.UI_TYPE_APPOINTED_PROGRAM, true);
-                }
                 break;
             case MSG_APPOINTED_PROGRAM_CHECKING:
                 new Thread(checkAppointedProgramRunnable).start();
+                mHandler.sendEmptyMessageDelayed(MSG_APPOINTED_PROGRAM_CHECKING, PROGRAM_SCAN_TIME);
                 break;
             default:
                 break;
@@ -1414,14 +1418,15 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 tm.updateProgram(program);
             }
         }
-        mHandler.sendEmptyMessage(MSG_APPOINTED_PROGRAM_PLAYING);
+        if (list_programs.size() > 0) {
+            mHandler.sendEmptyMessage(MSG_APPOINTED_PROGRAM_PLAYING);
+        }
     }
 
     private Runnable checkAppointedProgramRunnable = new Runnable() {
         @Override
         public void run() {
             checkAppointedProgram();
-            mHandler.sendEmptyMessageDelayed(MSG_APPOINTED_PROGRAM_CHECKING, PROGRAM_SCAN_TIME);
         }
     };
 
