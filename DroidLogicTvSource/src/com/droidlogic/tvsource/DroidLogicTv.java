@@ -1147,10 +1147,6 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         Settings.System.putString(getContentResolver(), "tv_play_channel_uri", mSourceInput.getUri().toString());
 
         int index = mSourceInput.getChannelIndex();
-        if (index < 0) {
-            edit.commit();
-            return;
-        }
         int type = mSourceInput.getSourceType();
         boolean is_radio = mSourceInput.isRadioChannel();
         if (type == DroidLogicTvUtils.SOURCE_TYPE_ATV) {
