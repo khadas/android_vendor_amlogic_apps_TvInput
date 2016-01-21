@@ -146,6 +146,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private Toast toast = null;//use to show audio&subtitle track
     private boolean isToastShow = false;//use to show prompt
 
+    private boolean isRunning = true;
+
     BroadcastReceiver mReceiver = new BroadcastReceiver(){
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
@@ -363,6 +365,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         hasStopped = false;
         isMenuShowing = false;
         needUpdateSource = true;
+        isRunning = true;
         if (mSignalState == SIGNAL_NOT_GOT)
             reset_nosignal_time();
 
@@ -1112,6 +1115,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         if (mCurrentKeyType == IS_KEY_EXIT || mCurrentKeyType == IS_KEY_HOME) {
             releaseBeforeExit();
         }
+        isRunning = false;
         // search is longer then 5min
         remove_nosignal_time();
         super.onPause();
@@ -1383,6 +1387,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     };
 
     private void reset_nosignal_time() {
+        if ( !isRunning )
+            return;
         mNoSignalShutdownCount = 300;//5min
         no_signal_handler.removeCallbacks(no_signal_runnable);
         no_signal_handler.postDelayed(no_signal_runnable, 0);
