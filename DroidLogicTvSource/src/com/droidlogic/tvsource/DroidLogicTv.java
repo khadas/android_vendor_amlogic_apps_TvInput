@@ -404,6 +404,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         mSignalState = SIGNAL_GOT;
         mSourceView.tune(mSourceInput.getInputId(), channel_uri);
         showUi(Utils.UI_TYPE_SOURCE_INFO, true);
+        mSourceMenuLayout.setPreSourceInput(mSourceInput);
     }
 
     private void switchToDtvChannel(int channelId) {
