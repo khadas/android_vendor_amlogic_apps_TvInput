@@ -49,6 +49,13 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
     private boolean isFinished = false;
     private boolean isExiting = false;
 
+    /*password to enter factory menu*/
+    private int factoryPasswordFirstKey = 8;
+    private int factoryPasswordSecondKey = 8;
+    private int factoryPasswordThirdKey = 9;
+    private int factoryPasswordFourthKey = 3;
+    private int mFactoryShow = 0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -118,6 +125,38 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
                     if (mOptionUiManager.isSearching())
                         return true;
                     startShowActivityTimer();
+                    break;
+                case KeyEvent.KEYCODE_0:
+                    enterFactoryCount(0);
+                    break;
+                case KeyEvent.KEYCODE_1:
+                    enterFactoryCount(1);
+                    break;
+                case KeyEvent.KEYCODE_2:
+                    enterFactoryCount(2);
+                    break;
+                case KeyEvent.KEYCODE_3:
+                    enterFactoryCount(3);
+                    break;
+                case KeyEvent.KEYCODE_4:
+                    enterFactoryCount(4);
+                    break;
+                case KeyEvent.KEYCODE_5:
+                    enterFactoryCount(5);
+                    break;
+                case KeyEvent.KEYCODE_6:
+                    enterFactoryCount(6);
+                    break;
+                case KeyEvent.KEYCODE_7:
+                    enterFactoryCount(7);
+                    break;
+                case KeyEvent.KEYCODE_8:
+                    enterFactoryCount(8);
+                    break;
+                case KeyEvent.KEYCODE_9:
+                    enterFactoryCount(9);
+                    break;
+                default:
                     break;
             }
         }
@@ -312,4 +351,28 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
                 }
             }
     };
+
+    /*add enter factory menu*/
+    private void enterFactoryCount(int keyValue) {
+        if (mFactoryShow == 0 && keyValue == factoryPasswordFirstKey) {
+            mFactoryShow = 1;
+            return;
+        }
+        if (mFactoryShow == 1 && keyValue == factoryPasswordSecondKey) {
+            mFactoryShow = 2;
+            return;
+        }
+        if (mFactoryShow == 2 && keyValue == factoryPasswordThirdKey) {
+            mFactoryShow = 3;
+            return;
+        }
+        if (mFactoryShow == 3 && keyValue == factoryPasswordFourthKey) {
+            mFactoryShow = 0;
+            this.finish();
+            Intent factory = new Intent("android.intent.action.FactoryMainActivity");
+            startActivity(factory);
+            return;
+        }
+        mFactoryShow = 0;
+    }
 }
