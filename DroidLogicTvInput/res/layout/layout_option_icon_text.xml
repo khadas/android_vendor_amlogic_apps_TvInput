@@ -9,7 +9,7 @@
         android:id="@+id/image_icon"
         android:layout_width="0dp"
         android:layout_weight="1"
-        android:layout_height="wrap_content"
+        android:layout_height="30dp"
         android:layout_centerVertical="true"
         android:padding="3dp"
         />
@@ -17,7 +17,7 @@
         android:id="@+id/text_name"
         android:layout_width="0dp"
         android:layout_weight="4"
-        android:layout_height="wrap_content"
+        android:layout_height="30dp"
         android:layout_centerVertical="true"
         android:singleLine="true"
         android:textSize="18sp"
