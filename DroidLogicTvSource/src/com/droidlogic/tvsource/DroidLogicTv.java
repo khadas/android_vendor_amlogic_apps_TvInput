@@ -84,6 +84,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private LinearLayout mSourceInfoLayout;
     private ChannelListLayout mChannelListLayout;
     private LinearLayout mProgramListLayout;
+    private TextView prompt_no_signal;
 
     private int mSigType;
     private boolean isMenuShowing;
@@ -252,6 +253,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         mChannelListLayout = (ChannelListLayout)findViewById(R.id.channel_list);
         mChannelListLayout.setOnChannelSelectListener(this);
         mProgramListLayout = (LinearLayout)findViewById(R.id.program_layout);
+        prompt_no_signal = (TextView)findViewById(R.id.no_signal);
         ListView lv_program = (ListView)findViewById(R.id.program_list);
         adapter_programs = new SimpleAdapter(this, list_programs,
                 R.layout.layout_item_single_text,
@@ -347,7 +349,6 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         if (hasStopped || needUpdateSource) {
             switchToSourceInput();
         }
-        showUi(Utils.UI_TYPE_SOURCE_INFO, true);
     }
 
     @Override
@@ -358,7 +359,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
 
         SystemControlManager scm = new SystemControlManager(this);
         scm.setProperty(PROP_TV_PREVIEW, "false");
-        mSourceView.setVisibility(View.VISIBLE);
+        showTvView(mSourceView);
         showUi(Utils.UI_TYPE_ALL_HIDE, false);
         startPlay();
         prepareForSourceRelease();
@@ -632,19 +633,11 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 if (!down)
                     return true;
 
-                if (mProgramListLayout.getVisibility() == View.VISIBLE) {
-                    mProgramListLayout.setVisibility(View.INVISIBLE);
-                }
-
-                switch (mUiType ) {
-                    case Utils.UI_TYPE_SOURCE_LIST:
-                    case Utils.UI_TYPE_ATV_CHANNEL_LIST:
-                    case Utils.UI_TYPE_DTV_CHANNEL_LIST:
-                    case Utils.UI_TYPE_ATV_FAV_LIST:
-                    case Utils.UI_TYPE_DTV_FAV_LIST:
-                        showUi(Utils.UI_TYPE_SOURCE_INFO, true);
-                    break;
-                }
+                hideTvView(mProgramListLayout);
+                hideTvView(mSourceMenuLayout);
+                hideTvView(prompt_no_signal);
+                hideTvView(mChannelListLayout);
+                showUi(Utils.UI_TYPE_NO_SINAL, false);
                 return true;
             case KeyEvent.KEYCODE_CHANNEL_UP:
                 if (!down)
@@ -806,7 +799,6 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         else
             keyInputNumber = Integer.toString((size + (index + offset) % size) % size);
 
-        showUi(Utils.UI_TYPE_SOURCE_INFO, true);
         mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_CHANNEL_NUM_SWITCH), 300);
     }
 
@@ -929,12 +921,10 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     }
 
     private void showUi (int type, boolean forceShow) {
-        TextView prompt_no_signal = (TextView)findViewById(R.id.no_signal);
 
         switch (type) {
             case Utils.UI_TYPE_SOURCE_INFO:
-                mHandler.removeMessages(MSG_UI_TIMEOUT);
-                if (forceShow || mSourceInfoLayout.getVisibility() != View.VISIBLE) {
+                if (mSourceInfoLayout.getVisibility() != View.VISIBLE) {
                     switch (mSigType) {
                         case DroidLogicTvUtils.SIG_INFO_TYPE_ATV:
                             initATVInfo();
@@ -952,41 +942,33 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                             initOtherInfo();
                             break;
                     }
-                    mSourceMenuLayout.setVisibility(View.INVISIBLE);
-                    prompt_no_signal.setVisibility(View.INVISIBLE);
-                    mChannelListLayout.setVisibility(View.INVISIBLE);
-
-                    mSourceInfoLayout.setVisibility(View.VISIBLE);
-                    mSourceInfoLayout.requestLayout();
-                    mUiType = type;
-
-                    mHandler.sendEmptyMessageDelayed(MSG_UI_TIMEOUT, DEFAULT_TIMEOUT);
-                }else {
-                    mHandler.sendEmptyMessage(MSG_UI_TIMEOUT);
+                    if (forceShow && (mSourceMenuLayout.getVisibility() == View.VISIBLE)) {
+                        return;
+                    }
+                    else {
+                        mHandler.removeMessages(MSG_UI_TIMEOUT);
+                        showTvView(mSourceInfoLayout);
+                        mSourceInfoLayout.requestLayout();
+                        mUiType = type;
+                        mHandler.sendEmptyMessageDelayed(MSG_UI_TIMEOUT, DEFAULT_TIMEOUT);
+                    }
                 }
                 break;
             case Utils.UI_TYPE_SOURCE_LIST:
-                mHandler.removeMessages(MSG_UI_TIMEOUT);
                 if (forceShow || mSourceMenuLayout.getVisibility() != View.VISIBLE) {
-                    mSourceInfoLayout.setVisibility(View.INVISIBLE);
-                    prompt_no_signal.setVisibility(View.INVISIBLE);
-                    mChannelListLayout.setVisibility(View.INVISIBLE);
-
-                    mSourceMenuLayout.setVisibility(View.VISIBLE);
+                    mHandler.removeMessages(MSG_UI_TIMEOUT);
+                    showTvView(mSourceMenuLayout);
                     mSourceMenuLayout.requestLayout();
                     mSourceInput.requestFocus();
                     mUiType = type;
 
                     mHandler.sendEmptyMessageDelayed(MSG_UI_TIMEOUT, DEFAULT_TIMEOUT);
-                } else {
-                    mHandler.sendEmptyMessage(MSG_UI_TIMEOUT);
                 }
                 break;
             case Utils.UI_TYPE_ATV_CHANNEL_LIST:
             case Utils.UI_TYPE_DTV_CHANNEL_LIST:
             case Utils.UI_TYPE_ATV_FAV_LIST:
             case Utils.UI_TYPE_DTV_FAV_LIST:
-                mHandler.removeMessages(MSG_UI_TIMEOUT);
                 if (forceShow || type != mChannelListLayout.getType()
                         || mChannelListLayout.getVisibility() != View.VISIBLE) {
                     switch (type) {
@@ -1002,33 +984,21 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                         default:
                             break;
                     }
-                    mSourceMenuLayout.setVisibility(View.INVISIBLE);
-                    mSourceInfoLayout.setVisibility(View.INVISIBLE);
-                    prompt_no_signal.setVisibility(View.INVISIBLE);
-
-                    mChannelListLayout.setVisibility(View.VISIBLE);
+                    mHandler.removeMessages(MSG_UI_TIMEOUT);
+                    showTvView(mChannelListLayout);
                     mChannelListLayout.requestFocus();
                     mUiType = type;
                     mHandler.sendEmptyMessageDelayed(MSG_UI_TIMEOUT, DEFAULT_TIMEOUT);
-                } else {
-                    mHandler.sendEmptyMessage(MSG_UI_TIMEOUT);
                 }
                 break;
             case Utils.UI_TYPE_APPOINTED_PROGRAM:
-                mHandler.removeMessages(MSG_UI_TIMEOUT);
                 if (forceShow || mProgramListLayout.getVisibility() != View.VISIBLE) {
-                    mSourceInfoLayout.setVisibility(View.INVISIBLE);
-                    prompt_no_signal.setVisibility(View.INVISIBLE);
-                    mChannelListLayout.setVisibility(View.INVISIBLE);
-                    mSourceMenuLayout.setVisibility(View.INVISIBLE);
-
-                    mProgramListLayout.setVisibility(View.VISIBLE);
+                    mHandler.removeMessages(MSG_UI_TIMEOUT);
+                    showTvView(mProgramListLayout);
                     mProgramListLayout.requestLayout();
                     mUiType = type;
                     Utils.logd(TAG, "==== UI_TYPE_APPOINTED_PROGRAM");
                     mHandler.sendEmptyMessageDelayed(MSG_UI_TIMEOUT, 4 * DEFAULT_TIMEOUT);
-                } else {
-                    mHandler.sendEmptyMessage(MSG_UI_TIMEOUT);
                 }
                 break;
             case Utils.UI_TYPE_NO_SINAL:
@@ -1037,7 +1007,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 else if (mSignalState == SIGNAL_NOT_GOT)
                     prompt_no_signal.setText(mContext.getResources().getString(R.string.no_signal));
                 else {
-                    prompt_no_signal.setVisibility(View.INVISIBLE);
+                    hideTvView(prompt_no_signal);
                     return;
                 }
                 if (prompt_no_signal.getVisibility() != View.VISIBLE
@@ -1045,23 +1015,23 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     && mSourceInfoLayout.getVisibility() != View.VISIBLE
                     && mChannelListLayout.getVisibility() != View.VISIBLE
                     && !isToastShow && !isMenuShowing) {
-                    prompt_no_signal.setVisibility(View.VISIBLE);
+                    showTvView(prompt_no_signal);
                     prompt_no_signal.requestLayout();
                     mUiType = type;
                 }
                 break;
             case Utils.UI_TYPE_ALL_HIDE:
-                mHandler.removeMessages(MSG_UI_TIMEOUT);
-                mChannelListLayout.setVisibility(View.INVISIBLE);
-                mSourceMenuLayout.setVisibility(View.INVISIBLE);
-                mSourceInfoLayout.setVisibility(View.INVISIBLE);
-                prompt_no_signal.setVisibility(View.INVISIBLE);
+                hideTvView(mChannelListLayout);
+                hideTvView(mSourceMenuLayout);
+                hideTvView(mSourceInfoLayout);
+                hideTvView(prompt_no_signal);
 
                 if (forceShow) {
-                    mProgramListLayout.setVisibility(View.INVISIBLE);
+                    hideTvView(mProgramListLayout);
                 }
 
                 mUiType = type;
+                mHandler.removeMessages(MSG_UI_TIMEOUT);
                 break;
         }
     }
@@ -1069,9 +1039,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private void showMuteIcon (boolean isShow) {
         View icon_mute = findViewById(R.id.image_mute);
         if (isShow)
-            icon_mute.setVisibility(View.VISIBLE);
+            showTvView(icon_mute);
         else
-            icon_mute.setVisibility(View.GONE);
+            hideTvView(icon_mute);
     }
 
     private void processSessionEvent(String inputId, String eventType, Bundle eventArgs) {
@@ -1130,7 +1100,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         if (!mSourceHasReleased) {
             releaseBeforeExit();
         }
-        mSourceView.setVisibility(View.GONE);
+        hideTvView(mSourceView);
         restoreTouchSound();
         openScreenOffTimeout();
         super.onStop();
@@ -1175,10 +1145,13 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             case MSG_UI_TIMEOUT:
                 switch (mUiType) {
                     case Utils.UI_TYPE_SOURCE_INFO:
-                        mSourceInfoLayout.setVisibility(View.INVISIBLE);
+                        hideTvView(mSourceInfoLayout);
                         showUi(Utils.UI_TYPE_NO_SINAL, false);
                         break;
                     case Utils.UI_TYPE_SOURCE_LIST:
+                        hideTvView(mSourceMenuLayout);
+                        showUi(Utils.UI_TYPE_NO_SINAL, false);
+                        break;
                     case Utils.UI_TYPE_ATV_CHANNEL_LIST:
                     case Utils.UI_TYPE_DTV_CHANNEL_LIST:
                     case Utils.UI_TYPE_ATV_FAV_LIST:
@@ -1369,10 +1342,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                                 String str = mNoSignalShutdownCount + " " + getResources().getString(R.string.auto_shutdown_info);
                                 mTimePromptText.setText(str);
                                 if (mTimePromptText.getVisibility() != View.VISIBLE)// if sleep time,no show view
-                                    mTimePromptText.setVisibility(View.VISIBLE);
+                                    showTvView(mTimePromptText);
                             } else {
-                                if (mTimePromptText.getVisibility() == View.VISIBLE)
-                                    mTimePromptText.setVisibility(View.GONE);
+                                hideTvView(mTimePromptText);
                             }
                             no_signal_handler.postDelayed(no_signal_runnable, 1000);
                         }
@@ -1396,7 +1368,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
 
     private void remove_nosignal_time() {
         if (mTimePromptText.getVisibility() == View.VISIBLE)
-            mTimePromptText.setVisibility(View.GONE);
+            hideTvView(mTimePromptText);
         no_signal_handler.removeCallbacks(no_signal_runnable);
     }
 
@@ -1492,5 +1464,34 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             }
         });
         toast.show();
+    }
+
+    private void showTvView(View tvView) {
+        if (tvView.getVisibility() == View.VISIBLE)
+            return;
+        if (tvView.getId() == mSourceInfoLayout.getId()) {
+            hideTvView(mSourceMenuLayout);
+            hideTvView(prompt_no_signal);
+            hideTvView(mChannelListLayout);
+        } else if (tvView.getId() == mSourceMenuLayout.getId()) {
+            hideTvView(mSourceInfoLayout);
+            hideTvView(prompt_no_signal);
+            hideTvView(mChannelListLayout);
+        } else if (tvView.getId() == mChannelListLayout.getId()) {
+            hideTvView(mSourceMenuLayout);
+            hideTvView(mSourceInfoLayout);
+            hideTvView(prompt_no_signal);
+        } else if (tvView.getId() == mProgramListLayout.getId()) {
+            hideTvView(mSourceInfoLayout);
+            hideTvView(prompt_no_signal);
+            hideTvView(mChannelListLayout);
+            hideTvView(mSourceMenuLayout);
+        }
+        tvView.setVisibility(View.VISIBLE);
+    }
+
+    private void hideTvView(View tvView) {
+        if (tvView.getVisibility() == View.VISIBLE)
+            tvView.setVisibility(View.INVISIBLE);
     }
 }
