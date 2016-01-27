@@ -228,7 +228,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
     private String getToastTitle (int mode) {
         switch (mode) {
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_DISPAYMODE:
-                return mResources.getString(R.string.picture_mode);
+                return mResources.getString(R.string.aspect_ratio);
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_3DMODE:
                 break;
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_VIEWMODE:
