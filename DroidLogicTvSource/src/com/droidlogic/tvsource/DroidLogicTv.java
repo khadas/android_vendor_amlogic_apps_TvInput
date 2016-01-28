@@ -174,6 +174,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     if (operation.equals("search_channel")) {
                         mMainView.setBackground(null);
                         isPlayingRadio = false;
+                        mSourceView.sendAppPrivateCommand(DroidLogicTvUtils.ACTION_STOP_PLAY, null);
                     } else if (operation.equals("mute")) {
                         showMuteIcon(true);
                     } else if (operation.equals("unmute")) {

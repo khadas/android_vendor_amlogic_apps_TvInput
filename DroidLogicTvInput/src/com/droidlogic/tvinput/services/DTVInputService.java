@@ -147,6 +147,11 @@ public class DTVInputService extends DroidLogicTvInputService {
             super.doAppPrivateCmd(action, bundle);
             if (TextUtils.equals(DroidLogicTvUtils.ACTION_STOP_TV, action)) {
                 stopTv();
+            } else if (TextUtils.equals(DroidLogicTvUtils.ACTION_STOP_PLAY, action)) {
+                Log.d(TAG, "do private cmd: STOP_PLAY");
+                stopSubtitle();
+                stopEPG();
+                releasePlayer();
             }
         }
 
@@ -457,6 +462,7 @@ public class DTVInputService extends DroidLogicTvInputService {
         }
 
         private void startSubtitle(int type, int pid, int stype, int id1, int id2) {
+            Log.d(TAG, "start Subtitle");
 
             initSubtitleView();
 
@@ -486,6 +492,8 @@ public class DTVInputService extends DroidLogicTvInputService {
         }
 
         private void stopSubtitle() {
+            Log.d(TAG, "stop Subtitle");
+
             if (mSubtitleView != null) {
                 setOverlayViewEnabled(false);
                 mSubtitleView.stop();
@@ -493,12 +501,14 @@ public class DTVInputService extends DroidLogicTvInputService {
         }
 
 
-        private HandlerThread mHandlerThread;
+        private HandlerThread mHandlerThread = null;
         private Handler mHandler;
         private void initThread(String name) {
-            mHandlerThread = new HandlerThread(name);
-            mHandlerThread.start();
-            mHandler = new Handler(mHandlerThread.getLooper(), this);
+            if (mHandlerThread == null) {
+                mHandlerThread = new HandlerThread(name);
+                mHandlerThread.start();
+                mHandler = new Handler(mHandlerThread.getLooper(), this);
+            }
         }
 
         private void releaseThread() {
@@ -511,7 +521,6 @@ public class DTVInputService extends DroidLogicTvInputService {
 
         private EPGCurrentProgramRunnable mEPGCurrentProgramRunnable;
         private EPGScanner epg = null;
-        private boolean epg_created = false;
 
         private static final int EPG_FEND = 0;
         private static final int EPG_DMX = 0;
@@ -529,12 +538,11 @@ public class DTVInputService extends DroidLogicTvInputService {
             public void run() {
                 Log.d(TAG, "epg ch: " + mChannel.getDisplayNumber()+"-"+mChannel.getDisplayName());
 
-                if (!epg_created) {
+                if (epg == null) {
                     epg = new EPGScanner(mContext, getInputId(), DEF_CODING);
                     epg.reset(EPG_FEND, EPG_DMX,
                         Utils.type2mode(mChannel.getType()),
                         EPG_LANGUAGE.replaceAll("local", TVMultilingualText.getLocalLang()));
-                    epg_created = true;
                 }
 
                 epg.enterChannel(getTVChannelParams(mChannel), false);
@@ -553,6 +561,8 @@ public class DTVInputService extends DroidLogicTvInputService {
         }
 
         private void startEPG(ChannelInfo channel) {
+            Log.d(TAG, "startEPG");
+
             initThread("startEpg Thread");
             mHandler.removeCallbacks(mEPGCurrentProgramRunnable);
             mEPGCurrentProgramRunnable = new EPGCurrentProgramRunnable(channel);
@@ -565,6 +575,8 @@ public class DTVInputService extends DroidLogicTvInputService {
                 epg = null;
             }
             releaseThread();
+
+            Log.d(TAG, "stopEPG");
         }
 
         public class EPGScanner {
@@ -642,6 +654,8 @@ public class DTVInputService extends DroidLogicTvInputService {
             }
 
             public void reset(){
+                Log.d(TAG, "epg reset.");
+
                 reset(fend, dmx, src, Arrays.toString(languages).replace("[", "").replace("]", "").replace(","," "));
 
                 enterChannel(tvchan, true);
@@ -685,8 +699,9 @@ public class DTVInputService extends DroidLogicTvInputService {
                                                             DTVEpgScanner.Event event){
                 List<Program> programs = new ArrayList<>();
                 for (DTVEpgScanner.Event.Evt evt : event.evts) {
-                    if ((channel.getTransportStreamId()== evt.ts_id) &&
-                        (channel.getServiceId() == evt.srv_id)) {
+                    if ((channel.getTransportStreamId()== evt.ts_id)
+                        && (channel.getServiceId() == evt.srv_id)
+                        && (channel.getOriginalNetworkId() == evt.net_id)) {
                         try{
                             long start = evt.start;
                             long end = evt.end;
@@ -703,7 +718,11 @@ public class DTVInputService extends DroidLogicTvInputService {
                                 .setEndTimeUtcMillis(end * 1000)
                                 .build();
                             programs.add(p);
-                            Log.d(TAG, "epg: sid["+evt.srv_id+"] tsid["+evt.ts_id+"] "+p.toString());
+                            Log.d(TAG, "epg: sid/net/ts["+evt.srv_id+"/"+evt.net_id+"/"+evt.ts_id+"]"
+                                +"{"+p.getTitle()+"}"
+                                +"["+p.getStartTimeUtcMillis()/1000
+                                +"-"+p.getEndTimeUtcMillis()/1000
+                                +"]");
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -755,6 +774,12 @@ public class DTVInputService extends DroidLogicTvInputService {
                     if ((DroidLogicTvUtils.matchsWhich(uri) == DroidLogicTvUtils.MATCH_CHANNEL)//delete
                         || ((DroidLogicTvUtils.matchsWhich(uri) == DroidLogicTvUtils.MATCH_CHANNEL_ID)
                             && (DroidLogicTvUtils.getChannelId(uri) > maxChannel_ID))){//add
+                        if (DroidLogicTvUtils.matchsWhich(uri) == DroidLogicTvUtils.MATCH_CHANNEL) {
+                            Log.d(TAG, "channel deleted");
+                        } else if ((DroidLogicTvUtils.matchsWhich(uri) == DroidLogicTvUtils.MATCH_CHANNEL_ID)
+                            && (DroidLogicTvUtils.getChannelId(uri) > maxChannel_ID)) {
+                            Log.d(TAG, "channel added: "+DroidLogicTvUtils.getChannelId(uri)+">"+maxChannel_ID);
+                        }
                         reset();
                     }
                 }
