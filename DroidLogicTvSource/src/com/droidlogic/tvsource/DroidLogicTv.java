@@ -1104,6 +1104,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         hideTvView(mSourceView);
         restoreTouchSound();
         openScreenOffTimeout();
+        mHandler.removeMessages(MSG_APPOINTED_PROGRAM_CHECKING);
         super.onStop();
     }
 
