@@ -575,16 +575,16 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 break;
             // sound system
             case R.id.sound_system_dk:
-                 mSettingsManager.setSoundSystem(TvControlManager.atv_audio_std_e.ATV_AUDIO_STD_DK.toInt());
+                 mSettingsManager.setSoundSystem(TvControlManager.ATV_AUDIO_STD_DK);
                 break;
             case R.id.sound_system_i:
-                mSettingsManager.setSoundSystem(TvControlManager.atv_audio_std_e.ATV_AUDIO_STD_I.toInt());
+                mSettingsManager.setSoundSystem(TvControlManager.ATV_AUDIO_STD_I);
                 break;
             case R.id.sound_system_bg:
-                mSettingsManager.setSoundSystem(TvControlManager.atv_audio_std_e.ATV_AUDIO_STD_BG.toInt());
+                mSettingsManager.setSoundSystem(TvControlManager.ATV_AUDIO_STD_BG);
                 break;
             case R.id.sound_system_m:
-                mSettingsManager.setSoundSystem(TvControlManager.atv_audio_std_e.ATV_AUDIO_STD_M.toInt());
+                mSettingsManager.setSoundSystem(TvControlManager.ATV_AUDIO_STD_M);
                 break;
             // volume compensate
             case R.id.volume_compensate_increase:
@@ -1058,7 +1058,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 mSettingsManager.setManualSearchProgress(0);
                 mSettingsManager.setManualSearchSearchedNumber(0);
                 mTvControlManager.AtvManualScan(from * 1000, to * 1000,
-                    TvControlManager.atv_video_std_e.ATV_VIDEO_STD_PAL, TvControlManager.atv_audio_std_e.ATV_AUDIO_STD_DK);
+                    TvControlManager.ATV_VIDEO_STD_PAL, TvControlManager.ATV_AUDIO_STD_DK);
                 isSearching = true;
                 mSettingsManager.setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
                 mSettingsManager.sendBroadcastToTvapp("search_channel");
@@ -1231,7 +1231,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     private void startAutosearch() {
         mTvDataBaseManager.deleteChannels(mSettingsManager.getInputId());
         if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV)
-            mTvControlManager.AtvAutoScan(TvControlManager.atv_video_std_e.ATV_VIDEO_STD_PAL, TvControlManager.atv_audio_std_e.ATV_AUDIO_STD_I, 0);
+            mTvControlManager.AtvAutoScan(TvControlManager.ATV_VIDEO_STD_PAL, TvControlManager.ATV_AUDIO_STD_I, 0);
         else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
             mTvControlManager.DtvAutoScan();
             Intent intent = new Intent(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH);

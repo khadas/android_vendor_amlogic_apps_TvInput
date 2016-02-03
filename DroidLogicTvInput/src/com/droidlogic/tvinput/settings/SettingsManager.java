@@ -25,6 +25,7 @@ import android.media.tv.TvContract.Channels;
 import com.droidlogic.app.tv.ChannelInfo;
 import com.droidlogic.app.tv.TvDataBaseManager;
 import com.droidlogic.app.tv.TvControlManager;
+import com.droidlogic.app.tv.TVInSignalInfo;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.app.tv.TVMultilingualText;
 import com.droidlogic.tvinput.R;
@@ -139,7 +140,7 @@ public class SettingsManager {
 
         setCurrentChannelData(intent);
 
-        mTvControlManager = TvControlManager.open();
+        mTvControlManager = TvControlManager.getInstance();
         mResources = mContext.getResources();
     }
 
@@ -343,18 +344,19 @@ public class SettingsManager {
     }
 
     public boolean isShowTint() {
+        TVInSignalInfo info;
         String colorSystem = getColorSystemStatus();
         if (mTvSource == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV
             && colorSystem != null && colorSystem.equals(mResources.getString(R.string.ntsc))) {
-            TvControlManager.tvin_info_t tmpInfo = mTvControlManager.GetCurrentSignalInfo();
-            if (tmpInfo.status == TvControlManager.tvin_sig_status_t.TVIN_SIG_STATUS_STABLE) {
+            info = mTvControlManager.GetCurrentSignalInfo();
+            if (info.sigStatus == TVInSignalInfo.SignalStatus.TVIN_SIG_STATUS_STABLE) {
                 Log.d(TAG, "ATV NTSC mode signal is stable, show Tint");
                 return true;
             }
         } else if (mTvSource == TvControlManager.SourceInput_Type.SOURCE_TYPE_AV) {
-            TvControlManager.tvin_info_t tmpInfo = mTvControlManager.GetCurrentSignalInfo();
-            if (tmpInfo.status == TvControlManager.tvin_sig_status_t.TVIN_SIG_STATUS_STABLE) {
-                String[] strings = tmpInfo.fmt.toString().split("_");
+            info = mTvControlManager.GetCurrentSignalInfo();
+            if (info.sigStatus== TVInSignalInfo.SignalStatus.TVIN_SIG_STATUS_STABLE) {
+                String[] strings = info.sigFmt.toString().split("_");
                 if (strings[4].contains("NTSC")) {
                     Log.d(TAG, "AV NTSC mode signal is stable, show Tint");
                     return true;
@@ -864,13 +866,13 @@ public class SettingsManager {
 
     public void setPictureMode (String mode) {
         if (mode.equals(STATUS_STANDARD)) {
-            mTvControlManager.SetPQMode(TvControlManager.Pq_Mode.PQ_MODE_STANDARD, mTvSource, 1);
+            mTvControlManager.SetPQMode(TvControlManager.PQMode.PQ_MODE_STANDARD, mTvSource, 1);
         } else if (mode.equals(STATUS_VIVID)) {
-            mTvControlManager.SetPQMode(TvControlManager.Pq_Mode.PQ_MODE_BRIGHT, mTvSource, 1);
+            mTvControlManager.SetPQMode(TvControlManager.PQMode.PQ_MODE_BRIGHT, mTvSource, 1);
         } else if (mode.equals(STATUS_SOFT)) {
-            mTvControlManager.SetPQMode(TvControlManager.Pq_Mode.PQ_MODE_SOFTNESS, mTvSource, 1);
+            mTvControlManager.SetPQMode(TvControlManager.PQMode.PQ_MODE_SOFTNESS, mTvSource, 1);
         } else if (mode.equals(STATUS_USER)) {
-            mTvControlManager.SetPQMode(TvControlManager.Pq_Mode.PQ_MODE_USER, mTvSource, 1);
+            mTvControlManager.SetPQMode(TvControlManager.PQMode.PQ_MODE_USER, mTvSource, 1);
         }
     }
 
@@ -904,7 +906,7 @@ public class SettingsManager {
             ret = contrast;
 
         if (!key.equals(KEY_COLOR))
-            mTvControlManager.SetSaturation(color, mTvSource, mTvControlManager.GetCurrentSignalInfo().fmt, 1);
+            mTvControlManager.SetSaturation(color, mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
         else
             ret = color;
 
@@ -915,7 +917,7 @@ public class SettingsManager {
 
         if (isShowTint()) {
             if (!key.equals(KEY_TINT))
-                mTvControlManager.SetHue(tint, mTvSource, mTvControlManager.GetCurrentSignalInfo().fmt, 1);
+                mTvControlManager.SetHue(tint, mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
             else
                 ret = tint;
         }
@@ -940,10 +942,10 @@ public class SettingsManager {
     public void setColor (int step) {
         if (mTvControlManager.GetPQMode(mTvSource) == 3)
             mTvControlManager.SetSaturation(mTvControlManager.GetSaturation(mTvSource) + step,
-                mTvSource, mTvControlManager.GetCurrentSignalInfo().fmt, 1);
+                mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
         else
             mTvControlManager.SetSaturation(setPictureUserMode(KEY_COLOR) + step,
-                mTvSource, mTvControlManager.GetCurrentSignalInfo().fmt, 1);
+                mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
     }
 
     public void setSharpness (int step) {
@@ -957,10 +959,10 @@ public class SettingsManager {
         if (isShowTint()) {
             if (mTvControlManager.GetPQMode(mTvSource) == 3)
                 mTvControlManager.SetHue(mTvControlManager.GetHue(mTvSource) + step, mTvSource,
-                    mTvControlManager.GetCurrentSignalInfo().fmt, 1);
+                    mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
             else
                 mTvControlManager.SetHue(setPictureUserMode(KEY_TINT) + step, mTvSource,
-                    mTvControlManager.GetCurrentSignalInfo().fmt, 1);
+                    mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
         }
     }
 
@@ -984,16 +986,16 @@ public class SettingsManager {
         if (mTvControlManager.Get3DMode() == 0) {
             if (mode.equals(STATUS_AUTO)) {
                 mTvControlManager.SetDisplayMode(TvControlManager.Display_Mode.DISPLAY_MODE_NORMAL,
-                    mTvSource, mTvControlManager.GetCurrentSignalInfo().fmt, 1);
+                    mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
             } else if (mode.equals(STATUS_4_TO_3)) {
                 mTvControlManager.SetDisplayMode(TvControlManager.Display_Mode.DISPLAY_MODE_MODE43,
-                    mTvSource, mTvControlManager.GetCurrentSignalInfo().fmt, 1);
+                    mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
             } else if (mode.equals(STATUS_PANORAMA)) {
                 mTvControlManager.SetDisplayMode(TvControlManager.Display_Mode.DISPLAY_MODE_FULL,
-                    mTvSource, mTvControlManager.GetCurrentSignalInfo().fmt, 1);
+                    mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
             } else if (mode.equals(STATUS_FULL_SCREEN)) {
                 mTvControlManager.SetDisplayMode(TvControlManager.Display_Mode.DISPLAY_MODE_169,
-                    mTvSource, mTvControlManager.GetCurrentSignalInfo().fmt, 1);
+                    mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
             }
         }
     }

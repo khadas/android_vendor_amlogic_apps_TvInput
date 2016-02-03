@@ -14,8 +14,7 @@ import com.droidlogic.app.tv.TvControlManager.SourceInput_Type;
 import com.droidlogic.app.tv.TvControlManager.Tvin_3d_Status;
 import com.droidlogic.app.tv.TvControlManager.noline_params_t;
 import com.droidlogic.app.tv.TvControlManager.tvin_cutwin_t;
-import com.droidlogic.app.tv.TvControlManager.tvin_sig_fmt_e;
-import com.droidlogic.app.tv.TvControlManager.tvin_trans_fmt;
+import com.droidlogic.app.tv.TVInSignalInfo;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
 import android.content.Context;
@@ -24,7 +23,7 @@ import android.util.Log;
 
 public class ShowSubView
 {
-    public static TvControlManager tv = TvControlManager.open();
+    public static TvControlManager tv = TvControlManager.getInstance();
     /* son ListView's item save to this ArrayList */
     public List<Map<String, String>> mListSubMenuData = null;
     private Context context;
@@ -223,13 +222,13 @@ public class ShowSubView
         map.put("sub_name", context.getString(Constant.FACUI_CHONGXIAN_PORT));
         map.put("sub_value", context.getString(Constant.FACUI_PICMODE_PORT_TV));
         mListSubMenuData.add(map);
-        setTiming(SourceInput_Type.SOURCE_TYPE_TV, tvin_sig_fmt_e.TVIN_SIG_FMT_CVBS_NTSC_M, Tvin_3d_Status.STATUS3D_DISABLE,
-                tvin_trans_fmt.TVIN_TFMT_2D);
+        setTiming(SourceInput_Type.SOURCE_TYPE_TV, TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_CVBS_NTSC_M, Tvin_3d_Status.STATUS3D_DISABLE,
+                TVInSignalInfo.TransFmt.TVIN_TFMT_2D);
         FactoryMainActivity.mPage = Constant.PAGE_OVERSCAN;
     }
 
     /* set reShow rate's all parameter */
-    public void setTiming(SourceInput_Type source, tvin_sig_fmt_e fmt, Tvin_3d_Status status_3d, tvin_trans_fmt trans_fmt)
+    public void setTiming(SourceInput_Type source, TVInSignalInfo.SignalFmt fmt, Tvin_3d_Status status_3d, TVInSignalInfo.TransFmt trans_fmt)
     {
         Map<String, String> map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_CHONGXIAN_TIMING));
@@ -247,7 +246,7 @@ public class ShowSubView
     }
 
     /* set reShow rate's parameter except Timing,TVIN_3D_STATUS,TVIN_TRANS_FMT */
-    public void setElse(SourceInput_Type source, tvin_sig_fmt_e fmt, Tvin_3d_Status status_3d, tvin_trans_fmt trans_fmt)
+    public void setElse(SourceInput_Type source, TVInSignalInfo.SignalFmt fmt, Tvin_3d_Status status_3d, TVInSignalInfo.TransFmt trans_fmt)
     {
         tvin_cutwin_t cutwin_t;
         cutwin_t = tv.FactoryGetOverscanParams(source, fmt, status_3d, trans_fmt);
@@ -303,7 +302,7 @@ public class ShowSubView
         mListSubMenuData.add(map);
         map = new HashMap<String, String>();
         map.put("soft_name", context.getString(Constant.FACUI_SOFTINFO_BOOTVERSION));
-        sub_value = tmpInfo.uboot_ver.ver_info;
+        sub_value = tmpInfo.ubootVer;
         map.put("soft_value", sub_value);
         mListSubMenuData.add(map);
         map = new HashMap<String, String>();
@@ -397,10 +396,9 @@ public class ShowSubView
         map.put("soft_value", sub_value);
         mListSubMenuData.add(map);
 
-        TvControlManager.Factory_SN_INFO snInfo = tv.FactoryGet_FBC_SN_Info();
         map = new HashMap<String, String>();
         map.put("soft_name", "");
-        sub_value = snInfo.STR_SN_INFO;
+        sub_value = tv.FactoryGet_FBC_SN_Info();
         map.put("soft_value", sub_value);
         mListSubMenuData.add(map);
 

@@ -72,7 +72,7 @@ public class FactoryMainActivity extends Activity implements TvControlManager.Up
     public static int reshowTvinPos = 0;
     /* ReShow rate TvinTransFmt's current position */
     public static int reshowTvinTransFmtPos = 0;
-    public static TvControlManager tv = TvControlManager.open();
+    public static TvControlManager tv = TvControlManager.getInstance();
     private SystemControlManager mSystemControlManager;
 
     public AlertDialog.Builder aBuilder;
