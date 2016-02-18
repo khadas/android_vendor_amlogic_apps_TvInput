@@ -546,9 +546,11 @@ static int get_channel_data(JNIEnv* env, jobject obj, jobject channel, EPGChanne
 	int i;
 	jclass objclass =(*env)->FindClass(env,"com/droidlogic/app/tv/ChannelInfo");
 	jstring Name = (*env)->GetObjectField(env, channel, (*env)->GetFieldID(env, objclass, "mDisplayName", "Ljava/lang/String;"));
-	const char *cName = (*env)->GetStringUTFChars(env, Name, 0);
-	strncpy(pch->name, cName, (64+4)*4);
-	(*env)->ReleaseStringUTFChars(env, Name, cName);
+	if (Name) {
+		const char *cName = (*env)->GetStringUTFChars(env, Name, 0);
+		strncpy(pch->name, cName, (64+4)*4);
+		(*env)->ReleaseStringUTFChars(env, Name, cName);
+	}
 	pch->mOriginalNetworkId = (*env)->GetIntField(env, channel, (*env)->GetFieldID(env, objclass, "mOriginalNetworkId", "I"));
 	pch->mTransportStreamId = (*env)->GetIntField(env, channel, (*env)->GetFieldID(env, objclass, "mTransportStreamId", "I"));
 	//pch->mType = (*env)->GetIntField(env, (*env)->GetFieldID(env, objclass, "mType", "I"),0);
