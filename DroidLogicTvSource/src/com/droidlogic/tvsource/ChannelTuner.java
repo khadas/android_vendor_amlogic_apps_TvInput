@@ -474,6 +474,10 @@ public class ChannelTuner
         return list;
     }
 
+    public ChannelInfo getChannelInfo() {
+        return mCurrentChannel;
+    }
+
     private void printList()
     {
         if (mVideoChannels != null)

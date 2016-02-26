@@ -23,6 +23,7 @@ import android.util.Log;
 import android.view.View;
 import android.database.ContentObserver;
 import android.database.IContentObserver;
+import android.provider.Settings;
 
 import com.droidlogic.tvinput.Utils;
 
@@ -192,6 +193,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             int mode = Utils.type2mode(info.getType());
             if (mode == TVChannelParams.MODE_DTMB) {
                 TvControlManager tcm = TvControlManager.getInstance();
+                int audioTrackAuto = getAudioTrackAuto(info);
                 tcm.PlayDTVProgram(
                         mode,
                         info.getFrequency(),
@@ -199,8 +201,8 @@ public class DTVInputService extends DroidLogicTvInputService {
                         0,
                         info.getVideoPid(),
                         info.getVfmt(),
-                        (info.getAudioPids() != null) ? info.getAudioPids()[info.getAudioTrackIndex()] : -1,
-                        (info.getAudioFormats() != null) ? info.getAudioFormats()[info.getAudioTrackIndex()] : -1,
+                        (audioTrackAuto >= 0) ? info.getAudioPids()[audioTrackAuto] : -1,
+                        (audioTrackAuto >= 0) ? info.getAudioFormats()[audioTrackAuto] : -1,
                         info.getPcrPid(),
                         info.getAudioCompensation());
                 tcm.DtvSetAudioChannleMod(info.getAudioChannel());
@@ -324,13 +326,14 @@ public class DTVInputService extends DroidLogicTvInputService {
                 Log.d(TAG, "notify audio tracks:");
                 String[] audioLanguages = ch.getAudioLangs();
                 int[] audioFormats = ch.getAudioFormats();
+                int audioTrackAuto = getAudioTrackAuto(ch);
 
                 if (tracks == null)
                     tracks = new ArrayList<>();
 
                 for (int i=0; i<AudioTracksCount; i++) {
                     boolean isDefault = false;
-                    if (ch.getAudioTrackIndex() == i)
+                    if (audioTrackAuto == i)
                         isDefault = true;
 
                     Map<String, String> map = new HashMap<String, String>();
@@ -361,13 +364,14 @@ public class DTVInputService extends DroidLogicTvInputService {
                 int[] subStypes = ch.getSubtitleStypes();
                 int[] subId1s = ch.getSubtitleId1s();
                 int[] subId2s = ch.getSubtitleId2s();
+                int subTrackAuto = getSubtitleTrackAuto(ch);
 
                 if (tracks == null)
                     tracks = new ArrayList<>();
 
                 for (int i=0; i<SubTracksCount; i++) {
                     boolean isDefault = false;
-                    if (ch.getSubtitleTrackIndex() == i)
+                    if (subTrackAuto == i)
                         isDefault = true;
 
                     Map<String, String> map = new HashMap<String, String>();
@@ -395,11 +399,55 @@ public class DTVInputService extends DroidLogicTvInputService {
 
             if (tracks != null)
                 notifyTracksChanged(tracks);
-            Log.d(TAG, "\tselected: ["+AudioSelectedId+"]");
+
+            Log.d(TAG, "\tAuto Aud: ["+AudioSelectedId+"]");
             notifyTrackSelected(TvTrackInfo.TYPE_AUDIO, AudioSelectedId);
 
-            Log.d(TAG, "\tselected: ["+SubSelectedId+"]");
+            Log.d(TAG, "\tAuto Sub: ["+SubSelectedId+"]");
             notifyTrackSelected(TvTrackInfo.TYPE_SUBTITLE, SubSelectedId);
+        }
+
+        /*
+                Auto rule: channel specified track > default language track > the 1st track > -1
+            */
+        private int getAudioTrackAuto(ChannelInfo info) {
+            String[] trackLangArray = info.getAudioLangs();
+            if (trackLangArray == null)
+                return -1;
+
+            if (info.getAudioTrackIndex() >= 0)
+                return info.getAudioTrackIndex();
+
+            if (info.getAudioTrackIndex() == -2)//off by user
+                return -2;
+
+            String def_lan = Settings.System.getString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DEFAULT_LANGUAGE);
+            for (int trackIdx = 0;trackIdx < trackLangArray.length; trackIdx++) {
+                if (trackLangArray[trackIdx].equals(def_lan))
+                    return trackIdx;
+            }
+
+            return 0;
+        }
+
+        private int getSubtitleTrackAuto(ChannelInfo info) {
+            String[] trackLangArray = info.getSubtitleLangs();
+            if (trackLangArray == null)
+                return -1;
+
+            if (info.getSubtitleTrackIndex() >=0)
+                return info.getSubtitleTrackIndex();
+
+            if (info.getSubtitleTrackIndex() == -2)//off by user
+                return -2;
+
+            String def_lan = Settings.System.getString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DEFAULT_LANGUAGE);
+            for (int trackIdx = 0;trackIdx < trackLangArray.length; trackIdx++) {
+                if (trackLangArray[trackIdx].equals(def_lan))
+                    return trackIdx;
+            }
+
+            return 0;
         }
 
 
@@ -417,13 +465,13 @@ public class DTVInputService extends DroidLogicTvInputService {
             if (!subtitleAutoStart)
                 return ;
 
-            if (channelInfo.getSubtitlePids() != null) {
-                int idx = channelInfo.getSubtitleTrackIndex();
+            int idx = getSubtitleTrackAuto(channelInfo);
+            if (idx >= 0) {
                 startSubtitle(channelInfo.getSubtitleTypes()[idx],
-                                channelInfo.getSubtitlePids()[idx],
-                                channelInfo.getSubtitleStypes()[idx],
-                                channelInfo.getSubtitleId1s()[idx],
-                                channelInfo.getSubtitleId2s()[idx]);
+                            channelInfo.getSubtitlePids()[idx],
+                            channelInfo.getSubtitleStypes()[idx],
+                            channelInfo.getSubtitleId1s()[idx],
+                            channelInfo.getSubtitleId2s()[idx]);
             } else {
                 stopSubtitle();
             }

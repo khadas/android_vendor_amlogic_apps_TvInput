@@ -1164,6 +1164,7 @@ public class SettingsManager {
     public void setDefLanguage (int position) {
         String[] def_lanArray = mResources.getStringArray(R.array.def_lan);
         Settings.System.putString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DEFAULT_LANGUAGE, def_lanArray[position]);
+/*
         ArrayList<ChannelInfo> mVideoChannels = mTvDataBaseManager.getChannelList(mInputId, Channels.SERVICE_TYPE_AUDIO_VIDEO);
         int trackIdx = 0;
         for (ChannelInfo channel : mVideoChannels) {
@@ -1178,6 +1179,7 @@ public class SettingsManager {
                 mTvDataBaseManager.updateChannelInfo(channel);
             }
         }
+*/
     }
 
     public void setColorSystem(int mode) {

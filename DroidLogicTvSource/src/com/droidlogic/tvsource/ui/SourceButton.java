@@ -146,6 +146,10 @@ public class SourceButton extends Button implements OnClickListener{
         return mChannelTuner.getChannelVideoFormat();
     }
 
+    public ChannelInfo getChannelInfo() {
+        return mChannelTuner.getChannelInfo();
+    }
+
     public void setAVType(String type) {
         mAvType = type;
     }
