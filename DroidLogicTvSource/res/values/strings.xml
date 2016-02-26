@@ -27,4 +27,8 @@
     <string name="off">off</string>
 
 	<string name="choose_program">Reservation program soon to play</string>
+	<string name="ok">OK</string>
+	<string name="cancel">cancel</string>
+	<string name="watch_program">Watch appointed program: </string>
+	<string name="switch_program_propmt">seconds later auto switch</string>
 </resources>

@@ -50,32 +50,6 @@
             android:paddingBottom="2dp"
             android:orientation="vertical"
             android:visibility="invisible" />
-        <LinearLayout
-            android:id="@+id/program_layout"
-            android:layout_width="380dp"
-            android:layout_height="194dp"
-            android:layout_centerInParent="true"
-            android:orientation="vertical"
-            android:background="@drawable/bg_dialog"
-            android:visibility="invisible">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/choose_program"
-                android:paddingTop="5dp"
-                android:paddingLeft="10dp"
-                android:textSize="24dp"
-                android:textColor="@color/color_text_item"
-                />
-            <ListView
-                android:id="@+id/program_list"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:listSelector="@drawable/item_background"
-                android:divider="@color/transparent"
-                />
-            </LinearLayout>
         <TextView
 	        android:id="@+id/textView_time_prompt"
 	        android:layout_width="wrap_content"

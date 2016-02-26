@@ -77,14 +77,14 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     public static final int OPTION_AUTO_SEARCH = 38;
     public static final int OPTION_CHANNEL_EDIT = 39;
     public static final int OPTION_SWITCH_CHANNEL = 310;
-    public static final int OPTION_DEFAULT_LANGUAGE = 311;
-    public static final int OPTION_SUBTITLE_SWITCH = 312;
 
     public static final int OPTION_SLEEP_TIMER = 400;
     public static final int OPTION_MENU_TIME = 401;
     public static final int OPTION_STARTUP_SETTING = 402;
     public static final int OPTION_DYNAMIC_BACKLIGHT = 403;
     public static final int OPTION_RESTORE_FACTORY = 404;
+    public static final int OPTION_DEFAULT_LANGUAGE = 405;
+    public static final int OPTION_SUBTITLE_SWITCH = 406;
 
     public static final int ALPHA_NO_FOCUS = 230;
     public static final int ALPHA_FOCUSED = 255;

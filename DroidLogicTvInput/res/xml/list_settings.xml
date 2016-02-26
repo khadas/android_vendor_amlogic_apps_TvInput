@@ -27,6 +27,16 @@
     </Preference>
 
     <Preference
+        android:key="default_language"
+        android:title="@string/defalut_lan" >
+    </Preference>
+
+    <Preference
+        android:key="sub_switch"
+        android:title="@string/sub_switch" >
+    </Preference>
+
+    <Preference
         android:key="restore_factory"
         android:title="@string/restore_factory" >
     </Preference>

@@ -77,9 +77,9 @@ public class ChannelTuner {
             mVideoChannels.add(mCurrentChannel);
         } else {
             Uri uri = TvContract.buildChannelsUriForInput(mInputId);
-            mVideoChannels = getUnskippedChannel(mTvDataBaseManager.getChannelList(mInputId, Channels.SERVICE_TYPE_AUDIO_VIDEO));
+            mVideoChannels = mTvDataBaseManager.getChannelList(mInputId, Channels.SERVICE_TYPE_AUDIO_VIDEO, true);
             if (isDTVChannel())
-                mRadioChannels = getUnskippedChannel(mTvDataBaseManager.getChannelList(mInputId, Channels.SERVICE_TYPE_AUDIO));
+                mRadioChannels = mTvDataBaseManager.getChannelList(mInputId, Channels.SERVICE_TYPE_AUDIO, true);
 
             if (mVideoChannels.size() > 0) {
                 mCurrentChannel = mVideoChannels.get(DEFAULT_INDEX);
@@ -88,20 +88,6 @@ public class ChannelTuner {
         if (DEBUG)
             printList();
     }
-
-    private ArrayList<ChannelInfo> getUnskippedChannel (ArrayList<ChannelInfo> channelList) {
-        ArrayList<ChannelInfo> unskippedList = new ArrayList<ChannelInfo>();
-        if (channelList != null) {
-            for (int i = 0; i < channelList.size(); i++) {
-                ChannelInfo info = (ChannelInfo)channelList.get(i);
-                if (info != null && info.isBrowsable())
-                    unskippedList.add(info);
-            }
-        }
-
-        return unskippedList;
-    }
-
 
     /**
      * invoked when delete/insert/update a channel.
@@ -166,9 +152,9 @@ public class ChannelTuner {
         if (mVideoChannels != null)
             mVideoChannels.clear();
 
-        mVideoChannels = getUnskippedChannel(mTvDataBaseManager.getChannelList(mInputId, Channels.SERVICE_TYPE_AUDIO_VIDEO));
+        mVideoChannels = mTvDataBaseManager.getChannelList(mInputId, Channels.SERVICE_TYPE_AUDIO_VIDEO, true);
         if (isDTVChannel())
-            mRadioChannels = getUnskippedChannel(mTvDataBaseManager.getChannelList(mInputId, Channels.SERVICE_TYPE_AUDIO));
+            mRadioChannels = mTvDataBaseManager.getChannelList(mInputId, Channels.SERVICE_TYPE_AUDIO, true);
 
 
         int index = getChannelIndex(mCurrentChannel);

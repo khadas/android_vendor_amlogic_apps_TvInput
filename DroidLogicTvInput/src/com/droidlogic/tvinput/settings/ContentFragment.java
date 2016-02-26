@@ -18,6 +18,7 @@ import android.widget.TextView;
 import com.android.internal.util.XmlUtils;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
+import com.droidlogic.app.tv.TvControlManager;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -155,7 +156,9 @@ public class ContentFragment extends Fragment {
                 getSettingsManager().setTag(key);
                 content_title.setText(title);
             } else {
-                if (key.equals(SettingsManager.KEY_TINT) && !getSettingsManager().isShowTint())
+                if ((key.equals(SettingsManager.KEY_TINT) && !getSettingsManager().isShowTint())
+                    || ((key.equals(SettingsManager.KEY_DEFAULT_LANGUAGE) || key.equals(SettingsManager.KEY_SUBTITLE_SWITCH))
+                            && getSettingsManager().getCurentTvSource() != TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV))
                     return;
 
                 HashMap<String, Object> map = new HashMap<String, Object>();

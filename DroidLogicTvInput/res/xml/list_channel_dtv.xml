@@ -17,16 +17,6 @@
     </Preference>
 -->
 
-	<Preference
-        android:key="default_language"
-        android:title="@string/defalut_lan" >
-    </Preference>
-
-	<Preference
-        android:key="sub_switch"
-        android:title="@string/sub_switch" >
-    </Preference>
-
     <Preference
         android:key="sound_channel"
         android:title="@string/sound_channel" >

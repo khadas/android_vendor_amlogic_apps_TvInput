@@ -61,8 +61,6 @@ public class SettingsManager {
     public static final String KEY_AUIDO_TRACK                         = "audio_track";
     public static final String KEY_SOUND_CHANNEL                        = "sound_channel";
     public static final String KEY_CHANNEL_INFO                         = "channel_info";
-    public static final String KEY_DEFAULT_LANGUAGE                 = "default_language";
-    public static final String KEY_SUBTITLE_SWITCH                  = "sub_switch";
     public static final String KEY_COLOR_SYSTEM                     = "color_system";
     public static final String KEY_SOUND_SYSTEM                     = "sound_system";
     public static final String KEY_VOLUME_COMPENSATE                = "volume_compensate";
@@ -78,6 +76,8 @@ public class SettingsManager {
     public static final String KEY_STARTUP_SETTING                  = "startup_setting";
     public static final String KEY_DYNAMIC_BACKLIGHT                = "dynamic_backlight";
     public static final String KEY_RESTORE_FACTORY                  = "restore_factory";
+    public static final String KEY_DEFAULT_LANGUAGE                 = "default_language";
+    public static final String KEY_SUBTITLE_SWITCH                  = "sub_switch";
 
     public static final String STATUS_STANDARD                      = "standard";
     public static final String STATUS_VIVID                         = "vivid";

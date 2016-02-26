@@ -12,6 +12,8 @@ import com.droidlogic.tvinput.settings.SettingsManager;
 import com.droidlogic.tvinput.shortcut.GuideListView.ListItemSelectedListener;
 
 import android.app.Activity;
+import android.app.AlarmManager;
+import 	android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -56,6 +58,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
     private static final int TOAST_SHOW_TIME = 3000;
 
     private static final long DAY_TO_MS = 86400000;
+    private static final long PROGRAM_INTERVAL = 60000;
 
     private SettingsManager mSettingsManager;
     private TvDataBaseManager mTvDataBaseManager;
@@ -341,8 +344,8 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
         lv_date = (GuideListView)findViewById(R.id.list_guide_week);
         lv_program = (GuideListView)findViewById(R.id.list_guide_programs);
 
-        channelInfoList = mTvDataBaseManager.getChannelList(mSettingsManager.getInputId(), Channels.SERVICE_TYPE_AUDIO_VIDEO);
-        channelInfoList.addAll(mTvDataBaseManager.getChannelList(mSettingsManager.getInputId(), Channels.SERVICE_TYPE_AUDIO));
+        channelInfoList = mTvDataBaseManager.getChannelList(mSettingsManager.getInputId(), Channels.SERVICE_TYPE_AUDIO_VIDEO, true);
+        channelInfoList.addAll(mTvDataBaseManager.getChannelList(mSettingsManager.getInputId(), Channels.SERVICE_TYPE_AUDIO, true));
 
         list_channels = getChannelList(channelInfoList);
         channelsAdapter = new SimpleAdapter(this, list_channels,
@@ -366,7 +369,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
         if (channelInfoList.size() > 0) {
             for (int i = 0 ; i < channelInfoList.size(); i++) {
                 ChannelInfo info = channelInfoList.get(i);
-                if (info != null && info.isBrowsable()) {
+                if (info != null) {
                     ArrayMap<String,Object> item = new ArrayMap<String,Object>();
                     item.put(GuideListView.ITEM_1, i + "  " + info.getDisplayName());
                     if (ChannelInfo.isRadioChannel(info)) {
@@ -527,13 +530,14 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
                                 program.setIsAppointed(false);
                                 ((ImageView)view.findViewById(R.id.img_appointed)).setImageResource(0);
                                 appointed_status = mResources.getString(R.string.appointed_cancel);
+                                mTvDataBaseManager.updateProgram(program);
+                                cancelAppointedProgramAlarm(program);
                             } else {
                                 program.setIsAppointed(true);
                                 ((ImageView)view.findViewById(R.id.img_appointed)).setImageResource(R.drawable.appointed);
-                                appointed_status = mResources.getString(R.string.appointed_success);
+                                appointed_status = mResources.getString(R.string.appointed_success) + setAppointedProgramAlarm(program);
+                                mTvDataBaseManager.updateProgram(program);
                             }
-                            mTvDataBaseManager.updateProgram(program);
-
                         } else {
                             appointed_status = mResources.getString(R.string.appointed_expired);
                         }
@@ -557,11 +561,13 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
                 new Thread(getProgramRunnable).start();
                 break;
             case R.id.list_guide_programs:
-                Object description = list_program.get(position).get(GuideListView.ITEM_3);
-                if (description != null) {
-                    tx_program_description.setText(description.toString());
-                } else {
-                    tx_program_description.setText(mResources.getString(R.string.no_information));
+                if (position < list_program.size()) {
+                    Object description = list_program.get(position).get(GuideListView.ITEM_3);
+                    if (description != null) {
+                        tx_program_description.setText(description.toString());
+                    } else {
+                        tx_program_description.setText(mResources.getString(R.string.no_information));
+                    }
                 }
                 break;
         }
@@ -598,5 +604,48 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
         String[] dateAndTime = sDateFormat.format(new Date(dateTime + 0)).split("\\/| |:");
 
         return dateAndTime;
+    }
+
+     private String setAppointedProgramAlarm(Program currentProgram) {
+        AlarmManager alarm = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        String cancelProgram = "";
+
+        List<Program> programList = mTvDataBaseManager.getAppointedPrograms();
+        for (Program program : programList) {
+            if (Math.abs(currentProgram.getStartTimeUtcMillis() - program.getStartTimeUtcMillis()) <= PROGRAM_INTERVAL) {
+                if (cancelProgram.length() == 0) {
+                    cancelProgram = mResources.getString(R.string.cancel) + " " + program.getTitle();
+                } else {
+                    cancelProgram += " " +  program.getTitle();
+                }
+                cancelAppointedProgramAlarm(program);
+                program.setIsAppointed(false);
+                mTvDataBaseManager.updateProgram(program);
+            }
+        }
+
+        long pendingTime = currentProgram.getStartTimeUtcMillis() - mTvTime.getTime();
+        if (pendingTime > 0) {
+            Log.d(TAG, "" + pendingTime / 60000 + " min later show program prompt");
+            alarm.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + pendingTime, buildPendingIntent(currentProgram));
+        }
+
+        if (cancelProgram.length() == 0) {
+            return cancelProgram;
+        } else {
+            return "," + cancelProgram;
+        }
+     }
+
+     private void cancelAppointedProgramAlarm (Program program) {
+        AlarmManager alarm = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        alarm.cancel(buildPendingIntent(program));
+     }
+
+    private PendingIntent buildPendingIntent (Program program) {
+        Intent intent = new Intent(DroidLogicTvUtils.ACTION_PROGRAM_APPOINTED);
+        intent.putExtra(DroidLogicTvUtils.EXTRA_PROGRAM_ID, program.getProgramId());
+        //sendBroadcast(intent);
+        return PendingIntent.getBroadcast(this, (int)program.getProgramId(), intent, 0);
     }
 }
