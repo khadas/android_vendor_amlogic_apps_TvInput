@@ -179,8 +179,6 @@ public class DTVInputService extends DroidLogicTvInputService {
             ChannelInfo ch = mTvDataBaseManager.getChannelInfo(uri);
             if (ch != null) {
                 playProgram(ch);
-                TvControlManager.getInstance().SetAVPlaybackListener(this);
-                notifyTracks(ch);
                 mCurrentChannel = ch;
             } else {
                 Log.w(TAG, "Failed to get channel info for " + uri);
@@ -206,8 +204,13 @@ public class DTVInputService extends DroidLogicTvInputService {
                         info.getPcrPid(),
                         info.getAudioCompensation());
                 tcm.DtvSetAudioChannleMod(info.getAudioChannel());
+                tcm.SetAVPlaybackListener(this);
             } else
                 Log.d(TAG, "channel type[" + info.getType() + "] not supported yet.");
+
+            stopSubtitle();
+
+            notifyTracks(info);
 
             startSubtitle(info);
 
