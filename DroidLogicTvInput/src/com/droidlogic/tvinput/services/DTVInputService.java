@@ -573,7 +573,7 @@ public class DTVInputService extends DroidLogicTvInputService {
         private static final int EPG_FEND = 0;
         private static final int EPG_DMX = 0;
         private static final String EPG_LANGUAGE = "local eng zho chi chs first";
-        private static final String DEF_CODING = "standard";//"GB2312";//force setting for auto-detect fail.
+        private static final String DEF_CODING = "GB2312";//"standard";//force setting for auto-detect fail.
 
         private class EPGCurrentProgramRunnable implements Runnable {
             private final ChannelInfo mChannel;
