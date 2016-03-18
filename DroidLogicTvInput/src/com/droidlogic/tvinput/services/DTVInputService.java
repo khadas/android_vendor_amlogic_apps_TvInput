@@ -12,6 +12,7 @@ import android.media.tv.TvInputInfo;
 import android.media.tv.TvInputHardwareInfo;
 import android.media.tv.TvTrackInfo;
 import android.media.tv.TvContract;
+import android.media.tv.TvContract.Channels;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -42,6 +43,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Arrays;
+import java.util.Iterator;
 
 import com.droidlogic.app.tv.TvControlManager;
 
@@ -120,7 +122,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             super.doRelease();
             mSession = null;
             stopSubtitle();
-            stopEPG();
+            setEPG(null);
 //            releasePlayer();
         }
 
@@ -150,7 +152,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             } else if (TextUtils.equals(DroidLogicTvUtils.ACTION_STOP_PLAY, action)) {
                 Log.d(TAG, "do private cmd: STOP_PLAY");
                 stopSubtitle();
-                stopEPG();
+                setEPG(null);
                 releasePlayer();
             }
         }
@@ -169,6 +171,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             if (Utils.getChannelId(uri) < 0) {
                 TvControlManager tcm = TvControlManager.getInstance();
                 tcm.PlayDTVProgram(TVChannelParams.MODE_DTMB, 0, 0, 0, 0, 0, -1, -1, 0, 0);
+                mCurrentChannel = null;
                 return;
             }
             TvDataBaseManager mTvDataBaseManager = new TvDataBaseManager(mContext);
@@ -206,7 +209,7 @@ public class DTVInputService extends DroidLogicTvInputService {
 
             startSubtitle(info);
 
-            startEPG(info);
+            setEPG(info);
 
             checkContentBlockNeeded();
             return true;
@@ -276,9 +279,6 @@ public class DTVInputService extends DroidLogicTvInputService {
 
                 notifyTrackSelected(type, trackId);
 
-                //TvDataBaseManager mTvDataBaseManager = new TvDataBaseManager(mContext);
-                //mCurrentChannel.setAudioTrackIndex(Integer.parseInt(parsedMap.get("id")));
-                //mTvDataBaseManager.updateChannelInfo(mCurrentChannel);
                 return true;
 
             } else if (type == TvTrackInfo.TYPE_SUBTITLE) {
@@ -298,9 +298,6 @@ public class DTVInputService extends DroidLogicTvInputService {
 
                 notifyTrackSelected(type, trackId);
 
-                //TvDataBaseManager mTvDataBaseManager = new TvDataBaseManager(mContext);
-                //mCurrentChannel.setSubtitleTrackIndex(Integer.parseInt(parsedMap.get("id")));
-                //mTvDataBaseManager.updateChannelInfo(mCurrentChannel);
                 return true;
             }
             return false;
@@ -560,23 +557,23 @@ public class DTVInputService extends DroidLogicTvInputService {
             return params;
         }
 
-        private void startEPG(ChannelInfo channel) {
-            Log.d(TAG, "startEPG");
+        private void setEPG(ChannelInfo channel) {
+            if (channel != null) {
+                Log.d(TAG, "startEPG");
 
-            initThread("startEpg Thread");
-            mHandler.removeCallbacks(mEPGCurrentProgramRunnable);
-            mEPGCurrentProgramRunnable = new EPGCurrentProgramRunnable(channel);
-            mHandler.post(mEPGCurrentProgramRunnable);
-        }
+                initThread("startEpg Thread");
+                mHandler.removeCallbacks(mEPGCurrentProgramRunnable);
+                mEPGCurrentProgramRunnable = new EPGCurrentProgramRunnable(channel);
+                mHandler.post(mEPGCurrentProgramRunnable);
+            } else {
+                if (epg != null) {
+                    epg.destroy();
+                    epg = null;
+                }
+                releaseThread();
 
-        private void stopEPG() {
-            if (epg != null) {
-                epg.destroy();
-                epg = null;
+                Log.d(TAG, "stopEPG");
             }
-            releaseThread();
-
-            Log.d(TAG, "stopEPG");
         }
 
         public class EPGScanner {
@@ -590,6 +587,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             private TVChannelParams tvchan = null;
             private ChannelInfo tvservice = null;
             private TvDataBaseManager mTvDataBaseManager = null;
+            private TvControlManager mTvControlManager = null;
             private TVTime mTvTime = null;
 
             private ChannelObserver mChannelObserver;
@@ -621,8 +619,8 @@ public class DTVInputService extends DroidLogicTvInputService {
 
                 epgScanner = new DTVEpgScanner(){
                     public void onEvent(DTVEpgScanner.Event event){
-                        //if (event.type == DTVEpgScanner.Event.EVENT_PROGRAM_EVENTS_UPDATE)
-                            mHandler.obtainMessage(MSG_EPG_EVENT, event).sendToTarget();
+                        Log.d(TAG, "send event:"+event.type);
+                        mHandler.obtainMessage(MSG_EPG_EVENT, event).sendToTarget();
                     }
                 };
                 epgScanner.setDvbTextCoding(coding);
@@ -756,11 +754,44 @@ public class DTVInputService extends DroidLogicTvInputService {
                             +" Afmts:"+Arrays.toString(event.channel.getAudioFormats())
                             +" Alangs:"+Arrays.toString(event.channel.getAudioLangs())
                         );
-                        //mTvDataBaseManager.updateDtvChannel(ChannelInfo channel);
+                        if (tvservice.getServiceId() == event.channel.getServiceId()) {
+                            tvservice.setVideoPid(event.channel.getVideoPid());
+                            tvservice.setVfmt(event.channel.getVfmt());
+                            tvservice.setPcrPid(event.channel.getPcrPid());
+                            tvservice.setAudioPids(event.channel.getAudioPids());
+                            tvservice.setAudioFormats(event.channel.getAudioFormats());
+                            tvservice.setAudioLangs(event.channel.getAudioLangs());
+                            mTvDataBaseManager.updateChannelInfo(tvservice);
+                        }
+                    break;
+                    case DTVEpgScanner.Event.EVENT_PROGRAM_NAME_UPDATE:
+                        Log.d(TAG, "[NAME Update]: ServiceId:"+event.channel.getServiceId()
+                            +" Network:"+event.channel.getOriginalNetworkId()
+                            +" Name:"+event.channel.getDisplayName()
+                            +" SdtVersion:"+event.channel.getSdtVersion()
+                        );
+                        if (tvservice.getServiceId() == event.channel.getServiceId()) {
+                            tvservice.setDisplayName(event.channel.getDisplayName());
+                            tvservice.setOriginalNetworkId(event.channel.getOriginalNetworkId());
+                            tvservice.setSdtVersion(event.channel.getSdtVersion());
+                            mTvDataBaseManager.updateChannelInfo(tvservice);
+                        }
+                    break;
+                    case DTVEpgScanner.Event.EVENT_CHANNEL_UPDATE:
+                        Log.d(TAG, "[TS Update]: Freq:"+tvservice.getFrequency());
+                        Log.d(TAG, "TS changed, need autoscan. not impelement");
                     break;
                     default:
                     break;
                 }
+            }
+
+
+
+
+            private boolean epg_auto_reset = true;
+            private void setEpgAutoReset(boolean enable) {
+                epg_auto_reset = enable;
             }
 
             private final class ChannelObserver extends ContentObserver {
@@ -780,7 +811,8 @@ public class DTVInputService extends DroidLogicTvInputService {
                             && (DroidLogicTvUtils.getChannelId(uri) > maxChannel_ID)) {
                             Log.d(TAG, "channel added: "+DroidLogicTvUtils.getChannelId(uri)+">"+maxChannel_ID);
                         }
-                        reset();
+                        if (epg_auto_reset)
+                            reset();
                     }
                 }
 

@@ -1640,6 +1640,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                .setDisplayNameMulti(event.programName)
                .setFreeCa(event.free_ca)
                .setScrambled(event.scrambled)
+               .setSdtVersion(event.sdtVersion)
                .build();
     }
 

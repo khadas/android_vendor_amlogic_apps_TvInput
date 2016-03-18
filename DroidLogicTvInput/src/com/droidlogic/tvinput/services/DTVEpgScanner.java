@@ -155,7 +155,7 @@ abstract public class DTVEpgScanner{
         if (fend_type == TVChannelParams.MODE_ATSC) {
             startScan(SCAN_PSIP_EIT|SCAN_MGT|SCAN_VCT|SCAN_RRT|SCAN_STT);
         } else {
-            startScan(SCAN_EIT_ALL|SCAN_TDT/*|SCAN_SDT|SCAN_NIT|SCAN_CAT*/);
+            startScan(SCAN_EIT_ALL|SCAN_TDT|SCAN_SDT/*|SCAN_NIT|SCAN_CAT*/);
         }
     }
 
@@ -172,8 +172,9 @@ abstract public class DTVEpgScanner{
     /*Enter the program.*/
     public void enterProgram(ChannelInfo channel){
         if (mChannel != null
-                && channel.getServiceId() == mChannel.getServiceId()
-                && channel.getTransportStreamId() == mChannel.getTransportStreamId())
+            && channel.getServiceId() == mChannel.getServiceId()
+            && channel.getTransportStreamId() == mChannel.getTransportStreamId()
+            && channel.getOriginalNetworkId() == mChannel.getOriginalNetworkId())
             return;
 
         if (!created)

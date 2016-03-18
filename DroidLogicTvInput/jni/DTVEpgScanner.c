@@ -62,7 +62,9 @@ typedef struct {
 	int mVideoPID;
 	int mVideoFormat;
 	AM_SI_AudioInfo_t mAudioInfo;
+	AM_SI_SubtitleInfo_t mSubtitleInfo;
 	int mPcrPID;
+	int mSdtVersion;
 }EPGChannelData;
 
 EPGChannelData gChannelMonitored = {.valid = 0};
@@ -103,6 +105,8 @@ static void epg_evt_callback(long dev_no, int event_type, void *param, void *use
 	EPGEventData edata;
 
 	UNUSED(user_data);
+
+	log_info("evt callback %d\n", event_type);
 
 	AM_EPG_GetUserData((AM_EPG_Handle_t)dev_no, (void**)&priv_data);
 	if (!priv_data)
@@ -392,10 +396,16 @@ static void PMT_Update(AM_EPG_Handle_t handle, dvbpsi_pmt_t *pmts)
 	AM_SI_LIST_BEGIN(pmts, pmt)
 		AM_SI_LIST_BEGIN(pmt->p_first_es, es)
 			AM_SI_ExtractAVFromES(es, &ch.mVideoPID, &ch.mVideoFormat, &ch.mAudioInfo);
+			//AM_SI_ExtractDVBSubtitleFromES(es, &ch.sub_info);
+			//AM_SI_ExtractDVBTeletextFromES(es, &ch.ttx_info);
 		AM_SI_LIST_END()
 	AM_SI_LIST_END()
 
-	if (check_pmt_update(pch_cur, &ch)) {
+	if (pch_cur->mServiceId == pmts->i_program_number
+		&& check_pmt_update(pch_cur, &ch)) {
+
+		/*update current*/
+		memcpy(pch_cur, &ch, sizeof(pch_cur[0]));
 
 		JNIEnv *env;
 		int ret;
@@ -420,7 +430,7 @@ static void PMT_Update(AM_EPG_Handle_t handle, dvbpsi_pmt_t *pmts)
 		jobject channel = (*env)->NewObject(env, gChannelClass, gChannelInitID, event, 0);
 
 		(*env)->SetIntField(env,channel,\
-				(*env)->GetFieldID(env, gChannelClass, "mServiceId", "I"), pch_cur->mServiceId);
+				(*env)->GetFieldID(env, gChannelClass, "mServiceId", "I"),  pmts->i_program_number);
 		(*env)->SetIntField(env,channel,\
 				(*env)->GetFieldID(env, gChannelClass, "mVideoPid", "I"), ch.mVideoPID);
 		(*env)->SetIntField(env,channel,\
@@ -444,6 +454,134 @@ static void PMT_Update(AM_EPG_Handle_t handle, dvbpsi_pmt_t *pmts)
 	}
 }
 
+static int epg_sdt_update_check_version(EPGChannelData *ch, dvbpsi_sdt_t *sdts) {
+	if ((ch->mSdtVersion != 0xff)
+		&& (ch->mSdtVersion == sdts->i_version)
+		&& (ch->mTransportStreamId == sdts->i_ts_id)
+		&& (ch->mOriginalNetworkId == sdts->i_network_id))
+		return 0;
+	return 1;
+}
+
+static int epg_sdt_update(AM_EPG_Handle_t handle, int type, void *tables, void *user_data)
+{
+	dvbpsi_sdt_t *sdts = (dvbpsi_sdt_t*)tables;
+	EPGChannelData *pch_cur = &gChannelMonitored;
+	dvbpsi_sdt_t *sdt;
+
+	if (sdts->i_table_id != AM_SI_TID_SDT_ACT)
+		return 1;
+
+	if (!pch_cur->valid)
+		return 1;
+
+	if (!epg_sdt_update_check_version(pch_cur, sdts))
+		return 2;
+
+	log_info("something changed.");
+
+	/*nid/tsid changed*/
+	if (((pch_cur->mOriginalNetworkId != -1) && (pch_cur->mOriginalNetworkId != sdts->i_network_id))
+		|| (pch_cur->mTransportStreamId != sdts->i_ts_id)) {
+		log_info("nid:[0x%04x->0x%04x] tsid:[0x%04x->0x%04x]",
+			pch_cur->mOriginalNetworkId, sdts->i_network_id,
+			pch_cur->mTransportStreamId, sdts->i_ts_id);
+		pch_cur->mOriginalNetworkId = sdts->i_network_id;
+		pch_cur->mTransportStreamId = sdts->i_ts_id;
+		pch_cur->mSdtVersion = sdts->i_version;
+		epg_evt_callback((long)handle, AM_EPG_EVT_UPDATE_TS, 0, NULL);
+		return 0;
+	}
+
+	/*version changed*/
+	if ((pch_cur->mSdtVersion != 0xff) && (pch_cur->mSdtVersion != sdts->i_version)) {
+		log_info("sdt ver:[%d->%d]", pch_cur->mSdtVersion, sdts->i_version);
+		pch_cur->mOriginalNetworkId = sdts->i_network_id;
+		pch_cur->mTransportStreamId = sdts->i_ts_id;
+		pch_cur->mSdtVersion = sdts->i_version;
+		epg_evt_callback((long)handle, AM_EPG_EVT_UPDATE_TS, 0, NULL);
+		return 0;
+	}
+
+	pch_cur->mOriginalNetworkId = sdts->i_network_id;
+	pch_cur->mTransportStreamId = sdts->i_ts_id;
+	pch_cur->mSdtVersion = sdts->i_version;
+
+	AM_SI_LIST_BEGIN(sdts, sdt)
+	dvbpsi_sdt_service_t *srv;
+	AM_SI_LIST_BEGIN(sdt->p_first_service, srv)
+		dvbpsi_descriptor_t *descr;
+
+		if (srv->i_service_id != pch_cur->mServiceId)
+			continue;
+
+		AM_SI_LIST_BEGIN(srv->p_first_descriptor, descr)
+		if (descr->p_decoded && descr->i_tag == AM_SI_DESCR_SERVICE)
+		{
+			dvbpsi_service_dr_t *psd = (dvbpsi_service_dr_t*)descr->p_decoded;
+			char name[AM_DB_MAX_SRV_NAME_LEN + 4];
+			const unsigned char *old_name;
+			if (psd->i_service_name_length > 0)
+			{
+				AM_SI_ConvertDVBTextCode((char*)psd->i_service_name, psd->i_service_name_length,\
+							name, AM_DB_MAX_SRV_NAME_LEN);
+				name[AM_DB_MAX_SRV_NAME_LEN+3] = 0;
+				log_info("SDT Update: Program name changed: %s -> %s", old_name, name);
+			}
+		}
+		AM_SI_LIST_END()
+	AM_SI_LIST_END()
+	AM_SI_LIST_END()
+
+	JNIEnv *env;
+	int ret;
+	int attached = 0;
+	EPGData *priv_data;
+
+	AM_EPG_GetUserData(handle, (void**)&priv_data);
+	if (!priv_data)
+		return 1;
+
+	ret = (*gJavaVM)->GetEnv(gJavaVM, (void**) &env, JNI_VERSION_1_4);
+	if (ret <0) {
+		ret = (*gJavaVM)->AttachCurrentThread(gJavaVM,&env,NULL);
+		if (ret <0) {
+			log_error("callback handler:failed to attach current thread");
+			return 1;
+		}
+		attached = 1;
+	}
+
+	jobject event = (*env)->NewObject(env, gEventClass, gEventInitID, priv_data->obj, EVENT_PROGRAM_NAME_UPDATE);
+	jobject channel = (*env)->NewObject(env, gChannelClass, gChannelInitID, event, 0);
+
+	(*env)->SetIntField(env,channel,\
+			(*env)->GetFieldID(env, gChannelClass, "mSdtVersion", "I"), pch_cur->mSdtVersion);
+	(*env)->SetIntField(env,channel,\
+			(*env)->GetFieldID(env, gChannelClass, "mOriginalNetworkId", "I"), pch_cur->mOriginalNetworkId);
+	(*env)->SetObjectField(env,channel,\
+			(*env)->GetFieldID(env, gChannelClass, "mDisplayName", "Ljava/lang/String;"), (*env)->NewStringUTF(env, pch_cur->name));
+
+	(*env)->SetObjectField(env,event,(*env)->GetFieldID(env, gEventClass, "channel", "Lcom/droidlogic/app/tv/ChannelInfo;"), channel);
+
+	(*env)->CallVoidMethod(env, priv_data->obj, gOnEventID, event);
+
+	if (attached) {
+		(*gJavaVM)->DetachCurrentThread(gJavaVM);
+	}
+	return 0;
+}
+
+static void epg_table_callback(AM_EPG_Handle_t handle, int type, void *tables, void *user_data)
+{
+	switch (type) {
+		case AM_EPG_TAB_SDT:
+			epg_sdt_update(handle, type, tables, user_data);
+		break;
+		default:
+		break;
+	}
+}
 
 static void epg_create(JNIEnv* env, jobject obj, jint fend_id, jint dmx_id, jint src, jstring ordered_text_langs)
 {
@@ -495,7 +633,14 @@ static void epg_create(JNIEnv* env, jobject obj, jint fend_id, jint dmx_id, jint
 	AM_EVT_Subscribe((long)data->handle,AM_EPG_EVT_UPDATE_TS,epg_evt_callback,NULL);
 	AM_EPG_SetUserData(data->handle, (void*)data);
 
+	/*handle epg events*/
 	AM_EPG_SetEventsCallback(data->handle, Events_Update);
+
+	/*disable internal default table procedure*/
+	AM_EPG_DisableDefProc(data->handle, AM_TRUE);
+
+	/*handle tables directly by user*/
+	AM_EPG_SetTablesCallback(data->handle, AM_EPG_TAB_SDT, epg_table_callback, NULL);
 }
 
 static void epg_destroy(JNIEnv* env, jobject obj)
@@ -582,6 +727,7 @@ static int get_channel_data(JNIEnv* env, jobject obj, jobject channel, EPGChanne
 		(*env)->ReleaseIntArrayElements(env, aids, paids, JNI_ABORT);
 		(*env)->ReleaseIntArrayElements(env, afmts, pafmts, JNI_ABORT);
 	}
+	pch->mSdtVersion = (*env)->GetIntField(env, channel, (*env)->GetFieldID(env, objclass, "mSdtVersion", "I"));
 	pch->valid = 1;
 	return 0;
 }
