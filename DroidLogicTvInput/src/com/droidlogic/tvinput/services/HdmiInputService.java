@@ -16,6 +16,7 @@ import android.media.tv.TvInputHardwareInfo;
 import android.media.tv.TvInputInfo;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.KeyEvent;
 
 public class HdmiInputService extends DroidLogicTvInputService {
     private static final String TAG = HdmiInputService.class.getSimpleName();
@@ -48,6 +49,21 @@ public class HdmiInputService extends DroidLogicTvInputService {
             if (TextUtils.equals(DroidLogicTvUtils.ACTION_STOP_TV, action)) {
                 stopTv();
             }
+        }
+
+
+        @Override
+        public boolean onKeyUp(int keyCode, KeyEvent event) {
+            return false;
+        }
+
+        @Override
+        public boolean onKeyDown(int keyCode, KeyEvent event) {
+            if (isNavigationKey(keyCode)) {
+                getHardware().dispatchKeyEventToHdmi(event);
+                return true;
+            }
+            return false;
         }
     }
 
