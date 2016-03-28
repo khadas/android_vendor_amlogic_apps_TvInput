@@ -720,6 +720,10 @@ public class DTVInputService extends DroidLogicTvInputService {
                     epgScanner.destroy();
                     epgScanner = null;
                 }
+                if (mHandler != null) {
+                    mHandler.removeMessages(MSG_EPG_EVENT);
+                    mHandler = null;
+                }
                 if (mHandlerThread != null) {
                     mHandlerThread.quit();
                     mHandlerThread = null;
@@ -789,7 +793,8 @@ public class DTVInputService extends DroidLogicTvInputService {
                             Uri channelUri = TvContract.buildChannelUri(channel.getId());
 
                             List<Program> programs = getChannelPrograms(channelUri, channel, event);
-                            mTvDataBaseManager.updatePrograms(channelUri, programs);
+                            if (mTvDataBaseManager != null)
+                                mTvDataBaseManager.updatePrograms(channelUri, programs);
                         }
                     break;
                     case DTVEpgScanner.Event.EVENT_TDT_END:
