@@ -32,6 +32,7 @@ public class ATVInputService extends DroidLogicTvInputService
     private static final String TAG = "ATVInputService";
 
     private ATVSessionImpl mSession;
+    private ChannelInfo mCurrentChannel = null;
 
     private final BroadcastReceiver mParentalControlsBroadcastReceiver = new BroadcastReceiver()
     {
@@ -89,6 +90,7 @@ public class ATVInputService extends DroidLogicTvInputService
 
             mContext = context;
             mLastBlockedRating = null;
+            mCurrentChannel = null;
         }
 
         @Override
@@ -156,6 +158,7 @@ public class ATVInputService extends DroidLogicTvInputService
                                      0, 0);
                 releasePlayer();
                 notifyVideoUnavailable(TvInputManager.VIDEO_UNAVAILABLE_REASON_UNKNOWN);
+                mCurrentChannel = null;
                 return;
             }
             TvDataBaseManager mTvDataBaseManager = new TvDataBaseManager(mContext);
@@ -163,6 +166,7 @@ public class ATVInputService extends DroidLogicTvInputService
             if (ch != null)
             {
                 playProgram(ch);
+                mCurrentChannel = ch;
             }
             else
             {
@@ -282,5 +286,14 @@ public class ATVInputService extends DroidLogicTvInputService
 
         Log.d(TAG, "=====onHardwareRemoved===== " + id);
         return id;
+    }
+
+    @Override
+    public void onUpdateCurrentChannel(ChannelInfo channel, boolean store)
+    {
+        if (store) {
+            TvDataBaseManager mTvDataBaseManager = new TvDataBaseManager(this);
+            mTvDataBaseManager.updateOrinsertAtvChannel(mCurrentChannel, channel);
+        }
     }
 }

@@ -162,7 +162,7 @@ static jbyteArray get_byte_array(JNIEnv* env, const char *str)
 
 	int len = strlen(str);
 	jbyteArray byteArray = (*env)->NewByteArray(env, len);
-	(*env)->SetByteArrayRegion(env, byteArray, 0, len, str);
+	(*env)->SetByteArrayRegion(env, byteArray, 0, len, (const jbyte*)str);
 
 	return byteArray;
 }
@@ -469,6 +469,9 @@ static int epg_sdt_update(AM_EPG_Handle_t handle, int type, void *tables, void *
 	EPGChannelData *pch_cur = &gChannelMonitored;
 	dvbpsi_sdt_t *sdt;
 
+	UNUSED(type);
+	UNUSED(user_data);
+
 	if (sdts->i_table_id != AM_SI_TID_SDT_ACT)
 		return 1;
 
@@ -520,7 +523,7 @@ static int epg_sdt_update(AM_EPG_Handle_t handle, int type, void *tables, void *
 		{
 			dvbpsi_service_dr_t *psd = (dvbpsi_service_dr_t*)descr->p_decoded;
 			char name[AM_DB_MAX_SRV_NAME_LEN + 4];
-			const unsigned char *old_name;
+			char *old_name = pch_cur->name;
 			if (psd->i_service_name_length > 0)
 			{
 				AM_SI_ConvertDVBTextCode((char*)psd->i_service_name, psd->i_service_name_length,\
@@ -681,6 +684,8 @@ static void epg_change_mode(JNIEnv* env, jobject obj, jint op, jint mode)
 
 static int get_channel_data(JNIEnv* env, jobject obj, jobject channel, EPGChannelData *pch)
 {
+	UNUSED(obj);
+
 	memset(pch, 0, sizeof(*pch));
 
 	if (!channel) {
