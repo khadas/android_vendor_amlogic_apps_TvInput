@@ -36,6 +36,10 @@ public class ChannelDataManager {
         mChannelTuners.add(ct);
     }
 
+    public static void removeChannelTuner(ChannelTuner ct) {
+        mChannelTuners.remove(ct);
+    }
+
     private void changeRowChannel(Uri uri) {
         for (ChannelTuner ct : mChannelTuners) {
             ct.changeRowChannel(uri);

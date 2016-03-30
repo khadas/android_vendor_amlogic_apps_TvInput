@@ -172,9 +172,9 @@ abstract public class DTVEpgScanner{
     /*Enter the program.*/
     public void enterProgram(ChannelInfo channel){
         if (mChannel != null
-            && channel.getServiceId() == mChannel.getServiceId()
-            && channel.getTransportStreamId() == mChannel.getTransportStreamId()
-            && channel.getOriginalNetworkId() == mChannel.getOriginalNetworkId())
+                && channel.getServiceId() == mChannel.getServiceId()
+                && channel.getTransportStreamId() == mChannel.getTransportStreamId()
+                && channel.getOriginalNetworkId() == mChannel.getOriginalNetworkId())
             return;
 
         if (!created)

@@ -17,6 +17,7 @@ import android.media.tv.TvInputInfo;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.KeyEvent;
+import android.view.Surface;
 
 public class HdmiInputService extends DroidLogicTvInputService {
     private static final String TAG = HdmiInputService.class.getSimpleName();
@@ -35,12 +36,15 @@ public class HdmiInputService extends DroidLogicTvInputService {
     public class HdmiInputSession extends TvInputBaseSession {
         public HdmiInputSession(Context context, String inputId, int deviceId) {
             super(context, inputId, deviceId);
+            Utils.logd(TAG, "=====new HdmiInputSession=====");
         }
 
         @Override
         public void doRelease() {
             super.doRelease();
-            mSession = null;
+            if (mSession != null && mSession.getDeviceId() == getDeviceId()) {
+                mSession = null;
+            }
         }
 
         @Override
@@ -51,6 +55,13 @@ public class HdmiInputService extends DroidLogicTvInputService {
             }
         }
 
+        @Override
+        public void doSetSurface(Surface surface) {
+            super.doSetSurface(surface);
+            if (surface == null) {
+                doRelease();
+            }
+        }
 
         @Override
         public boolean onKeyUp(int keyCode, KeyEvent event) {
@@ -68,7 +79,8 @@ public class HdmiInputService extends DroidLogicTvInputService {
     }
 
     public TvInputInfo onHardwareAdded(TvInputHardwareInfo hardwareInfo) {
-        if (hardwareInfo.getType() != TvInputHardwareInfo.TV_INPUT_TYPE_HDMI)
+        if (hardwareInfo.getType() != TvInputHardwareInfo.TV_INPUT_TYPE_HDMI
+                || hasInfoExisted(hardwareInfo))
             return null;
 
         Utils.logd(TAG, "=====onHardwareAdded====="+hardwareInfo.getDeviceId());
@@ -95,7 +107,8 @@ public class HdmiInputService extends DroidLogicTvInputService {
     }
 
     public String onHardwareRemoved(TvInputHardwareInfo hardwareInfo) {
-        if (hardwareInfo.getType() != TvInputHardwareInfo.TV_INPUT_TYPE_HDMI)
+        if (hardwareInfo.getType() != TvInputHardwareInfo.TV_INPUT_TYPE_HDMI
+                || !hasInfoExisted(hardwareInfo))
             return null;
 
         TvInputInfo info = getTvInputInfo(hardwareInfo);
@@ -103,6 +116,10 @@ public class HdmiInputService extends DroidLogicTvInputService {
         if (info != null)
             id = info.getId();
         updateInfoListIfNeededLocked(hardwareInfo, info, true);
+
+        if (mSession != null && hardwareInfo.getDeviceId() == mSession.getDeviceId()) {
+            mSession = null;
+        }
 
         Utils.logd(TAG, "=====onHardwareRemoved=====" + id);
         return id;

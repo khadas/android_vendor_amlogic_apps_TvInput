@@ -16,6 +16,7 @@ import android.media.tv.TvInputHardwareInfo;
 import android.media.tv.TvInputInfo;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.Surface;
 
 public class AVInputService extends DroidLogicTvInputService {
     private static final String TAG = AVInputService.class.getSimpleName();;
@@ -34,12 +35,15 @@ public class AVInputService extends DroidLogicTvInputService {
     public class AVInputSession extends TvInputBaseSession {
         public AVInputSession(Context context, String inputId, int deviceId) {
             super(context, inputId, deviceId);
+            Utils.logd(TAG, "=====new AVInputSession=====");
         }
 
         @Override
         public void doRelease() {
             super.doRelease();
-            mSession = null;
+            if (mSession != null && mSession.getDeviceId() == getDeviceId()) {
+                mSession = null;
+            }
         }
 
         @Override
@@ -49,10 +53,19 @@ public class AVInputService extends DroidLogicTvInputService {
                 stopTv();
             }
         }
+
+        @Override
+        public void doSetSurface(Surface surface) {
+            super.doSetSurface(surface);
+            if (surface == null) {
+                doRelease();
+            }
+        }
     }
 
     public TvInputInfo onHardwareAdded(TvInputHardwareInfo hardwareInfo) {
-        if (hardwareInfo.getType() != TvInputHardwareInfo.TV_INPUT_TYPE_COMPONENT)
+        if (hardwareInfo.getType() != TvInputHardwareInfo.TV_INPUT_TYPE_COMPONENT
+                || hasInfoExisted(hardwareInfo))
             return null;
 
         Utils.logd(TAG, "=====onHardwareAdded====="+hardwareInfo.getDeviceId());
@@ -79,7 +92,8 @@ public class AVInputService extends DroidLogicTvInputService {
     }
 
     public String onHardwareRemoved(TvInputHardwareInfo hardwareInfo) {
-        if (hardwareInfo.getType() != TvInputHardwareInfo.TV_INPUT_TYPE_COMPONENT)
+        if (hardwareInfo.getType() != TvInputHardwareInfo.TV_INPUT_TYPE_COMPONENT
+                || !hasInfoExisted(hardwareInfo))
             return null;
 
         TvInputInfo info = getTvInputInfo(hardwareInfo);
@@ -88,6 +102,9 @@ public class AVInputService extends DroidLogicTvInputService {
             id = info.getId();
         updateInfoListIfNeededLocked(hardwareInfo, info, true);
 
+        if (mSession != null && hardwareInfo.getDeviceId() == mSession.getDeviceId()) {
+            mSession = null;
+        }
         Utils.logd(TAG, "=====onHardwareRemoved=====" + id);
         return id;
     }

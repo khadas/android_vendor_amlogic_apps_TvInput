@@ -54,6 +54,7 @@ import android.view.View.OnAttachStateChangeListener;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
@@ -76,6 +77,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private ChannelDataManager mChannelDataManager;
     private TvDataBaseManager mTvDataBaseManager;
 
+    private FrameLayout mRootView;
+    private TvViewInputCallback mTvViewCallback = new TvViewInputCallback();
     private TvView mSourceView;
     private SourceButton mSourceInput;
 
@@ -238,9 +241,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         mTvDataBaseManager = new TvDataBaseManager(mContext);
 
         mTimePromptText = (TextView) findViewById(R.id.textView_time_prompt);
-        mSourceView = (TvView) findViewById(R.id.source_view);
-        mSourceView.setCallback(new TvViewInputCallback());
 
+        mRootView = (FrameLayout)findViewById(R.id.root_view);
+        addTvView();
         mMainView = (RelativeLayout)findViewById(R.id.main_view);
 
         mSourceMenuLayout = (SourceInputListLayout)findViewById(R.id.menu_layout);
@@ -252,6 +255,21 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
 
         initSourceMenuLayout();
         setStartUpInfo();
+    }
+
+    private void addTvView() {
+        if (mSourceView == null) {
+            mSourceView = new TvView(mContext);
+            mSourceView.setCallback(mTvViewCallback);
+            mRootView.addView(mSourceView, 0);
+        }
+    }
+
+    private void releaseTvView() {
+        if (mSourceView != null) {
+            mRootView.removeView(mSourceView);
+            mSourceView = null;
+        }
     }
 
     private void setStartUpInfo() {
@@ -340,7 +358,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         closeScreenOffTimeout();
 
         mSystemControlManager.setProperty(PROP_TV_PREVIEW, "false");
-        showTvView(mSourceView);
+        addTvView();
         showUi(Utils.UI_TYPE_ALL_HIDE, false);
         showUi(Utils.UI_TYPE_SOURCE_INFO, true);
         startPlay();
@@ -406,10 +424,18 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         mThreadHandler.obtainMessage(MSG_SAVE_CHANNEL_INFO).sendToTarget();
         mPreSigType = mSigType;
         mSigType = mSourceInput.getSigType();
-        Uri channel_uri = mSourceInput.getUri();
-        Utils.logd(TAG, "channelUri switching to is " + channel_uri);
         mSignalState = SIGNAL_GOT;
-        mSourceView.tune(mSourceInput.getInputId(), channel_uri);
+        if (mSourceInput.isAvaiableSource()) {
+            addTvView();
+            mThreadHandler.obtainMessage(MSG_SAVE_CHANNEL_INFO).sendToTarget();
+            Uri channel_uri = mSourceInput.getUri();
+            Utils.logd(TAG, "channelUri switching to is " + channel_uri);
+            mSourceView.tune(mSourceInput.getInputId(), channel_uri);
+            mMainView.setBackground(null);
+        } else {
+            releaseTvView();
+            mMainView.setBackground(getResources().getDrawable(R.drawable.hotplug_out, null));
+        }
         showUi(Utils.UI_TYPE_SOURCE_INFO, true);
         mSourceMenuLayout.setPreSourceInput(mSourceInput);
     }
@@ -449,9 +475,12 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     }
 
     private void startSetupActivity () {
-        if (mSourceInput == null)
+        if (mSourceInput == null || mSourceInput.getTvInputInfo() == null)
             return;
-        TvInputInfo info = mSourceInput.geTvInputInfo();
+
+        showUi(Utils.UI_TYPE_ALL_HIDE, false);
+        isMenuShowing = true;
+        TvInputInfo info = mSourceInput.getTvInputInfo();
         Intent intent = info.createSetupIntent();
         if (intent != null) {
             intent.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_DEVICE_ID, mSourceInput.getDeviceId());
@@ -462,10 +491,11 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     }
 
     private void startSettingActivity (int keycode) {
-        if (mSourceInput == null)
+        if (mSourceInput == null || mSourceInput.getTvInputInfo() == null)
             return;
 
-        TvInputInfo info = mSourceInput.geTvInputInfo();
+        showUi(Utils.UI_TYPE_ALL_HIDE, false);
+        TvInputInfo info = mSourceInput.getTvInputInfo();
         Intent intent = info.createSettingsIntent();
         if (intent != null) {
             intent.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_DEVICE_ID, mSourceInput.getDeviceId());
@@ -567,9 +597,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 if (!down)
                     return true;
 
-                showUi(Utils.UI_TYPE_ALL_HIDE, false);
                 mCurrentKeyType = IS_KEY_OTHER;
-                isMenuShowing = true;
                 startSetupActivity();
                 return true;
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_DISPAYMODE:
@@ -587,7 +615,6 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     return true;
                 }
 
-                showUi(Utils.UI_TYPE_ALL_HIDE, false);
                 mCurrentKeyType = IS_KEY_OTHER;
                 startSettingActivity(keyCode);
                 return true;
@@ -1104,7 +1131,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         if (!mSourceHasReleased) {
             releaseBeforeExit();
         }
-        hideTvView(mSourceView);
+        releaseTvView();
         restoreTouchSound();
         openScreenOffTimeout();
         super.onStop();
@@ -1422,8 +1449,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     }
 
     private boolean isBootvideoStopped() {
-        return TextUtils.equals(mSystemControlManager.getProperty("service.bootvideo"), "1")
-                && TextUtils.equals(mSystemControlManager.getProperty("service.bootvideo.exit"), "1");
+        return !TextUtils.equals(mSystemControlManager.getProperty("service.bootvideo"), "1")
+                || TextUtils.equals(mSystemControlManager.getProperty("service.bootvideo.exit"), "1");
     }
 
     private void resetSubtitleTrack(boolean on) {
