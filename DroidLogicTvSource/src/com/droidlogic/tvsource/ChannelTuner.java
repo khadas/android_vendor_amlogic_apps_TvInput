@@ -133,7 +133,7 @@ public class ChannelTuner
                     {
                         mRadioChannels = updateSkippedChannel(mRadioChannels, channel);
                     }
-                    else
+                    else if(ChannelInfo.isVideoChannel(channel))
                     {
                         mVideoChannels = updateSkippedChannel(mVideoChannels, channel);
                     }
@@ -142,7 +142,7 @@ public class ChannelTuner
                 {
                     if (isDTVChannel() && ChannelInfo.isRadioChannel(channel))
                         mRadioChannels = updateChannelList(mRadioChannels, channel);
-                    else
+                    else if (ChannelInfo.isVideoChannel(channel))
                         mVideoChannels = updateChannelList(mVideoChannels, channel);
                 }
             }
