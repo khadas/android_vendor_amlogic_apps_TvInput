@@ -260,7 +260,7 @@ public class DTVInputService extends DroidLogicTvInputService {
         public void onEvent(int msgType, int programID) {
             Log.d(TAG, "AV evt:" + msgType);
             if (msgType == TvControlManager.EVENT_AV_SCRAMBLED)
-                mSession.notifySessionEvent(DroidLogicTvUtils.AV_SIG_SCRAMBLED, null);
+                notifySessionEvent(DroidLogicTvUtils.AV_SIG_SCRAMBLED, null);
             else if (msgType == TvControlManager.EVENT_AV_PLAYBACK_NODATA)
                 ;
             else if (msgType == TvControlManager.EVENT_AV_PLAYBACK_RESUME)
