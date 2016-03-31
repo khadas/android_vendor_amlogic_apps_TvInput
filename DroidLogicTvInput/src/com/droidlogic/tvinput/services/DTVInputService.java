@@ -171,7 +171,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             Log.d(TAG, "@@@@@@@@@@@@@@@@@@@@@ huhu="+ uri);
             if (Utils.getChannelId(uri) < 0) {
                 TvControlManager tcm = TvControlManager.getInstance();
-                tcm.PlayDTVProgram(TVChannelParams.MODE_DTMB, 0, 0, 0, 0, 0, -1, -1, 0, 0);
+                tcm.PlayDTVProgram(TVChannelParams.MODE_DTMB, 470000000, 0, 0, 0, 0, -1, -1, 0, 0);
                 mCurrentChannel = null;
                 return;
             }

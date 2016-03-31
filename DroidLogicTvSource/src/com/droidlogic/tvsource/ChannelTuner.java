@@ -253,10 +253,11 @@ public class ChannelTuner
         mCurrentChannel = info;
         Intent intent = new Intent(DroidLogicTvUtils.ACTION_DELETE_CHANNEL);
 
-        if (info != null)
-            intent.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, getChannelIndex(mCurrentChannel));
-        else
-            intent.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, "-1");
+        int index = -1;
+        if (info != null) {
+            index = getChannelIndex(mCurrentChannel);
+        }
+        intent.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, index);
         mContext.sendBroadcast(intent);
     }
 

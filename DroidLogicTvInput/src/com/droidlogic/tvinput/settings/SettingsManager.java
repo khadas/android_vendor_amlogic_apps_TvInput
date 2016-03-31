@@ -688,10 +688,14 @@ public class SettingsManager {
     }
 
     private String getVolumeCompensateStatus () {
+        return getVolumeCompensate() * 5 + "%";
+    }
+
+    public int getVolumeCompensate() {
         if (currentChannel != null)
-            return currentChannel.getAudioCompensation() + "";
+            return currentChannel.getAudioCompensation();
         else
-            return null;
+            return 0;
     }
 
 
