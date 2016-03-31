@@ -2,8 +2,8 @@ package com.droidlogic.tvsource.ui;
 
 import java.util.List;
 
-import com.droidlogic.app.SystemControlManager;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
+import com.droidlogic.app.tv.TvControlManager;
 import com.droidlogic.tvsource.R;
 import com.droidlogic.tvsource.Utils;
 import com.droidlogic.tvsource.ui.SourceButton.OnSourceClickListener;
@@ -188,10 +188,10 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
     }
 
     private String[] getAllDeviceIds() {
-        SystemControlManager scm = new SystemControlManager(mContext);
-        String prop_ids = scm.getProperty("tv.input.device.ids");
-        if (TextUtils.isEmpty(prop_ids)) {
-            throw new IllegalArgumentException("prop tv.input.device.ids is not set.");
+        TvControlManager tcm = TvControlManager.getInstance();
+        String prop_ids = tcm.GetSourceInputList();
+        if (TextUtils.equals(prop_ids, "null")) {
+            throw new IllegalArgumentException("source inpu ids is not set.");
         }
         String[] ids = prop_ids.split(",");
         Utils.logd(TAG, "==== ids length is " + ids.length);
