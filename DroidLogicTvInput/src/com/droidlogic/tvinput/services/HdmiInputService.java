@@ -58,8 +58,8 @@ public class HdmiInputService extends DroidLogicTvInputService {
         @Override
         public void doSetSurface(Surface surface) {
             super.doSetSurface(surface);
-            if (surface == null) {
-                doRelease();
+            if (surface == null && getHardware() == null) {//device has been released
+                mSession = null;
             }
         }
 
