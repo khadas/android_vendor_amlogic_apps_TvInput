@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">电视</string>
+    <string name="no_signal">无信号</string>
+    <string name="radio_label">数字广播</string>
     <string name="auto_shutdown_info">秒后将会关机，请按任意键取消</string>
     <string name="av_scambled">频道加密</string>
 
@@ -16,8 +18,12 @@
 
     <!-- for time suspend ui -->
     <string name="suspend_dialog_title">待机倒计时</string>
-	  <string name="cancel_suspend">取消倒计时</string>
-	  <string name="countdown_tips">秒后关机</string>
+    <string name="cancel_suspend">取消倒计时</string>
+    <string name="countdown_tips">秒后关机</string>
 
-	  <string name="choose_program">预约节目将要开始</string>
+	<string name="choose_program">预约节目将要开始</string>
+    <string name="ok">确定</string>
+    <string name="cancel">取消</string>
+    <string name="watch_program">观看预约节目：</string>
+    <string name="switch_program_propmt">秒后自动切换</string>
 </resources>

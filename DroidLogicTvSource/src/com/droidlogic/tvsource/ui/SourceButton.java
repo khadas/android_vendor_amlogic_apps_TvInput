@@ -9,27 +9,32 @@ import com.droidlogic.tvsource.R;
 import com.droidlogic.tvsource.Utils;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.media.tv.TvInputInfo;
+import android.media.tv.TvInputManager;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.SparseArray;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnFocusChangeListener;
 import android.widget.Button;
 
-public class SourceButton extends Button implements OnClickListener{
+public class SourceButton extends Button implements OnClickListener, OnFocusChangeListener{
     private static final String TAG = "SourceButton";
 
     private Context mContext;
-    private ChannelTuner mChannelTuner;
+    private Resources mResources;
+    private ChannelTuner mChannelTuner = null;
     private TvInputInfo mInputInfo;
     private int mHardwareDeviceId = -1;
     private int mSourceType;
-    private int mIsHardware = -1;
+    private String mSourceLabel;
+    private boolean mIsHardware = false;
     private String mAvType = "";
     private int recentChannelIndex = -1;
-    private int mState = 0;
+    private int mState = -1;
 
     private OnSourceClickListener mListener;
 
@@ -37,29 +42,53 @@ public class SourceButton extends Button implements OnClickListener{
         super(context, attrs);
     }
 
+    /**
+     * used when entering into TvApp at first time for hardware input.
+     */
+    public SourceButton(Context context, int deviceId) {
+        super(context);
+        Utils.logd(TAG, "==== deviceId = " + deviceId);
+        mContext = context;
+        mResources = context.getResources();
+        mHardwareDeviceId = deviceId;
+        init();
+    }
+
+    /**
+     * used when initializing non-hardware input or updating source input.
+     */
     public SourceButton(Context context, TvInputInfo info) {
         super(context);
         mContext = context;
+        mResources = context.getResources();
         mInputInfo = info;
         init();
     }
 
+    public void sourceRelease() {
+        mInputInfo = null;
+        ChannelDataManager.removeChannelTuner(mChannelTuner);
+        mChannelTuner = null;
+    }
+
     private void init() {
-        ensureValidField(mInputInfo);
         if (isHidden()) {
             this.setVisibility(View.GONE);
             return;
         }
 
-        setText(getLabel());
         setTextAppearance(mContext, R.style.tv_source_button);
         setBackgroundResource(R.drawable.bg_source_bt);
         setFocusableInTouchMode(true);
 
         initDeviceId();
+        initSourceLabel();
+        setText(getLabel());
+        initTextColor();
         initSourceType();
         initChannelTuner();
         setOnClickListener(this);
+        setOnFocusChangeListener(this);
     }
 
     public interface OnSourceClickListener{
@@ -70,12 +99,12 @@ public class SourceButton extends Button implements OnClickListener{
         mListener = l;
     }
 
-    public TvInputInfo geTvInputInfo() {
+    public TvInputInfo getTvInputInfo() {
         return mInputInfo;
     }
 
     public String getInputId() {
-        return mInputInfo.getId();
+        return mInputInfo == null ? "" : mInputInfo.getId();
     }
 
     public int getDeviceId() {
@@ -83,6 +112,9 @@ public class SourceButton extends Button implements OnClickListener{
     }
 
     private CharSequence getLabel() {
+        if (mInputInfo == null) {
+            return mSourceLabel;
+        }
         if (!TextUtils.isEmpty(mInputInfo.loadCustomLabel(mContext))) {
             return mInputInfo.loadCustomLabel(mContext);
         }
@@ -90,21 +122,28 @@ public class SourceButton extends Button implements OnClickListener{
     }
 
     public String getSourceLabel() {
+        if (mInputInfo == null) {
+            return mSourceLabel;
+        }
         if (isRadioChannel())
-            return getResources().getString(R.string.radio_label);
+            return mResources.getString(R.string.radio_label);
         return getLabel().toString();
     }
 
+    public boolean isAvaiableSource() {
+        return mInputInfo != null;
+    }
+
     private boolean isHidden() {
-        return mInputInfo.isHidden(mContext);
+        return mInputInfo == null ? false : mInputInfo.isHidden(mContext);
     }
 
     public boolean isPassthrough() {
-        return mInputInfo.isPassthroughInput();
+        return mInputInfo == null ? true : mInputInfo.isPassthroughInput();
     }
 
     public boolean isHardware() {
-        return mIsHardware == -1 ? false : true;
+        return mIsHardware;
     }
 
     public int getSourceType() {
@@ -112,38 +151,35 @@ public class SourceButton extends Button implements OnClickListener{
     }
 
     public Uri getUri() {
-        return mChannelTuner.getUri();
+        return  mInputInfo == null ? null : mChannelTuner.getUri();
     }
 
     public long getChannelId() {
-        return mChannelTuner.getChannelId();
+        return  mInputInfo == null ? -1 : mChannelTuner.getChannelId();
     }
 
     public int getChannelIndex() {
-        return mChannelTuner.getCurrentChannelIndex();
+        return mChannelTuner == null ? 0 : mChannelTuner.getCurrentChannelIndex();
     }
 
     public boolean isRadioChannel() {
-        if (mChannelTuner != null)
-            return mChannelTuner.isRadioChannel();
-        else
-            return false;
+        return mChannelTuner == null ? false : mChannelTuner.isRadioChannel();
     }
 
     public String getChannelType() {
-        return mChannelTuner.getChannelType();
+        return mChannelTuner == null ? "" : mChannelTuner.getChannelType();
     }
 
     public String getChannelNumber() {
-        return mChannelTuner.getChannelNumber();
+        return mChannelTuner == null ? "" : mChannelTuner.getChannelNumber();
     }
 
     public String getChannelName() {
-        return mChannelTuner.getChannelName();
+        return mChannelTuner == null ? "" : mChannelTuner.getChannelName();
     }
 
     public String getChannelVideoFormat() {
-        return mChannelTuner.getChannelVideoFormat();
+        return mChannelTuner == null ? "" : mChannelTuner.getChannelVideoFormat();
     }
 
     public ChannelInfo getChannelInfo() {
@@ -159,7 +195,9 @@ public class SourceButton extends Button implements OnClickListener{
     }
 
     public void setChannelVideoFormat(String format) {
-        mChannelTuner.setChannelVideoFormat(format);
+        if (mChannelTuner != null) {
+            mChannelTuner.setChannelVideoFormat(format);
+        }
     }
 
     public SparseArray<ChannelInfo> getChannelVideoList() {
@@ -171,43 +209,62 @@ public class SourceButton extends Button implements OnClickListener{
     }
 
     private void initChannelTuner() {
+        if (mInputInfo == null)
+            return;
         mChannelTuner = new ChannelTuner(mContext, mInputInfo);
         mChannelTuner.initChannelList(mSourceType);
         ChannelDataManager.addChannelTuner(mChannelTuner);
     }
 
+    private void initTextColor() {
+        if (mState != TvInputManager.INPUT_STATE_CONNECTED)
+            setTextColor(getResources().getColor(R.color.source_undisconnect));
+        else
+            setTextColor(getResources().getColor(R.color.source_unfocus));
+    }
+
+    /**
+     * if {@code mInputInfo} is null, the device id must be initialized in constructor.
+     */
     private void initDeviceId() {
+        if (mHardwareDeviceId >= 0) {
+            mIsHardware = true;
+            return;
+        }
+        if (mInputInfo == null)
+            return;
+
         String[] temp = mInputInfo.getId().split("/");
         if (temp.length == 3) {
             mHardwareDeviceId = Integer.parseInt(temp[2].substring(2));
-            mIsHardware = 1;
+            mIsHardware = true;
         }
     }
 
-    private void initSourceType() {
-        mSourceType = DroidLogicTvUtils.SOURCE_TYPE_OTHER;
-        if (isHardware()) {
+
+    private void initSourceLabel() {
+        if (mIsHardware) {
             switch (mHardwareDeviceId) {
                 case DroidLogicTvUtils.DEVICE_ID_ATV:
-                    mSourceType = DroidLogicTvUtils.SOURCE_TYPE_ATV;
+                    mSourceLabel = mResources.getString(R.string.source_bt_atv);
                     break;
                 case DroidLogicTvUtils.DEVICE_ID_DTV:
-                    mSourceType = DroidLogicTvUtils.SOURCE_TYPE_DTV;
+                    mSourceLabel = mResources.getString(R.string.source_bt_dtv);
                     break;
                 case DroidLogicTvUtils.DEVICE_ID_AV1:
-                    mSourceType = DroidLogicTvUtils.SOURCE_TYPE_AV1;
+                    mSourceLabel = mResources.getString(R.string.source_bt_av1);
                     break;
                 case DroidLogicTvUtils.DEVICE_ID_AV2:
-                    mSourceType = DroidLogicTvUtils.SOURCE_TYPE_AV2;
+                    mSourceLabel = mResources.getString(R.string.source_bt_av2);
                     break;
                 case DroidLogicTvUtils.DEVICE_ID_HDMI1:
-                    mSourceType = DroidLogicTvUtils.SOURCE_TYPE_HDMI1;
+                    mSourceLabel = mResources.getString(R.string.source_bt_hdmi1);
                     break;
                 case DroidLogicTvUtils.DEVICE_ID_HDMI2:
-                    mSourceType = DroidLogicTvUtils.SOURCE_TYPE_HDMI2;
+                    mSourceLabel = mResources.getString(R.string.source_bt_hdmi2);
                     break;
                 case DroidLogicTvUtils.DEVICE_ID_HDMI3:
-                    mSourceType = DroidLogicTvUtils.SOURCE_TYPE_HDMI3;
+                    mSourceLabel = mResources.getString(R.string.source_bt_hdmi3);
                     break;
                 default:
                     break;
@@ -215,29 +272,12 @@ public class SourceButton extends Button implements OnClickListener{
         }
     }
 
+    private void initSourceType() {
+        mSourceType = DroidLogicTvUtils.getSourceType(mHardwareDeviceId);
+    }
+
     public int getSigType() {
-        int ret = 0;
-        switch (mSourceType) {
-            case DroidLogicTvUtils.SOURCE_TYPE_ATV:
-                ret = DroidLogicTvUtils.SIG_INFO_TYPE_ATV;
-                break;
-            case DroidLogicTvUtils.SOURCE_TYPE_DTV:
-                ret = DroidLogicTvUtils.SIG_INFO_TYPE_DTV;
-                break;
-            case DroidLogicTvUtils.SOURCE_TYPE_AV1:
-            case DroidLogicTvUtils.SOURCE_TYPE_AV2:
-                ret = DroidLogicTvUtils.SIG_INFO_TYPE_AV;
-                break;
-            case DroidLogicTvUtils.SOURCE_TYPE_HDMI1:
-            case DroidLogicTvUtils.SOURCE_TYPE_HDMI2:
-            case DroidLogicTvUtils.SOURCE_TYPE_HDMI3:
-                ret = DroidLogicTvUtils.SIG_INFO_TYPE_HDMI;
-                break;
-            default:
-                ret = DroidLogicTvUtils.SIG_INFO_TYPE_OTHER;
-                break;
-        }
-        return ret;
+        return DroidLogicTvUtils.getSigType(mSourceType);
     }
 
     private void ensureValidField(TvInputInfo info) {
@@ -250,14 +290,33 @@ public class SourceButton extends Button implements OnClickListener{
 
     public void setTvInputInfo(TvInputInfo info) {
         mInputInfo = info;
-        init();
+        initChannelTuner();
+    }
+
+    public int getState() {
+        return mState;
     }
 
     public void setState(int state) {
+        Utils.logd(TAG, "==== setState, mState=" + mState + ", state=" + state);
+        if (mState != state)
+            stateChanged(state);
         mState = state;
     }
 
+    private void stateChanged(int state) {
+        if (hasFocus()) {
+            setTextColor(getResources().getColor(R.color.source_focus));
+        } else if (state != TvInputManager.INPUT_STATE_CONNECTED) {
+            setTextColor(getResources().getColor(R.color.source_undisconnect));
+        } else {
+            setTextColor(getResources().getColor(R.color.source_unfocus));
+        }
+    }
+
     public boolean moveToChannel(int index, boolean isRadio) {
+        if (mChannelTuner == null)
+            return false;
         setRecentChannelIndex(getChannelIndex());
         return mChannelTuner.moveToChannel(index, isRadio);
     }
@@ -266,13 +325,15 @@ public class SourceButton extends Button implements OnClickListener{
      * @return {@code true} move successfully, otherwise, move failed.
      */
     public boolean moveToOffset(int offset) {
+        if (mChannelTuner == null)
+            return false;
         setRecentChannelIndex(getChannelIndex());
         return isPassthrough() ? false : mChannelTuner.moveToOffset(offset);
     }
 
     public boolean moveToIndex(int index) {
         int saveIndex = getChannelIndex();
-        if (isPassthrough() ? false : mChannelTuner.moveToIndex(index)) {
+        if ((mChannelTuner == null || isPassthrough()) ? false : mChannelTuner.moveToIndex(index)) {
             setRecentChannelIndex(saveIndex);
             return true;
         } else
@@ -292,8 +353,18 @@ public class SourceButton extends Button implements OnClickListener{
     }
 
     @Override
+    public void onFocusChange(View view, boolean hasFocus) {
+        if (hasFocus) {
+            setTextColor(getResources().getColor(R.color.source_focus));
+        } else if (mState != TvInputManager.INPUT_STATE_CONNECTED) {
+            setTextColor(getResources().getColor(R.color.source_undisconnect));
+        } else {
+            setTextColor(getResources().getColor(R.color.source_unfocus));
+        }
+    }
+
+    @Override
     public void onClick(View v) {
-        Utils.logd(TAG, "Input id switching to is " + mInputInfo.getId());
         mListener.onButtonClick(this);
     }
 

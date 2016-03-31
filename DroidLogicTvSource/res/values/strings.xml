@@ -6,9 +6,13 @@
     <!-- string for source button -->
     <string name="source_bt_atv">ATV</string>
     <string name="source_bt_dtv">DTV</string>
-    <string name="source_bt_av">AV</string>
+    <string name="source_bt_av1">AV1</string>
+    <string name="source_bt_av2">AV2</string>
     <string name="source_bt_hdmi1">HDMI1</string>
     <string name="source_bt_hdmi2">HDMI2</string>
+    <string name="source_bt_hdmi3">HDMI3</string>
+    <string name="source_bt_hdmi4">HDMI4</string>
+
     <string name="no_signal">No Signal</string>
     <string name="av_scambled">SCRAMBLED</string>
 

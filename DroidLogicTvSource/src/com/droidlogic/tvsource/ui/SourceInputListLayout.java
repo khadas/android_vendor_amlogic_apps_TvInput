@@ -2,6 +2,7 @@ package com.droidlogic.tvsource.ui;
 
 import java.util.List;
 
+import com.droidlogic.app.SystemControlManager;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.tvsource.R;
 import com.droidlogic.tvsource.Utils;
@@ -12,6 +13,7 @@ import android.media.tv.TvInputInfo;
 import android.media.tv.TvInputManager;
 import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.util.SparseArray;
 import android.widget.LinearLayout;
 
 public class SourceInputListLayout extends LinearLayout implements OnSourceClickListener {
@@ -19,8 +21,7 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
     private Context mContext;
     private LinearLayout mRoot;
     private TvInputManager mTvInputManager;
-    private boolean mDisableUnavaiableInput;
-    private int mMaxHardwareNumber = 0;
+    private SparseArray<SourceButton> mSourceInputs = new SparseArray<>();
 
     private SourceButton defSourceInput;
     private SourceButton preSourceInput;
@@ -48,7 +49,6 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
         inflate(mContext, R.layout.source_input_list, this);
         mRoot = (LinearLayout) findViewById(R.id.source_root);
         mTvInputManager = (TvInputManager) mContext.getSystemService(Context.TV_INPUT_SERVICE);
-        mDisableUnavaiableInput = getResources().getBoolean(R.bool.disable_unavaiable_input);
     }
 
     public int stateChange(String inputId, int state) {
@@ -61,9 +61,6 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
 
     /**
      * invoked when device hot plug-out.
-     * if current device is plugging out, previous source and current source will both change to ATV,
-     * and re-tune channel to ATV.
-     * if previous source but not current is plugging out, previous source will change to ATV.
      */
     public int remove(String inputId) {
         Utils.logd(TAG, "==== remove, current id ="+ curSourceInput.getInputId());
@@ -72,18 +69,24 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
         int count = getSourceCount();
         int i = 1;
         for (; i<count+1; i++) {
-            SourceButton tmp = (SourceButton) mRoot.getChildAt(i);
-            if (TextUtils.equals(tmp.getInputId(), inputId)) {
-                if (tmp.isHardware())
-                    mMaxHardwareNumber--;
-                mRoot.removeViewAt(i);
-                if (TextUtils.equals(inputId, curSourceInput.getInputId())) {
-                    preSourceInput = defSourceInput;
-                    curSourceInput = defSourceInput;
-                    return INPUT_NEED_RESET;
-                } else if (preSourceInput != null
-                        && TextUtils.equals(inputId, preSourceInput.getInputId())) {
-                    preSourceInput = defSourceInput;
+            SourceButton sb = (SourceButton) mRoot.getChildAt(i);
+            if (TextUtils.equals(sb.getInputId(), inputId)) {
+                if (sb.isHardware()) {
+                    sb.sourceRelease();
+                    sb.setState(-1);
+                    if (sb.getDeviceId() == curSourceInput.getDeviceId()) {
+                        return INPUT_NEED_RESET;
+                    }
+                } else {
+                    mRoot.removeView(sb);
+                    if (TextUtils.equals(inputId, curSourceInput.getInputId())) {
+                        preSourceInput = defSourceInput;
+                        curSourceInput = defSourceInput;
+                        return INPUT_NEED_RESET;
+                    } else if (preSourceInput != null
+                            && TextUtils.equals(inputId, preSourceInput.getInputId())) {
+                        preSourceInput = defSourceInput;
+                    }
                 }
                 return ACTION_SUCCESS;
             }
@@ -99,47 +102,22 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
         int input_list_size = mTvInputManager.getTvInputList().size();
         int count = getSourceCount();
         Utils.logd(TAG, "==== add, input list size=" + input_list_size + ", count=" + count);
-        if (TextUtils.isEmpty(inputId) || count == input_list_size)
+        if (TextUtils.isEmpty(inputId))
             return ACTION_FAILED;
         if (count == 0 && count < input_list_size) {
             Utils.logd(TAG, "update all source input.");
             return refresh();
         }
         TvInputInfo info = mTvInputManager.getTvInputInfo(inputId);
-        SourceButton sb = new SourceButton(mContext, info);
-        if (sb.getSigType() == DroidLogicTvUtils.SIG_INFO_TYPE_DTV) {
-            dtvSourceInput = sb;
-        }
-        if (sb.isHardware()) {
-            initSourceInput(sb);
-            if (mMaxHardwareNumber == 0) {
-                mRoot.addView(sb, 1);
-                mMaxHardwareNumber++;
-                sb.setOnSourceClickListener(this);
-            } else {
-                int lo = 1;
-                int hi = mMaxHardwareNumber;
-
-                while (lo <= hi) {
-                    final int mid = (lo + hi) >>> 1;
-                    final SourceButton temp = (SourceButton) mRoot.getChildAt(mid);
-                    final int temp_id = temp.getDeviceId();
-                    if (temp_id < sb.getDeviceId()) {
-                        lo = mid + 1;
-                    } else if (temp_id > sb.getDeviceId()) {
-                        hi = mid - 1;
-                    } else {
-                        sb = null;
-                        break;
-                    }
-                }
-                if (lo > hi) {
-                    mRoot.addView(sb, lo);
-                    mMaxHardwareNumber++;
-                    sb.setOnSourceClickListener(this);
-                }
-            }
+        int device_id = getDeviceId(info);
+        if (device_id >= 0) {//hardware input source
+            SourceButton sb = mSourceInputs.get(device_id);
+            if (sb.getTvInputInfo() != null)//has added
+                return ACTION_SUCCESS;
+            sb.setTvInputInfo(info);
+            sb.setState(TvInputManager.INPUT_STATE_CONNECTED);
         } else {
+            SourceButton sb = new SourceButton(mContext, info);
             mRoot.addView(sb);
             sb.setOnSourceClickListener(this);
         }
@@ -150,12 +128,14 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
         } else if (preSourceInput == null && curSourceInput != null) {
             preSourceInput = curSourceInput;
             return INPUT_NEED_RESET;
+        } else if (curSourceInput != null && device_id == curSourceInput.getDeviceId()) {
+            return INPUT_NEED_RESET;
         }
         return ACTION_SUCCESS;
     }
 
     public int refresh() {
-        mMaxHardwareNumber = 0;
+        int device_id = -1;
         List<TvInputInfo> input_list = mTvInputManager.getTvInputList();
         Utils.logd(TAG, "==== refresh, input_list size =" + input_list.size());
         if (input_list.size() < 1) {
@@ -165,41 +145,30 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
         if (mRoot.getChildCount() > 1) {
             mRoot.removeViews(1, mRoot.getChildCount() - 1);
         }
-        for (TvInputInfo info : input_list) {
-            SourceButton sb = new SourceButton(mContext, info);
+
+        for (String id:getAllDeviceIds()) {
+            device_id = Integer.parseInt(id);
+            SourceButton sb = new SourceButton(mContext, device_id);
             if (sb.getSigType() == DroidLogicTvUtils.SIG_INFO_TYPE_DTV) {
                 dtvSourceInput = sb;
             }
-            if (sb.isHardware()) {
+            mSourceInputs.put(sb.getDeviceId(), sb);
+            Utils.logd(TAG, "==== refresh, sb = " + sb);
+            sb.setOnSourceClickListener(this);
+        }
+        for (int i=mSourceInputs.size()-1; i >= 0; i--) {//add hardware input to root
+            mRoot.addView(mSourceInputs.valueAt(i), 1);
+        }
+        for (TvInputInfo info : input_list) {
+            device_id = getDeviceId(info);
+            Utils.logd(TAG, "==== device_id =" + device_id);
+            if (device_id >= 0) {//hardware device
+                SourceButton sb = mSourceInputs.get(device_id);
+                sb.setTvInputInfo(info);
+                sb.setState(TvInputManager.INPUT_STATE_CONNECTED);
                 initSourceInput(sb);
-                if (mMaxHardwareNumber == 0) {
-                    mRoot.addView(sb, 1);
-                    mMaxHardwareNumber++;
-                    sb.setOnSourceClickListener(this);
-                } else {
-                    int lo = 1;
-                    int hi = mMaxHardwareNumber;
-
-                    while (lo <= hi) {
-                        final int mid = (lo + hi) >>> 1;
-                        final SourceButton temp = (SourceButton) mRoot.getChildAt(mid);
-                        final int temp_id = temp.getDeviceId();
-                        if (temp_id < sb.getDeviceId()) {
-                            lo = mid + 1;
-                        } else if (temp_id > sb.getDeviceId()) {
-                            hi = mid - 1;
-                        } else {
-                            sb = null;
-                            break;
-                        }
-                    }
-                    if (lo > hi) {
-                        mRoot.addView(sb, lo);
-                        mMaxHardwareNumber++;
-                        sb.setOnSourceClickListener(this);
-                    }
-                }
-            } else {
+            } else {//non-hardware device
+                SourceButton sb = new SourceButton(mContext, info);
                 mRoot.addView(sb);
                 sb.setOnSourceClickListener(this);
             }
@@ -211,6 +180,22 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
             curSourceInput = defSourceInput;
         }
         return INPUT_NEED_RESET;
+    }
+
+    private int getDeviceId(TvInputInfo info) {
+        String[] temp = info.getId().split("/");
+        return temp.length == 3 ? Integer.parseInt(temp[2].substring(2)) : -1;
+    }
+
+    private String[] getAllDeviceIds() {
+        SystemControlManager scm = new SystemControlManager(mContext);
+        String prop_ids = scm.getProperty("tv.input.device.ids");
+        if (TextUtils.isEmpty(prop_ids)) {
+            throw new IllegalArgumentException("prop tv.input.device.ids is not set.");
+        }
+        String[] ids = prop_ids.split(",");
+        Utils.logd(TAG, "==== ids length is " + ids.length);
+        return ids;
     }
 
     private void initSourceInput(SourceButton sb) {

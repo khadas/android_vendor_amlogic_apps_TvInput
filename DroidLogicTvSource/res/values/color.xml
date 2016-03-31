@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="color_text_main">#1E1E1E</color>
-    <color name="source_unfocus">#1E1E1E</color>
+    <color name="source_unfocus">#000000</color>
     <color name="source_focus">#FFFFFF</color>
     <color name="source_unselect">#5D5D5D</color>
+    <color name="source_undisconnect">#969696</color>
     <color name="no_signal">#1E1E1E</color>
     <color name="source_info_name">#1E1E1E</color>
     <color name="source_info_number">#1E1E1E</color>

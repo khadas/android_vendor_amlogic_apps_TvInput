@@ -245,7 +245,7 @@ public class ATVInputService extends DroidLogicTvInputService
 
     public TvInputInfo onHardwareAdded(TvInputHardwareInfo hardwareInfo)
     {
-        if (hardwareInfo.getDeviceId() != DroidLogicTvUtils.DEVICE_ID_ATV)
+        if (hardwareInfo.getDeviceId() != DroidLogicTvUtils.DEVICE_ID_ATV || hasInfoExisted(hardwareInfo))
             return null;
 
         Log.d(TAG, "=====onHardwareAdded=====" + hardwareInfo.getDeviceId());
