@@ -1821,8 +1821,6 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             break;
         case TvControlManager.EVENT_SCAN_EXIT:
             Log.d(TAG, "Scan exit.");
-            if (event.mode == TVChannelParams.MODE_ANALOG)
-                mTvControlManager.resetAtvScanMode();
             isSearching = false;
             if (channelNumber == 0 && radioNumber == 0)
             {

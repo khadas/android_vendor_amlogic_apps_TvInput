@@ -160,10 +160,6 @@ public class SettingsManager {
             } else {
                 currentChannel = null;
             }
-            if (mTvControlManager == null) {
-                mTvControlManager = TvControlManager.getInstance();
-            }
-            mTvControlManager.setCurrentChannel(currentChannel);
         }
     }
 
