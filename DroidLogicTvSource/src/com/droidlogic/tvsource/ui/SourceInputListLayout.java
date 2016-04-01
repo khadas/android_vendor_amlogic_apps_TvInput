@@ -22,6 +22,7 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
     private LinearLayout mRoot;
     private TvInputManager mTvInputManager;
     private SparseArray<SourceButton> mSourceInputs = new SparseArray<>();
+    private int mAvaiableSourceCount = 0;
 
     private SourceButton defSourceInput;
     private SourceButton preSourceInput;
@@ -74,11 +75,13 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
                 if (sb.isHardware()) {
                     sb.sourceRelease();
                     sb.setState(-1);
+                    mAvaiableSourceCount--;
                     if (sb.getDeviceId() == curSourceInput.getDeviceId()) {
                         return INPUT_NEED_RESET;
                     }
                 } else {
                     mRoot.removeView(sb);
+                    mAvaiableSourceCount--;
                     if (TextUtils.equals(inputId, curSourceInput.getInputId())) {
                         preSourceInput = defSourceInput;
                         curSourceInput = defSourceInput;
@@ -114,18 +117,21 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
             SourceButton sb = mSourceInputs.get(device_id);
             if (sb.getTvInputInfo() != null)//has added
                 return ACTION_SUCCESS;
+            initSourceInput(sb);
             sb.setTvInputInfo(info);
             sb.setState(TvInputManager.INPUT_STATE_CONNECTED);
+            mAvaiableSourceCount++;
         } else {
             SourceButton sb = new SourceButton(mContext, info);
             mRoot.addView(sb);
             sb.setOnSourceClickListener(this);
+            mAvaiableSourceCount++;
         }
-        if (curSourceInput == null && input_list_size == getSourceCount()) {
+        if (curSourceInput == null && input_list_size == mAvaiableSourceCount) {//all source has been added.
             preSourceInput = defSourceInput;
             curSourceInput = defSourceInput;
             return INPUT_NEED_RESET;
-        } else if (preSourceInput == null && curSourceInput != null) {
+        } else if (preSourceInput == null && curSourceInput != null) {//first time
             preSourceInput = curSourceInput;
             return INPUT_NEED_RESET;
         } else if (curSourceInput != null && device_id == curSourceInput.getDeviceId()) {
@@ -138,15 +144,13 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
         int device_id = -1;
         List<TvInputInfo> input_list = mTvInputManager.getTvInputList();
         Utils.logd(TAG, "==== refresh, input_list size =" + input_list.size());
-        if (input_list.size() < 1) {
-            return ACTION_FAILED;
-        }
 
-        if (mRoot.getChildCount() > 1) {
+        if (mRoot.getChildCount() > 1) {//refresh source input list, remove all input
             mRoot.removeViews(1, mRoot.getChildCount() - 1);
+            mAvaiableSourceCount = 0;
         }
 
-        for (String id:getAllDeviceIds()) {
+        for (String id:getAllDeviceIds()) {//init all hardware devices
             device_id = Integer.parseInt(id);
             SourceButton sb = new SourceButton(mContext, device_id);
             if (sb.getSigType() == DroidLogicTvUtils.SIG_INFO_TYPE_DTV) {
@@ -167,15 +171,17 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
                 sb.setTvInputInfo(info);
                 sb.setState(TvInputManager.INPUT_STATE_CONNECTED);
                 initSourceInput(sb);
+                mAvaiableSourceCount++;
             } else {//non-hardware device
                 SourceButton sb = new SourceButton(mContext, info);
                 mRoot.addView(sb);
                 sb.setOnSourceClickListener(this);
+                mAvaiableSourceCount++;
             }
         }
-        if (defSourceInput == null) {//device ATV hasn't been added, return and wait
+        if (defSourceInput == null) {//ATV hasn't been added, return and wait.
             return ACTION_SUCCESS;
-        } else if (curSourceInput == null) {
+        } else if (curSourceInput == null) {//ATV has been added, default source hasn't been added.
             preSourceInput = defSourceInput;
             curSourceInput = defSourceInput;
         }
@@ -191,7 +197,7 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
         TvControlManager tcm = TvControlManager.getInstance();
         String prop_ids = tcm.GetSourceInputList();
         if (TextUtils.equals(prop_ids, "null")) {
-            throw new IllegalArgumentException("source inpu ids is not set.");
+            throw new IllegalArgumentException("source input ids is not set.");
         }
         String[] ids = prop_ids.split(",");
         Utils.logd(TAG, "==== ids length is " + ids.length);
