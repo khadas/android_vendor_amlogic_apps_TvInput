@@ -12,7 +12,6 @@ import android.media.tv.TvInputInfo;
 import android.media.tv.TvInputHardwareInfo;
 import android.media.tv.TvTrackInfo;
 import android.media.tv.TvContract;
-import android.media.tv.TvContract.Channels;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -44,16 +43,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Arrays;
-import java.util.Iterator;
 
 import com.droidlogic.app.tv.TvControlManager;
 
 public class DTVInputService extends DroidLogicTvInputService {
 
     private static final String TAG = "DTVInputService";
-
-    private static final String PID = "pid";
-    private static final String FMT = "fmt";
 
     private DTVSessionImpl mSession;
 
@@ -168,7 +163,7 @@ public class DTVInputService extends DroidLogicTvInputService {
 
         private void switchToSourceInput(Uri uri) {
             mUnblockedRatingSet.clear();
-            Log.d(TAG, "@@@@@@@@@@@@@@@@@@@@@ huhu="+ uri);
+            Log.d(TAG, "switchToSourceInput  uri="+ uri);
             if (Utils.getChannelId(uri) < 0) {
                 TvControlManager tcm = TvControlManager.getInstance();
                 tcm.PlayDTVProgram(TVChannelParams.MODE_DTMB, 470000000, 0, 0, 0, 0, -1, -1, 0, 0);
@@ -293,7 +288,6 @@ public class DTVInputService extends DroidLogicTvInputService {
                     return true;
                 }
 
-                TvControlManager tcm = TvControlManager.getInstance();
                 Map<String, String> parsedMap = ChannelInfo.stringToMap(trackId);
                 startSubtitle(Integer.parseInt(parsedMap.get("type")),
                                 Integer.parseInt(parsedMap.get("pid")),
@@ -638,7 +632,6 @@ public class DTVInputService extends DroidLogicTvInputService {
             private TVChannelParams tvchan = null;
             private ChannelInfo tvservice = null;
             private TvDataBaseManager mTvDataBaseManager = null;
-            private TvControlManager mTvControlManager = null;
             private TVTime mTvTime = null;
 
             private ChannelObserver mChannelObserver;

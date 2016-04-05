@@ -259,16 +259,16 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
 
     private void addTvView() {
         if (mSourceView == null) {
-            mSourceView = new TvView(mContext);
+            mSourceView = (TvView)findViewById(R.id.source_view);
             mSourceView.setCallback(mTvViewCallback);
-            mRootView.addView(mSourceView, 0);
+        } else {
+            mSourceView.setVisibility(View.VISIBLE);
         }
     }
 
     private void releaseTvView() {
         if (mSourceView != null) {
-            mRootView.removeView(mSourceView);
-            mSourceView = null;
+            mSourceView.setVisibility(View.GONE);
         }
     }
 
@@ -1210,6 +1210,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             if (input_need_reset == SourceInputListLayout.INPUT_NEED_RESET) {
                 preSwitchSourceInput();
                 mSourceInput = mSourceMenuLayout.getCurSourceInput();
+                mSourceView.reset();
                 startPlay();
             }
         }
