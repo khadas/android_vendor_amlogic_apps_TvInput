@@ -142,8 +142,6 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
 
     public int refresh() {
         int device_id = -1;
-        List<TvInputInfo> input_list = mTvInputManager.getTvInputList();
-        Utils.logd(TAG, "==== refresh, input_list size =" + input_list.size());
 
         if (mRoot.getChildCount() > 1) {//refresh source input list, remove all input
             mRoot.removeViews(1, mRoot.getChildCount() - 1);
@@ -163,6 +161,8 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
         for (int i=mSourceInputs.size()-1; i >= 0; i--) {//add hardware input to root
             mRoot.addView(mSourceInputs.valueAt(i), 1);
         }
+        List<TvInputInfo> input_list = mTvInputManager.getTvInputList();
+        Utils.logd(TAG, "==== refresh, input_list size =" + input_list.size());
         for (TvInputInfo info : input_list) {
             device_id = getDeviceId(info);
             Utils.logd(TAG, "==== device_id =" + device_id);
@@ -181,7 +181,7 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
         }
         if (defSourceInput == null) {//ATV hasn't been added, return and wait.
             return ACTION_SUCCESS;
-        } else if (curSourceInput == null) {//ATV has been added, default source hasn't been added.
+        } else if (curSourceInput == null  && input_list.size() == mAvaiableSourceCount) {
             preSourceInput = defSourceInput;
             curSourceInput = defSourceInput;
         }
@@ -211,11 +211,11 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
             sb.moveToChannel(defaultDtvChannel, defaultDtvType);
         }
 
-        if (defaultDeviceId == sb.getDeviceId()) {
+        if (curSourceInput == null && defaultDeviceId == sb.getDeviceId()) {//get the last input.
             curSourceInput = sb;
         }
 
-        if (sb.getDeviceId() == DroidLogicTvUtils.DEVICE_ID_ATV)
+        if (sb.getDeviceId() == DroidLogicTvUtils.DEVICE_ID_ATV)//set ATV for default input.
             defSourceInput = sb;
     }
 
