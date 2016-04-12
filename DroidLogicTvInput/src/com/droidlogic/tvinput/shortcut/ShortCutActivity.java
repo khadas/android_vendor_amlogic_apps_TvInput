@@ -23,6 +23,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.ArrayMap;
 import android.view.Gravity;
@@ -96,6 +97,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_TIME_TICK);
+        filter.addAction(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
         registerReceiver(mReceiver, filter);
     }
 
@@ -304,6 +306,11 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
                     String currentTime = dateAndTime[0] + "." + dateAndTime[1] + "." + dateAndTime[2] + "   " + dateAndTime[3] + ":" + dateAndTime[4];
 
                     tx_date.setText(currentTime);
+                } else if (action.equals(Intent.ACTION_CLOSE_SYSTEM_DIALOGS)) {
+                    String reason = intent.getStringExtra("reason");
+                    if (TextUtils.equals(reason, "homekey")) {
+                        finish();
+                    }
                 }
             }
         }
@@ -627,7 +634,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
         long pendingTime = currentProgram.getStartTimeUtcMillis() - mTvTime.getTime();
         if (pendingTime > 0) {
             Log.d(TAG, "" + pendingTime / 60000 + " min later show program prompt");
-            alarm.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + pendingTime, buildPendingIntent(currentProgram));
+            alarm.setExact(AlarmManager.RTC, System.currentTimeMillis() + pendingTime, buildPendingIntent(currentProgram));
         }
 
         if (cancelProgram.length() == 0) {

@@ -50,7 +50,7 @@ public class OptionListView extends ListView implements OnItemSelectedListener {
                         return true;
                     break;
                 case KeyEvent.KEYCODE_DPAD_DOWN:
-                    if (selectedPosition == getChildCount() -1)
+                    if (selectedPosition == getAdapter().getCount() -1)
                         return true;
                     break;
             }

@@ -20,6 +20,7 @@ import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.view.inputmethod.InputMethodManager;
 import android.util.Log;
+import android.text.TextUtils;
 import android.media.AudioManager;
 import android.media.tv.TvInputInfo;
 
@@ -309,6 +310,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
         Log.d(TAG, "onResume");
         IntentFilter filter = new IntentFilter();
         filter.addAction(DroidLogicTvUtils.ACTION_CHANNEL_CHANGED);
+        filter.addAction(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
         registerReceiver(mReceiver, filter);
         isExiting = false;
         if (isFinished)
@@ -353,6 +355,11 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
                     mSettingsManager.setCurrentChannelData(intent);
                     mOptionUiManager.setSettingsManager(mSettingsManager);
                     currentFragment.refreshList();
+                } else if (action.equals(Intent.ACTION_CLOSE_SYSTEM_DIALOGS)) {
+                    String reason = intent.getStringExtra("reason");
+                    if (TextUtils.equals(reason, "homekey")) {
+                        finish();
+                    }
                 }
             }
     };

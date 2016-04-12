@@ -802,14 +802,14 @@ public class SettingsManager {
                 else if (info.isFavourite())
                     item.put(STRING_ICON, R.drawable.favourite);
                 else
-                    item.put(STRING_ICON, 0);
+                    item.put(STRING_ICON, null);
 
                 item.put(STRING_NAME, i + ". " + info.getDisplayName());
                 list.add(item);
             }
         } else {
             HashMap<String,Object> item = new HashMap<String,Object>();
-            item.put(STRING_ICON, 0);
+            item.put(STRING_ICON, null);
             item.put(STRING_NAME, mResources.getString(R.string.error_no_channel));
             list.add(item);
         }

@@ -9,14 +9,17 @@ import android.os.Message;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.view.LayoutInflater;
 import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.BaseAdapter;
+import android.widget.ListAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RelativeLayout.LayoutParams;
-import android.widget.SimpleAdapter;
 import android.widget.TextView;
+import android.widget.ImageView;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -50,8 +53,8 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener, OnIt
     private OptionListView channelListView;
     private ViewGroup operationsView;
     private ViewGroup operationsEditView;
-    SimpleAdapter ChannelAdapter;
-    ArrayList<HashMap<String,Object>> ChannelListData;
+    MyAdapter ChannelAdapter;
+    ArrayList<HashMap<String,Object>> ChannelListData = new ArrayList<HashMap<String,Object>>();
 
     private int channelType = TYPE_ATV;
     private int currentChannelPosition = ACTION_INITIAL_STATE;
@@ -83,15 +86,10 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener, OnIt
             channelType = TYPE_ATV;
         else if (getSettingsManager().getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV)
             channelType = TYPE_DTV_TV;
-        ChannelListData = ((TvSettingsActivity)mContext).getSettingsManager().getChannelList(channelType);
 
-        ChannelAdapter = new SimpleAdapter(mContext, ChannelListData,
-            R.layout.layout_option_icon_text,
-            new String[]{SettingsManager.STRING_ICON, SettingsManager.STRING_NAME}, new int[]{R.id.image_icon, R.id.text_name});
+        ChannelAdapter = new MyAdapter(mContext, ChannelListData);
         channelListView.setAdapter(ChannelAdapter);
-        if (!ChannelListData.get(0).get(SettingsManager.STRING_NAME).toString()
-            .equals(mContext.getResources().getString(R.string.error_no_channel)))
-            channelListView.setOnItemClickListener(this);
+        channelListView.setOnItemClickListener(this);
 
         if (getSettingsManager().getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV) {
             button_tv.setVisibility(View.GONE);
@@ -271,6 +269,10 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener, OnIt
 
     @Override
     public void onItemClick (AdapterView<?> parent, View view, int position, long id) {
+        if (ChannelListData.get(position).get(SettingsManager.STRING_NAME).toString()
+                .equals(mContext.getResources().getString(R.string.error_no_channel))) {
+            return;
+        }
         currentChannelPosition = position;
         if (currentOperation == ACTION_INITIAL_STATE) {
             showOperationsView();
@@ -311,5 +313,65 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener, OnIt
 
     private SettingsManager getSettingsManager() {
         return ((TvSettingsActivity)mContext).getSettingsManager();
+    }
+
+    private class MyAdapter extends BaseAdapter {
+        private Context mContext;
+        private LayoutInflater mInflater;
+        ArrayList<HashMap<String, Object>> mlistItem = null;
+
+        public MyAdapter(Context context, ArrayList<HashMap<String, Object>> list) {
+            mContext = context;
+            this.mInflater = LayoutInflater.from(mContext);
+            mlistItem = list;
+        }
+
+        @Override
+        public int getCount() {
+            return mlistItem.size();
+        }
+
+        @Override
+        public Object getItem(int position) {
+            return mlistItem.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(final int position, View convertView, ViewGroup parent) {
+            ViewHolder holder;
+
+            if (convertView == null) {
+                convertView = mInflater.inflate(R.layout.layout_option_icon_text, null);
+                holder = new ViewHolder();
+
+                holder.icon = (ImageView) convertView.findViewById(R.id.image_icon);
+                holder.name = (TextView) convertView.findViewById(R.id.text_name);
+                convertView.setTag(holder);
+            }else{
+                holder = (ViewHolder)convertView.getTag();
+            }
+
+            Object icon_object =  mlistItem.get(position).get(SettingsManager.STRING_ICON);
+            if (icon_object != null) {
+                holder.icon.setImageDrawable(mContext.getResources().getDrawable((int)icon_object));
+            } else {
+                holder.icon.setImageDrawable(null);
+            }
+            Object name_object = mlistItem.get(position).get(SettingsManager.STRING_NAME);
+            if (name_object != null) {
+                holder.name.setText(name_object.toString());
+            }
+            return convertView;
+        }
+
+        private class ViewHolder{
+            public ImageView icon;
+            public TextView name;
+        }
     }
 }
