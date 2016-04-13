@@ -508,7 +508,7 @@ public class SettingsManager {
 
     private String getCurrentChannelStatus () {
         if (currentChannel != null)
-            return currentChannel.getDisplayName();
+            return currentChannel.getDisplayNameLocal();
 
         return null;
     }
@@ -804,7 +804,7 @@ public class SettingsManager {
                 else
                     item.put(STRING_ICON, null);
 
-                item.put(STRING_NAME, i + ". " + info.getDisplayName());
+                item.put(STRING_NAME, i + ". " + info.getDisplayNameLocal());
                 list.add(item);
             }
         } else {

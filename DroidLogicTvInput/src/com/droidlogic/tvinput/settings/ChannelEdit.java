@@ -82,10 +82,12 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener, OnIt
         operationsView = (ViewGroup)channelEditView.findViewById(R.id.channel_edit_operations);
         operationsEditView = (ViewGroup)channelEditView.findViewById(R.id.channel_edit_editname);
 
-        if (getSettingsManager().getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV)
+        if (getSettingsManager().getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV) {
             channelType = TYPE_ATV;
-        else if (getSettingsManager().getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV)
+            ChannelListData = ((TvSettingsActivity)mContext).getSettingsManager().getChannelList(channelType);
+        } else if (getSettingsManager().getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
             channelType = TYPE_DTV_TV;
+        }
 
         ChannelAdapter = new MyAdapter(mContext, ChannelListData);
         channelListView.setAdapter(ChannelAdapter);
