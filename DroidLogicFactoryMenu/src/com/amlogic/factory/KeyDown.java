@@ -681,31 +681,6 @@ public class KeyDown
         }
     }
 
-    public void adbSetValue()
-    {
-        String value_str = "";
-        Map<String, String> map = mListSubMenuData.get(FactoryMainActivity.mSubMenuPos);
-        switch (FactoryMainActivity.mSubMenuPos)
-        {
-            case 0:
-                value_str = map.get("sub_value");
-                if (value_str.equalsIgnoreCase(context.getString(Constant.FACUI_ADB_SWITCH_ON)))
-                {
-                    map.put("sub_value", context.getString(Constant.FACUI_ADB_SWITCH_OFF));
-                    tv.FactorySetAdbdSwitch(0);
-                }
-                else if (value_str.equalsIgnoreCase(context.getString(Constant.FACUI_ADB_SWITCH_OFF)))
-                {
-                    map.put("sub_value", context.getString(Constant.FACUI_ADB_SWITCH_ON));
-                    tv.FactorySetAdbdSwitch(1);
-                }
-                FactoryMainActivity.sAdapter.notifyDataSetChanged();
-                break;
-            default:
-                break;
-        }
-    }
-
     public void autosavelogSetValue()
     {
         String value_str = "";

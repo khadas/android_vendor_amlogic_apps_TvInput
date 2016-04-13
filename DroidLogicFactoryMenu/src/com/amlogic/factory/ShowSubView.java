@@ -452,19 +452,6 @@ public class ShowSubView
         //FactoryMainActivity.mPage = Constant.PAGE_REMOTECONTROL;
     }
 
-    /* ADB switch:when open, the function of ADB is on */
-    public void show_adb_submenu()
-    {
-        Map<String, String> map = new HashMap<String, String>();
-        int i = tv.FactoryGetAdbdStatus();// interface,get the Integer value of ADB switch
-        if (i == 0)
-            map.put("sub_value", context.getString(Constant.FACUI_ADB_SWITCH_OFF));
-        else if (i == 1)
-            map.put("sub_value", context.getString(Constant.FACUI_ADB_SWITCH_ON));
-        mListSubMenuData.add(map);
-        //FactoryMainActivity.mPage = Constant.PAGE_ADB_SWITCH;
-    }
-
     /* auto save log's switch:when open, the function of auto save log to U disk is on */
     public void show_autosavelog_submenu()
     {
