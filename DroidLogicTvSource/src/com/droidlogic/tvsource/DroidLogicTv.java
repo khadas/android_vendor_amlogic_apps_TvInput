@@ -845,6 +845,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         else
             keyInputNumber = Integer.toString((size + (index + offset) % size) % size);
 
+        showUi(Utils.UI_TYPE_SOURCE_INFO, true);
         mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_CHANNEL_NUM_SWITCH), 300);
     }
 
