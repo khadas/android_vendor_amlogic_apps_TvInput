@@ -21,6 +21,7 @@ import java.util.HashMap;
 
 import android.media.tv.TvInputInfo;
 import com.droidlogic.app.SystemControlManager;
+import android.media.tv.TvContract;
 import android.media.tv.TvContract.Channels;
 import com.droidlogic.app.tv.ChannelInfo;
 import com.droidlogic.app.tv.TvDataBaseManager;
@@ -131,6 +132,8 @@ public class SettingsManager {
     private ChannelInfo currentChannel;
     private TvControlManager mTvControlManager;
     private TvDataBaseManager mTvDataBaseManager;
+    private ArrayList<ChannelInfo> videoChannelList;
+    private ArrayList<ChannelInfo> radioChannelList;
     private boolean isRadioChannel = false;
     private int mResult = DroidLogicTvUtils.RESULT_OK;
 
@@ -153,14 +156,16 @@ public class SettingsManager {
 
         if (mTvSource == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV
             || mTvSource == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
-            String channelNumber = intent.getStringExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER);
-            Log.d(TAG, "current channelNumber = " +  channelNumber);
-            if (!TextUtils.isEmpty(channelNumber)) {
-                currentChannel = getChannelByNumber(parseChannelEditType(), Integer.valueOf(channelNumber));
+            long channelId = intent.getIntExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, -1);
+            currentChannel = mTvDataBaseManager.getChannelInfo(TvContract.buildChannelUri(channelId));
+            if (currentChannel != null) {
+                Log.d(TAG, "current channel is: ");
+                currentChannel.print();
             } else {
-                currentChannel = null;
+                Log.d(TAG, "current channel is null!!");
             }
         }
+        new Thread(loadChannelsRunnable).start();
     }
 
     public void setTag (String tag) {
@@ -817,31 +822,41 @@ public class SettingsManager {
         return list;
     }
 
+    private Runnable loadChannelsRunnable = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                loadChannelInfoList();
+            } catch (RuntimeException e) {
+                e.printStackTrace();
+            }
+        }
+    };
+
+    private void loadChannelInfoList() {
+        videoChannelList = mTvDataBaseManager.getChannelList(mInputId, Channels.SERVICE_TYPE_AUDIO_VIDEO);
+        radioChannelList = mTvDataBaseManager.getChannelList(mInputId, Channels.SERVICE_TYPE_AUDIO);
+    }
+
     private ArrayList<ChannelInfo> getChannelInfoList (int type) {
         ArrayList<ChannelInfo> channelList = null;
         switch (type) {
             case ChannelEdit.TYPE_ATV:
             case ChannelEdit.TYPE_DTV_TV:
-                channelList = mTvDataBaseManager.getChannelList(mInputId, Channels.SERVICE_TYPE_AUDIO_VIDEO);
+                channelList = videoChannelList;
                 break;
             case ChannelEdit.TYPE_DTV_RADIO:
-                channelList = mTvDataBaseManager.getChannelList(mInputId, Channels.SERVICE_TYPE_AUDIO);
+                channelList = radioChannelList;
                 break;
         }
         return channelList;
     }
 
-    private ChannelInfo getChannelByNumber (int type, int channelNumber) {
+    private ChannelInfo getChannelByIndex(int type, int index) {
         ArrayList<ChannelInfo> channelList = getChannelInfoList(type);
-
-        if (channelList != null && channelList.size() > 0) {
-            for (int i = 0; i < channelList.size(); i++) {
-                ChannelInfo info = channelList.get(i);
-                if (info != null && info.getNumber() == channelNumber)
-                    return info;
-            }
+        if (channelList != null && index < channelList.size()) {
+            return channelList.get(index);
         }
-
         return null;
     }
 
@@ -1266,7 +1281,7 @@ public class SettingsManager {
      }
 
     public void setChannelName (int type, int channelNumber, String targetName) {
-        ChannelInfo channel = getChannelByNumber(type, channelNumber);
+        ChannelInfo channel = getChannelByIndex(type, channelNumber);
         mTvDataBaseManager.setChannelName(channel, targetName);
     }
 
@@ -1274,9 +1289,10 @@ public class SettingsManager {
         if (channelNumber == targetNumber)
             return;
 
-        ChannelInfo sourceChannel = getChannelByNumber(type, channelNumber);
-        ChannelInfo targetChannel = getChannelByNumber(type, targetNumber);
+        ChannelInfo sourceChannel = getChannelByIndex(type, channelNumber);
+        ChannelInfo targetChannel = getChannelByIndex(type, targetNumber);
         mTvDataBaseManager.swapChannel(sourceChannel, targetChannel);
+        loadChannelInfoList();
     }
 
     public void moveChannelPosition (int type, int channelNumber, int targetNumber) {
@@ -1284,11 +1300,14 @@ public class SettingsManager {
             return;
 
         ArrayList<ChannelInfo> channelList = getChannelInfoList(type);
-        mTvDataBaseManager.moveChannel(channelList, channelNumber, targetNumber);
+        ChannelInfo sourceChannel = getChannelByIndex(type, channelNumber);
+        ChannelInfo targetChannel = getChannelByIndex(type, targetNumber);
+        mTvDataBaseManager.moveChannel(sourceChannel, targetChannel);
+        loadChannelInfoList();
     }
 
     public void skipChannel (int type, int channelNumber) {
-        ChannelInfo channel = getChannelByNumber(type, channelNumber);
+        ChannelInfo channel = getChannelByIndex(type, channelNumber);
         //if (ChannelInfo.isSameChannel(currentChannel, channel))
             //setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
 
@@ -1305,7 +1324,7 @@ public class SettingsManager {
     }
 
     public void setFavouriteChannel (int type, int channelNumber) {
-        ChannelInfo channel = getChannelByNumber(type, channelNumber);
+        ChannelInfo channel = getChannelByIndex(type, channelNumber);
         mTvDataBaseManager.setFavouriteChannel(channel);
     }
 

@@ -162,7 +162,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 Intent i = new Intent(DroidLogicTvUtils.ACTION_CHANNEL_CHANGED);
                 i.putExtra(TvInputInfo.EXTRA_INPUT_ID, mSourceInput.getInputId());
                 i.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_DEVICE_ID, mSourceInput.getDeviceId());
-                i.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, mSourceInput.getChannelNumber());
+                i.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, (int)mSourceInput.getChannelId());
                 i.putExtra(DroidLogicTvUtils.EXTRA_IS_RADIO_CHANNEL, mSourceInput.isRadioChannel());
                 context.sendBroadcast(i);
             } else if (action.equals(DroidLogicTvUtils.ACTION_UPDATE_TV_PLAY)) {
@@ -484,7 +484,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         Intent intent = info.createSetupIntent();
         if (intent != null) {
             intent.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_DEVICE_ID, mSourceInput.getDeviceId());
-            intent.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, mSourceInput.getChannelNumber());
+            intent.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, (int)mSourceInput.getChannelId());
             intent.putExtra(DroidLogicTvUtils.EXTRA_IS_RADIO_CHANNEL, mSourceInput.isRadioChannel());
             startActivityForResult(intent, START_SETUP);
         }
@@ -499,7 +499,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         Intent intent = info.createSettingsIntent();
         if (intent != null) {
             intent.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_DEVICE_ID, mSourceInput.getDeviceId());
-            intent.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, mSourceInput.getChannelNumber());
+            intent.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, (int)mSourceInput.getChannelId());
             intent.putExtra(DroidLogicTvUtils.EXTRA_IS_RADIO_CHANNEL, mSourceInput.isRadioChannel());
             intent.putExtra(DroidLogicTvUtils.EXTRA_KEY_CODE, keycode);
             startActivityForResult(intent, START_SETTING);
