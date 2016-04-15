@@ -1141,6 +1141,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         case OPTION_AUTO_SEARCH:
             setProgress(0);
             break;
+            case OPTION_CHANNEL_INFO:
+                break;
         default:
             progress = getIntegerFromString(mSettingsManager.getStatus(optionKey));
             if (progress >= 0)

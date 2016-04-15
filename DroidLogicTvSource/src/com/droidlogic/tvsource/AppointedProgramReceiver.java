@@ -142,6 +142,12 @@ public class AppointedProgramReceiver extends BroadcastReceiver implements OnCli
         Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_DTV_CHANNEL_INDEX, channelIndex);
         Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_CURRENT_CHANNEL_IS_RADIO, isRadio? 1 : 0);
 
+        ActivityManager am = (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
+        if (am.getRunningTasks(1).get(0).topActivity.getPackageName().equals(PACKAGE_LAUNCHER)) {
+            Log.d(TAG, "current screen is launcher, so kill it");
+            am.forceStopPackage(PACKAGE_LAUNCHER);
+        }
+
         Intent intent = new Intent();
         intent.setComponent(new ComponentName(PACKAGE_TV_APP, CLASS_TV_APP));
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -153,9 +159,6 @@ public class AppointedProgramReceiver extends BroadcastReceiver implements OnCli
         intent.putExtra(DroidLogicTvUtils.EXTRA_IS_RADIO_CHANNEL, isRadio);
         intent.putExtra("force_dtv", true);
         mContext.sendBroadcast(intent);
-
-        ActivityManager am = (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
-        am.forceStopPackage(PACKAGE_LAUNCHER);
     }
 
     private TimerTask task = new TimerTask() {

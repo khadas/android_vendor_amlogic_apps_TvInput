@@ -128,7 +128,6 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private static final String mThreadName = TAG;
     private Handler mThreadHandler;
     private static final int MSG_SAVE_CHANNEL_INFO = 1;
-    private boolean isPlayingRadio = false;
 
     private int mCurrentKeyType;
     private static final int IS_KEY_EXIT   = 0;
@@ -170,8 +169,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 Utils.logd(TAG, "recevie intent : operation is " + operation);
                 if (!TextUtils.isEmpty(operation)) {
                     if (operation.equals("search_channel")) {
-                        mMainView.setBackground(null);
-                        isPlayingRadio = false;
+                        mMainView.setBackgroundDrawable(null);
                         mSourceView.sendAppPrivateCommand(DroidLogicTvUtils.ACTION_STOP_PLAY, null);
                     } else if (operation.equals("mute")) {
                         showMuteIcon(true);
@@ -304,29 +302,6 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         mThreadHandler = null;
     }
 
-    /**
-     * must be invoked after {@link SourceButton.moveToChannel}.
-     * set the background between {@link Channels#SERVICE_TYPE_AUDIO_VIDEO} and
-     * {@link Channels#SERVICE_TYPE_AUDIO}.
-     */
-    private void initMainView() {
-        if (mSourceInput == null)
-            return;
-        boolean is_audio = mSourceInput.isRadioChannel();
-        Utils.logd(TAG, "==== isPlayingRadio =" + isPlayingRadio + ", is_audio=" + is_audio);
-        if (!isPlayingRadio && is_audio) {
-            try {
-                mMainView.setBackground(getResources().getDrawable(R.drawable.bg_radio, null));
-            } catch (NotFoundException e) {
-                e.printStackTrace();
-            }
-            isPlayingRadio = true;
-        } else if (isPlayingRadio && !is_audio) {
-            mMainView.setBackground(null);
-            isPlayingRadio = false;
-        }
-    }
-
     private void initSourceMenuLayout() {
         setDefaultChannelInfo();
         mSourceMenuLayout.refresh();
@@ -345,7 +320,6 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private void startPlay() {
         if (mSourceMenuLayout.getSourceCount() == 0)
             return;
-        initMainView();
         if (hasStopped || needUpdateSource) {
             sendTuneMessage();
         }
@@ -431,13 +405,16 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             Uri channel_uri = mSourceInput.getUri();
             Utils.logd(TAG, "channelUri switching to is " + channel_uri);
             mSourceView.tune(mSourceInput.getInputId(), channel_uri);
-            mMainView.setBackground(null);
+            if (mSourceInput.isRadioChannel()) {
+                mMainView.setBackgroundDrawable(getResources().getDrawable(R.drawable.bg_radio, null));
+            } else {
+                mMainView.setBackgroundDrawable(null);
+            }
         } else {
             releaseTvView();
-            mMainView.setBackground(getResources().getDrawable(R.drawable.hotplug_out, null));
+            mMainView.setBackgroundDrawable(getResources().getDrawable(R.drawable.hotplug_out, null));
         }
         showUi(Utils.UI_TYPE_SOURCE_INFO, true);
-        mSourceMenuLayout.setPreSourceInput(mSourceInput);
     }
 
     private void switchToDtvChannel(int channelId) {
@@ -544,7 +521,6 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     @Override
     public void onSelect(int channelIndex, boolean isRadio) {
         if (mSourceInput.moveToChannel(channelIndex, isRadio)) {
-            initMainView();
             sendTuneMessage();
         }
     }
@@ -558,7 +534,6 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         }
         preSwitchSourceInput();
         mSourceInput = mSourceMenuLayout.getCurSourceInput();
-        initMainView();
         sendTuneMessage();
     }
 
@@ -1286,6 +1261,23 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             mSignalState = SIGNAL_GOT;
             showUi(Utils.UI_TYPE_NO_SINAL, false);
             remove_nosignal_time();
+        }
+
+        @Override
+        public void onConnectionFailed(String inputId) {
+            Utils.logd(TAG, "====onConnectionFailed==inputId =" + inputId);
+            new Thread( new Runnable() {
+                public void run() {
+                    try{
+                        Thread.sleep(200);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    Uri channel_uri = mSourceInput.getUri();
+                    Utils.logd(TAG, "channelUri switching to is " + channel_uri);
+                    mSourceView.tune(mSourceInput.getInputId(), channel_uri);
+                }
+            }).start();
         }
 
         @Override

@@ -43,6 +43,8 @@ public class OptionListView extends ListView implements OnItemSelectedListener {
                 case KeyEvent.KEYCODE_DPAD_LEFT:
                     selectedPosition = 0;
                     break;
+                case KeyEvent.KEYCODE_DPAD_RIGHT:
+                    return true;
                 case KeyEvent.KEYCODE_DPAD_UP:
                     if (selectedPosition == 0 &&
                         (getOptionUiManager().getOptionTag() != OptionUiManager.OPTION_AUTO_SEARCH

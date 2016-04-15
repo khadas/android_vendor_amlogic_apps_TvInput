@@ -25,7 +25,6 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
     private int mAvaiableSourceCount = 0;
 
     private SourceButton defSourceInput;
-    private SourceButton preSourceInput;
     private SourceButton curSourceInput;
     private SourceButton dtvSourceInput;
 
@@ -83,12 +82,8 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
                     mRoot.removeView(sb);
                     mAvaiableSourceCount--;
                     if (TextUtils.equals(inputId, curSourceInput.getInputId())) {
-                        preSourceInput = defSourceInput;
                         curSourceInput = defSourceInput;
                         return INPUT_NEED_RESET;
-                    } else if (preSourceInput != null
-                            && TextUtils.equals(inputId, preSourceInput.getInputId())) {
-                        preSourceInput = defSourceInput;
                     }
                 }
                 return ACTION_SUCCESS;
@@ -128,11 +123,7 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
             mAvaiableSourceCount++;
         }
         if (curSourceInput == null && input_list_size == mAvaiableSourceCount) {//all source has been added.
-            preSourceInput = defSourceInput;
             curSourceInput = defSourceInput;
-            return INPUT_NEED_RESET;
-        } else if (preSourceInput == null && curSourceInput != null) {//first time
-            preSourceInput = curSourceInput;
             return INPUT_NEED_RESET;
         } else if (curSourceInput != null && device_id == curSourceInput.getDeviceId()) {
             return INPUT_NEED_RESET;
@@ -151,6 +142,7 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
         for (String id:getAllDeviceIds()) {//init all hardware devices
             device_id = Integer.parseInt(id);
             SourceButton sb = new SourceButton(mContext, device_id);
+            initSourceInput(sb);
             if (sb.getSigType() == DroidLogicTvUtils.SIG_INFO_TYPE_DTV) {
                 dtvSourceInput = sb;
             }
@@ -170,7 +162,6 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
                 SourceButton sb = mSourceInputs.get(device_id);
                 sb.setTvInputInfo(info);
                 sb.setState(TvInputManager.INPUT_STATE_CONNECTED);
-                initSourceInput(sb);
                 mAvaiableSourceCount++;
             } else {//non-hardware device
                 SourceButton sb = new SourceButton(mContext, info);
@@ -181,9 +172,6 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
         }
         if (defSourceInput == null) {//ATV hasn't been added, return and wait.
             return ACTION_SUCCESS;
-        } else if (curSourceInput == null  && input_list.size() == mAvaiableSourceCount) {
-            preSourceInput = defSourceInput;
-            curSourceInput = defSourceInput;
         }
         return INPUT_NEED_RESET;
     }
@@ -214,9 +202,6 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
         if (curSourceInput == null && defaultDeviceId == sb.getDeviceId()) {//get the last input.
             curSourceInput = sb;
         }
-
-        if (sb.getDeviceId() == DroidLogicTvUtils.DEVICE_ID_ATV)//set ATV for default input.
-            defSourceInput = sb;
     }
 
     public void setDefaultSourceInfo(int device_id, int atv_channel, int dtv_channel,
@@ -233,22 +218,13 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
         return curSourceInput;
     }
 
-    public SourceButton getPreSourceInput() {
-        return preSourceInput;
-    }
-
     public int getSourceCount() {
         return mRoot.getChildCount() - 1;
-    }
-
-    public void setPreSourceInput(SourceButton sb) {
-        preSourceInput = sb;
     }
 
     @Override
     public void onButtonClick(SourceButton sb) {
         Utils.logd(TAG, "==== onButtonClick ====" + sb);
-        preSourceInput = curSourceInput;
         curSourceInput = sb;
         mClickListener.onSourceInputClick();
     }

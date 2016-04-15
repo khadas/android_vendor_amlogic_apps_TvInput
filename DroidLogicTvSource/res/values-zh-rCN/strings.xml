@@ -21,7 +21,6 @@
     <string name="cancel_suspend">取消倒计时</string>
     <string name="countdown_tips">秒后关机</string>
 
-	<string name="choose_program">预约节目将要开始</string>
     <string name="ok">确定</string>
     <string name="cancel">取消</string>
     <string name="watch_program">观看预约节目：</string>
