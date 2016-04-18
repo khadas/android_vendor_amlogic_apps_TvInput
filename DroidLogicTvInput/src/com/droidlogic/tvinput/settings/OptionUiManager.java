@@ -538,25 +538,12 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             break;
         // 3d settings
         case R.id.settings_3d_off:
-            mSettingsManager.set3dSettings(SettingsManager.STATUS_OFF);
-            break;
         case R.id.settings_3d_auto:
-            mSettingsManager.set3dSettings(SettingsManager.STATUS_AUTO);
-            break;
         case R.id.settings_3d_lr_mode:
-            mSettingsManager.set3dSettings(SettingsManager.STATUS_3D_LR_MODE);
-            break;
         case R.id.settings_3d_rl_mode:
-            mSettingsManager.set3dSettings(SettingsManager.STATUS_3D_RL_MODE);
-            break;
         case R.id.settings_3d_ud_mode:
-            mSettingsManager.set3dSettings(SettingsManager.STATUS_3D_UD_MODE);
-            break;
         case R.id.settings_3d_du_mode:
-            mSettingsManager.set3dSettings(SettingsManager.STATUS_3D_DU_MODE);
-            break;
         case R.id.settings_3d_3d_to_2d:
-            mSettingsManager.set3dSettings(SettingsManager.STATUS_3D_TO_2D);
             break;
         // ====Sound====
         // sound mode

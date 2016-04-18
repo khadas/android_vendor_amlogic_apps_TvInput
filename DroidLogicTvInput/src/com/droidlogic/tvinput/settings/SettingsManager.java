@@ -259,7 +259,6 @@ public class SettingsManager {
         } else if (key.equals(KEY_DNR)) {
             return getDnrStatus();
         } else if (key.equals(KEY_3D_SETTINGS)) {
-            return get3dSettingsStatus();
         }
         //sound
         else if (key.equals(KEY_SOUND_MODE)) {
@@ -411,29 +410,6 @@ public class SettingsManager {
             return mResources.getString(R.string.high);
         else
             return mResources.getString(R.string.auto);
-    }
-
-    public  String get3dSettingsStatus () {
-        if (mTvControlManager.Get3DTo2DMode() != 0)
-            return mResources.getString(R.string.mode_3d_to_2d);
-        int threeD_mode = mTvControlManager.Get3DMode();
-        if (threeD_mode == TvControlManager.Mode_3D.MODE_3D_CLOSE.toInt()) {
-            return mResources.getString(R.string.off);
-        } else if (threeD_mode == TvControlManager.Mode_3D.MODE_3D_AUTO.toInt()) {
-            return mResources.getString(R.string.auto);
-        } else if (threeD_mode == TvControlManager.Mode_3D.MODE_3D_LEFT_RIGHT.toInt()) {
-            if (mTvControlManager.Get3DLRSwith() == 0)
-                return mResources.getString(R.string.mode_lr);
-            else
-                return mResources.getString(R.string.mode_rl);
-        } else if (threeD_mode == TvControlManager.Mode_3D.MODE_3D_UP_DOWN.toInt()) {
-            if (mTvControlManager.Get3DLRSwith() == 0)
-                return mResources.getString(R.string.mode_ud);
-            else
-                return mResources.getString(R.string.mode_du);
-        } else {
-            return null;
-        }
     }
 
     public  String getSoundModeStatus () {
@@ -980,7 +956,7 @@ public class SettingsManager {
             ret = color;
 
         if (!key.equals(KEY_SHARPNESS))
-            mTvControlManager.SetSharpness(sharpness, mTvSource, 1, 0, 1);
+            mTvControlManager.SetSharpness(sharpness, mTvSource, 1, 1);
         else
             ret = sharpness;
 
@@ -1019,9 +995,9 @@ public class SettingsManager {
 
     public void setSharpness (int step) {
         if (mTvControlManager.GetPQMode(mTvSource) == 3)
-            mTvControlManager.SetSharpness(mTvControlManager.GetSharpness(mTvSource) + step, mTvSource, 1, 0, 1);
+            mTvControlManager.SetSharpness(mTvControlManager.GetSharpness(mTvSource) + step, mTvSource, 1, 1);
         else
-            mTvControlManager.SetSharpness(setPictureUserMode(KEY_SHARPNESS) + step, mTvSource, 1, 0, 1);
+            mTvControlManager.SetSharpness(setPictureUserMode(KEY_SHARPNESS) + step, mTvSource, 1, 1);
     }
 
     public void setTint (int step) {
@@ -1052,20 +1028,18 @@ public class SettingsManager {
     }
 
     public void setAspectRatio(String mode) {
-        if (mTvControlManager.Get3DMode() == 0) {
-            if (mode.equals(STATUS_AUTO)) {
-                mTvControlManager.SetDisplayMode(TvControlManager.Display_Mode.DISPLAY_MODE_NORMAL,
-                    mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
-            } else if (mode.equals(STATUS_4_TO_3)) {
-                mTvControlManager.SetDisplayMode(TvControlManager.Display_Mode.DISPLAY_MODE_MODE43,
-                    mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
-            } else if (mode.equals(STATUS_PANORAMA)) {
-                mTvControlManager.SetDisplayMode(TvControlManager.Display_Mode.DISPLAY_MODE_FULL,
-                    mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
-            } else if (mode.equals(STATUS_FULL_SCREEN)) {
-                mTvControlManager.SetDisplayMode(TvControlManager.Display_Mode.DISPLAY_MODE_169,
-                    mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
-            }
+        if (mode.equals(STATUS_AUTO)) {
+            mTvControlManager.SetDisplayMode(TvControlManager.Display_Mode.DISPLAY_MODE_NORMAL,
+                mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
+        } else if (mode.equals(STATUS_4_TO_3)) {
+            mTvControlManager.SetDisplayMode(TvControlManager.Display_Mode.DISPLAY_MODE_MODE43,
+                mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
+        } else if (mode.equals(STATUS_PANORAMA)) {
+            mTvControlManager.SetDisplayMode(TvControlManager.Display_Mode.DISPLAY_MODE_FULL,
+                mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
+        } else if (mode.equals(STATUS_FULL_SCREEN)) {
+            mTvControlManager.SetDisplayMode(TvControlManager.Display_Mode.DISPLAY_MODE_169,
+                mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
         }
     }
 
@@ -1080,23 +1054,6 @@ public class SettingsManager {
             mTvControlManager.SetNoiseReductionMode(TvControlManager.Noise_Reduction_Mode.REDUCE_NOISE_STRONG, mTvSource, 1);
         else if (mode.equals(STATUS_LOW))
             mTvControlManager.SetNoiseReductionMode(TvControlManager.Noise_Reduction_Mode.REDUCE_NOISE_WEAK, mTvSource, 1);
-    }
-
-    public void set3dSettings (String mode) {
-        if (mode.equals(STATUS_OFF))
-            mTvControlManager.Set3DMode(TvControlManager.Mode_3D.MODE_3D_CLOSE, TvControlManager.Tvin_3d_Status.STATUS3D_DISABLE);
-        else if (mode.equals(STATUS_AUTO))
-            mTvControlManager.Set3DMode(TvControlManager.Mode_3D.MODE_3D_AUTO, TvControlManager.Tvin_3d_Status.STATUS3D_AUTO);
-        else if (mode.equals(STATUS_3D_LR_MODE))
-            mTvControlManager.Set3DLRSwith(0, TvControlManager.Tvin_3d_Status.STATUS3D_LR);
-        else if (mode.equals(STATUS_3D_RL_MODE))
-            mTvControlManager.Set3DLRSwith(1, TvControlManager.Tvin_3d_Status.STATUS3D_LR);
-        else if (mode.equals(STATUS_3D_UD_MODE))
-            mTvControlManager.Set3DLRSwith(0, TvControlManager.Tvin_3d_Status.STATUS3D_BT);
-        else if (mode.equals(STATUS_3D_DU_MODE))
-            mTvControlManager.Set3DLRSwith(1, TvControlManager.Tvin_3d_Status.STATUS3D_BT);
-        else if (mode.equals(STATUS_3D_TO_2D))
-            ;// tv.Set3DTo2DMode(Tv.Mode_3D_2D.values()[position], Tv.Tvin_3d_Status.values()[tv.Get3DMode()]);
     }
 
     public void setSoundMode (String mode) {

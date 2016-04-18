@@ -69,7 +69,7 @@ public class KeyDown
             tv.SaveContrast(contrast, source);
             tv.SetSaturation(saturation, source, tv.GetCurrentSignalInfo().sigFmt, is_save);
             tv.SaveSaturation(saturation, source);
-            tv.SetSharpness(sharpness, source, 0, 0, 0);
+            tv.SetSharpness(sharpness, source, 0, 0);
             tv.SaveSharpness(sharpness, source, 1);
         }
     }
@@ -165,7 +165,7 @@ public class KeyDown
                     value_int = Math.abs(Integer.parseInt(value_str) + step) % 101;
                 map.put("sub_value", String.valueOf(value_int));
                 FactoryMainActivity.sAdapter.notifyDataSetChanged();
-                if (tv.SetSharpness(value_int, source, 0, 0, 0) == 0)
+                if (tv.SetSharpness(value_int, source, 0, 0) == 0)
                 {
                     tv.SaveSharpness(value_int, source, 1);
                 }
@@ -364,7 +364,6 @@ public class KeyDown
     /*set reShow*/
     private static TvControlManager.SourceInput_Type source = TvControlManager.SourceInput_Type.values()[0];
     private static TVInSignalInfo.SignalFmt fmt = TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_CVBS_NTSC_M;
-    private static TvControlManager.Tvin_3d_Status status_3d = TvControlManager.Tvin_3d_Status.values()[0];
     private static TVInSignalInfo.TransFmt trans_fmt = TVInSignalInfo.TransFmt.values()[0];
 
     public void adjustReshow(boolean left, int step)
@@ -373,7 +372,7 @@ public class KeyDown
         int value_int = 0;
         Map<String, String> map = mListSubMenuData.get(FactoryMainActivity.mSubMenuPos);
         ShowSubView ssv = new ShowSubView(mListSubMenuData, context);
-        TvControlManager.tvin_cutwin_t cutwin_t = tv.FactoryGetOverscanParams(source, fmt, status_3d, trans_fmt);
+        TvControlManager.tvin_cutwin_t cutwin_t = tv.FactoryGetOverscanParams(source, fmt, trans_fmt);
         switch (FactoryMainActivity.mSubMenuPos)
         {
             case 0:
@@ -393,7 +392,7 @@ public class KeyDown
                 for (int i = mListSubMenuData.size() - 1; i > 0; i--)
                     mListSubMenuData.remove(i);
                 // get new value according new mode
-                ssv.setTiming(source, fmt, status_3d, trans_fmt);
+                ssv.setTiming(source, fmt, trans_fmt);
                 FactoryMainActivity.sAdapter.notifyDataSetChanged();
                 break;
             case 1:
@@ -438,7 +437,7 @@ public class KeyDown
                 for (int i = mListSubMenuData.size() - 1; i > 3; i--)
                     mListSubMenuData.remove(i);
                 // get new value according new mode
-                ssv.setElse(source, fmt, status_3d, trans_fmt);
+                ssv.setElse(source, fmt, trans_fmt);
                 break;
             case 2:
                 int reshowTvinCount = Constant.mChongxianTvIn3Dstatus.length;
@@ -447,10 +446,9 @@ public class KeyDown
                 else
                     FactoryMainActivity.reshowTvinPos = Math.abs(FactoryMainActivity.reshowTvinPos + step) % reshowTvinCount;
                 map.put("sub_value", context.getString(Constant.mChongxianTvIn3Dstatus[FactoryMainActivity.reshowTvinPos]));
-                status_3d = TvControlManager.Tvin_3d_Status.values()[FactoryMainActivity.reshowTvinPos];
                 for (int i = mListSubMenuData.size() - 1; i > 3; i--)
                     mListSubMenuData.remove(i);
-                ssv.setElse(source, fmt, status_3d, trans_fmt);
+                ssv.setElse(source, fmt, trans_fmt);
                 FactoryMainActivity.sAdapter.notifyDataSetChanged();
                 break;
             case 3:
@@ -463,7 +461,7 @@ public class KeyDown
                 trans_fmt = TVInSignalInfo.TransFmt.values()[FactoryMainActivity.reshowTvinTransFmtPos];
                 for (int i = mListSubMenuData.size() - 1; i > 3; i--)
                     mListSubMenuData.remove(i);
-                ssv.setElse(source, fmt, status_3d, trans_fmt);
+                ssv.setElse(source, fmt, trans_fmt);
                 FactoryMainActivity.sAdapter.notifyDataSetChanged();
                 break;
             case 4:
@@ -472,7 +470,7 @@ public class KeyDown
                 map.put("sub_value", value_int + "");
                 FactoryMainActivity.sAdapter.notifyDataSetChanged();
                 cutwin_t.hs = value_int;
-                tv.FactorySetOverscanParams(source, fmt, status_3d, trans_fmt, cutwin_t);
+                tv.FactorySetOverscanParams(source, fmt, trans_fmt, cutwin_t);
                 break;
             case 5:
                 value_str = map.get("sub_value");
@@ -480,7 +478,7 @@ public class KeyDown
                 map.put("sub_value", value_int + "");
                 FactoryMainActivity.sAdapter.notifyDataSetChanged();
                 cutwin_t.vs = value_int;
-                tv.FactorySetOverscanParams(source, fmt, status_3d, trans_fmt, cutwin_t);
+                tv.FactorySetOverscanParams(source, fmt, trans_fmt, cutwin_t);
                 break;
             case 6:
                 value_str = map.get("sub_value");
@@ -488,7 +486,7 @@ public class KeyDown
                 map.put("sub_value", value_int + "");
                 FactoryMainActivity.sAdapter.notifyDataSetChanged();
                 cutwin_t.he = value_int;
-                tv.FactorySetOverscanParams(source, fmt, status_3d, trans_fmt, cutwin_t);
+                tv.FactorySetOverscanParams(source, fmt, trans_fmt, cutwin_t);
                 break;
             case 7:
                 value_str = map.get("sub_value");
@@ -496,7 +494,7 @@ public class KeyDown
                 map.put("sub_value", value_int + "");
                 FactoryMainActivity.sAdapter.notifyDataSetChanged();
                 cutwin_t.ve = value_int;
-                tv.FactorySetOverscanParams(source, fmt, status_3d, trans_fmt, cutwin_t);
+                tv.FactorySetOverscanParams(source, fmt, trans_fmt, cutwin_t);
                 break;
             default:
                 break;

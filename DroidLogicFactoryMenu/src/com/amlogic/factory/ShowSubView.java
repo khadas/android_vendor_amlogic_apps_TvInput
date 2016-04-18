@@ -11,7 +11,6 @@ import java.util.Map;
 import com.droidlogic.app.tv.TvControlManager;
 import com.droidlogic.app.tv.TvControlManager.NOLINE_PARAMS_TYPE;
 import com.droidlogic.app.tv.TvControlManager.SourceInput_Type;
-import com.droidlogic.app.tv.TvControlManager.Tvin_3d_Status;
 import com.droidlogic.app.tv.TvControlManager.noline_params_t;
 import com.droidlogic.app.tv.TvControlManager.tvin_cutwin_t;
 import com.droidlogic.app.tv.TVInSignalInfo;
@@ -222,34 +221,34 @@ public class ShowSubView
         map.put("sub_name", context.getString(Constant.FACUI_CHONGXIAN_PORT));
         map.put("sub_value", context.getString(Constant.FACUI_PICMODE_PORT_TV));
         mListSubMenuData.add(map);
-        setTiming(SourceInput_Type.SOURCE_TYPE_TV, TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_CVBS_NTSC_M, Tvin_3d_Status.STATUS3D_DISABLE,
+        setTiming(SourceInput_Type.SOURCE_TYPE_TV, TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_CVBS_NTSC_M,
                 TVInSignalInfo.TransFmt.TVIN_TFMT_2D);
         FactoryMainActivity.mPage = Constant.PAGE_OVERSCAN;
     }
 
     /* set reShow rate's all parameter */
-    public void setTiming(SourceInput_Type source, TVInSignalInfo.SignalFmt fmt, Tvin_3d_Status status_3d, TVInSignalInfo.TransFmt trans_fmt)
+    public void setTiming(SourceInput_Type source, TVInSignalInfo.SignalFmt fmt, TVInSignalInfo.TransFmt trans_fmt)
     {
         Map<String, String> map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_CHONGXIAN_TIMING));
         map.put("sub_value", fmt + "");
         mListSubMenuData.add(map);
-        map = new HashMap<String, String>();
-        map.put("sub_name", context.getString(Constant.FACUI_CHONGXIAN_TVIN_3D_STATUS));
-        map.put("sub_value", status_3d + "");
+        //map = new HashMap<String, String>();
+        //map.put("sub_name", context.getString(Constant.FACUI_CHONGXIAN_TVIN_3D_STATUS));
+        //map.put("sub_value", status_3d + "");
         mListSubMenuData.add(map);
         map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_CHONGXIAN_TVIN_TRANS_FMT));
         map.put("sub_value", trans_fmt + "");
         mListSubMenuData.add(map);
-        setElse(source, fmt, status_3d, trans_fmt);
+        setElse(source, fmt, trans_fmt);
     }
 
     /* set reShow rate's parameter except Timing,TVIN_3D_STATUS,TVIN_TRANS_FMT */
-    public void setElse(SourceInput_Type source, TVInSignalInfo.SignalFmt fmt, Tvin_3d_Status status_3d, TVInSignalInfo.TransFmt trans_fmt)
+    public void setElse(SourceInput_Type source, TVInSignalInfo.SignalFmt fmt, TVInSignalInfo.TransFmt trans_fmt)
     {
         tvin_cutwin_t cutwin_t;
-        cutwin_t = tv.FactoryGetOverscanParams(source, fmt, status_3d, trans_fmt);
+        cutwin_t = tv.FactoryGetOverscanParams(source, fmt, trans_fmt);
         Map<String, String> map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_CHONGXIAN_HSTART));
         map.put("sub_value", cutwin_t.hs + "");
