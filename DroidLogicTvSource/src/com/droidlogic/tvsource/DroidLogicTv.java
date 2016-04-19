@@ -1302,6 +1302,17 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             int switchVal = Settings.System.getInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_SUBTITLE_SWITCH, 0);
             resetSubtitleTrack((switchVal == 1));
         }
+
+        @Override
+        public void onChannelRetuned(String inputId, Uri channelUri) {
+            if (mSourceInput != null
+                    && channelUri != null
+                    && TextUtils.isEmpty(inputId)
+                    && TextUtils.equals(inputId, mSourceInput.getInputId())
+                    && channelUri.equals(mSourceInput.getUri())) {
+                switchToSourceInput();
+            }
+        }
     }
 
     private Handler no_signal_handler = new Handler();
