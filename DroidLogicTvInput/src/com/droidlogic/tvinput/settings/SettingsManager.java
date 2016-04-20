@@ -11,7 +11,6 @@ import android.content.pm.ResolveInfo;
 import android.content.pm.IPackageDataObserver;
 import android.content.res.Resources;
 import android.provider.Settings;
-import android.os.SystemProperties;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -132,6 +131,7 @@ public class SettingsManager {
     private ChannelInfo currentChannel;
     private TvControlManager mTvControlManager;
     private TvDataBaseManager mTvDataBaseManager;
+    private SystemControlManager mSystemControlManager;
     private ArrayList<ChannelInfo> videoChannelList;
     private ArrayList<ChannelInfo> radioChannelList;
     private boolean isRadioChannel = false;
@@ -140,6 +140,7 @@ public class SettingsManager {
     public SettingsManager (Context context, Intent intent) {
         mContext = context;
         mTvDataBaseManager = new TvDataBaseManager(mContext);
+        mSystemControlManager = new SystemControlManager(mContext);
 
         setCurrentChannelData(intent);
 
@@ -843,7 +844,7 @@ public class SettingsManager {
 
     public String getSleepTimerStatus () {
         String ret = "";
-        int time = SystemProperties.getInt("tv.sleep_timer", 0);
+        int time = mSystemControlManager.getPropertyInt("tv.sleep_timer", 0);
         switch (time) {
             case 0://off
                 ret = mResources.getString(R.string.off);
@@ -1237,6 +1238,9 @@ public class SettingsManager {
 
     public void setChannelName (int type, int channelNumber, String targetName) {
         ChannelInfo channel = getChannelByIndex(type, channelNumber);
+        if (ChannelInfo.isSameChannel(channel, currentChannel)) {
+            currentChannel.setDisplayNameLocal(targetName);
+        }
         mTvDataBaseManager.setChannelName(channel, targetName);
     }
 
@@ -1276,6 +1280,7 @@ public class SettingsManager {
 
         ChannelInfo channel = channelList.get(channelNumber);
         mTvDataBaseManager.deleteChannel(channel);
+        channelList.remove(channelNumber);
     }
 
     public void setFavouriteChannel (int type, int channelNumber) {
@@ -1284,7 +1289,7 @@ public class SettingsManager {
     }
 
     public void setSleepTimer (int mins) {
-        SystemProperties.set("tv.sleep_timer", mins + "");
+        mSystemControlManager.setProperty("tv.sleep_timer", mins+"");
         //Intent intent = new Intent(DroidLogicTvUtils.ACTION_TIMEOUT_SUSPEND);
         //mContext.sendBroadcast(intent);//to tvapp
         mContext.startService ( new Intent ( mContext, TimeSuspendService.class ) );

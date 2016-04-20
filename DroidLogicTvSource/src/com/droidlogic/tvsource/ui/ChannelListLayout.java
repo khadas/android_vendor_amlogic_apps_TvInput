@@ -276,9 +276,9 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
             if (channel == null)
                 return null;
             Utils.logd(TAG, "==== number =" + channel.getNumber());
-            Utils.logd(TAG, "==== name =" + channel.getDisplayName());
+            Utils.logd(TAG, "==== name =" + channel.getDisplayNameLocal());
             holder.channelNum.setText(Integer.toString(getChannelIndex(channel)));
-            holder.channelName.setText(channel.getDisplayName());
+            holder.channelName.setText(channel.getDisplayNameLocal());
             if (mIsFav) {
                 holder.favImg.setImageResource(R.drawable.list_fav);
             }

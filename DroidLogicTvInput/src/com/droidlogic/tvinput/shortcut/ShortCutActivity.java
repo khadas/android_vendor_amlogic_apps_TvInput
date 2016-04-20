@@ -378,7 +378,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
                 ChannelInfo info = channelInfoList.get(i);
                 if (info != null) {
                     ArrayMap<String, Object> item = new ArrayMap<String, Object>();
-                    item.put(GuideListView.ITEM_1, i + "  " + info.getDisplayName());
+                    item.put(GuideListView.ITEM_1, i + "  " + info.getDisplayNameLocal());
                     if (ChannelInfo.isRadioChannel(info)) {
                         item.put(GuideListView.ITEM_2, radioChannelIndex);
                         radioChannelIndex++;
@@ -556,7 +556,6 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
 
     @Override
     public void onListItemSelected(View parent, int position) {
-        ;
         switch (parent.getId()) {
             case R.id.list_guide_channel:
                 lv_date.setAdapter(null);
