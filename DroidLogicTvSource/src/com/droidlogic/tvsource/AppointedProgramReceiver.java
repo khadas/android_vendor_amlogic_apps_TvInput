@@ -33,7 +33,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.List;
 
-public class AppointedProgramReceiver extends BroadcastReceiver implements OnClickListener, OnFocusChangeListener{
+public class AppointedProgramReceiver extends BroadcastReceiver implements OnClickListener, OnFocusChangeListener {
     private static final String TAG = "AppointedProgramReceiver";
     private static final String PACKAGE_LAUNCHER = "com.droidlogic.mboxlauncher";
     private static final String PACKAGE_TV_APP = "com.droidlogic.tvsource";
@@ -48,8 +48,8 @@ public class AppointedProgramReceiver extends BroadcastReceiver implements OnCli
     private boolean isRadio = false;
     private AlertDialog mAlertDialog = null;
 
-	@Override
-	public void onReceive(Context context, Intent intent) {
+    @Override
+    public void onReceive(Context context, Intent intent) {
         mContext = context;
         long programId = intent.getLongExtra(DroidLogicTvUtils.EXTRA_PROGRAM_ID, -1L);
         TvDataBaseManager tbm = new TvDataBaseManager(mContext);
@@ -78,7 +78,7 @@ public class AppointedProgramReceiver extends BroadcastReceiver implements OnCli
             }
             Log.d(TAG, "receive appointed channel:" + channel.getDisplayName() + " program: " + program.getTitle());
 
-            LayoutInflater inflater =(LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            LayoutInflater inflater = (LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             View view = inflater.inflate(R.layout.layout_dialog, null);
 
             if (mAlertDialog == null) {
@@ -103,10 +103,10 @@ public class AppointedProgramReceiver extends BroadcastReceiver implements OnCli
 
             timer = new Timer(true);
             timer.schedule(task, 0, 1000);
-        }else {
+        } else {
             Log.d(TAG, "the appointed program is not exist" + programId);
         }
-	}
+    }
 
     @Override
     public void onClick(View v) {
@@ -140,7 +140,7 @@ public class AppointedProgramReceiver extends BroadcastReceiver implements OnCli
     public void startTvApp() {
         Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_CURRENT_DEVICE_ID, DroidLogicTvUtils.DEVICE_ID_DTV);
         Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_DTV_CHANNEL_INDEX, channelIndex);
-        Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_CURRENT_CHANNEL_IS_RADIO, isRadio? 1 : 0);
+        Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_CURRENT_CHANNEL_IS_RADIO, isRadio ? 1 : 0);
 
         ActivityManager am = (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
         if (am.getRunningTasks(1).get(0).topActivity.getPackageName().equals(PACKAGE_LAUNCHER)) {

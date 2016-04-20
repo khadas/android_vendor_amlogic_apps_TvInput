@@ -5,7 +5,7 @@ import android.util.Log;
 import com.droidlogic.app.tv.TVChannelParams;
 import com.droidlogic.app.tv.ChannelInfo;
 
-abstract public class DTVEpgScanner{
+abstract public class DTVEpgScanner {
 
     public static final String TAG = "DTVEpgScanner";
 
@@ -32,10 +32,9 @@ abstract public class DTVEpgScanner{
     public static final int SCAN_EIT_SCHE_ALL = SCAN_EIT_SCHE_ACT | SCAN_EIT_SCHE_OTH;
     public static final int SCAN_EIT_ALL = SCAN_EIT_PF_ALL | SCAN_EIT_SCHE_ALL;
     public static final int SCAN_ALL = SCAN_PAT | SCAN_PMT | SCAN_CAT | SCAN_SDT | SCAN_NIT | SCAN_TDT | SCAN_EIT_ALL |
-                SCAN_MGT | SCAN_VCT | SCAN_STT | SCAN_RRT | SCAN_PSIP_EIT;
+                                       SCAN_MGT | SCAN_VCT | SCAN_STT | SCAN_RRT | SCAN_PSIP_EIT;
 
-    public class Event
-    {
+    public class Event {
         public static final int EVENT_PF_EIT_END            = 1;
         public static final int EVENT_SCH_EIT_END           = 2;
         public static final int EVENT_PMT_END               = 3;
@@ -78,10 +77,10 @@ abstract public class DTVEpgScanner{
             int source_id;
             byte[] rrt_ratings;
 
-            Evt(){}
+            Evt() {}
         }
 
-        public Event(int type){
+        public Event(int type) {
             this.type = type;
         }
     }
@@ -94,7 +93,7 @@ abstract public class DTVEpgScanner{
     private native void native_epg_set_dvb_text_coding(String coding);
 
     /** Load native library*/
-    static{
+    static {
         System.loadLibrary("jnidtvepgscanner");
     }
 
@@ -106,7 +105,7 @@ abstract public class DTVEpgScanner{
     private ChannelInfo mChannel;
 
     /*Start scan the sections.*/
-    private void startScan(int mode){
+    private void startScan(int mode) {
         if (!created)
             return;
 
@@ -114,17 +113,17 @@ abstract public class DTVEpgScanner{
     }
 
     /*Stop scan the sections.*/
-    private void stopScan(int mode){
+    private void stopScan(int mode) {
         if (!created)
             return;
 
         native_epg_change_mode(MODE_REMOVE, mode);
     }
 
-    public DTVEpgScanner(){
+    public DTVEpgScanner() {
     }
 
-    public void setSource(int fend, int dmx, int src, String textLanguages){
+    public void setSource(int fend, int dmx, int src, String textLanguages) {
         if (created)
             destroy();
 
@@ -136,7 +135,7 @@ abstract public class DTVEpgScanner{
         created = true;
     }
 
-    public void destroy(){
+    public void destroy() {
         if (created) {
             native_epg_destroy();
             created = false;
@@ -144,7 +143,7 @@ abstract public class DTVEpgScanner{
     }
 
     /*Enter a channel.*/
-    public void enterChannel(){
+    public void enterChannel() {
         if (!created)
             return;
 
@@ -153,14 +152,14 @@ abstract public class DTVEpgScanner{
         Log.d(TAG, "enter Channel");
 
         if (fend_type == TVChannelParams.MODE_ATSC) {
-            startScan(SCAN_PSIP_EIT|SCAN_MGT|SCAN_VCT|SCAN_RRT|SCAN_STT);
+            startScan(SCAN_PSIP_EIT | SCAN_MGT | SCAN_VCT | SCAN_RRT | SCAN_STT);
         } else {
-            startScan(SCAN_EIT_ALL|SCAN_TDT|SCAN_SDT/*|SCAN_NIT|SCAN_CAT*/);
+            startScan(SCAN_EIT_ALL | SCAN_TDT | SCAN_SDT/*|SCAN_NIT|SCAN_CAT*/);
         }
     }
 
     /*Leave the channel.*/
-    public void leaveChannel(){
+    public void leaveChannel() {
         if (!created)
             return;
 
@@ -170,11 +169,11 @@ abstract public class DTVEpgScanner{
     }
 
     /*Enter the program.*/
-    public void enterProgram(ChannelInfo channel){
+    public void enterProgram(ChannelInfo channel) {
         if (mChannel != null
-                && channel.getServiceId() == mChannel.getServiceId()
-                && channel.getTransportStreamId() == mChannel.getTransportStreamId()
-                && channel.getOriginalNetworkId() == mChannel.getOriginalNetworkId())
+            && channel.getServiceId() == mChannel.getServiceId()
+            && channel.getTransportStreamId() == mChannel.getTransportStreamId()
+            && channel.getOriginalNetworkId() == mChannel.getOriginalNetworkId())
             return;
 
         if (!created)
@@ -184,16 +183,16 @@ abstract public class DTVEpgScanner{
             leaveProgram();
         }
 
-        Log.d(TAG, "enter Program sid["+channel.getServiceId()+"] name["+channel.getDisplayName()+"]");
+        Log.d(TAG, "enter Program sid[" + channel.getServiceId() + "] name[" + channel.getDisplayName() + "]");
 
         native_epg_monitor_service(channel);
-        startScan(SCAN_PAT|SCAN_PMT);
+        startScan(SCAN_PAT | SCAN_PMT);
 
         mChannel = channel;
     }
 
     /*Leave the program.*/
-    public void leaveProgram(){
+    public void leaveProgram() {
         if (mChannel == null)
             return;
 
@@ -202,13 +201,13 @@ abstract public class DTVEpgScanner{
 
         Log.d(TAG, "leave Program");
 
-        stopScan(SCAN_PAT|SCAN_PMT);
+        stopScan(SCAN_PAT | SCAN_PMT);
         native_epg_monitor_service(null);
         mChannel = null;
     }
 
     /*Set the default dvb text coding, 'standard' indicates using DVB text coding standard*/
-    public void setDvbTextCoding(String coding){
+    public void setDvbTextCoding(String coding) {
         native_epg_set_dvb_text_coding(coding);
     }
 

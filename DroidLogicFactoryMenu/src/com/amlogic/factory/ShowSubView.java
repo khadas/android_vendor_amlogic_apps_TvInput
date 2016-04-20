@@ -20,23 +20,20 @@ import android.content.Context;
 import android.os.SystemProperties;
 import android.util.Log;
 
-public class ShowSubView
-{
+public class ShowSubView {
     public static TvControlManager tv = TvControlManager.getInstance();
     /* son ListView's item save to this ArrayList */
     public List<Map<String, String>> mListSubMenuData = null;
     private Context context;
     ActivityManager am;// used to adjust if the auto save log to udisk service is open
 
-    public ShowSubView(List<Map<String, String>> mListSubMenuData, Context context)
-    {
+    public ShowSubView(List<Map<String, String>> mListSubMenuData, Context context) {
         this.mListSubMenuData = mListSubMenuData;
         this.context = context;
     }
 
     /* ADC calibration */
-    public void show_calibate_submenu()
-    {
+    public void show_calibate_submenu() {
         Map<String, String> map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_ADC_PORT));
         map.put("sub_value", context.getString(Constant.FACUI_ADC_PORT_RGB));
@@ -49,8 +46,7 @@ public class ShowSubView
     }
 
     /* picture mode */
-    public void show_picture_submenu()
-    {
+    public void show_picture_submenu() {
         Map<String, String> map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_PICMODE_PORT));
         map.put("sub_value", context.getString(Constant.FACUI_PICMODE_PORT_TV));
@@ -60,8 +56,7 @@ public class ShowSubView
     }
 
     /* set picture mode's parameter at one source */
-    public void setPicture(SourceInput_Type source)
-    {
+    public void setPicture(SourceInput_Type source) {
         Map<String, String> map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_PICMODE_MODE));
         int itemPosition = tv.GetPQMode(source);
@@ -95,8 +90,7 @@ public class ShowSubView
     }
 
     /* white balance */
-    public void show_whitebalance_submenu()
-    {
+    public void show_whitebalance_submenu() {
         Map<String, String> map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_WHTBLAN_PORT));
         map.put("sub_value", context.getString(Constant.FACUI_WHTBLAN_PORT_TV));
@@ -106,8 +100,7 @@ public class ShowSubView
     }
 
     /* set white balance's parameter at one source */
-    public void setWhite(int source, int colortemp_mode)
-    {
+    public void setWhite(int source, int colortemp_mode) {
         Map<String, String> map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_WHTBLAN_MODE));
         map.put("sub_value", context.getString(Constant.FACUI_WHTBLAN_MODE_STANDARD));
@@ -116,8 +109,7 @@ public class ShowSubView
     }
 
     /* set white balance's parameter at one source and mode */
-    public void setWhite2(int source, int colortemp_mode)
-    {
+    public void setWhite2(int source, int colortemp_mode) {
         Map<String, String> map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_WHTBLAN_GAIN_R));
         int i = tv.FactoryWhiteBalanceGetRedGain(source, colortemp_mode);
@@ -151,8 +143,7 @@ public class ShowSubView
     }
 
     /*SSC*/
-    public void show_ssc_submenu()
-    {
+    public void show_ssc_submenu() {
         Map<String, String> map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_LVDS_LVDS));
         int i = tv.FactoryGetLVDSSSC();
@@ -173,8 +164,7 @@ public class ShowSubView
     // }
 
     /* set NOliner's parameter like brightness ect.*/
-    public void setNoLine(SourceInput_Type source)
-    {
+    public void setNoLine(SourceInput_Type source) {
         noline_params_t noline_params;
         Map<String, String> map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_NOLINEAR_BRIGHTNESS));
@@ -215,20 +205,18 @@ public class ShowSubView
     }
 
     /* reShow rate */
-    public void show_reshow_submenu()
-    {
+    public void show_reshow_submenu() {
         Map<String, String> map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_CHONGXIAN_PORT));
         map.put("sub_value", context.getString(Constant.FACUI_PICMODE_PORT_TV));
         mListSubMenuData.add(map);
         setTiming(SourceInput_Type.SOURCE_TYPE_TV, TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_CVBS_NTSC_M,
-                TVInSignalInfo.TransFmt.TVIN_TFMT_2D);
+                  TVInSignalInfo.TransFmt.TVIN_TFMT_2D);
         FactoryMainActivity.mPage = Constant.PAGE_OVERSCAN;
     }
 
     /* set reShow rate's all parameter */
-    public void setTiming(SourceInput_Type source, TVInSignalInfo.SignalFmt fmt, TVInSignalInfo.TransFmt trans_fmt)
-    {
+    public void setTiming(SourceInput_Type source, TVInSignalInfo.SignalFmt fmt, TVInSignalInfo.TransFmt trans_fmt) {
         Map<String, String> map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_CHONGXIAN_TIMING));
         map.put("sub_value", fmt + "");
@@ -245,8 +233,7 @@ public class ShowSubView
     }
 
     /* set reShow rate's parameter except Timing,TVIN_3D_STATUS,TVIN_TRANS_FMT */
-    public void setElse(SourceInput_Type source, TVInSignalInfo.SignalFmt fmt, TVInSignalInfo.TransFmt trans_fmt)
-    {
+    public void setElse(SourceInput_Type source, TVInSignalInfo.SignalFmt fmt, TVInSignalInfo.TransFmt trans_fmt) {
         tvin_cutwin_t cutwin_t;
         cutwin_t = tv.FactoryGetOverscanParams(source, fmt, trans_fmt);
         Map<String, String> map = new HashMap<String, String>();
@@ -268,8 +255,7 @@ public class ShowSubView
     }
 
     /*testing picture*/
-    public void show_ceshitu_submenu()
-    {
+    public void show_ceshitu_submenu() {
         Map<String, String> map = new HashMap<String, String>();
         int i = tv.FactoryGetTestPattern();
         if (i > 5)
@@ -280,19 +266,17 @@ public class ShowSubView
     }
 
     /*aging mode*/
-    public void show_agingmode_submenu()
-    {
+    public void show_agingmode_submenu() {
         Map<String, String> map = new HashMap<String, String>();
         int i = tv.SSMReadAgingMode();
         map.put("sub_name", "");
-        map.put("sub_value", i==0?context.getString(Constant.FACUI_LAOHUA_OFF):context.getString(Constant.FACUI_LAOHUA_ON));
+        map.put("sub_value", i == 0 ? context.getString(Constant.FACUI_LAOHUA_OFF) : context.getString(Constant.FACUI_LAOHUA_ON));
         mListSubMenuData.add(map);
         FactoryMainActivity.mPage = Constant.PAGE_AGINGMODE;
     }
 
     /*software info*/
-    public void show_softinfo_submenu()
-    {
+    public void show_softinfo_submenu() {
         Map<String, String> map = new HashMap<String, String>();
         String sub_value = "";
         TvControlManager.version_info tmpInfo = tv.TvMiscGetVersion();
@@ -343,8 +327,7 @@ public class ShowSubView
     }
 
     /*HDMI HDCP DemoKey*/
-    public void show_hdcp_submenu()
-    {
+    public void show_hdcp_submenu() {
         Map<String, String> map = new HashMap<String, String>();
         int i = tv.SSMReadUsingDefaultHDCPKeyFlag();
         if (i == 0)
@@ -355,8 +338,7 @@ public class ShowSubView
         FactoryMainActivity.mPage = Constant.HDMI_HDCP_DEMOKEY;
     }
 
-    public void show_upgrade_fbc()
-    {
+    public void show_upgrade_fbc() {
         Map<String, String> map = new HashMap<String, String>();
         map.put("sub_value", context.getString(Constant.FACUI_START));
         mListSubMenuData.add(map);
@@ -364,8 +346,7 @@ public class ShowSubView
     }
 
     /*fbc version info*/
-    public void show_fbc_version()
-    {
+    public void show_fbc_version() {
         Map<String, String> map = null;
         String sub_value = "";
 
@@ -405,8 +386,7 @@ public class ShowSubView
     }
 
     /*Serial cmd switch:com debug tool's switch，when open, the com debug tool can't work*/
-    public void show_serial_submenu()
-    {
+    public void show_serial_submenu() {
         Map<String, String> map = new HashMap<String, String>();
         int i = tv.SSMReadSerialCMDSwitchValue();
         if (i == 0)
@@ -417,8 +397,7 @@ public class ShowSubView
         FactoryMainActivity.mPage = Constant.PAGE_SERIAL_CMD_SWITCH;
     }
 
-    public void show_portprint_submenu()
-    {
+    public void show_portprint_submenu() {
         Map<String, String> map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_PORTPRINT_SWITCH_OFF));
         map.put("sub_value", "");
@@ -430,8 +409,7 @@ public class ShowSubView
         FactoryMainActivity.mPage = Constant.PAGE_PORTPRINT_SWITCH;
     }
 
-    public void show_remotecontrol()
-    {
+    public void show_remotecontrol() {
         Map<String, String> map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_REMOTECONTROL_HAIER));
         map.put("sub_value", "");
@@ -452,14 +430,12 @@ public class ShowSubView
     }
 
     /* auto save log's switch:when open, the function of auto save log to U disk is on */
-    public void show_autosavelog_submenu()
-    {
+    public void show_autosavelog_submenu() {
         Map<String, String> map = new HashMap<String, String>();
         int i = 0;
         am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         List<RunningAppProcessInfo> infos = am.getRunningAppProcesses();
-        for (RunningAppProcessInfo rapi : infos)
-        {
+        for (RunningAppProcessInfo rapi : infos) {
             if (rapi.processName.equals("com.amlogic.logrecord"))
                 i = 1;
         }
@@ -471,8 +447,7 @@ public class ShowSubView
         //FactoryMainActivity.mPage = Constant.PAGE_AUTOSAVELOG_SWITCH;
     }
 
-    public void show_dynamicbacklight_submenu()
-    {
+    public void show_dynamicbacklight_submenu() {
         Map<String, String> map = new HashMap<String, String>();
         String dynamicbacklightvalue = SystemProperties.get("persist.tv.auto_bl_value", "0");
         map.put("sub_name", "");
@@ -481,8 +456,7 @@ public class ShowSubView
         FactoryMainActivity.mPage = Constant.PAGE_DYNAMIC_BACKLIGHT_VALUE;
     }
 
-    public void show_screen_submenu()
-    {
+    public void show_screen_submenu() {
         Map<String, String> map = new HashMap<String, String>();
         map.put("sub_name", "");
         map.put("sub_value", context.getString(Constant.FACUI_SCREEN_UP));
@@ -494,8 +468,7 @@ public class ShowSubView
         FactoryMainActivity.mPage = Constant.PAGE_SCREEN;
     }
 
-    public void show_outputmode()
-    {
+    public void show_outputmode() {
         Map<String, String> map = new HashMap<String, String>();
         map.put("sub_name", "");
         map.put("sub_value", context.getString(Constant.FACUI_OUTPUT_MODE1));

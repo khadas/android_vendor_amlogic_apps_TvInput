@@ -21,7 +21,7 @@ import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
 import android.widget.Button;
 
-public class SourceButton extends Button implements OnClickListener, OnFocusChangeListener{
+public class SourceButton extends Button implements OnClickListener, OnFocusChangeListener {
     private static final String TAG = "SourceButton";
 
     private Context mContext;
@@ -91,7 +91,7 @@ public class SourceButton extends Button implements OnClickListener, OnFocusChan
         setOnFocusChangeListener(this);
     }
 
-    public interface OnSourceClickListener{
+    public interface OnSourceClickListener {
         void onButtonClick(SourceButton sb);
     }
 
@@ -283,7 +283,7 @@ public class SourceButton extends Button implements OnClickListener, OnFocusChan
     private void ensureValidField(TvInputInfo info) {
         if (info == null) {
             throw new IllegalArgumentException("wrong argument info...");
-        }else {
+        } else {
             mInputInfo = info;
         }
     }
@@ -371,11 +371,11 @@ public class SourceButton extends Button implements OnClickListener, OnFocusChan
     @Override
     public String toString() {
         return "SourceButton {"
-                + "inputId=" + getInputId()
-                + ", isHardware=" + isHardware()
-                + ", label=" + getSourceLabel()
-                + ", sourceType=" + getSourceType()
-                + "}";
+               + "inputId=" + getInputId()
+               + ", isHardware=" + isHardware()
+               + ", label=" + getSourceLabel()
+               + ", sourceType=" + getSourceType()
+               + "}";
     }
 
 }

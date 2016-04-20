@@ -50,7 +50,7 @@ public class ContentAdapter extends BaseAdapter {
             holder.name = (TextView) convertView.findViewById(R.id.item_name);
             holder.status = (TextView) convertView.findViewById(R.id.item_status);
             convertView.setTag(holder);
-        }else{
+        } else {
             holder = (ViewHolder)convertView.getTag();
         }
 
@@ -65,7 +65,7 @@ public class ContentAdapter extends BaseAdapter {
         return convertView;
     }
 
-    private class ViewHolder{
+    private class ViewHolder {
         public TextView name;
         public TextView status;
     }

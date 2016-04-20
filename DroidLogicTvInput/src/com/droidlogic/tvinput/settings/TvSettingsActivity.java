@@ -68,10 +68,10 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
         mTvControlManager = mSettingsManager.getTvControlManager();
         mAudioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
 
-        tabPicture= (ImageButton) findViewById(R.id.button_picture);
-        tabSound= (ImageButton) findViewById(R.id.button_sound);
-        tabChannel= (ImageButton) findViewById(R.id.button_channel);
-        tabSettings= (ImageButton) findViewById(R.id.button_settings);
+        tabPicture = (ImageButton) findViewById(R.id.button_picture);
+        tabSound = (ImageButton) findViewById(R.id.button_sound);
+        tabChannel = (ImageButton) findViewById(R.id.button_channel);
+        tabSettings = (ImageButton) findViewById(R.id.button_settings);
         tabPicture.setOnClickListener(this);
         tabPicture.setOnFocusChangeListener(this);
         tabSound.setOnClickListener(this);
@@ -193,7 +193,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
                 if (mAudioManager.isMasterMute()) {
                     mAudioManager.setMasterMute(false, AudioManager.FLAG_PLAY_SOUND);
                     mSettingsManager.sendBroadcastToTvapp("unmute");
-                }else {
+                } else {
                     mAudioManager.setMasterMute(true, AudioManager.FLAG_PLAY_SOUND);
                     mSettingsManager.sendBroadcastToTvapp("mute");
                 }
@@ -206,37 +206,37 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
 
     @Override
     public void onClick(View v) {
-       /* FragmentManager fm = getFragmentManager();
-        FragmentTransaction transaction = fm.beginTransaction();
+        /* FragmentManager fm = getFragmentManager();
+         FragmentTransaction transaction = fm.beginTransaction();
 
-        switch (v.getId()) {
-            case R.id.button_picture:
-                if (fragmentImage == null) {
-                    fragmentImage = new ContentFragment(R.xml.list_picture);
-                }
-                transaction.replace(R.id.settings_list, fragmentImage);
-                break;
-            case R.id.button_sound:
-                if (fragmentSound == null) {
-                    fragmentSound = new ContentFragment(R.xml.list_sound);
-                }
-                transaction.replace(R.id.settings_list, fragmentSound);
-                break;
-            case R.id.button_channel:
-                if (fragmentChannel== null) {
-                    fragmentChannel= new ContentFragment(R.xml.list_channel);
-                }
-                transaction.replace(R.id.settings_list, fragmentChannel);
-                break;
-            case R.id.button_settings:
-                if (fragmentSettings== null) {
-                    fragmentSettings= new ContentFragment(R.xml.list_settings);
-                }
-                transaction.replace(R.id.settings_list, fragmentSettings);
-                break;
-        }
-        // transaction.addToBackStack();
-        transaction.commit();*/
+         switch (v.getId()) {
+             case R.id.button_picture:
+                 if (fragmentImage == null) {
+                     fragmentImage = new ContentFragment(R.xml.list_picture);
+                 }
+                 transaction.replace(R.id.settings_list, fragmentImage);
+                 break;
+             case R.id.button_sound:
+                 if (fragmentSound == null) {
+                     fragmentSound = new ContentFragment(R.xml.list_sound);
+                 }
+                 transaction.replace(R.id.settings_list, fragmentSound);
+                 break;
+             case R.id.button_channel:
+                 if (fragmentChannel== null) {
+                     fragmentChannel= new ContentFragment(R.xml.list_channel);
+                 }
+                 transaction.replace(R.id.settings_list, fragmentChannel);
+                 break;
+             case R.id.button_settings:
+                 if (fragmentSettings== null) {
+                     fragmentSettings= new ContentFragment(R.xml.list_settings);
+                 }
+                 transaction.replace(R.id.settings_list, fragmentSettings);
+                 break;
+         }
+         // transaction.addToBackStack();
+         transaction.commit();*/
     }
 
     @Override
@@ -253,29 +253,29 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
             FragmentTransaction transaction = fm.beginTransaction();
 
             switch (v.getId()) {
-            case R.id.button_picture:
-                currentFragment = new ContentFragment(R.xml.list_picture, v);
-                transaction.replace(R.id.settings_list, currentFragment);
-                transaction.commit();
-                break;
-            case R.id.button_sound:
-                currentFragment = new ContentFragment(R.xml.list_sound, v);
-                transaction.replace(R.id.settings_list, currentFragment);
-                transaction.commit();
-                break;
-            case R.id.button_channel:
-                if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV)
-                    currentFragment = new ContentFragment(R.xml.list_channel_atv, v);
-                else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV)
-                    currentFragment = new ContentFragment(R.xml.list_channel_dtv, v);
-                transaction.replace(R.id.settings_list, currentFragment);
-                transaction.commit();
-                break;
-            case R.id.button_settings:
-                currentFragment = new ContentFragment(R.xml.list_settings, v);
-                transaction.replace(R.id.settings_list, currentFragment);
-                transaction.commit();
-                break;
+                case R.id.button_picture:
+                    currentFragment = new ContentFragment(R.xml.list_picture, v);
+                    transaction.replace(R.id.settings_list, currentFragment);
+                    transaction.commit();
+                    break;
+                case R.id.button_sound:
+                    currentFragment = new ContentFragment(R.xml.list_sound, v);
+                    transaction.replace(R.id.settings_list, currentFragment);
+                    transaction.commit();
+                    break;
+                case R.id.button_channel:
+                    if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV)
+                        currentFragment = new ContentFragment(R.xml.list_channel_atv, v);
+                    else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV)
+                        currentFragment = new ContentFragment(R.xml.list_channel_dtv, v);
+                    transaction.replace(R.id.settings_list, currentFragment);
+                    transaction.commit();
+                    break;
+                case R.id.button_settings:
+                    currentFragment = new ContentFragment(R.xml.list_settings, v);
+                    transaction.replace(R.id.settings_list, currentFragment);
+                    transaction.commit();
+                    break;
             }
             // transaction.addToBackStack();
         }
@@ -324,7 +324,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
         unregisterReceiver(mReceiver);
     }
 
-    public void onStop(){
+    public void onStop() {
         super.onStop();
     }
 
@@ -349,19 +349,19 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
 
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
-            public void onReceive(Context context, Intent intent) {
-                String action = intent.getAction();
-                if (action.equals(DroidLogicTvUtils.ACTION_CHANNEL_CHANGED)) {
-                    mSettingsManager.setCurrentChannelData(intent);
-                    mOptionUiManager.setSettingsManager(mSettingsManager);
-                    currentFragment.refreshList();
-                } else if (action.equals(Intent.ACTION_CLOSE_SYSTEM_DIALOGS)) {
-                    String reason = intent.getStringExtra("reason");
-                    if (TextUtils.equals(reason, "homekey")) {
-                        finish();
-                    }
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action.equals(DroidLogicTvUtils.ACTION_CHANNEL_CHANGED)) {
+                mSettingsManager.setCurrentChannelData(intent);
+                mOptionUiManager.setSettingsManager(mSettingsManager);
+                currentFragment.refreshList();
+            } else if (action.equals(Intent.ACTION_CLOSE_SYSTEM_DIALOGS)) {
+                String reason = intent.getStringExtra("reason");
+                if (TextUtils.equals(reason, "homekey")) {
+                    finish();
                 }
             }
+        }
     };
 
     /*add enter factory menu*/

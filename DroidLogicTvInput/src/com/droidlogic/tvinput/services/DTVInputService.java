@@ -68,7 +68,7 @@ public class DTVInputService extends DroidLogicTvInputService {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(TvInputManager.ACTION_BLOCKED_RATINGS_CHANGED);
         intentFilter
-                .addAction(TvInputManager.ACTION_PARENTAL_CONTROLS_ENABLED_CHANGED);
+        .addAction(TvInputManager.ACTION_PARENTAL_CONTROLS_ENABLED_CHANGED);
         registerReceiver(mParentalControlsBroadcastReceiver, intentFilter);
     }
 
@@ -88,7 +88,7 @@ public class DTVInputService extends DroidLogicTvInputService {
         return mSession;
     }
 
-    public class DTVSessionImpl extends TvInputBaseSession implements TvControlManager.AVPlaybackListener{
+    public class DTVSessionImpl extends TvInputBaseSession implements TvControlManager.AVPlaybackListener {
         private final Context mContext;
         private TvInputManager mTvInputManager;
         private TvContentRating mLastBlockedRating;
@@ -119,7 +119,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             mSession = null;
             stopSubtitle();
             setEPG(null);
-//            releasePlayer();
+            //            releasePlayer();
         }
 
         @Override
@@ -163,7 +163,7 @@ public class DTVInputService extends DroidLogicTvInputService {
 
         private void switchToSourceInput(Uri uri) {
             mUnblockedRatingSet.clear();
-            Log.d(TAG, "switchToSourceInput  uri="+ uri);
+            Log.d(TAG, "switchToSourceInput  uri=" + uri);
             if (Utils.getChannelId(uri) < 0) {
                 TvControlManager tcm = TvControlManager.getInstance();
                 tcm.PlayDTVProgram(TVChannelParams.MODE_DTMB, 470000000, 0, 0, 0, 0, -1, -1, 0, 0);
@@ -188,16 +188,16 @@ public class DTVInputService extends DroidLogicTvInputService {
                 TvControlManager tcm = TvControlManager.getInstance();
                 int audioTrackAuto = getAudioTrackAuto(info);
                 tcm.PlayDTVProgram(
-                        mode,
-                        info.getFrequency(),
-                        info.getBandwidth(),
-                        0,
-                        info.getVideoPid(),
-                        info.getVfmt(),
-                        (audioTrackAuto >= 0) ? info.getAudioPids()[audioTrackAuto] : -1,
-                        (audioTrackAuto >= 0) ? info.getAudioFormats()[audioTrackAuto] : -1,
-                        info.getPcrPid(),
-                        info.getAudioCompensation());
+                    mode,
+                    info.getFrequency(),
+                    info.getBandwidth(),
+                    0,
+                    info.getVideoPid(),
+                    info.getVfmt(),
+                    (audioTrackAuto >= 0) ? info.getAudioPids()[audioTrackAuto] : -1,
+                    (audioTrackAuto >= 0) ? info.getAudioFormats()[audioTrackAuto] : -1,
+                    info.getPcrPid(),
+                    info.getAudioCompensation());
                 tcm.DtvSetAudioChannleMod(info.getAudioChannel());
                 tcm.SetAVPlaybackListener(this);
             } else
@@ -217,9 +217,9 @@ public class DTVInputService extends DroidLogicTvInputService {
 
         private void checkContentBlockNeeded() {
             if (mCurrentContentRating == null
-                    || !mTvInputManager.isParentalControlsEnabled()
-                    || !mTvInputManager.isRatingBlocked(mCurrentContentRating)
-                    || mUnblockedRatingSet.contains(mCurrentContentRating)) {
+                || !mTvInputManager.isParentalControlsEnabled()
+                || !mTvInputManager.isRatingBlocked(mCurrentContentRating)
+                || mUnblockedRatingSet.contains(mCurrentContentRating)) {
                 // Content rating is changed so we don't need to block anymore.
                 // Unblock content here explicitly to resume playback.
                 unblockContent(null);
@@ -240,8 +240,8 @@ public class DTVInputService extends DroidLogicTvInputService {
         private void unblockContent(TvContentRating rating) {
             // TIS should unblock content only if unblock request is legitimate.
             if (rating == null
-                    || mLastBlockedRating == null
-                    || (mLastBlockedRating != null && rating.equals(mLastBlockedRating))) {
+                || mLastBlockedRating == null
+                || (mLastBlockedRating != null && rating.equals(mLastBlockedRating))) {
                 mLastBlockedRating = null;
                 if (rating != null) {
                     mUnblockedRatingSet.add(rating);
@@ -264,7 +264,7 @@ public class DTVInputService extends DroidLogicTvInputService {
 
         @Override
         public boolean onSelectTrack(int type, String trackId) {
-            Log.d(TAG, "onSelectTrack: [type:"+type+"] [id:"+trackId+"]");
+            Log.d(TAG, "onSelectTrack: [type:" + type + "] [id:" + trackId + "]");
 
             if (mCurrentChannel == null)
                 return false;
@@ -290,10 +290,10 @@ public class DTVInputService extends DroidLogicTvInputService {
 
                 Map<String, String> parsedMap = ChannelInfo.stringToMap(trackId);
                 startSubtitle(Integer.parseInt(parsedMap.get("type")),
-                                Integer.parseInt(parsedMap.get("pid")),
-                                Integer.parseInt(parsedMap.get("stype")),
-                                Integer.parseInt(parsedMap.get("uid1")),
-                                Integer.parseInt(parsedMap.get("uid2")));
+                              Integer.parseInt(parsedMap.get("pid")),
+                              Integer.parseInt(parsedMap.get("stype")),
+                              Integer.parseInt(parsedMap.get("uid1")),
+                              Integer.parseInt(parsedMap.get("uid2")));
 
                 notifyTrackSelected(type, trackId);
 
@@ -309,7 +309,7 @@ public class DTVInputService extends DroidLogicTvInputService {
 
         @Override
         public void onOverlayViewSizeChanged(int width, int height) {
-            Log.d(TAG, "onOverlayViewSizeChanged["+width+","+height+"]");
+            Log.d(TAG, "onOverlayViewSizeChanged[" + width + "," + height + "]");
         }
 
         private void notifyTracks(ChannelInfo ch) {
@@ -328,7 +328,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                 if (tracks == null)
                     tracks = new ArrayList<>();
 
-                for (int i=0; i<AudioTracksCount; i++) {
+                for (int i = 0; i < AudioTracksCount; i++) {
                     boolean isDefault = false;
                     if (audioTrackAuto == i)
                         isDefault = true;
@@ -342,13 +342,13 @@ public class DTVInputService extends DroidLogicTvInputService {
                     String Id = ChannelInfo.mapToString(map);
                     TvTrackInfo AudioTrack =
                         new TvTrackInfo.Builder(TvTrackInfo.TYPE_AUDIO, Id)
-                                       .setLanguage(audioLanguages[i])
-                                       .setAudioChannelCount(2)
-                                       .build();
+                    .setLanguage(audioLanguages[i])
+                    .setAudioChannelCount(2)
+                    .build();
                     tracks.add(AudioTrack);
                     if (isDefault)
                         AudioSelectedId = Id;
-                    Log.d(TAG, "\t"+i+": ["+audioLanguages[i]+"] [pid:"+audioPids[i]+"] [fmt:"+audioFormats[i]+"]");
+                    Log.d(TAG, "\t" + i + ": [" + audioLanguages[i] + "] [pid:" + audioPids[i] + "] [fmt:" + audioFormats[i] + "]");
                 }
             }
 
@@ -366,7 +366,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                 if (tracks == null)
                     tracks = new ArrayList<>();
 
-                for (int i=0; i<SubTracksCount; i++) {
+                for (int i = 0; i < SubTracksCount; i++) {
                     boolean isDefault = false;
                     if (subTrackAuto == i)
                         isDefault = true;
@@ -383,13 +383,13 @@ public class DTVInputService extends DroidLogicTvInputService {
                     String Id = ChannelInfo.mapToString(map);
                     TvTrackInfo SubtitleTrack =
                         new TvTrackInfo.Builder(TvTrackInfo.TYPE_SUBTITLE, Id)
-                                       .setLanguage(subLanguages[i])
-                                       .build();
+                    .setLanguage(subLanguages[i])
+                    .build();
                     tracks.add(SubtitleTrack);
                     if (isDefault && subtitleAutoStart)
                         SubSelectedId = Id;
-                    Log.d(TAG, "\t"+i+": ["+subLanguages[i]+"] [pid:"+subPids[i]+"] [type:"+subTypes[i]+"]");
-                    Log.d(TAG, "\t"+"   [id1:"+subId1s[i]+"] [id2:"+subId2s[i]+"] [stype:"+subStypes[i]+"]");
+                    Log.d(TAG, "\t" + i + ": [" + subLanguages[i] + "] [pid:" + subPids[i] + "] [type:" + subTypes[i] + "]");
+                    Log.d(TAG, "\t" + "   [id1:" + subId1s[i] + "] [id2:" + subId2s[i] + "] [stype:" + subStypes[i] + "]");
                 }
 
             }
@@ -397,10 +397,10 @@ public class DTVInputService extends DroidLogicTvInputService {
             if (tracks != null)
                 notifyTracksChanged(tracks);
 
-            Log.d(TAG, "\tAuto Aud: ["+AudioSelectedId+"]");
+            Log.d(TAG, "\tAuto Aud: [" + AudioSelectedId + "]");
             notifyTrackSelected(TvTrackInfo.TYPE_AUDIO, AudioSelectedId);
 
-            Log.d(TAG, "\tAuto Sub: ["+SubSelectedId+"]");
+            Log.d(TAG, "\tAuto Sub: [" + SubSelectedId + "]");
             notifyTrackSelected(TvTrackInfo.TYPE_SUBTITLE, SubSelectedId);
         }
 
@@ -419,7 +419,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                 return -2;
 
             String def_lan = Settings.System.getString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DEFAULT_LANGUAGE);
-            for (int trackIdx = 0;trackIdx < trackLangArray.length; trackIdx++) {
+            for (int trackIdx = 0; trackIdx < trackLangArray.length; trackIdx++) {
                 if (trackLangArray[trackIdx].equals(def_lan))
                     return trackIdx;
             }
@@ -432,14 +432,14 @@ public class DTVInputService extends DroidLogicTvInputService {
             if (trackLangArray == null)
                 return -1;
 
-            if (info.getSubtitleTrackIndex() >=0)
+            if (info.getSubtitleTrackIndex() >= 0)
                 return info.getSubtitleTrackIndex();
 
             if (info.getSubtitleTrackIndex() == -2)//off by user
                 return -2;
 
             String def_lan = Settings.System.getString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DEFAULT_LANGUAGE);
-            for (int trackIdx = 0;trackIdx < trackLangArray.length; trackIdx++) {
+            for (int trackIdx = 0; trackIdx < trackLangArray.length; trackIdx++) {
                 if (trackLangArray[trackIdx].equals(def_lan))
                     return trackIdx;
             }
@@ -465,30 +465,31 @@ public class DTVInputService extends DroidLogicTvInputService {
             int idx = getSubtitleTrackAuto(channelInfo);
             if (idx >= 0) {
                 startSubtitle(channelInfo.getSubtitleTypes()[idx],
-                            channelInfo.getSubtitlePids()[idx],
-                            channelInfo.getSubtitleStypes()[idx],
-                            channelInfo.getSubtitleId1s()[idx],
-                            channelInfo.getSubtitleId2s()[idx]);
+                              channelInfo.getSubtitlePids()[idx],
+                              channelInfo.getSubtitleStypes()[idx],
+                              channelInfo.getSubtitleId1s()[idx],
+                              channelInfo.getSubtitleId2s()[idx]);
             } else {
                 stopSubtitle();
             }
         }
 
-        private int getTeletextRegionID(String ttxRegionName){
-            final String[] supportedRegions= {"English", "Deutsch", "Svenska/Suomi/Magyar",
-                                              "Italiano", "Français", "Português/Español",
-                                              "Cesky/Slovencina", "Türkçe", "Ellinika","Alarabia / English"};
+        private int getTeletextRegionID(String ttxRegionName) {
+            final String[] supportedRegions = {"English", "Deutsch", "Svenska/Suomi/Magyar",
+                                               "Italiano", "Fran?ais", "Português/Espa?ol",
+                                               "Cesky/Slovencina", "Türk?e", "Ellinika", "Alarabia / English"
+                                              };
             final int[] regionIDMaps = {16, 17, 18, 19, 20, 21, 14, 22, 55 , 64};
 
             int i;
-            for (i=0; i<supportedRegions.length; i++) {
+            for (i = 0; i < supportedRegions.length; i++) {
                 if (supportedRegions[i].equals(ttxRegionName))
                     break;
             }
 
             if (i >= supportedRegions.length) {
                 Log.d(TAG, "Teletext defaut region " + ttxRegionName +
-                    " not found, using 'English' as default!");
+                      " not found, using 'English' as default!");
                 i = 0;
             }
 
@@ -519,7 +520,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             } else if (type == TYPE_DTV_TELETEXT) {
 
                 int pgno;
-                pgno = (id1==0) ? 800 : id1*100;
+                pgno = (id1 == 0) ? 800 : id1 * 100;
                 pgno += (id2 & 15) + ((id2 >> 4) & 15) * 10 + ((id2 >> 8) & 15) * 100;
                 DTVSubtitleView.DTVTTParams params =
                     new DTVSubtitleView.DTVTTParams(0, pid, pgno, 0x3F7F, getTeletextRegionID("English"));
@@ -578,13 +579,13 @@ public class DTVInputService extends DroidLogicTvInputService {
 
             @Override
             public void run() {
-                Log.d(TAG, "epg ch: " + mChannel.getDisplayNumber()+"-"+mChannel.getDisplayName());
+                Log.d(TAG, "epg ch: " + mChannel.getDisplayNumber() + "-" + mChannel.getDisplayName());
 
                 if (epg == null) {
                     epg = new EPGScanner(mContext, getInputId(), DEF_CODING);
                     epg.reset(EPG_FEND, EPG_DMX,
-                        Utils.type2mode(mChannel.getType()),
-                        EPG_LANGUAGE.replaceAll("local", TVMultilingualText.getLocalLang()));
+                              Utils.type2mode(mChannel.getType()),
+                              EPG_LANGUAGE.replaceAll("local", TVMultilingualText.getLocalLang()));
                 }
 
                 epg.enterChannel(getTVChannelParams(mChannel), false);
@@ -644,7 +645,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             private int src = 0;
             private String[] languages = null;
 
-            EPGScanner(Context context, String inputId, String coding){
+            EPGScanner(Context context, String inputId, String coding) {
                 mContext = context;
                 mInputId = inputId;
                 mTvDataBaseManager = new TvDataBaseManager(mContext);
@@ -652,7 +653,7 @@ public class DTVInputService extends DroidLogicTvInputService {
 
                 mHandlerThread = new HandlerThread(getClass().getSimpleName());
                 mHandlerThread.start();
-                mHandler = new Handler(mHandlerThread.getLooper()){
+                mHandler = new Handler(mHandlerThread.getLooper()) {
                     @Override
                     public void handleMessage(Message msg) {
                         if (msg.what == MSG_EPG_EVENT) {
@@ -661,9 +662,9 @@ public class DTVInputService extends DroidLogicTvInputService {
                     }
                 };
 
-                epgScanner = new DTVEpgScanner(){
-                    public void onEvent(DTVEpgScanner.Event event){
-                        Log.d(TAG, "send event:"+event.type);
+                epgScanner = new DTVEpgScanner() {
+                    public void onEvent(DTVEpgScanner.Event event) {
+                        Log.d(TAG, "send event:" + event.type);
                         mHandler.obtainMessage(MSG_EPG_EVENT, event).sendToTarget();
                     }
                 };
@@ -681,10 +682,10 @@ public class DTVInputService extends DroidLogicTvInputService {
                         if (c.getId() > maxChannel_ID)
                             maxChannel_ID = c.getId();
                 }
-                Log.d(TAG, "channelMap changed. max_ID:"+maxChannel_ID);
+                Log.d(TAG, "channelMap changed. max_ID:" + maxChannel_ID);
             }
 
-            public void reset(int fend, int dmx, int src, String textLanguages){
+            public void reset(int fend, int dmx, int src, String textLanguages) {
                 refreshChannelMap();
 
                 epgScanner.setSource(fend, dmx, src, textLanguages);
@@ -695,16 +696,16 @@ public class DTVInputService extends DroidLogicTvInputService {
                 this.src = src;
             }
 
-            public void reset(){
+            public void reset() {
                 Log.d(TAG, "epg reset.");
 
-                reset(fend, dmx, src, Arrays.toString(languages).replace("[", "").replace("]", "").replace(","," "));
+                reset(fend, dmx, src, Arrays.toString(languages).replace("[", "").replace("]", "").replace(",", " "));
 
                 enterChannel(tvchan, true);
                 enterService(tvservice);
             }
 
-            public void destroy(){
+            public void destroy() {
                 if (mChannelObserver != null) {
                     mContext.getContentResolver().unregisterContentObserver(mChannelObserver);
                     mChannelObserver = null;
@@ -725,7 +726,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                 mTvTime = null;
             }
 
-            public void enterChannel(TVChannelParams chan, boolean force){
+            public void enterChannel(TVChannelParams chan, boolean force) {
                 if (chan == null)
                     epgScanner.leaveChannel();
                 else if ((tvchan == null) || !tvchan.equals(chan) || force)
@@ -733,7 +734,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                 tvchan = chan;
             }
 
-            public void enterService(ChannelInfo channel){
+            public void enterService(ChannelInfo channel) {
                 if (channel == null)
                     epgScanner.leaveProgram();
                 else
@@ -742,33 +743,33 @@ public class DTVInputService extends DroidLogicTvInputService {
             }
 
             private List<Program> getChannelPrograms(Uri channelUri, ChannelInfo channel,
-                                                            DTVEpgScanner.Event event){
+                    DTVEpgScanner.Event event) {
                 List<Program> programs = new ArrayList<>();
                 for (DTVEpgScanner.Event.Evt evt : event.evts) {
-                    if ((channel.getTransportStreamId()== evt.ts_id)
+                    if ((channel.getTransportStreamId() == evt.ts_id)
                         && (channel.getServiceId() == evt.srv_id)
                         && (channel.getOriginalNetworkId() == evt.net_id)) {
-                        try{
+                        try {
                             long start = evt.start;
                             long end = evt.end;
                             Program p = new Program.Builder()
-                                .setChannelId(ContentUris.parseId(channelUri))
-                                .setTitle(TVMultilingualText.getText(new String(evt.name), languages))
-                                .setDescription(TVMultilingualText.getText(new String(evt.desc), languages))
-                                //.setContentRatings(programInfo.contentRatings)
-                                //.setCanonicalGenres(programInfo.genres)
-                                //.setPosterArtUri(programInfo.posterArtUri)
-                                //.setInternalProviderData(TvContractUtils.convertVideoInfoToInternalProviderData(
-                                //        programInfo.videoType, programInfo.videoUrl))
-                                .setStartTimeUtcMillis(start * 1000)
-                                .setEndTimeUtcMillis(end * 1000)
-                                .build();
+                            .setChannelId(ContentUris.parseId(channelUri))
+                            .setTitle(TVMultilingualText.getText(new String(evt.name), languages))
+                            .setDescription(TVMultilingualText.getText(new String(evt.desc), languages))
+                            //.setContentRatings(programInfo.contentRatings)
+                            //.setCanonicalGenres(programInfo.genres)
+                            //.setPosterArtUri(programInfo.posterArtUri)
+                            //.setInternalProviderData(TvContractUtils.convertVideoInfoToInternalProviderData(
+                            //        programInfo.videoType, programInfo.videoUrl))
+                            .setStartTimeUtcMillis(start * 1000)
+                            .setEndTimeUtcMillis(end * 1000)
+                            .build();
                             programs.add(p);
-                            Log.d(TAG, "epg: sid/net/ts["+evt.srv_id+"/"+evt.net_id+"/"+evt.ts_id+"]"
-                                +"{"+p.getTitle()+"}"
-                                +"["+p.getStartTimeUtcMillis()/1000
-                                +"-"+p.getEndTimeUtcMillis()/1000
-                                +"]");
+                            Log.d(TAG, "epg: sid/net/ts[" + evt.srv_id + "/" + evt.net_id + "/" + evt.ts_id + "]"
+                                  + "{" + p.getTitle() + "}"
+                                  + "[" + p.getStartTimeUtcMillis() / 1000
+                                  + "-" + p.getEndTimeUtcMillis() / 1000
+                                  + "]");
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -777,7 +778,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                 return programs;
             }
 
-            private void resolveEPGEvent(DTVEpgScanner.Event event){
+            private void resolveEPGEvent(DTVEpgScanner.Event event) {
                 Log.d(TAG, "Channel epg event: " + event.type);
                 switch (event.type) {
                     case DTVEpgScanner.Event.EVENT_PROGRAM_EVENTS_UPDATE:
@@ -789,20 +790,20 @@ public class DTVInputService extends DroidLogicTvInputService {
                             if (mTvDataBaseManager != null)
                                 mTvDataBaseManager.updatePrograms(channelUri, programs);
                         }
-                    break;
+                        break;
                     case DTVEpgScanner.Event.EVENT_TDT_END:
-                        Log.d(TAG, "[TDT Update]:"+event.time);
+                        Log.d(TAG, "[TDT Update]:" + event.time);
                         if (mTvTime != null)
-                            mTvTime.setTime(event.time*1000);
-                    break;
+                            mTvTime.setTime(event.time * 1000);
+                        break;
                     case DTVEpgScanner.Event.EVENT_PROGRAM_AV_UPDATE:
-                        Log.d(TAG, "[AV Update]: ServiceId:"+event.channel.getServiceId()
-                            +" Vid:"+event.channel.getVideoPid()
-                            +" Pcr:"+event.channel.getPcrPid()
-                            +" Aids:"+Arrays.toString(event.channel.getAudioPids())
-                            +" Afmts:"+Arrays.toString(event.channel.getAudioFormats())
-                            +" Alangs:"+Arrays.toString(event.channel.getAudioLangs())
-                        );
+                        Log.d(TAG, "[AV Update]: ServiceId:" + event.channel.getServiceId()
+                              + " Vid:" + event.channel.getVideoPid()
+                              + " Pcr:" + event.channel.getPcrPid()
+                              + " Aids:" + Arrays.toString(event.channel.getAudioPids())
+                              + " Afmts:" + Arrays.toString(event.channel.getAudioFormats())
+                              + " Alangs:" + Arrays.toString(event.channel.getAudioLangs())
+                             );
                         if (tvservice.getServiceId() == event.channel.getServiceId()) {
                             tvservice.setVideoPid(event.channel.getVideoPid());
                             tvservice.setVfmt(event.channel.getVfmt());
@@ -812,26 +813,26 @@ public class DTVInputService extends DroidLogicTvInputService {
                             tvservice.setAudioLangs(event.channel.getAudioLangs());
                             mTvDataBaseManager.updateChannelInfo(tvservice);
                         }
-                    break;
+                        break;
                     case DTVEpgScanner.Event.EVENT_PROGRAM_NAME_UPDATE:
-                        Log.d(TAG, "[NAME Update]: ServiceId:"+event.channel.getServiceId()
-                            +" Network:"+event.channel.getOriginalNetworkId()
-                            +" Name:"+event.channel.getDisplayName()
-                            +" SdtVersion:"+event.channel.getSdtVersion()
-                        );
+                        Log.d(TAG, "[NAME Update]: ServiceId:" + event.channel.getServiceId()
+                              + " Network:" + event.channel.getOriginalNetworkId()
+                              + " Name:" + event.channel.getDisplayName()
+                              + " SdtVersion:" + event.channel.getSdtVersion()
+                             );
                         if (tvservice.getServiceId() == event.channel.getServiceId()) {
                             tvservice.setDisplayName(event.channel.getDisplayName());
                             tvservice.setOriginalNetworkId(event.channel.getOriginalNetworkId());
                             tvservice.setSdtVersion(event.channel.getSdtVersion());
                             mTvDataBaseManager.updateChannelInfo(tvservice);
                         }
-                    break;
+                        break;
                     case DTVEpgScanner.Event.EVENT_CHANNEL_UPDATE:
-                        Log.d(TAG, "[TS Update]: Freq:"+tvservice.getFrequency());
+                        Log.d(TAG, "[TS Update]: Freq:" + tvservice.getFrequency());
                         Log.d(TAG, "TS changed, need autoscan. not impelement");
-                    break;
+                        break;
                     default:
-                    break;
+                        break;
                 }
             }
 
@@ -850,15 +851,15 @@ public class DTVInputService extends DroidLogicTvInputService {
 
                 @Override
                 public void onChange(boolean selfChange, Uri uri) {
-                    Log.d(TAG, "channel changed: selfchange:"+selfChange+" uri:"+uri);
+                    Log.d(TAG, "channel changed: selfchange:" + selfChange + " uri:" + uri);
                     if ((DroidLogicTvUtils.matchsWhich(uri) == DroidLogicTvUtils.MATCH_CHANNEL)//delete
                         || ((DroidLogicTvUtils.matchsWhich(uri) == DroidLogicTvUtils.MATCH_CHANNEL_ID)
-                            && (DroidLogicTvUtils.getChannelId(uri) > maxChannel_ID))){//add
+                            && (DroidLogicTvUtils.getChannelId(uri) > maxChannel_ID))) { //add
                         if (DroidLogicTvUtils.matchsWhich(uri) == DroidLogicTvUtils.MATCH_CHANNEL) {
                             Log.d(TAG, "channel deleted");
                         } else if ((DroidLogicTvUtils.matchsWhich(uri) == DroidLogicTvUtils.MATCH_CHANNEL_ID)
-                            && (DroidLogicTvUtils.getChannelId(uri) > maxChannel_ID)) {
-                            Log.d(TAG, "channel added: "+DroidLogicTvUtils.getChannelId(uri)+">"+maxChannel_ID);
+                                   && (DroidLogicTvUtils.getChannelId(uri) > maxChannel_ID)) {
+                            Log.d(TAG, "channel added: " + DroidLogicTvUtils.getChannelId(uri) + ">" + maxChannel_ID);
                         }
                         if (epg_auto_reset)
                             reset();
@@ -882,7 +883,7 @@ public class DTVInputService extends DroidLogicTvInputService {
         public final String logoBackgroundUrl;
 
         public TvInput(String displayName, String name, String description,
-                String logoThumbUrl, String logoBackgroundUrl) {
+                       String logoThumbUrl, String logoBackgroundUrl) {
             this.displayName = displayName;
             this.name = name;
             this.description = description;
@@ -902,7 +903,7 @@ public class DTVInputService extends DroidLogicTvInputService {
         if (rInfo != null) {
             try {
                 info = TvInputInfo.createTvInputInfo(this, rInfo, hardwareInfo,
-                        getTvInputInfoLabel(hardwareInfo.getDeviceId()), null);
+                                                     getTvInputInfoLabel(hardwareInfo.getDeviceId()), null);
             } catch (Exception e) {
             }
         }

@@ -100,7 +100,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private static final int MSG_CHANNEL_NUM_SWITCH     = 1;
     private static final int MSG_TUNE                     = 2;
 
-    private static final int DEFAULT_TIMEOUT             =5000;
+    private static final int DEFAULT_TIMEOUT             = 5000;
 
     private int mUiType = Utils.UI_TYPE_ALL_HIDE;
 
@@ -138,7 +138,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private AudioManager mAudioManager = null;
     private SystemControlManager mSystemControlManager = null;
 
-    ArrayList<ArrayMap<String,Object>> list_programs = new ArrayList<ArrayMap<String,Object>>();
+    ArrayList<ArrayMap<String, Object>> list_programs = new ArrayList<ArrayMap<String, Object>>();
     SimpleAdapter adapter_programs = null;
 
     private Toast toast = null;//use to show audio&subtitle track
@@ -146,13 +146,13 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
 
     private boolean isRunning = true;
 
-    BroadcastReceiver mReceiver = new BroadcastReceiver(){
+    BroadcastReceiver mReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (action.equals(DroidLogicTvUtils.ACTION_DELETE_CHANNEL)) {
                 int channelNumber = intent.getIntExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, -1);
                 Utils.logd(TAG, "delete or skipped current channel, switch to: name=" + mSourceInput.getChannelName()
-                        + " uri=" + mSourceInput.getUri());
+                           + " uri=" + mSourceInput.getUri());
                 if (channelNumber >= 0) {
                     processDeleteCurrentChannel(channelNumber);
                 } else {
@@ -183,7 +183,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 boolean force_dtv = intent.getBooleanExtra("force_dtv", false);
 
                 Utils.logd(TAG, "recevie intent :switch channel to index=" + channelIndex + " isRadio=" + isRadioChannel
-                        + " force dtv=" + force_dtv);
+                           + " force dtv=" + force_dtv);
                 if (!force_dtv) {
                     onSelect(channelIndex, isRadioChannel);
                 } else {
@@ -214,7 +214,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         setContentView(R.layout.main);
         init();
         mScreenLock = ((PowerManager)this.getSystemService (Context.POWER_SERVICE)).newWakeLock(
-            PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ON_AFTER_RELEASE, TAG);
+                          PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ON_AFTER_RELEASE, TAG);
         mAudioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
         mSystemControlManager = new SystemControlManager(this);
 
@@ -495,7 +495,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         if (resultCode == DroidLogicTvUtils.RESULT_OK) {
             needUpdateSource = false;
         } else if (resultCode == DroidLogicTvUtils.RESULT_UPDATE
-                || resultCode == DroidLogicTvUtils.RESULT_FAILED) {
+                   || resultCode == DroidLogicTvUtils.RESULT_FAILED) {
             needUpdateSource = true;
         }
     }
@@ -557,7 +557,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             case Utils.UI_TYPE_DTV_FAV_LIST:
                 mHandler.removeMessages(MSG_UI_TIMEOUT);
                 mHandler.sendEmptyMessageDelayed(MSG_UI_TIMEOUT, DEFAULT_TIMEOUT);
-            break;
+                break;
         }
 
         boolean down = event.getAction() == KeyEvent.ACTION_DOWN;
@@ -585,7 +585,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     return true;
 
                 if (keyCode == DroidLogicKeyEvent.KEYCODE_GUIDE
-                        && (mSourceInput.getSourceType() != DroidLogicTvUtils.SOURCE_TYPE_DTV
+                    && (mSourceInput.getSourceType() != DroidLogicTvUtils.SOURCE_TYPE_DTV
                         || mSignalState == SIGNAL_NOT_GOT)) {
                     return true;
                 }
@@ -736,7 +736,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 }
 
                 int sTrackIndex = 0;
-                for (sTrackIndex = 0;sTrackIndex < sTrackList.size();sTrackIndex++) {
+                for (sTrackIndex = 0; sTrackIndex < sTrackList.size(); sTrackIndex++) {
                     if (sTrackList.get(sTrackIndex).getId().equals(subtitleTrackId)) {
                         break;
                     }
@@ -764,15 +764,14 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 } else {
                     showCustomToast(getResources().getString(R.string.subtitle), sTrackList.get(sTrackIndex).getLanguage());
                 }
-            }
-            else
+            } else
                 showCustomToast(getResources().getString(R.string.subtitle), getResources().getString(R.string.no));
         } else if (type == TvTrackInfo.TYPE_AUDIO) {
             String audioTrackId = mSourceView.getSelectedTrack(TvTrackInfo.TYPE_AUDIO);
             if (audioTrackId != null) {
                 List<TvTrackInfo> aTrackList = mSourceView.getTracks(TvTrackInfo.TYPE_AUDIO);
                 int aTrackIndex = 0;
-                for (aTrackIndex = 0;aTrackIndex < aTrackList.size();aTrackIndex++) {
+                for (aTrackIndex = 0; aTrackIndex < aTrackList.size(); aTrackIndex++) {
                     if (aTrackList.get(aTrackIndex).getId().equals(audioTrackId)) {
                         break;
                     }
@@ -783,8 +782,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     updateTracksInfo(aTrackIndex, -1);
                 }
                 showCustomToast(getResources().getString(R.string.audio_track), aTrackList.get(aTrackIndex).getLanguage());
-            }
-            else
+            } else
                 showCustomToast(getResources().getString(R.string.audio_track), getResources().getString(R.string.no));
         }
     }
@@ -810,7 +808,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             if (size == 0)
                 return;
         } else {
-             size = mSourceInput.getChannelVideoList().size();
+            size = mSourceInput.getChannelVideoList().size();
             if (size == 0)
                 return;
         }
@@ -857,7 +855,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             case DroidLogicTvUtils.SIG_INFO_TYPE_ATV:
             case DroidLogicTvUtils.SIG_INFO_TYPE_DTV:
                 mSourceInfoLayout.addView(inflate.inflate(R.layout.atv_dtv_info,
-                        mSourceInfoLayout, false));
+                                          mSourceInfoLayout, false));
                 mInfoLabel = (TextView) findViewById(R.id.ad_info_name);
                 mInfoNumber = (TextView) findViewById(R.id.ad_info_number);
                 mInfoName = (TextView) findViewById(R.id.ad_info_value);
@@ -865,13 +863,13 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             case DroidLogicTvUtils.SIG_INFO_TYPE_AV:
             case DroidLogicTvUtils.SIG_INFO_TYPE_HDMI:
                 mSourceInfoLayout.addView(inflate.inflate(R.layout.hdmi_av_info,
-                        mSourceInfoLayout, false));
+                                          mSourceInfoLayout, false));
                 mInfoLabel = (TextView) findViewById(R.id.ha_info_name);
                 mInfoName = (TextView) findViewById(R.id.ha_info_value);
                 break;
             default:
                 mSourceInfoLayout.addView(inflate.inflate(R.layout.atv_dtv_info,
-                        mSourceInfoLayout, false));
+                                          mSourceInfoLayout, false));
                 mInfoLabel = (TextView) findViewById(R.id.ad_info_name);
                 mInfoNumber = (TextView) findViewById(R.id.ad_info_number);
                 mInfoName = (TextView) findViewById(R.id.ad_info_value);
@@ -991,7 +989,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             case Utils.UI_TYPE_ATV_FAV_LIST:
             case Utils.UI_TYPE_DTV_FAV_LIST:
                 if (forceShow || type != mChannelListLayout.getType()
-                        || mChannelListLayout.getVisibility() != View.VISIBLE) {
+                    || mChannelListLayout.getVisibility() != View.VISIBLE) {
                     switch (type) {
                         case Utils.UI_TYPE_ATV_CHANNEL_LIST:
                         case Utils.UI_TYPE_ATV_FAV_LIST:
@@ -1000,7 +998,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                         case Utils.UI_TYPE_DTV_CHANNEL_LIST:
                         case Utils.UI_TYPE_DTV_FAV_LIST:
                             mChannelListLayout.initView(type, mSourceInput.getChannelVideoList(),
-                                    mSourceInput.getChannelRadioList());
+                                                        mSourceInput.getChannelRadioList());
                             break;
                         default:
                             break;
@@ -1250,7 +1248,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
 
         @Override
         public void onEvent(String inputId, String eventType, Bundle eventArgs) {
-            Utils.logd(TAG, "====onEvent==inputId =" + inputId +", ===eventType ="+ eventType);
+            Utils.logd(TAG, "====onEvent==inputId =" + inputId + ", ===eventType =" + eventType);
             processSessionEvent(inputId, eventType, eventArgs);
         }
 
@@ -1268,7 +1266,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             Utils.logd(TAG, "====onConnectionFailed==inputId =" + inputId);
             new Thread( new Runnable() {
                 public void run() {
-                    try{
+                    try {
                         Thread.sleep(200);
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -1282,7 +1280,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
 
         @Override
         public void onVideoUnavailable(String inputId, int reason) {
-            Utils.logd(TAG, "====onVideoUnavailable==inputId =" + inputId +", ===reason ="+ reason);
+            Utils.logd(TAG, "====onVideoUnavailable==inputId =" + inputId + ", ===reason =" + reason);
             switch (reason) {
                 case TvInputManager.VIDEO_UNAVAILABLE_REASON_UNKNOWN:
                 case TvInputManager.VIDEO_UNAVAILABLE_REASON_TUNING:
@@ -1321,8 +1319,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                             KeyEvent up = new KeyEvent(now, now, KeyEvent.ACTION_UP, DroidLogicKeyEvent.KEYCODE_POWER, 0);
                             InputManager.getInstance().injectInputEvent(down, InputManager.INJECT_INPUT_EVENT_MODE_WAIT_FOR_FINISH);
                             InputManager.getInstance().injectInputEvent(up, InputManager.INJECT_INPUT_EVENT_MODE_WAIT_FOR_FINISH);
-                        }
-                        else {
+                        } else {
                             if (mNoSignalShutdownCount < 60) {
                                 String str = mNoSignalShutdownCount + " " + getResources().getString(R.string.auto_shutdown_info);
                                 mTimePromptText.setText(str);
@@ -1333,8 +1330,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                             }
                             no_signal_handler.postDelayed(no_signal_runnable, 1000);
                         }
-                    }
-                    catch (RuntimeException e) {
+                    } catch (RuntimeException e) {
                         e.printStackTrace();
                     }
                 }
@@ -1389,8 +1385,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         LayoutInflater inflater = getLayoutInflater();
         View layout = inflater.inflate(R.layout.layout_hotkey, null);
 
-        TextView title =(TextView)layout.findViewById(R.id.toast_title);
-        TextView status =(TextView)layout.findViewById(R.id.toast_status);
+        TextView title = (TextView)layout.findViewById(R.id.toast_title);
+        TextView status = (TextView)layout.findViewById(R.id.toast_status);
 
         title.setText(titleStr);
         status.setText(statusStr);
@@ -1444,7 +1440,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
 
     private boolean isBootvideoStopped() {
         return !TextUtils.equals(mSystemControlManager.getProperty("service.bootvideo"), "1")
-                || TextUtils.equals(mSystemControlManager.getProperty("service.bootvideo.exit"), "1");
+               || TextUtils.equals(mSystemControlManager.getProperty("service.bootvideo.exit"), "1");
     }
 
     private void resetSubtitleTrack(boolean on) {
@@ -1454,12 +1450,12 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
 
                 int channelSpecificTrack = mSourceInput.getChannelInfo().getSubtitleTrackIndex();
                 if (channelSpecificTrack >= 0) {
-                        mSourceView.selectTrack(TvTrackInfo.TYPE_SUBTITLE, sTrackList.get(channelSpecificTrack).getId());
-                        return;
+                    mSourceView.selectTrack(TvTrackInfo.TYPE_SUBTITLE, sTrackList.get(channelSpecificTrack).getId());
+                    return;
                 }
                 if (channelSpecificTrack == -2) {
-                        mSourceView.selectTrack(TvTrackInfo.TYPE_SUBTITLE, null);
-                        return;
+                    mSourceView.selectTrack(TvTrackInfo.TYPE_SUBTITLE, null);
+                    return;
                 }
 
                 String def_lan = Settings.System.getString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DEFAULT_LANGUAGE);

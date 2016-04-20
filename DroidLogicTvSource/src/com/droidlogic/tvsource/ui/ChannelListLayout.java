@@ -69,7 +69,7 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
 
     public void initView(int type, SparseArray<ChannelInfo> video, SparseArray<ChannelInfo> radio) {
         Utils.logd(TAG, "==== init dtv list, type =" + type + ", video size =" + video.size()
-                + ", radio size =" + radio.size());
+                   + ", radio size =" + radio.size());
         mType = type;
         tabFlag = true;
         initTab();
@@ -198,7 +198,7 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
         }
     }
 
-    private void textViewFocus(TextView view){
+    private void textViewFocus(TextView view) {
         ColorStateList csl;
         csl = (ColorStateList) mResources.getColorStateList(R.color.channel_list_tab_focus);
         if (csl != null) {
@@ -207,7 +207,7 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
         view.setBackgroundResource(R.drawable.dtv_tab_focus);
     }
 
-    private void textViewUnfocus(TextView view){
+    private void textViewUnfocus(TextView view) {
         ColorStateList csl;
         csl = (ColorStateList) mResources.getColorStateList(R.color.color_text_main);
         if (csl != null) {

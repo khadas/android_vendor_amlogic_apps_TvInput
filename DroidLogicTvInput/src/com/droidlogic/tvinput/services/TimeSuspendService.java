@@ -48,7 +48,7 @@ public class TimeSuspendService extends Service {
     public int onStartCommand ( Intent intent, int flags, int startId ) {
         Log.d ( TAG, "onStartCommand");
         if (intent != null)
-            Log.d(TAG, "intent="+intent);
+            Log.d(TAG, "intent=" + intent);
 
         reset_shutdown_time();
 
@@ -94,22 +94,20 @@ public class TimeSuspendService extends Service {
                     InputManager.getInstance().injectInputEvent(down, InputManager.INJECT_INPUT_EVENT_MODE_WAIT_FOR_FINISH);
                     InputManager.getInstance().injectInputEvent(up, InputManager.INJECT_INPUT_EVENT_MODE_WAIT_FOR_FINISH);
                     stopSelf();
-                }
-                else {
+                } else {
                     if (mSuspendCount == 60) {
                         String str = mSuspendCount + " " + getResources().getString(R.string.countdown_tips);
                         initTimeSuspend();
                         mCountDownText.setText(str);
                         mDialog.show();
-                    } else if (mSuspendCount < 60){
+                    } else if (mSuspendCount < 60) {
                         String str = mSuspendCount + " " + getResources().getString(R.string.countdown_tips);
                         mCountDownText.setText(str);
                     }
                     timeSuspend_handler.postDelayed(timeSuspend_runnable, 1000);
                 }
-            }
-            catch (RuntimeException e) {
-                        e.printStackTrace();
+            } catch (RuntimeException e) {
+                e.printStackTrace();
             }
 
         }
@@ -117,10 +115,10 @@ public class TimeSuspendService extends Service {
 
     private void reset_shutdown_time() {
         int sleepTime = SystemProperties.getInt("tv.sleep_timer", 0);
-        mSuspendCount = sleepTime*60;
+        mSuspendCount = sleepTime * 60;
         if (mSuspendCount > 60) {
             timeSuspend_handler.removeCallbacks(timeSuspend_runnable);
-            timeSuspend_handler.postDelayed(timeSuspend_runnable, (mSuspendCount-60)*1000);
+            timeSuspend_handler.postDelayed(timeSuspend_runnable, (mSuspendCount - 60) * 1000);
         }
     }
 

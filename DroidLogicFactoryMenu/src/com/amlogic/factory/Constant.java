@@ -7,8 +7,7 @@ package com.amlogic.factory;
 
 import android.R.integer;
 
-public class Constant
-{
+public class Constant {
     /* constant used to identify father ListView's content when change son ListView's content */
     public static final int PAGE_CALIBRATE = 0;
     public static final int PAGE_PICTUREMODE = 1;
@@ -56,7 +55,8 @@ public class Constant
     public static final int FACUI_PICMODE_PORT_DTV = R.string.facui_picmode_port_dtv;
     /*picture mode mode's int[]*/
     public static final int[] mInputPortList = {FACUI_PICMODE_PORT_TV, FACUI_PICMODE_PORT_AV, FACUI_PICMODE_PORT_YPBPR, FACUI_PICMODE_PORT_HDMI,
-            FACUI_PICMODE_PORT_VGA, FACUI_PICMODE_PORT_MPEG, FACUI_PICMODE_PORT_DTV};
+                                                FACUI_PICMODE_PORT_VGA, FACUI_PICMODE_PORT_MPEG, FACUI_PICMODE_PORT_DTV
+                                               };
     public static final int FACUI_PICMODE_MODE = R.string.facui_picmode_mode;
     public static final int FACUI_PICMODE_MODE_STANDARD = R.string.facui_picmode_mode_standard;
     public static final int FACUI_PICMODE_MODE_LIGHT = R.string.facui_picmode_mode_light;
@@ -64,7 +64,8 @@ public class Constant
     public static final int FACUI_PICMODE_MODE_USER = R.string.facui_picmode_mode_user;
     /*picture mode mode's int[]*/
     public static final int[] mShowModeList = {FACUI_PICMODE_MODE_STANDARD, FACUI_PICMODE_MODE_LIGHT, FACUI_PICMODE_MODE_SOFT,
-            FACUI_PICMODE_MODE_USER};
+                                               FACUI_PICMODE_MODE_USER
+                                              };
     public static final int FACUI_PICMODE_BRIGHTNESS = R.string.facui_picmode_brightness;
     public static final int FACUI_PICMODE_CONTRAST = R.string.facui_picmode_contrast;
     public static final int FACUI_PICMODE_COLOR = R.string.facui_picmode_color;
@@ -132,8 +133,9 @@ public class Constant
     public static final int FACUI_CHONGXIAN_STATUS3D_FRAME_ALTERNATIVE = R.string.facui_chongxian_status3d_frame_alternative;
     public static final int FACUI_CHONGXIAN_STATUS3D_MAX = R.string.facui_chongxian_status3d_max;
     public static final int[] mChongxianTvIn3Dstatus = {FACUI_CHONGXIAN_STATUS3D_DISABLE, FACUI_CHONGXIAN_STATUS3D_AUTO,
-            FACUI_CHONGXIAN_STATUS3D_2D_TO_3D, FACUI_CHONGXIAN_STATUS3D_LR, FACUI_CHONGXIAN_STATUS3D_BT, FACUI_CHONGXIAN_STATUS3D_LINE_ALTERNATIVE,
-            FACUI_CHONGXIAN_STATUS3D_FRAME_ALTERNATIVE, FACUI_CHONGXIAN_STATUS3D_MAX};
+                                                        FACUI_CHONGXIAN_STATUS3D_2D_TO_3D, FACUI_CHONGXIAN_STATUS3D_LR, FACUI_CHONGXIAN_STATUS3D_BT, FACUI_CHONGXIAN_STATUS3D_LINE_ALTERNATIVE,
+                                                        FACUI_CHONGXIAN_STATUS3D_FRAME_ALTERNATIVE, FACUI_CHONGXIAN_STATUS3D_MAX
+                                                       };
     public static final int FACUI_CHONGXIAN_TVIN_TRANS_FMT = R.string.facui_chongxian_tvin_trans_fmt;
     public static final int FACUI_CHONGXIAN_TVIN_TFMT_2D = R.string.facui_chongxian_tvin_tfmt_2d;
     public static final int FACUI_CHONGXIAN_TVIN_TFMT_3D_LRH_OLOR = R.string.facui_chongxian_tvin_tfmt_3d_lrh_olor;
@@ -153,11 +155,12 @@ public class Constant
     public static final int FACUI_CHONGXIAN_TVIN_TFMT_3D_DET_CHESSBOARD = R.string.facui_chongxian_tvin_tfmt_3d_det_chessboard;
     public static final int FACUI_CHONGXIAN_TVIN_TFMT_3D_MAX = R.string.facui_chongxian_tvin_tfmt_3d_max;
     public static final int[] mChongxianTvInTransFmt = {FACUI_CHONGXIAN_TVIN_TFMT_2D, FACUI_CHONGXIAN_TVIN_TFMT_3D_LRH_OLOR,
-            FACUI_CHONGXIAN_TVIN_TFMT_3D_LRH_OLER, FACUI_CHONGXIAN_TVIN_TFMT_3D_LRH_ELOR, FACUI_CHONGXIAN_TVIN_TFMT_3D_LRH_ELER,
-            FACUI_CHONGXIAN_TVIN_TFMT_3D_TB, FACUI_CHONGXIAN_TVIN_TFMT_3D_FP, FACUI_CHONGXIAN_TVIN_TFMT_3D_FA, FACUI_CHONGXIAN_TVIN_TFMT_3D_LA,
-            FACUI_CHONGXIAN_TVIN_TFMT_3D_LRF, FACUI_CHONGXIAN_TVIN_TFMT_3D_LD, FACUI_CHONGXIAN_TVIN_TFMT_3D_LDGD,
-            FACUI_CHONGXIAN_TVIN_TFMT_3D_DET_TB, FACUI_CHONGXIAN_TVIN_TFMT_3D_DET_LR, FACUI_CHONGXIAN_TVIN_TFMT_3D_DET_INTERLACE,
-            FACUI_CHONGXIAN_TVIN_TFMT_3D_DET_CHESSBOARD, FACUI_CHONGXIAN_TVIN_TFMT_3D_MAX};
+                                                        FACUI_CHONGXIAN_TVIN_TFMT_3D_LRH_OLER, FACUI_CHONGXIAN_TVIN_TFMT_3D_LRH_ELOR, FACUI_CHONGXIAN_TVIN_TFMT_3D_LRH_ELER,
+                                                        FACUI_CHONGXIAN_TVIN_TFMT_3D_TB, FACUI_CHONGXIAN_TVIN_TFMT_3D_FP, FACUI_CHONGXIAN_TVIN_TFMT_3D_FA, FACUI_CHONGXIAN_TVIN_TFMT_3D_LA,
+                                                        FACUI_CHONGXIAN_TVIN_TFMT_3D_LRF, FACUI_CHONGXIAN_TVIN_TFMT_3D_LD, FACUI_CHONGXIAN_TVIN_TFMT_3D_LDGD,
+                                                        FACUI_CHONGXIAN_TVIN_TFMT_3D_DET_TB, FACUI_CHONGXIAN_TVIN_TFMT_3D_DET_LR, FACUI_CHONGXIAN_TVIN_TFMT_3D_DET_INTERLACE,
+                                                        FACUI_CHONGXIAN_TVIN_TFMT_3D_DET_CHESSBOARD, FACUI_CHONGXIAN_TVIN_TFMT_3D_MAX
+                                                       };
 
     public static final int FACUI_CHONGXIAN_HSTART = R.string.facui_chongxian_hstart;
     public static final int FACUI_CHONGXIAN_VSTART = R.string.facui_chongxian_vstart;
@@ -172,7 +175,8 @@ public class Constant
     public static final int FACUI_GONGNENG_CESHITU_WHITE = R.string.facui_gongneng_ceshitu_white;
     public static final int FACUI_GONGNENG_CESHITU_BLACK = R.string.facui_gongneng_ceshitu_black;
     public static final int[] CESHITUARRAY_STRINGS = {FACUI_GONGNENG_CESHITU_OFF, FACUI_GONGNENG_CESHITU_RED, FACUI_GONGNENG_CESHITU_GREEN,
-            FACUI_GONGNENG_CESHITU_BLUE, FACUI_GONGNENG_CESHITU_WHITE, FACUI_GONGNENG_CESHITU_BLACK};
+                                                      FACUI_GONGNENG_CESHITU_BLUE, FACUI_GONGNENG_CESHITU_WHITE, FACUI_GONGNENG_CESHITU_BLACK
+                                                     };
 
     public static final int FACUI_LAOHUA = R.string.facui_laohua;
     public static final int FACUI_LAOHUA_ON = R.string.facui_laohua_on;

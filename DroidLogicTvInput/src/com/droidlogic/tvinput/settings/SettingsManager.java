@@ -281,7 +281,7 @@ public class SettingsManager {
         //channel
         else if (key.equals(KEY_CHANNEL_INFO)) {
             return getCurrentChannelStatus();
-        }else if (key.equals(KEY_AUIDO_TRACK)) {
+        } else if (key.equals(KEY_AUIDO_TRACK)) {
             return getAudioTrackStatus();
         } else if (key.equals(KEY_SOUND_CHANNEL)) {
             return getSoundChannelStatus();
@@ -361,7 +361,7 @@ public class SettingsManager {
             }
         } else if (mTvSource == TvControlManager.SourceInput_Type.SOURCE_TYPE_AV) {
             info = mTvControlManager.GetCurrentSignalInfo();
-            if (info.sigStatus== TVInSignalInfo.SignalStatus.TVIN_SIG_STATUS_STABLE) {
+            if (info.sigStatus == TVInSignalInfo.SignalStatus.TVIN_SIG_STATUS_STABLE) {
                 String[] strings = info.sigFmt.toString().split("_");
                 if (strings[4].contains("NTSC")) {
                     Log.d(TAG, "AV NTSC mode signal is stable, show Tint");
@@ -517,31 +517,31 @@ public class SettingsManager {
         return null;
     }
 
-    public ArrayList<HashMap<String,Object>> getChannelInfo () {
-        ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
+    public ArrayList<HashMap<String, Object>> getChannelInfo () {
+        ArrayList<HashMap<String, Object>> list =  new ArrayList<HashMap<String, Object>>();
         if (currentChannel != null) {
-            HashMap<String,Object> item = new HashMap<String,Object>();
+            HashMap<String, Object> item = new HashMap<String, Object>();
             item.put(STRING_NAME, mResources.getString(R.string.channel_l));
             item.put(STRING_STATUS, Integer.toString(getFrequency() + getFineTune()));
             list.add(item);
 
-            item = new HashMap<String,Object>();
+            item = new HashMap<String, Object>();
             item.put(STRING_NAME, mResources.getString(R.string.frequency_l));
             item.put(STRING_STATUS, Integer.toString(getFrequency() + getFineTune()));
             list.add(item);
 
             if (mTvSource == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
-                item = new HashMap<String,Object>();
+                item = new HashMap<String, Object>();
                 item.put(STRING_NAME, mResources.getString(R.string.type));
                 item.put(STRING_STATUS, currentChannel.getType());
                 list.add(item);
 
-                item = new HashMap<String,Object>();
+                item = new HashMap<String, Object>();
                 item.put(STRING_NAME, mResources.getString(R.string.service_id));
                 item.put(STRING_STATUS, Integer.toString(currentChannel.getServiceId()));
                 list.add(item);
 
-                item = new HashMap<String,Object>();
+                item = new HashMap<String, Object>();
                 item.put(STRING_NAME, mResources.getString(R.string.pcr_id));
                 item.put(STRING_STATUS, Integer.toString(currentChannel.getPcrPid()));
                 list.add(item);
@@ -550,12 +550,12 @@ public class SettingsManager {
         return list;
     }
 
-    public ArrayList<HashMap<String,Object>> getAudioTrackList () {
-        ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
+    public ArrayList<HashMap<String, Object>> getAudioTrackList () {
+        ArrayList<HashMap<String, Object>> list =  new ArrayList<HashMap<String, Object>>();
 
         if (currentChannel != null && currentChannel.getAudioLangs() != null)
-            for (int i=0;i<currentChannel.getAudioLangs().length;i++) {
-                HashMap<String,Object> item = new HashMap<String,Object>();
+            for (int i = 0; i < currentChannel.getAudioLangs().length; i++) {
+                HashMap<String, Object> item = new HashMap<String, Object>();
                 item.put(STRING_NAME, currentChannel.getAudioLangs()[i]);
                 list.add(item);
             }
@@ -563,30 +563,30 @@ public class SettingsManager {
         return list;
     }
 
-    public ArrayList<HashMap<String,Object>> getSoundChannelList () {
-        ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
+    public ArrayList<HashMap<String, Object>> getSoundChannelList () {
+        ArrayList<HashMap<String, Object>> list =  new ArrayList<HashMap<String, Object>>();
 
-        HashMap<String,Object> item = new HashMap<String,Object>();
+        HashMap<String, Object> item = new HashMap<String, Object>();
         item.put(STRING_NAME, mResources.getString(R.string.stereo));
         list.add(item);
 
-        item = new HashMap<String,Object>();
+        item = new HashMap<String, Object>();
         item.put(STRING_NAME, mResources.getString(R.string.left_channel));
         list.add(item);
 
-        item = new HashMap<String,Object>();
+        item = new HashMap<String, Object>();
         item.put(STRING_NAME, mResources.getString(R.string.right_channel));
         list.add(item);
 
         return list;
     }
 
-    public ArrayList<HashMap<String,Object>> getDefaultLanguageList () {
-        ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
+    public ArrayList<HashMap<String, Object>> getDefaultLanguageList () {
+        ArrayList<HashMap<String, Object>> list =  new ArrayList<HashMap<String, Object>>();
 
         String[] def_lanArray = mResources.getStringArray(R.array.def_lan);
         for (String lanNameString : def_lanArray) {
-            HashMap<String,Object> item = new HashMap<String,Object>();
+            HashMap<String, Object> item = new HashMap<String, Object>();
             item.put(STRING_NAME, lanNameString);
             list.add(item);
         }
@@ -631,8 +631,7 @@ public class SettingsManager {
 
     public String getColorSystemStatus () {
         if (currentChannel != null) {
-            switch (currentChannel.getVideoStd())
-            {
+            switch (currentChannel.getVideoStd()) {
                 case 1:
                     return mResources.getString(R.string.pal);
                 case 2:
@@ -646,8 +645,7 @@ public class SettingsManager {
 
     public String getSoundSystemStatus () {
         if (currentChannel != null) {
-            switch (currentChannel.getAudioStd())
-            {
+            switch (currentChannel.getAudioStd()) {
                 case 0:
                     return mResources.getString(R.string.sound_system_dk);
                 case 1:
@@ -676,8 +674,8 @@ public class SettingsManager {
     }
 
 
-    private static final int FineTuneRange = 2*1000*1000; /*Hz*/
-    private static final int FineTuneStepSize = 50*1000; /*Hz*/
+    private static final int FineTuneRange = 2 * 1000 * 1000; /*Hz*/
+    private static final int FineTuneStepSize = 50 * 1000; /*Hz*/
     public int getFrequency () {
         if (currentChannel != null)
             return currentChannel.getFrequency();
@@ -709,7 +707,7 @@ public class SettingsManager {
     public void setFineTuneStep(int step) {
         if (currentChannel != null) {
             int finetune = currentChannel.getFineTune() + (step * FineTuneStepSize);
-            if ((finetune > FineTuneRange) || (finetune < -1*FineTuneRange))
+            if ((finetune > FineTuneRange) || (finetune < -1 * FineTuneRange))
                 return;
             setFineTune(finetune);
         }
@@ -717,13 +715,13 @@ public class SettingsManager {
 
     public void setFineTune(int finetune) {
         if (currentChannel != null) {
-            Log.d(TAG, "FineTune["+finetune+"]");
+            Log.d(TAG, "FineTune[" + finetune + "]");
             currentChannel.setFinetune(finetune);
             mTvDataBaseManager.updateChannelInfo(currentChannel);
             mTvControlManager.SetFrontendParms(TvControlManager.tv_fe_type_e.TV_FE_ANALOG,
-                currentChannel.getFrequency() + currentChannel.getFineTune(),
-                currentChannel.getVideoStd(), currentChannel.getAudioStd(),
-                0, 0);
+                                               currentChannel.getFrequency() + currentChannel.getFineTune(),
+                                               currentChannel.getVideoStd(), currentChannel.getAudioStd(),
+                                               0, 0);
         }
     }
 
@@ -770,14 +768,14 @@ public class SettingsManager {
         return mSearchedNumber;
     }
 
-    public ArrayList<HashMap<String,Object>> getChannelList (int type) {
-        ArrayList<HashMap<String,Object>> list =  new ArrayList<HashMap<String,Object>>();
+    public ArrayList<HashMap<String, Object>> getChannelList (int type) {
+        ArrayList<HashMap<String, Object>> list =  new ArrayList<HashMap<String, Object>>();
         ArrayList<ChannelInfo> channelList = getChannelInfoList(type);
 
         if (channelList.size() > 0) {
             for (int i = 0 ; i < channelList.size(); i++) {
                 ChannelInfo info = channelList.get(i);
-                HashMap<String,Object> item = new HashMap<String,Object>();
+                HashMap<String, Object> item = new HashMap<String, Object>();
                 if (!info.isBrowsable())
                     item.put(STRING_ICON, R.drawable.skip);
                 else if (info.isFavourite())
@@ -789,7 +787,7 @@ public class SettingsManager {
                 list.add(item);
             }
         } else {
-            HashMap<String,Object> item = new HashMap<String,Object>();
+            HashMap<String, Object> item = new HashMap<String, Object>();
             item.put(STRING_ICON, null);
             item.put(STRING_NAME, mResources.getString(R.string.error_no_channel));
             list.add(item);
@@ -846,8 +844,7 @@ public class SettingsManager {
     public String getSleepTimerStatus () {
         String ret = "";
         int time = SystemProperties.getInt("tv.sleep_timer", 0);
-        switch (time)
-        {
+        switch (time) {
             case 0://off
                 ret = mResources.getString(R.string.off);
                 break;
@@ -933,7 +930,8 @@ public class SettingsManager {
 
         switch (mTvControlManager.GetPQMode(mTvSource)) {
             case 0:
-            case 1:;
+            case 1:
+                ;
             case 2:
                 setPictureMode(STATUS_USER);
                 break;
@@ -987,10 +985,10 @@ public class SettingsManager {
     public void setColor (int step) {
         if (mTvControlManager.GetPQMode(mTvSource) == 3)
             mTvControlManager.SetSaturation(mTvControlManager.GetSaturation(mTvSource) + step,
-                mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
+                                            mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
         else
             mTvControlManager.SetSaturation(setPictureUserMode(KEY_COLOR) + step,
-                mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
+                                            mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
     }
 
     public void setSharpness (int step) {
@@ -1004,10 +1002,10 @@ public class SettingsManager {
         if (isShowTint()) {
             if (mTvControlManager.GetPQMode(mTvSource) == 3)
                 mTvControlManager.SetHue(mTvControlManager.GetHue(mTvSource) + step, mTvSource,
-                    mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
+                                         mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
             else
                 mTvControlManager.SetHue(setPictureUserMode(KEY_TINT) + step, mTvSource,
-                    mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
+                                         mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
         }
     }
 
@@ -1030,16 +1028,16 @@ public class SettingsManager {
     public void setAspectRatio(String mode) {
         if (mode.equals(STATUS_AUTO)) {
             mTvControlManager.SetDisplayMode(TvControlManager.Display_Mode.DISPLAY_MODE_NORMAL,
-                mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
+                                             mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
         } else if (mode.equals(STATUS_4_TO_3)) {
             mTvControlManager.SetDisplayMode(TvControlManager.Display_Mode.DISPLAY_MODE_MODE43,
-                mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
+                                             mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
         } else if (mode.equals(STATUS_PANORAMA)) {
             mTvControlManager.SetDisplayMode(TvControlManager.Display_Mode.DISPLAY_MODE_FULL,
-                mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
+                                             mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
         } else if (mode.equals(STATUS_FULL_SCREEN)) {
             mTvControlManager.SetDisplayMode(TvControlManager.Display_Mode.DISPLAY_MODE_169,
-                mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
+                                             mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
         }
     }
 
@@ -1173,39 +1171,39 @@ public class SettingsManager {
     public void setAudioTrack (int position) {
         if (currentChannel != null) {
             mTvControlManager.DtvSwitchAudioTrack(currentChannel.getAudioPids()[position],
-                currentChannel.getAudioFormats()[position], 0);
+                                                  currentChannel.getAudioFormats()[position], 0);
             currentChannel.setAudioTrackIndex(position);
             mTvDataBaseManager.updateChannelInfo(currentChannel);
         }
     }
 
     public void setSoundChannel (int mode) {
-       if (currentChannel != null) {
-           currentChannel.setAudioChannel(mode);
-           mTvDataBaseManager.updateChannelInfo(currentChannel);
-           mTvControlManager.DtvSetAudioChannleMod(currentChannel.getAudioChannel());
-       }
+        if (currentChannel != null) {
+            currentChannel.setAudioChannel(mode);
+            mTvDataBaseManager.updateChannelInfo(currentChannel);
+            mTvControlManager.DtvSetAudioChannleMod(currentChannel.getAudioChannel());
+        }
     }
 
     public void setDefLanguage (int position) {
         String[] def_lanArray = mResources.getStringArray(R.array.def_lan);
         Settings.System.putString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DEFAULT_LANGUAGE, def_lanArray[position]);
-/*
-        ArrayList<ChannelInfo> mVideoChannels = mTvDataBaseManager.getChannelList(mInputId, Channels.SERVICE_TYPE_AUDIO_VIDEO);
-        int trackIdx = 0;
-        for (ChannelInfo channel : mVideoChannels) {
-            if (channel.getAudioLangs() != null) {
-                String[] strArray = channel.getAudioLangs();
-                for (trackIdx = 0;trackIdx < strArray.length;trackIdx++) {
-                    if (def_lanArray[position].equals(strArray[trackIdx]))
-                        break;
+        /*
+                ArrayList<ChannelInfo> mVideoChannels = mTvDataBaseManager.getChannelList(mInputId, Channels.SERVICE_TYPE_AUDIO_VIDEO);
+                int trackIdx = 0;
+                for (ChannelInfo channel : mVideoChannels) {
+                    if (channel.getAudioLangs() != null) {
+                        String[] strArray = channel.getAudioLangs();
+                        for (trackIdx = 0;trackIdx < strArray.length;trackIdx++) {
+                            if (def_lanArray[position].equals(strArray[trackIdx]))
+                                break;
+                        }
+                        trackIdx %= strArray.length;
+                        channel.setAudioTrackIndex(trackIdx);
+                        mTvDataBaseManager.updateChannelInfo(channel);
+                    }
                 }
-                trackIdx %= strArray.length;
-                channel.setAudioTrackIndex(trackIdx);
-                mTvDataBaseManager.updateChannelInfo(channel);
-            }
-        }
-*/
+        */
     }
 
     public void setColorSystem(int mode) {
@@ -1213,20 +1211,20 @@ public class SettingsManager {
             currentChannel.setVideoStd(mode);
             mTvDataBaseManager.updateChannelInfo(currentChannel);
             mTvControlManager.SetFrontendParms(TvControlManager.tv_fe_type_e.TV_FE_ANALOG, currentChannel.getFrequency(),
-                currentChannel.getVideoStd(), currentChannel.getAudioStd(), 0, currentChannel.getFineTune());
+                                               currentChannel.getVideoStd(), currentChannel.getAudioStd(), 0, currentChannel.getFineTune());
         }
     }
 
-     public void setSoundSystem(int mode) {
+    public void setSoundSystem(int mode) {
         if (currentChannel != null) {
             currentChannel.setAudioStd(mode);
             mTvDataBaseManager.updateChannelInfo(currentChannel);
             mTvControlManager.SetFrontendParms(TvControlManager.tv_fe_type_e.TV_FE_ANALOG, currentChannel.getFrequency(),
-                currentChannel.getVideoStd(), currentChannel.getAudioStd(), 0, currentChannel.getFineTune());
+                                               currentChannel.getVideoStd(), currentChannel.getAudioStd(), 0, currentChannel.getFineTune());
         }
     }
 
-     public void setVolumeCompensate (int offset) {
+    public void setVolumeCompensate (int offset) {
         if (currentChannel != null) {
             if ((currentChannel.getAudioCompensation() < 20 && offset > 0)
                 || (currentChannel.getAudioCompensation() > -20 && offset < 0)) {
@@ -1235,7 +1233,7 @@ public class SettingsManager {
                 mTvControlManager.SetCurProgVolumeCompesition(currentChannel.getAudioCompensation());
             }
         }
-     }
+    }
 
     public void setChannelName (int type, int channelNumber, String targetName) {
         ChannelInfo channel = getChannelByIndex(type, channelNumber);
@@ -1266,7 +1264,7 @@ public class SettingsManager {
     public void skipChannel (int type, int channelNumber) {
         ChannelInfo channel = getChannelByIndex(type, channelNumber);
         //if (ChannelInfo.isSameChannel(currentChannel, channel))
-            //setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
+        //setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
 
         mTvDataBaseManager.skipChannel(channel);
     }
@@ -1274,7 +1272,7 @@ public class SettingsManager {
     public  void deleteChannel (int type, int channelNumber) {
         ArrayList<ChannelInfo> channelList = getChannelInfoList(type);
         //if (ChannelInfo.isSameChannel(currentChannel,  channelList.get(channelNumber)))
-            //setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
+        //setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
 
         ChannelInfo channel = channelList.get(channelNumber);
         mTvDataBaseManager.deleteChannel(channel);
@@ -1286,7 +1284,7 @@ public class SettingsManager {
     }
 
     public void setSleepTimer (int mins) {
-        SystemProperties.set("tv.sleep_timer", mins+"");
+        SystemProperties.set("tv.sleep_timer", mins + "");
         //Intent intent = new Intent(DroidLogicTvUtils.ACTION_TIMEOUT_SUSPEND);
         //mContext.sendBroadcast(intent);//to tvapp
         mContext.startService ( new Intent ( mContext, TimeSuspendService.class ) );
@@ -1311,8 +1309,8 @@ public class SettingsManager {
         setStartupSetting(0);
         setDefLanguage(0);
         setSubtitleSwitch(0);
-       // SystemControlManager mSystemControlManager = new SystemControlManager(mContext);
-       // mSystemControlManager.setBootenv("ubootenv.var.upgrade_step", "1");
+        // SystemControlManager mSystemControlManager = new SystemControlManager(mContext);
+        // mSystemControlManager.setBootenv("ubootenv.var.upgrade_step", "1");
 
         for (int i = 0; i < tvPackages.length; i++) {
             ClearPackageData(tvPackages[i]);

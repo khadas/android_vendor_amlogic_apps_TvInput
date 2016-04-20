@@ -28,7 +28,7 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
     private Context mContext;
     private int selectedPosition = 0;
 
-    public ContentListView (Context context){
+    public ContentListView (Context context) {
         super(context);
     }
     public ContentListView (Context context, AttributeSet attrs) {
@@ -38,7 +38,7 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
         setOnItemSelectedListener(this);
     }
 
-    public ContentListView (Context context, AttributeSet attrs, int defStyle){
+    public ContentListView (Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
     }
 
@@ -51,7 +51,7 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
                         return true;
                     break;
                 case KeyEvent.KEYCODE_DPAD_DOWN:
-                    if (selectedPosition == getChildCount() -1)
+                    if (selectedPosition == getChildCount() - 1)
                         return true;
                     break;
                 case KeyEvent.KEYCODE_DPAD_LEFT:
@@ -90,7 +90,7 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
 
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
-	}
+    }
 
     @Override
     protected void onFocusChanged (boolean gainFocus, int direction, Rect previouslyFocusedRect) {
@@ -104,37 +104,37 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
     }
 
     private void createOptionView (int position) {
-            RelativeLayout main_view = (RelativeLayout)((TvSettingsActivity)mContext).findViewById(R.id.main);
-            View item_view = getChildAt(position);
+        RelativeLayout main_view = (RelativeLayout)((TvSettingsActivity)mContext).findViewById(R.id.main);
+        View item_view = getChildAt(position);
 
-            if (((TvSettingsActivity)mContext).mOptionLayout != null)
-                main_view.removeView(((TvSettingsActivity)mContext).mOptionLayout);
+        if (((TvSettingsActivity)mContext).mOptionLayout != null)
+            main_view.removeView(((TvSettingsActivity)mContext).mOptionLayout);
 
-            ((TvSettingsActivity)mContext).mOptionLayout = new RelativeLayout(mContext);
+        ((TvSettingsActivity)mContext).mOptionLayout = new RelativeLayout(mContext);
 
-            RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT);
-            lp.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
-            lp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-            Rect rect = new Rect();
-            item_view.getGlobalVisibleRect(rect);
-            lp.leftMargin=rect.right - dipToPx(mContext, 30f);
+        RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+        lp.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+        lp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+        Rect rect = new Rect();
+        item_view.getGlobalVisibleRect(rect);
+        lp.leftMargin = rect.right - dipToPx(mContext, 30f);
 
-            //set optionview positon, 100f means make option up, 466f means option view backgroud png's height.
-            if (rect.top - dipToPx(mContext, 100f) + dipToPx(mContext, 526f)
-                <= mContext.getResources().getDisplayMetrics().heightPixels) {
-                lp.topMargin = rect.top - dipToPx(mContext, 100f);
-            } else {
-                lp.topMargin = mContext.getResources().getDisplayMetrics().heightPixels - dipToPx(mContext, 526f);
-            }
-            ((TvSettingsActivity)mContext).mOptionLayout.setLayoutParams(lp);
-            ((TvSettingsActivity)mContext).mOptionLayout.setBackgroundResource(R.drawable.background_option);
+        //set optionview positon, 100f means make option up, 466f means option view backgroud png's height.
+        if (rect.top - dipToPx(mContext, 100f) + dipToPx(mContext, 526f)
+            <= mContext.getResources().getDisplayMetrics().heightPixels) {
+            lp.topMargin = rect.top - dipToPx(mContext, 100f);
+        } else {
+            lp.topMargin = mContext.getResources().getDisplayMetrics().heightPixels - dipToPx(mContext, 526f);
+        }
+        ((TvSettingsActivity)mContext).mOptionLayout.setLayoutParams(lp);
+        ((TvSettingsActivity)mContext).mOptionLayout.setBackgroundResource(R.drawable.background_option);
 
-            main_view.addView(((TvSettingsActivity)mContext).mOptionLayout);
-            createOptionChildView(((TvSettingsActivity)mContext).mOptionLayout, position);
+        main_view.addView(((TvSettingsActivity)mContext).mOptionLayout);
+        createOptionChildView(((TvSettingsActivity)mContext).mOptionLayout, position);
     }
 
     private void createOptionChildView (View option_view, int position) {
-        LayoutInflater inflater =(LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        LayoutInflater inflater = (LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
         getOptionUiManager().setOptionTag(position);
         int layout_option_child = getOptionUiManager().getLayoutId();

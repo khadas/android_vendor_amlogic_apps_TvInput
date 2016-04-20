@@ -63,12 +63,12 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
      * invoked when device hot plug-out.
      */
     public int remove(String inputId) {
-        Utils.logd(TAG, "==== remove, current id ="+ curSourceInput.getInputId());
+        Utils.logd(TAG, "==== remove, current id =" + curSourceInput.getInputId());
         if (getSourceCount() == 0 || TextUtils.isEmpty(inputId))
             return ACTION_FAILED;
         int count = getSourceCount();
         int i = 1;
-        for (; i<count+1; i++) {
+        for (; i < count + 1; i++) {
             SourceButton sb = (SourceButton) mRoot.getChildAt(i);
             if (TextUtils.equals(sb.getInputId(), inputId)) {
                 if (sb.isHardware()) {
@@ -139,7 +139,7 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
             mAvaiableSourceCount = 0;
         }
 
-        for (String id:getAllDeviceIds()) {//init all hardware devices
+        for (String id : getAllDeviceIds()) { //init all hardware devices
             device_id = Integer.parseInt(id);
             SourceButton sb = new SourceButton(mContext, device_id);
             initSourceInput(sb);
@@ -150,7 +150,7 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
             Utils.logd(TAG, "==== refresh, sb = " + sb);
             sb.setOnSourceClickListener(this);
         }
-        for (int i=mSourceInputs.size()-1; i >= 0; i--) {//add hardware input to root
+        for (int i = mSourceInputs.size() - 1; i >= 0; i--) { //add hardware input to root
             mRoot.addView(mSourceInputs.valueAt(i), 1);
         }
         List<TvInputInfo> input_list = mTvInputManager.getTvInputList();
@@ -205,9 +205,9 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
     }
 
     public void setDefaultSourceInfo(int device_id, int atv_channel, int dtv_channel,
-            boolean is_radio) {
+                                     boolean is_radio) {
         Utils.logd(TAG, "device_id=" + device_id + ", atv_channel=" + atv_channel
-                + ", dtv_channel=" + dtv_channel + ", is_radio=" + is_radio);
+                   + ", dtv_channel=" + dtv_channel + ", is_radio=" + is_radio);
         defaultDeviceId = device_id;
         defaultAtvChannel = atv_channel;
         defaultDtvChannel = dtv_channel;

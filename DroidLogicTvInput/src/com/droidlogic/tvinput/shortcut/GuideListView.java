@@ -40,7 +40,7 @@ public class GuideListView extends ListView implements OnItemSelectedListener {
     private ListItemSelectedListener mListItemSelectedListener;
 
 
-    public GuideListView(Context context){
+    public GuideListView(Context context) {
         super(context);
     }
     public GuideListView(Context context, AttributeSet attrs) {
@@ -59,7 +59,7 @@ public class GuideListView extends ListView implements OnItemSelectedListener {
                         return true;
                     break;
                 case KeyEvent.KEYCODE_DPAD_DOWN:
-                    if (selectedPosition == getAdapter().getCount() -1)
+                    if (selectedPosition == getAdapter().getCount() - 1)
                         return true;
                     break;
                 case KeyEvent.KEYCODE_DPAD_LEFT:
@@ -109,7 +109,7 @@ public class GuideListView extends ListView implements OnItemSelectedListener {
 
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
-	}
+    }
 
     @Override
     protected void onFocusChanged (boolean gainFocus, int direction, Rect previouslyFocusedRect) {
@@ -143,13 +143,13 @@ public class GuideListView extends ListView implements OnItemSelectedListener {
             int color_text_focused = mContext.getResources().getColor(R.color.color_text_focused);
             if (item_name != null)
                 item_name.setTextColor(color_text_focused);
-            if (item_status!= null)
+            if (item_status != null)
                 item_status.setTextColor(color_text_focused);
         } else {
             int color_text_item = mContext.getResources().getColor(R.color.color_text_blue_0);
             if (item_name != null)
                 item_name.setTextColor(color_text_item);
-            if (item_status!= null)
+            if (item_status != null)
                 item_status.setTextColor(color_text_item);
         }
     }
@@ -158,7 +158,7 @@ public class GuideListView extends ListView implements OnItemSelectedListener {
         rootView = ((ViewGroup)((Activity)mContext).findViewById(android.R.id.content));
     }
 
-    private boolean hasNextFocusView(int dec){
+    private boolean hasNextFocusView(int dec) {
         if (FocusFinder.getInstance().findNextFocus(rootView, this, dec) == null) {
             return false;
         } else {

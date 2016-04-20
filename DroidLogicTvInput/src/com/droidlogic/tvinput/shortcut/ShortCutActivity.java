@@ -49,7 +49,7 @@ import java.util.List;
 import java.util.TimeZone;
 import java.text.SimpleDateFormat;
 
-public class ShortCutActivity extends Activity implements ListItemSelectedListener, OnItemClickListener{
+public class ShortCutActivity extends Activity implements ListItemSelectedListener, OnItemClickListener {
     private static final String TAG = "ShortCutActivity";
 
     private static final int MSG_FINISH = 0;
@@ -73,9 +73,9 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
     private TextView tx_date;
     private TextView tx_program_description;
     private ArrayList<ChannelInfo> channelInfoList;
-    private ArrayList<ArrayMap<String,Object>> list_channels  = new ArrayList<ArrayMap<String,Object>>();
-    private ArrayList<ArrayMap<String,Object>> list_date = new ArrayList<ArrayMap<String,Object>>();
-    private ArrayList<ArrayMap<String,Object>> list_program = new ArrayList<ArrayMap<String,Object>>();
+    private ArrayList<ArrayMap<String, Object>> list_channels  = new ArrayList<ArrayMap<String, Object>>();
+    private ArrayList<ArrayMap<String, Object>> list_date = new ArrayList<ArrayMap<String, Object>>();
+    private ArrayList<ArrayMap<String, Object>> list_program = new ArrayList<ArrayMap<String, Object>>();
     private SimpleAdapter channelsAdapter;
     private int currentChannelIndex = -1;
     private int currentDateIndex = -1;
@@ -136,7 +136,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
     private void setShortcutMode (int mode) {
         switch (mode) {
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_DISPAYMODE:
-               String display_mode = mSettingsManager.getAspectRatioStatus();
+                String display_mode = mSettingsManager.getAspectRatioStatus();
                 if (display_mode.equals(mResources.getString(R.string.auto))) {
                     mSettingsManager.setAspectRatio(SettingsManager.STATUS_4_TO_3);
                 } else if (display_mode.equals(mResources.getString(R.string.four2three))) {
@@ -210,12 +210,12 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
         }
     }
 
-    private void showCustomToast(int mode){
+    private void showCustomToast(int mode) {
         LayoutInflater inflater = getLayoutInflater();
         View layout = inflater.inflate(R.layout.layout_shortcut_key, null);
 
-        TextView title =(TextView)layout.findViewById(R.id.toast_title);
-        TextView status =(TextView)layout.findViewById(R.id.toast_status);
+        TextView title = (TextView)layout.findViewById(R.id.toast_title);
+        TextView status = (TextView)layout.findViewById(R.id.toast_status);
 
         title.setText(getToastTitle(mode));
         status.setText(getStatusTitle(mode));
@@ -297,7 +297,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
         }
     };
 
-    BroadcastReceiver mReceiver = new BroadcastReceiver(){
+    BroadcastReceiver mReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (action.equals(Intent.ACTION_TIME_TICK)) {
@@ -356,8 +356,8 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
 
         list_channels = getChannelList(channelInfoList);
         channelsAdapter = new SimpleAdapter(this, list_channels,
-                R.layout.layout_guide_single_text,
-                new String[]{GuideListView.ITEM_1}, new int[]{R.id.text_name});
+                                            R.layout.layout_guide_single_text,
+                                            new String[] {GuideListView.ITEM_1}, new int[] {R.id.text_name});
         lv_channel.setAdapter(channelsAdapter);
 
         lv_channel.setListItemSelectedListener(this);
@@ -367,8 +367,8 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
         lv_program.setOnItemClickListener(this);
     }
 
-    public ArrayList<ArrayMap<String,Object>> getChannelList (ArrayList<ChannelInfo> channelInfoList) {
-        ArrayList<ArrayMap<String,Object>> list =  new ArrayList<ArrayMap<String,Object>>();
+    public ArrayList<ArrayMap<String, Object>> getChannelList (ArrayList<ChannelInfo> channelInfoList) {
+        ArrayList<ArrayMap<String, Object>> list =  new ArrayList<ArrayMap<String, Object>>();
 
         int videoChannelIndex = 0;
         int radioChannelIndex = 0;
@@ -377,7 +377,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
             for (int i = 0 ; i < channelInfoList.size(); i++) {
                 ChannelInfo info = channelInfoList.get(i);
                 if (info != null) {
-                    ArrayMap<String,Object> item = new ArrayMap<String,Object>();
+                    ArrayMap<String, Object> item = new ArrayMap<String, Object>();
                     item.put(GuideListView.ITEM_1, i + "  " + info.getDisplayName());
                     if (ChannelInfo.isRadioChannel(info)) {
                         item.put(GuideListView.ITEM_2, radioChannelIndex);
@@ -405,7 +405,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
         List<Program> channel_programs = mTvDataBaseManager.getPrograms(TvContract.buildProgramsUriForChannel(currentChannel.getId()));
         if (channel_programs.size() > 0) {
             long firstProgramTime = channel_programs.get(0).getStartTimeUtcMillis();
-            long lastProgramTime = channel_programs.get(channel_programs.size() -1).getStartTimeUtcMillis();
+            long lastProgramTime = channel_programs.get(channel_programs.size() - 1).getStartTimeUtcMillis();
             int time_offset = TimeZone.getDefault().getOffset(firstProgramTime);
 
             long tmp_time = (firstProgramTime) - ((firstProgramTime + time_offset) % DAY_TO_MS);
@@ -415,7 +415,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
                 if (mTvTime.getTime() >= tmp_time && mTvTime.getTime() < tmp_time + DAY_TO_MS)
                     currentDateIndex = count - 1;
 
-                ArrayMap<String,Object> item = new ArrayMap<String,Object>();
+                ArrayMap<String, Object> item = new ArrayMap<String, Object>();
                 String[] dateAndTime = getDateAndTime(tmp_time);
                 item.put(GuideListView.ITEM_1, dateAndTime[1] + "." + dateAndTime[2]);
                 item.put(GuideListView.ITEM_2, Long.toString(tmp_time));
@@ -427,7 +427,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
                 list_date.add(item);
             }
         } else {
-            ArrayMap<String,Object> item = new ArrayMap<String,Object>();
+            ArrayMap<String, Object> item = new ArrayMap<String, Object>();
             item.put(GuideListView.ITEM_1, mResources.getString(R.string.no_program));
 
             if (saveChannelIndex != currentChannelIndex) {
@@ -440,12 +440,12 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
     }
 
     private void showDateList() {
-        ArrayList<ArrayMap<String,Object>> list = new ArrayList<ArrayMap<String,Object>>();
+        ArrayList<ArrayMap<String, Object>> list = new ArrayList<ArrayMap<String, Object>>();
         list.addAll(list_date);
 
         SimpleAdapter dateAdapter = new SimpleAdapter(this, list,
                 R.layout.layout_guide_single_text_center,
-                new String[]{GuideListView.ITEM_1}, new int[]{R.id.text_name});
+                new String[] {GuideListView.ITEM_1}, new int[] {R.id.text_name});
         lv_date.setAdapter(dateAdapter);
 
         currentDateIndex = (currentDateIndex != -1 ? currentDateIndex : 0);
@@ -462,7 +462,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
             long dayEndTime = Long.valueOf(list_date.get(currentDateIndex).get(GuideListView.ITEM_3).toString());
             ChannelInfo currentChannel = channelInfoList.get(saveChannelIndex);
             List<Program> programs = mTvDataBaseManager.getPrograms(TvContract.buildProgramsUriForChannel(currentChannel.getId(),
-                    dayStartTime, dayEndTime));
+                                     dayStartTime, dayEndTime));
 
             for (int i = 0; i < programs.size(); i++) {
                 Program program = programs.get(i);
@@ -471,10 +471,10 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
                 String month_and_date = dateAndTime[1] + "." + dateAndTime[2];
                 String status = "";
 
-                ArrayMap<String,Object> item_program = new ArrayMap<String,Object>();
+                ArrayMap<String, Object> item_program = new ArrayMap<String, Object>();
 
                 item_program.put(GuideListView.ITEM_1, dateAndTime[3] + ":" + dateAndTime[4]
-                            + "~" + endTime[3] + ":" + endTime[4]);
+                                 + "~" + endTime[3] + ":" + endTime[4]);
                 item_program.put(GuideListView.ITEM_2, program.getTitle());
                 item_program.put(GuideListView.ITEM_3, program.getDescription());
                 item_program.put(GuideListView.ITEM_4, Long.toString(program.getProgramId()));
@@ -482,7 +482,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
                 if (mTvTime.getTime() >= program.getStartTimeUtcMillis() && mTvTime.getTime() <= program.getEndTimeUtcMillis()) {
                     currentProgramIndex = i;
                     status = GuideListView.STATUS_PLAYING;
-                } else if (program.isAppointed()){
+                } else if (program.isAppointed()) {
                     status = GuideListView.STATUS_APPOINTED;
                 }
                 item_program.put(GuideListView.ITEM_5, status);
@@ -494,7 +494,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
             }
         }
         if (list_program.size() == 0) {
-            ArrayMap<String,Object> item = new ArrayMap<String,Object>();
+            ArrayMap<String, Object> item = new ArrayMap<String, Object>();
             item.put(GuideListView.ITEM_1, mResources.getString(R.string.no_program));
 
             if (saveChannelIndex != currentChannelIndex) {
@@ -508,12 +508,12 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
     }
 
     private void showProgramList() {
-        ArrayList<ArrayMap<String,Object>> list = new ArrayList<ArrayMap<String,Object>>();
+        ArrayList<ArrayMap<String, Object>> list = new ArrayList<ArrayMap<String, Object>>();
         list.addAll(list_program);
 
         GuideAdapter programAdapter = new GuideAdapter(this, list);
         lv_program.setAdapter(programAdapter);
-        currentProgramIndex = (currentProgramIndex != -1 ? currentProgramIndex: 0);
+        currentProgramIndex = (currentProgramIndex != -1 ? currentProgramIndex : 0);
         lv_program.setSelection(currentProgramIndex);
     }
 
@@ -555,7 +555,8 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
     }
 
     @Override
-    public void onListItemSelected(View parent, int position) {;
+    public void onListItemSelected(View parent, int position) {
+        ;
         switch (parent.getId()) {
             case R.id.list_guide_channel:
                 lv_date.setAdapter(null);
@@ -580,7 +581,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
         }
     }
 
-    private void showGuideToast(String status){
+    private void showGuideToast(String status) {
         if (guide_toast == null) {
             guide_toast = Toast.makeText(this, status, Toast.LENGTH_SHORT);
         } else {
@@ -613,7 +614,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
         return dateAndTime;
     }
 
-     private String setAppointedProgramAlarm(Program currentProgram) {
+    private String setAppointedProgramAlarm(Program currentProgram) {
         AlarmManager alarm = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
         String cancelProgram = "";
 
@@ -642,12 +643,12 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
         } else {
             return "," + cancelProgram;
         }
-     }
+    }
 
-     private void cancelAppointedProgramAlarm (Program program) {
+    private void cancelAppointedProgramAlarm (Program program) {
         AlarmManager alarm = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
         alarm.cancel(buildPendingIntent(program));
-     }
+    }
 
     private PendingIntent buildPendingIntent (Program program) {
         Intent intent = new Intent(DroidLogicTvUtils.ACTION_PROGRAM_APPOINTED);

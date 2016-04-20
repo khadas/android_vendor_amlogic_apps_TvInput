@@ -31,8 +31,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 
-public class FavoriteChannelActivity extends Activity
-{
+public class FavoriteChannelActivity extends Activity {
     private FileUtil mFileUtils;
     private ListView mListCenter;
     private String mRecoveryPath;// file path and file name
@@ -41,8 +40,7 @@ public class FavoriteChannelActivity extends Activity
     public Dialog mydialog;
 
     @Override
-    public void onCreate(Bundle savedInstanceState)
-    {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.favoritechannel);
         mFileUtils = new FileUtil();
@@ -50,21 +48,16 @@ public class FavoriteChannelActivity extends Activity
         mListCenter = (ListView) findViewById(R.id.list_center);
         mListCenter.setAdapter(newListAdapter());
 
-        mListCenter.setOnItemClickListener(new OnItemClickListener()
-        {
-            public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3)
-            {
+        mListCenter.setOnItemClickListener(new OnItemClickListener() {
+            public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
                 Map<String, Object> item = (Map<String, Object>) arg0.getItemAtPosition(arg2);
                 mRecoveryPath = (String) item.get("item_path");
                 mDbName = (String) item.get("item_name");
                 String msg = getString(R.string.suredb);
-                OnClickListener listener = new OnClickListener()
-                {
+                OnClickListener listener = new OnClickListener() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which)
-                    {
-                        try
-                        {
+                    public void onClick(DialogInterface dialog, int which) {
+                        try {
                             aBuilder = new AlertDialog.Builder(FavoriteChannelActivity.this);
                             aBuilder.setTitle(getString(R.string.facui_pindaoyushe)).setMessage(getString(R.string.ispresetting));
                             mydialog = aBuilder.show();
@@ -75,17 +68,14 @@ public class FavoriteChannelActivity extends Activity
                             /* do the copy command */
                             Runtime.getRuntime().exec(commands);
                             BufferedReader input = new BufferedReader(new FileReader(newFile));
-                            if (input.read() != -1)
-                            {
+                            if (input.read() != -1) {
                                 mydialog.dismiss();
                                 mydialog.dismiss();
                                 aBuilder.setTitle(getString(R.string.facui_pindaoyushe)).setMessage(getString(R.string.finishpresetting))
-                                        .setPositiveButton(getString(R.string.confirm), null).show();
+                                .setPositiveButton(getString(R.string.confirm), null).show();
                             }
                             input.close();
-                        }
-                        catch (Exception e)
-                        {
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
                     }
@@ -100,46 +90,36 @@ public class FavoriteChannelActivity extends Activity
     * @param file
     * @throws Exception
     */
-    private void delFile(File file) throws Exception
-    {
-        if (!file.exists())
-        {
+    private void delFile(File file) throws Exception {
+        if (!file.exists()) {
             throw new Exception(getString(R.string.file) + file.getName() + getString(R.string.noexist));
         }
-        if (file.isFile())
-        {
-            if (file.canWrite())
-            {
+        if (file.isFile()) {
+            if (file.canWrite()) {
                 file.delete();
-            }
-            else
-            {
+            } else {
                 mydialog.dismiss();
                 aBuilder.setTitle(getString(R.string.facui_pindaoyushe))
-                        .setMessage(getString(R.string.alreadyexist) + file.getName() + getString(R.string.onlyread))
-                        .setPositiveButton(getString(R.string.confirm), null).show();
+                .setMessage(getString(R.string.alreadyexist) + file.getName() + getString(R.string.onlyread))
+                .setPositiveButton(getString(R.string.confirm), null).show();
                 throw new Exception(getString(R.string.file) + file.getName() + getString(R.string.onlyread));
             }
-        }
-        else
-        {
+        } else {
             mydialog.dismiss();
             aBuilder.setTitle(getString(R.string.facui_pindaoyushe))
-                    .setMessage(getString(R.string.file) + file.getName() + getString(R.string.notstandard))
-                    .setPositiveButton(getString(R.string.confirm), null).show();
+            .setMessage(getString(R.string.file) + file.getName() + getString(R.string.notstandard))
+            .setPositiveButton(getString(R.string.confirm), null).show();
             throw new Exception(getString(R.string.file) + file.getName() + getString(R.string.notstandard));
         }
     }
 
     /* confirm dialog */
-    public void ConfirmDialog(String msg, OnClickListener listener)
-    {
+    public void ConfirmDialog(String msg, OnClickListener listener) {
         new AlertDialog.Builder(FavoriteChannelActivity.this).setTitle(getString(R.string.confirm)).setMessage(msg)
-                .setPositiveButton(getString(R.string.confirm), listener).setNegativeButton(getString(R.string.cancel), null).show();
+        .setPositiveButton(getString(R.string.confirm), listener).setNegativeButton(getString(R.string.cancel), null).show();
     }
 
-    private List<Map<String, Object>> getListData()
-    {
+    private List<Map<String, Object>> getListData() {
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
         Map<String, Object> map;
         String recovery_path = getResources().getString(R.string.config_recovery_usb_path);
@@ -148,20 +128,14 @@ public class FavoriteChannelActivity extends Activity
         String regex_usb = "udisk([0-9])*";
         String regex = ".+\\.[Dd][Bb]";
 
-        if (dir.exists() && dir.isDirectory())
-        {
+        if (dir.exists() && dir.isDirectory()) {
             File[] files = dir.listFiles(new MyFilenameFilter(regex_usb));
-            if (files != null && files.length > 0)
-            {
-                for (File file : files)
-                {
-                    if (file.exists() && file.isDirectory())
-                    {
+            if (files != null && files.length > 0) {
+                for (File file : files) {
+                    if (file.exists() && file.isDirectory()) {
                         File[] files4 = file.listFiles(new MyFilenameFilter(regex));
-                        if (files4 != null && files4.length > 0)
-                        {
-                            for (File file4 : files4)
-                            {
+                        if (files4 != null && files4.length > 0) {
+                            for (File file4 : files4) {
                                 map = new HashMap<String, Object>();
                                 map.put("item_icon", R.drawable.item_icon_def);
                                 map.put("item_name", file4.getName());
@@ -182,23 +156,20 @@ public class FavoriteChannelActivity extends Activity
         return list;
     }
 
-    private SimpleAdapter newListAdapter()
-    {
+    private SimpleAdapter newListAdapter() {
         return new SimpleAdapter(FavoriteChannelActivity.this, getListData(), R.layout.favoritechannel_list, new String[] {"item_icon", "item_name",
-                "item_path", "item_date", "item_icon2"}, new int[] {R.id.item_icon, R.id.item_name, R.id.item_path, R.id.item_date, R.id.item_icon2});
+                                 "item_path", "item_date", "item_icon2"
+                                                                                                                          }, new int[] {R.id.item_icon, R.id.item_name, R.id.item_path, R.id.item_date, R.id.item_icon2});
     }
 
-    private class MyFilenameFilter implements FilenameFilter
-    {
+    private class MyFilenameFilter implements FilenameFilter {
         private Pattern p;
 
-        public MyFilenameFilter(String regex)
-        {
+        public MyFilenameFilter(String regex) {
             p = Pattern.compile(regex);
         }
 
-        public boolean accept(File file, String name)
-        {
+        public boolean accept(File file, String name) {
             return p.matcher(name).matches();
         }
 

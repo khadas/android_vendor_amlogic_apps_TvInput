@@ -17,7 +17,7 @@ import java.util.HashMap;
 
 import com.droidlogic.tvinput.R;
 
-public class OptionListLayout implements OnItemClickListener{
+public class OptionListLayout implements OnItemClickListener {
     private static final String TAG = "OptionListLayout";
 
     private Context mContext;
@@ -35,7 +35,7 @@ public class OptionListLayout implements OnItemClickListener{
 
     private void initOptionListView () {
         SimpleAdapter optionAdapter = null;
-        ArrayList<HashMap<String,Object>> optionListData = null;
+        ArrayList<HashMap<String, Object>> optionListData = null;
         TextView title = (TextView)optionView.findViewById(R.id.option_title);
         OptionListView optionListView = (OptionListView)optionView.findViewById(R.id.option_list);
 
@@ -44,23 +44,23 @@ public class OptionListLayout implements OnItemClickListener{
                 title.setText(mContext.getResources().getString(R.string.channel_info));
                 optionListData = ((TvSettingsActivity)mContext).getSettingsManager().getChannelInfo();
                 optionAdapter = new SimpleAdapter(mContext, optionListData,
-                    R.layout.layout_option_double_text,
-                    new String[] {SettingsManager.STRING_NAME, SettingsManager.STRING_STATUS},
-                    new int[] {R.id.text_name, R.id.text_status});
+                                                  R.layout.layout_option_double_text,
+                                                  new String[] {SettingsManager.STRING_NAME, SettingsManager.STRING_STATUS},
+                                                  new int[] {R.id.text_name, R.id.text_status});
                 break;
             case OptionUiManager.OPTION_AUDIO_TRACK:
                 title.setText(mContext.getResources().getString(R.string.audio_track));
                 optionListData = ((TvSettingsActivity)mContext).getSettingsManager().getAudioTrackList();
                 optionAdapter = new SimpleAdapter(mContext, optionListData,
-                    R.layout.layout_option_single_text,
-                    new String[]{SettingsManager.STRING_NAME}, new int[]{R.id.text_name});
+                                                  R.layout.layout_option_single_text,
+                                                  new String[] {SettingsManager.STRING_NAME}, new int[] {R.id.text_name});
                 break;
             case OptionUiManager.OPTION_DEFAULT_LANGUAGE:
                 title.setText(mContext.getResources().getString(R.string.defalut_lan));
                 optionListData = ((TvSettingsActivity)mContext).getSettingsManager().getDefaultLanguageList();
                 optionAdapter = new SimpleAdapter(mContext, optionListData,
-                        R.layout.layout_option_single_text,
-                        new String[]{SettingsManager.STRING_NAME}, new int[]{R.id.text_name});
+                                                  R.layout.layout_option_single_text,
+                                                  new String[] {SettingsManager.STRING_NAME}, new int[] {R.id.text_name});
                 break;
         }
         if (optionAdapter != null) {

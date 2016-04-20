@@ -54,7 +54,7 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener, OnIt
     private ViewGroup operationsView;
     private ViewGroup operationsEditView;
     MyAdapter ChannelAdapter;
-    ArrayList<HashMap<String,Object>> ChannelListData = new ArrayList<HashMap<String,Object>>();
+    ArrayList<HashMap<String, Object>> ChannelListData = new ArrayList<HashMap<String, Object>>();
 
     private int channelType = TYPE_ATV;
     private int currentChannelPosition = ACTION_INITIAL_STATE;
@@ -272,7 +272,7 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener, OnIt
     @Override
     public void onItemClick (AdapterView<?> parent, View view, int position, long id) {
         if (ChannelListData.get(position).get(SettingsManager.STRING_NAME).toString()
-                .equals(mContext.getResources().getString(R.string.error_no_channel))) {
+            .equals(mContext.getResources().getString(R.string.error_no_channel))) {
             return;
         }
         currentChannelPosition = position;
@@ -283,14 +283,14 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener, OnIt
                 swapChannelPosition();
             else if (currentOperation == ACTION_OPERATIONS_MOVE)
                 moveChannelPosition();
-                channelListView.setSelector(R.drawable.item_background);
-                freshChannelList();
-            }
+            channelListView.setSelector(R.drawable.item_background);
+            freshChannelList();
+        }
         recoverActionState();
     }
 
     private void freshChannelList () {
-        ArrayList<HashMap<String,Object>> list = null;
+        ArrayList<HashMap<String, Object>> list = null;
 
         ChannelListData.clear();
         list = ((TvSettingsActivity)mContext).getSettingsManager().getChannelList(channelType);
@@ -302,7 +302,7 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener, OnIt
             if (!ChannelListData.get(0).get(SettingsManager.STRING_NAME).toString()
                 .equals(mContext.getResources().getString(R.string.error_no_channel))) {
                 channelListView.setOnItemClickListener(this);
-            }else {
+            } else {
                 channelListView.setOnItemClickListener(null);
             }
         }
@@ -354,7 +354,7 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener, OnIt
                 holder.icon = (ImageView) convertView.findViewById(R.id.image_icon);
                 holder.name = (TextView) convertView.findViewById(R.id.text_name);
                 convertView.setTag(holder);
-            }else{
+            } else {
                 holder = (ViewHolder)convertView.getTag();
             }
 
@@ -371,7 +371,7 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener, OnIt
             return convertView;
         }
 
-        private class ViewHolder{
+        private class ViewHolder {
             public ImageView icon;
             public TextView name;
         }

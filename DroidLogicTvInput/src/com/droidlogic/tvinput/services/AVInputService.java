@@ -65,24 +65,24 @@ public class AVInputService extends DroidLogicTvInputService {
 
     public TvInputInfo onHardwareAdded(TvInputHardwareInfo hardwareInfo) {
         if (hardwareInfo.getType() != TvInputHardwareInfo.TV_INPUT_TYPE_COMPONENT
-                || hasInfoExisted(hardwareInfo))
+            || hasInfoExisted(hardwareInfo))
             return null;
 
-        Utils.logd(TAG, "=====onHardwareAdded====="+hardwareInfo.getDeviceId());
+        Utils.logd(TAG, "=====onHardwareAdded=====" + hardwareInfo.getDeviceId());
 
         TvInputInfo info = null;
         ResolveInfo rInfo = getResolveInfo(AVInputService.class.getName());
         if (rInfo != null) {
             try {
                 info = TvInputInfo.createTvInputInfo(
-                        getApplicationContext(),
-                        rInfo,
-                        hardwareInfo,
-                        getTvInputInfoLabel(hardwareInfo.getDeviceId()),
-                        null);
+                           getApplicationContext(),
+                           rInfo,
+                           hardwareInfo,
+                           getTvInputInfoLabel(hardwareInfo.getDeviceId()),
+                           null);
             } catch (XmlPullParserException e) {
                 // TODO: handle exception
-            }catch (IOException e) {
+            } catch (IOException e) {
                 // TODO: handle exception
             }
         }
@@ -93,7 +93,7 @@ public class AVInputService extends DroidLogicTvInputService {
 
     public String onHardwareRemoved(TvInputHardwareInfo hardwareInfo) {
         if (hardwareInfo.getType() != TvInputHardwareInfo.TV_INPUT_TYPE_COMPONENT
-                || !hasInfoExisted(hardwareInfo))
+            || !hasInfoExisted(hardwareInfo))
             return null;
 
         TvInputInfo info = getTvInputInfo(hardwareInfo);

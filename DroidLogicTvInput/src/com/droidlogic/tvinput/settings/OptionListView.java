@@ -27,7 +27,7 @@ public class OptionListView extends ListView implements OnItemSelectedListener {
     private Context mContext;
     private int selectedPosition = 0;
 
-    public OptionListView (Context context){
+    public OptionListView (Context context) {
         super(context);
     }
     public OptionListView (Context context, AttributeSet attrs) {
@@ -48,11 +48,11 @@ public class OptionListView extends ListView implements OnItemSelectedListener {
                 case KeyEvent.KEYCODE_DPAD_UP:
                     if (selectedPosition == 0 &&
                         (getOptionUiManager().getOptionTag() != OptionUiManager.OPTION_AUTO_SEARCH
-                        && getOptionUiManager().getOptionTag() != OptionUiManager.OPTION_MANUAL_SEARCH))
+                         && getOptionUiManager().getOptionTag() != OptionUiManager.OPTION_MANUAL_SEARCH))
                         return true;
                     break;
                 case KeyEvent.KEYCODE_DPAD_DOWN:
-                    if (selectedPosition == getAdapter().getCount() -1)
+                    if (selectedPosition == getAdapter().getCount() - 1)
                         return true;
                     break;
             }
@@ -86,7 +86,7 @@ public class OptionListView extends ListView implements OnItemSelectedListener {
 
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
-	}
+    }
 
     @Override
     protected void onFocusChanged (boolean gainFocus, int direction, Rect previouslyFocusedRect) {
@@ -117,13 +117,13 @@ public class OptionListView extends ListView implements OnItemSelectedListener {
             int color_text_focused = mContext.getResources().getColor(R.color.color_text_focused);
             if (item_name != null)
                 item_name.setTextColor(color_text_focused);
-            if (item_status!= null)
+            if (item_status != null)
                 item_status.setTextColor(color_text_focused);
         } else {
             int color_text_item = mContext.getResources().getColor(R.color.color_text_item);
             if (item_name != null)
                 item_name.setTextColor(color_text_item);
-            if (item_status!= null)
+            if (item_status != null)
                 item_status.setTextColor(color_text_item);
         }
     }

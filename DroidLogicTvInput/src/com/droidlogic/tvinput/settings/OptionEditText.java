@@ -14,7 +14,7 @@ public class OptionEditText extends EditText implements OnKeyListener {
     private static final String TAG = "OptionEditText";
     private Context mContext;
 
-    public OptionEditText (Context context){
+    public OptionEditText (Context context) {
         super(context);
     }
     public OptionEditText (Context context, AttributeSet attrs) {

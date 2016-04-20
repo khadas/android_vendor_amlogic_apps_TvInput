@@ -51,9 +51,9 @@ public class GuideAdapter extends BaseAdapter {
             holder.playing = (ImageView) convertView.findViewById(R.id.img_playing);
             holder.appointed = (ImageView) convertView.findViewById(R.id.img_appointed);
             holder.time = (TextView) convertView.findViewById(R.id.text_time);
-            holder.title= (TextView) convertView.findViewById(R.id.text_title);
+            holder.title = (TextView) convertView.findViewById(R.id.text_title);
             convertView.setTag(holder);
-        }else{
+        } else {
             holder = (ViewHolder)convertView.getTag();
         }
 
@@ -82,7 +82,7 @@ public class GuideAdapter extends BaseAdapter {
         return convertView;
     }
 
-    private class ViewHolder{
+    private class ViewHolder {
         public ImageView playing;
         public ImageView appointed;
         public TextView time;
