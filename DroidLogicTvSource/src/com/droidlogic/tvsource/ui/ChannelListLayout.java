@@ -3,6 +3,7 @@ package com.droidlogic.tvsource.ui;
 import com.droidlogic.app.tv.ChannelInfo;
 import com.droidlogic.tvsource.R;
 import com.droidlogic.tvsource.Utils;
+import com.droidlogic.app.tv.DroidLogicTvUtils;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
@@ -20,6 +21,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.provider.Settings;
 
 public class ChannelListLayout extends LinearLayout implements OnItemClickListener {
     private static final String TAG = "ChannelListLayout";
@@ -277,7 +279,11 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
                 return null;
             Utils.logd(TAG, "==== number =" + channel.getNumber());
             Utils.logd(TAG, "==== name =" + channel.getDisplayNameLocal());
-            holder.channelNum.setText(Integer.toString(getChannelIndex(channel)));
+            String numberMode = Settings.System.getString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DTV_NUMBER_MODE);
+            if ((numberMode != null) && (numberMode.equals("lcn")))
+                holder.channelNum.setText(channel.getDisplayNumber());
+            else
+                holder.channelNum.setText(Integer.toString(getChannelIndex(channel)));
             holder.channelName.setText(channel.getDisplayNameLocal());
             if (mIsFav) {
                 holder.favImg.setImageResource(R.drawable.list_fav);

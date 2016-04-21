@@ -913,7 +913,11 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             mInfoName.setText("");
         } else {
             int index = mSourceInput.getChannelIndex();
-            mInfoNumber.setText(index != -1 ? Integer.toString(index) : "");
+            String numberMode = Settings.System.getString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DTV_NUMBER_MODE);
+            if ((numberMode != null) && numberMode.equals("lcn"))
+                mInfoNumber.setText(mSourceInput.getChannelNumber());
+            else
+                mInfoNumber.setText(index != -1 ? Integer.toString(index) : "");
             mInfoName.setText(mSourceInput.getChannelName());
         }
     }
@@ -1148,9 +1152,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 }
                 break;
             case MSG_CHANNEL_NUM_SWITCH:
-                if (mSourceInput.moveToIndex(Integer.parseInt(keyInputNumber))) {
+                if (mSourceInput.moveToIndex(Integer.parseInt(keyInputNumber)))
                     sendTuneMessage();
-                }
                 isNumberSwitching = false;
                 keyInputNumber = "";
                 showUi(Utils.UI_TYPE_SOURCE_INFO, false);

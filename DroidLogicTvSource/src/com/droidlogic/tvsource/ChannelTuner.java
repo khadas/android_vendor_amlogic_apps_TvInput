@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseArray;
+import android.provider.Settings;
 
 import java.util.ArrayList;
 
@@ -245,14 +246,28 @@ public class ChannelTuner {
         if (isPassthrough())
             return false;
 
-        int total_size = 0;
-        total_size = isRadioChannel() ? mRadioChannels.size() : mVideoChannels.size();
-        if (index < 0 || index >= total_size) {
-            return false;
-        }
+        String numberMode = Settings.System.getString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DTV_NUMBER_MODE);
+        if ((numberMode != null) && numberMode.equals("lcn")) {
+            for (ChannelInfo c : (isRadioChannel() ? mRadioChannels : mVideoChannels)) {
+                if (index == c.getNumber()) {
+                    mCurrentChannel = c;
+                    return true;
+                }
+            }
 
-        mCurrentChannel = isRadioChannel() ? mRadioChannels.get(index) : mVideoChannels.get(index);
-        return true;
+            return false;
+
+        } else {
+
+            int total_size = 0;
+            total_size = isRadioChannel() ? mRadioChannels.size() : mVideoChannels.size();
+            if (index < 0 || index >= total_size) {
+                return false;
+            }
+
+            mCurrentChannel = isRadioChannel() ? mRadioChannels.get(index) : mVideoChannels.get(index);
+            return true;
+        }
     }
 
     /**

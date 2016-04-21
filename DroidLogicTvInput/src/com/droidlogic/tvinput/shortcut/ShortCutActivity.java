@@ -12,9 +12,10 @@ import com.droidlogic.app.tv.TVTime;
 import com.droidlogic.tvinput.settings.SettingsManager;
 import com.droidlogic.tvinput.shortcut.GuideListView.ListItemSelectedListener;
 
+import android.provider.Settings;
 import android.app.Activity;
 import android.app.AlarmManager;
-import 	android.app.PendingIntent;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -398,7 +399,11 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
                 ChannelInfo info = channelInfoList.get(i);
                 if (info != null) {
                     ArrayMap<String, Object> item = new ArrayMap<String, Object>();
-                    item.put(GuideListView.ITEM_1, i + "  " + info.getDisplayNameLocal());
+                    String numberMode = Settings.System.getString(getContentResolver(), DroidLogicTvUtils.TV_KEY_DTV_NUMBER_MODE);
+                    if ((numberMode != null) && numberMode.equals("lcn"))
+                        item.put(GuideListView.ITEM_1, info.getDisplayNumber() + "  " + info.getDisplayNameLocal());
+                    else
+                        item.put(GuideListView.ITEM_1, i + "  " + info.getDisplayNameLocal());
                     if (ChannelInfo.isRadioChannel(info)) {
                         item.put(GuideListView.ITEM_2, radioChannelIndex);
                         radioChannelIndex++;
