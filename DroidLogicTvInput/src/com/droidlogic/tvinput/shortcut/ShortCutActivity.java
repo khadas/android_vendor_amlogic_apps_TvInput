@@ -2,6 +2,7 @@ package com.droidlogic.tvinput.shortcut;
 
 import android.media.tv.TvContract;
 import android.media.tv.TvContract.Channels;
+import android.media.tv.TvContract.Programs;
 import com.droidlogic.app.DroidLogicKeyEvent;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.app.tv.ChannelInfo;
@@ -19,6 +20,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
+import android.database.ContentObserver;
+import android.database.IContentObserver;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -55,6 +58,8 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
     private static final int MSG_FINISH = 0;
     private static final int MSG_UPDATE_DATE = 1;
     private static final int MSG_UPDATE_PROGRAM = 2;
+    private static final int MSG_LOAD_DATE = 3;
+    private static final int MSG_LOAD_PROGRAM = 4;
 
     private static final int TOAST_SHOW_TIME = 3000;
 
@@ -77,6 +82,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
     private ArrayList<ArrayMap<String, Object>> list_date = new ArrayList<ArrayMap<String, Object>>();
     private ArrayList<ArrayMap<String, Object>> list_program = new ArrayList<ArrayMap<String, Object>>();
     private SimpleAdapter channelsAdapter;
+    private ProgramObserver mProgramObserver;
     private int currentChannelIndex = -1;
     private int currentDateIndex = -1;
     private int currentProgramIndex = -1;
@@ -105,6 +111,10 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
     protected void onStop() {
         super.onStop();
         unregisterReceiver(mReceiver);
+        if (mProgramObserver != null) {
+            getContentResolver().unregisterContentObserver(mProgramObserver);
+            mProgramObserver = null;
+        }
         Log.d(TAG, "------onStop");
     }
 
@@ -291,6 +301,12 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
                 case MSG_UPDATE_PROGRAM:
                     showProgramList();
                     break;
+                case MSG_LOAD_DATE:
+                    new Thread(getDateRunnable).start();
+                    break;
+                case MSG_LOAD_PROGRAM:
+                    new Thread(getProgramRunnable).start();
+                    break;
                 default:
                     break;
             }
@@ -316,7 +332,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
         }
     };
 
-    private Runnable getdateRunnable = new Runnable() {
+    private Runnable getDateRunnable = new Runnable() {
         @Override
         public void run() {
             try {
@@ -365,6 +381,10 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
         lv_date.setListItemSelectedListener(this);
         lv_program.setListItemSelectedListener(this);
         lv_program.setOnItemClickListener(this);
+
+        if (mProgramObserver == null)
+            mProgramObserver = new ProgramObserver();
+        getContentResolver().registerContentObserver(Programs.CONTENT_URI, true, mProgramObserver);
     }
 
     public ArrayList<ArrayMap<String, Object>> getChannelList (ArrayList<ChannelInfo> channelInfoList) {
@@ -561,11 +581,11 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
                 lv_date.setAdapter(null);
                 lv_program.setAdapter(null);
                 currentChannelIndex = position;
-                new Thread(getdateRunnable).start();
+                handler.sendEmptyMessage(MSG_LOAD_DATE);
                 break;
             case R.id.list_guide_week:
                 currentDateIndex = position;
-                new Thread(getProgramRunnable).start();
+                handler.sendEmptyMessage(MSG_LOAD_PROGRAM);
                 break;
             case R.id.list_guide_programs:
                 if (position < list_program.size()) {
@@ -654,5 +674,33 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
         intent.putExtra(DroidLogicTvUtils.EXTRA_PROGRAM_ID, program.getProgramId());
         //sendBroadcast(intent);
         return PendingIntent.getBroadcast(this, (int)program.getProgramId(), intent, 0);
+    }
+
+    private final class ProgramObserver extends ContentObserver {
+        public ProgramObserver() {
+            super(new Handler());
+        }
+
+        @Override
+        public void onChange(boolean selfChange, Uri uri) {
+            Log.d(TAG, "program changed =" + uri);
+            if (currentChannelIndex != -1) {
+                ChannelInfo currentChannel = channelInfoList.get(currentChannelIndex);
+                Program program = mTvDataBaseManager.getProgram(uri);
+                if (program.getChannelId() == currentChannel.getId()) {
+                    Log.d(TAG, "current channel update");
+                    handler.removeMessages(MSG_LOAD_DATE);
+                    handler.removeMessages(MSG_LOAD_PROGRAM);
+                    handler.sendEmptyMessageDelayed(MSG_LOAD_DATE, 500);
+                    handler.sendEmptyMessageDelayed(MSG_LOAD_PROGRAM, 500);
+                }
+            }
+        }
+
+        @Override
+        public IContentObserver releaseContentObserver() {
+            // TODO Auto-generated method stub
+            return super.releaseContentObserver();
+        }
     }
 }

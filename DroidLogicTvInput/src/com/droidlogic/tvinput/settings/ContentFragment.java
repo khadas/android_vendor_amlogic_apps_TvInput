@@ -31,7 +31,7 @@ public class ContentFragment extends Fragment {
 
     interface XmlReaderListener {
         void handleRequestedNode(Context context, XmlResourceParser parser, AttributeSet attrs)
-        throws org.xmlpull.v1.XmlPullParserException, IOException;
+                throws org.xmlpull.v1.XmlPullParserException, IOException;
     }
 
     static class XmlReader {
@@ -58,21 +58,21 @@ public class ContentFragment extends Fragment {
 
                 int type;
                 while ((type = parser.next()) != XmlPullParser.END_DOCUMENT
-                       && type != XmlPullParser.START_TAG) {
+                        && type != XmlPullParser.START_TAG) {
                     // Parse next until start tag is found
                 }
 
                 String nodeName = parser.getName();
                 if (!mRootNodeName.equals(nodeName)) {
                     throw new RuntimeException("XML document must start with <" + mRootNodeName
-                                               + "> tag; found" + nodeName + " at " + parser.getPositionDescription());
+                            + "> tag; found" + nodeName + " at " + parser.getPositionDescription());
                 }
 
                 Bundle curBundle = null;
 
                 final int outerDepth = parser.getDepth();
                 while ((type = parser.next()) != XmlPullParser.END_DOCUMENT
-                       && (type != XmlPullParser.END_TAG || parser.getDepth() > outerDepth)) {
+                        && (type != XmlPullParser.END_TAG || parser.getDepth() > outerDepth)) {
                     if (type == XmlPullParser.END_TAG || type == XmlPullParser.TEXT) {
                         continue;
                     }
@@ -110,7 +110,7 @@ public class ContentFragment extends Fragment {
 
     ContentFragment(int xmlList, View view) {
         mContentList = xmlList;
-        listItem = new ArrayList<HashMap<String, Object>>();
+        listItem = new ArrayList<HashMap<String,Object>>();
         relatedButton = view;
     }
 
@@ -138,14 +138,14 @@ public class ContentFragment extends Fragment {
 
         @Override
         public void handleRequestedNode(Context context, XmlResourceParser parser,
-                                        AttributeSet attrs) throws XmlPullParserException, IOException {
+                AttributeSet attrs) throws XmlPullParserException, IOException {
             TypedArray sa = context.getResources().obtainAttributes(attrs,
-                            com.android.internal.R.styleable.Preference);
+                    com.android.internal.R.styleable.Preference);
 
             String key = getStringFromTypedArray(sa,
-                                                 com.android.internal.R.styleable.Preference_key);
+                    com.android.internal.R.styleable.Preference_key);
             String title = getStringFromTypedArray(sa,
-                                                   com.android.internal.R.styleable.Preference_title);
+                    com.android.internal.R.styleable.Preference_title);
             sa.recycle();
 
             //Log.d(TAG, "@@@@@@@@@@@@@@@@ key=" + key + "  title=" + title);
@@ -158,7 +158,7 @@ public class ContentFragment extends Fragment {
             } else {
                 if ((key.equals(SettingsManager.KEY_TINT) && !getSettingsManager().isShowTint())
                     || ((key.equals(SettingsManager.KEY_DEFAULT_LANGUAGE) || key.equals(SettingsManager.KEY_SUBTITLE_SWITCH))
-                        && getSettingsManager().getCurentTvSource() != TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV))
+                            && getSettingsManager().getCurentTvSource() != TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV))
                     return;
 
                 HashMap<String, Object> map = new HashMap<String, Object>();

@@ -113,44 +113,35 @@ public class GuideListView extends ListView implements OnItemSelectedListener {
 
     @Override
     protected void onFocusChanged (boolean gainFocus, int direction, Rect previouslyFocusedRect) {
-        View item = getChildAt(selectedPosition);
-
+        View item = getSelectedView();
         if (item != null) {
             if (gainFocus) {
                 cleanChoosed();
                 setItemTextColor(item, true);
                 setChoosed(item);
             } else {
-                //setChoosed(selectedPosition, true);
                 setItemTextColor(item, false);
             }
         }
     }
 
     private void setItemTextColor (View view, boolean focused) {
-        TextView item_name = null;
-        TextView item_status = null;
-
-        View child0 = ((ViewGroup)view).getChildAt(0);
-        if (child0 instanceof TextView)
-            item_name = (TextView)child0;
-
-        View child1 = ((ViewGroup)view).getChildAt(1);
-        if (child1 instanceof TextView)
-            item_status = (TextView)child1;
-
         if (focused) {
             int color_text_focused = mContext.getResources().getColor(R.color.color_text_focused);
-            if (item_name != null)
-                item_name.setTextColor(color_text_focused);
-            if (item_status != null)
-                item_status.setTextColor(color_text_focused);
+            for (int i = 0; i < ((ViewGroup)view).getChildCount(); i++) {
+                View child = ((ViewGroup)view).getChildAt(i);
+                if (child instanceof TextView) {
+                    ((TextView)child).setTextColor(color_text_focused);
+                }
+            }
         } else {
             int color_text_item = mContext.getResources().getColor(R.color.color_text_blue_0);
-            if (item_name != null)
-                item_name.setTextColor(color_text_item);
-            if (item_status != null)
-                item_status.setTextColor(color_text_item);
+            for (int i = 0; i < ((ViewGroup)view).getChildCount(); i++) {
+                View child = ((ViewGroup)view).getChildAt(i);
+                if (child instanceof TextView) {
+                    ((TextView)child).setTextColor(color_text_item);
+                }
+            }
         }
     }
 

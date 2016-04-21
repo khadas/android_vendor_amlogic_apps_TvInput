@@ -115,20 +115,20 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
 
     public OptionUiManager(Context context) {
         mContext = context;
-        setSettingsManager(((TvSettingsActivity)mContext).getSettingsManager());
+        mResources = mContext.getResources();
+        init(((TvSettingsActivity)mContext).getSettingsManager());
+    }
+
+    public void init (SettingsManager sm) {
+        mSettingsManager = sm;
         mTvControlManager = mSettingsManager.getTvControlManager();
         mTvDataBaseManager = mSettingsManager.getTvDataBaseManager();
         mTvControlManager.setScannerListener(this);
-        mResources = mContext.getResources();
-    }
-
-    public void setSettingsManager(SettingsManager sm) {
-        mSettingsManager = sm;
     }
 
     public void setOptionTag(int position) {
         String item_name = ((TvSettingsActivity) mContext).getCurrentFragment().getContentList().get(position).get(ContentFragment.ITEM_NAME)
-                           .toString();
+                .toString();
         // Picture
         if (item_name.equals(mResources.getString(R.string.picture_mode))) {
             optionTag = OPTION_PICTURE_MODE;
@@ -1581,7 +1581,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         toast.show();
     }
 
-    public void stopAllAction() {
+    public void release() {
+        mTvControlManager.setScannerListener(null);
     }
 
     private boolean need_delete_channel = false;

@@ -523,7 +523,7 @@ public class SettingsManager {
         if (currentChannel != null) {
             HashMap<String, Object> item = new HashMap<String, Object>();
             item.put(STRING_NAME, mResources.getString(R.string.channel_l));
-            item.put(STRING_STATUS, Integer.toString(getFrequency() + getFineTune()));
+            item.put(STRING_STATUS, currentChannel.getDisplayNameLocal());
             list.add(item);
 
             item = new HashMap<String, Object>();
@@ -932,7 +932,6 @@ public class SettingsManager {
         switch (mTvControlManager.GetPQMode(mTvSource)) {
             case 0:
             case 1:
-                ;
             case 2:
                 setPictureMode(STATUS_USER);
                 break;

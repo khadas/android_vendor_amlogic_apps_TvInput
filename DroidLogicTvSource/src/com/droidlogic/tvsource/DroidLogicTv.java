@@ -411,6 +411,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 mMainView.setBackgroundDrawable(null);
             }
         } else {
+            mSignalState = SIGNAL_NOT_GOT;
+            reset_nosignal_time();
             releaseTvView();
             mMainView.setBackgroundDrawable(getResources().getDrawable(R.drawable.hotplug_out, null));
         }
@@ -1013,7 +1015,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             case Utils.UI_TYPE_NO_SINAL:
                 if (mSignalState == SIGNAL_SCRAMBLED)
                     prompt_no_signal.setText(mContext.getResources().getString(R.string.av_scambled));
-                else if (mSignalState == SIGNAL_NOT_GOT)
+                else if (mSignalState == SIGNAL_NOT_GOT && mSourceInput.isAvaiableSource())
                     prompt_no_signal.setText(mContext.getResources().getString(R.string.no_signal));
                 else {
                     hideTvView(prompt_no_signal);
@@ -1310,7 +1312,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     && TextUtils.isEmpty(inputId)
                     && TextUtils.equals(inputId, mSourceInput.getInputId())
                     && channelUri.equals(mSourceInput.getUri())) {
-                switchToSourceInput();
+                sendTuneMessage();
             }
         }
     }

@@ -112,9 +112,9 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
             SourceButton sb = mSourceInputs.get(device_id);
             if (sb.getTvInputInfo() != null)//has added
                 return ACTION_SUCCESS;
-            initSourceInput(sb);
             sb.setTvInputInfo(info);
             sb.setState(TvInputManager.INPUT_STATE_CONNECTED);
+            initSourceInput(sb);
             mAvaiableSourceCount++;
         } else {
             SourceButton sb = new SourceButton(mContext, info);
@@ -142,9 +142,11 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
         for (String id : getAllDeviceIds()) { //init all hardware devices
             device_id = Integer.parseInt(id);
             SourceButton sb = new SourceButton(mContext, device_id);
-            initSourceInput(sb);
             if (sb.getSigType() == DroidLogicTvUtils.SIG_INFO_TYPE_DTV) {
                 dtvSourceInput = sb;
+            }
+            if (curSourceInput == null && defaultDeviceId == sb.getDeviceId()) {
+                curSourceInput = sb;
             }
             mSourceInputs.put(sb.getDeviceId(), sb);
             Utils.logd(TAG, "==== refresh, sb = " + sb);
@@ -162,6 +164,7 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
                 SourceButton sb = mSourceInputs.get(device_id);
                 sb.setTvInputInfo(info);
                 sb.setState(TvInputManager.INPUT_STATE_CONNECTED);
+                initSourceInput(sb);
                 mAvaiableSourceCount++;
             } else {//non-hardware device
                 SourceButton sb = new SourceButton(mContext, info);
@@ -197,10 +200,6 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
             sb.moveToChannel(defaultAtvChannel, false);
         } else if (sb.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_DTV && defaultDtvChannel >= 0) {
             sb.moveToChannel(defaultDtvChannel, defaultDtvType);
-        }
-
-        if (curSourceInput == null && defaultDeviceId == sb.getDeviceId()) {//get the last input.
-            curSourceInput = sb;
         }
     }
 

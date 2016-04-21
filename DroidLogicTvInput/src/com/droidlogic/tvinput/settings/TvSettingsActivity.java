@@ -302,6 +302,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
         if (isExiting)
             return;
         setResult(mSettingsManager.getActivityResult());
+        mOptionUiManager.release();
         super.finish();
     }
 
@@ -353,7 +354,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
             String action = intent.getAction();
             if (action.equals(DroidLogicTvUtils.ACTION_CHANNEL_CHANGED)) {
                 mSettingsManager.setCurrentChannelData(intent);
-                mOptionUiManager.setSettingsManager(mSettingsManager);
+                    mOptionUiManager.init(mSettingsManager);
                 currentFragment.refreshList();
             } else if (action.equals(Intent.ACTION_CLOSE_SYSTEM_DIALOGS)) {
                 String reason = intent.getStringExtra("reason");
