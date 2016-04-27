@@ -12,6 +12,8 @@ import android.media.tv.TvInputInfo;
 import android.media.tv.TvInputHardwareInfo;
 import android.media.tv.TvTrackInfo;
 import android.media.tv.TvContract;
+import android.media.tv.TvStreamConfig;
+import android.media.tv.TvInputManager.Hardware;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -50,13 +52,15 @@ public class DTVInputService extends DroidLogicTvInputService {
 
     private static final String TAG = "DTVInputService";
 
-    private DTVSessionImpl mSession;
+    private DTVSessionImpl mCurrentSession;
+    private int number = 0;
+    private int currentNumber = 0;
 
     private final BroadcastReceiver mParentalControlsBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (mSession != null) {
-                mSession.checkContentBlockNeeded();
+            if (mCurrentSession != null) {
+                mCurrentSession.checkContentBlockNeeded();
             }
         }
     };
@@ -81,16 +85,20 @@ public class DTVInputService extends DroidLogicTvInputService {
     @Override
     public Session onCreateSession(String inputId) {
         super.onCreateSession(inputId);
-        if (mSession == null || !TextUtils.equals(inputId, mSession.getInputId())) {
-            mSession = new DTVSessionImpl(this, inputId, getHardwareDeviceId(inputId));
-            registerInputSession(mSession);
-        }
-        return mSession;
+
+        mCurrentSession = new DTVSessionImpl(this, inputId, getHardwareDeviceId(inputId));
+        registerInputSession(mCurrentSession);
+        mCurrentSession.setNumber(number);
+        number++;
+
+        return mCurrentSession;
     }
 
     public class DTVSessionImpl extends TvInputBaseSession implements TvControlManager.AVPlaybackListener {
         private final Context mContext;
         private TvInputManager mTvInputManager;
+        private TvDataBaseManager mTvDataBaseManager;
+        private TvControlManager mTvControlManager;
         private TvContentRating mLastBlockedRating;
         private TvContentRating mCurrentContentRating;
         private final Set<TvContentRating> mUnblockedRatingSet = new HashSet<>();
@@ -100,8 +108,26 @@ public class DTVInputService extends DroidLogicTvInputService {
             super(context, inputId, deviceId);
 
             mContext = context;
+            mTvDataBaseManager = new TvDataBaseManager(mContext);
+            mTvControlManager = TvControlManager.getInstance();
             mLastBlockedRating = null;
             mCurrentChannel = null;
+        }
+
+        public TvStreamConfig[] getConfigs() {
+            return mConfigs;
+        }
+
+        public Hardware getHardware() {
+            return mHardware;
+        }
+
+        public int getCurrentSessionNumber() {
+            return currentNumber;
+        }
+
+        public void setCurrentSessionNumber(int number) {
+           currentNumber = number;
         }
 
         @Override
@@ -116,19 +142,8 @@ public class DTVInputService extends DroidLogicTvInputService {
         @Override
         public void doRelease() {
             super.doRelease();
-            mSession = null;
             stopSubtitle();
             setEPG(null);
-            //            releasePlayer();
-        }
-
-        @Override
-        public int doSurfaceChanged(Uri uri) {
-            int ret = super.doTune(uri);
-            if (ret == ACTION_SUCCESS) {
-                switchToSourceInput(uri);
-            }
-            return ret;
         }
 
         @Override
@@ -165,19 +180,17 @@ public class DTVInputService extends DroidLogicTvInputService {
             mUnblockedRatingSet.clear();
             Log.d(TAG, "switchToSourceInput  uri=" + uri);
             if (Utils.getChannelId(uri) < 0) {
-                TvControlManager tcm = TvControlManager.getInstance();
-                tcm.PlayDTVProgram(TVChannelParams.MODE_DTMB, 470000000, 0, 0, 0, 0, -1, -1, 0, 0);
+                mTvControlManager.PlayDTVProgram(TVChannelParams.MODE_DTMB, 470000000, 0, 0, 0, 0, -1, -1, 0, 0);
                 mCurrentChannel = null;
                 return;
             }
-            TvDataBaseManager mTvDataBaseManager = new TvDataBaseManager(mContext);
             ChannelInfo ch = mTvDataBaseManager.getChannelInfo(uri);
             if (ch != null) {
                 playProgram(ch);
                 mCurrentChannel = ch;
             } else {
                 Log.w(TAG, "Failed to get channel info for " + uri);
-                TvControlManager.getInstance().SetAVPlaybackListener(null);
+                mTvControlManager.SetAVPlaybackListener(null);
             }
         }
 
@@ -185,21 +198,20 @@ public class DTVInputService extends DroidLogicTvInputService {
             info.print();
             int mode = Utils.type2mode(info.getType());
             if (mode == TVChannelParams.MODE_DTMB) {
-                TvControlManager tcm = TvControlManager.getInstance();
                 int audioTrackAuto = getAudioTrackAuto(info);
-                tcm.PlayDTVProgram(
-                    mode,
-                    info.getFrequency(),
-                    info.getBandwidth(),
-                    0,
-                    info.getVideoPid(),
-                    info.getVfmt(),
-                    (audioTrackAuto >= 0) ? info.getAudioPids()[audioTrackAuto] : -1,
-                    (audioTrackAuto >= 0) ? info.getAudioFormats()[audioTrackAuto] : -1,
-                    info.getPcrPid(),
-                    info.getAudioCompensation());
-                tcm.DtvSetAudioChannleMod(info.getAudioChannel());
-                tcm.SetAVPlaybackListener(this);
+                mTvControlManager.PlayDTVProgram(
+                        mode,
+                        info.getFrequency(),
+                        info.getBandwidth(),
+                        0,
+                        info.getVideoPid(),
+                        info.getVfmt(),
+                        (audioTrackAuto >= 0) ? info.getAudioPids()[audioTrackAuto] : -1,
+                        (audioTrackAuto >= 0) ? info.getAudioFormats()[audioTrackAuto] : -1,
+                        info.getPcrPid(),
+                        info.getAudioCompensation());
+                mTvControlManager.DtvSetAudioChannleMod(info.getAudioChannel());
+                mTvControlManager.SetAVPlaybackListener(this);
             } else
                 Log.d(TAG, "channel type[" + info.getType() + "] not supported yet.");
 
@@ -270,10 +282,8 @@ public class DTVInputService extends DroidLogicTvInputService {
                 return false;
 
             if (type == TvTrackInfo.TYPE_AUDIO) {
-
-                TvControlManager tcm = TvControlManager.getInstance();
                 Map<String, String> parsedMap = ChannelInfo.stringToMap(trackId);
-                tcm.DtvSwitchAudioTrack(Integer.parseInt(parsedMap.get("pid")),
+                mTvControlManager.DtvSwitchAudioTrack(Integer.parseInt(parsedMap.get("pid")),
                                         Integer.parseInt(parsedMap.get("fmt")),
                                         0);
 
@@ -550,7 +560,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             if (mHandlerThread == null) {
                 mHandlerThread = new HandlerThread(name);
                 mHandlerThread.start();
-                mHandler = new Handler(mHandlerThread.getLooper(), this);
+                mHandler = new Handler(mHandlerThread.getLooper());
             }
         }
 

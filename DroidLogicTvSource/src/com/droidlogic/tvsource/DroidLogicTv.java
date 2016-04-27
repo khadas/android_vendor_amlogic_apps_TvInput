@@ -88,7 +88,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private ChannelListLayout mChannelListLayout;
     private TextView prompt_no_signal;
 
-    private int mSigType;
+    private int mSigType = 0;
     private boolean isMenuShowing;
 
     private volatile int mNoSignalShutdownCount = -1;
@@ -129,11 +129,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private Handler mThreadHandler;
     private static final int MSG_SAVE_CHANNEL_INFO = 1;
 
-    private int mCurrentKeyType;
     private static final int IS_KEY_EXIT   = 0;
     private static final int IS_KEY_HOME   = 1;
     private static final int IS_KEY_OTHER  = 2;
-    private boolean mSourceHasReleased = false;
     PowerManager.WakeLock mScreenLock = null;
     private AudioManager mAudioManager = null;
     private SystemControlManager mSystemControlManager = null;
@@ -198,11 +196,6 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             } else if (action.equals(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH)) {
                 int switchVal = intent.getIntExtra(DroidLogicTvUtils.EXTRA_SUBTITLE_SWITCH_VALUE, 0);
                 resetSubtitleTrack((switchVal == 1));
-            } else if (action.equals(Intent.ACTION_CLOSE_SYSTEM_DIALOGS)) {
-                String reason = intent.getStringExtra("reason");
-                if (TextUtils.equals(reason, "homekey")) {
-                    finish();
-                }
             }
         }
     };
@@ -218,24 +211,14 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         mAudioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
         mSystemControlManager = new SystemControlManager(this);
 
-        IntentFilter intentFilter = new IntentFilter(DroidLogicTvUtils.ACTION_TIMEOUT_SUSPEND);
-        intentFilter.addAction(DroidLogicTvUtils.ACTION_UPDATE_TV_PLAY);
-        intentFilter.addAction(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH);
-        intentFilter.addAction(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
-        intentFilter.addAction(DroidLogicTvUtils.ACTION_DELETE_CHANNEL);
-        intentFilter.addAction(DroidLogicTvUtils.ACTION_SWITCH_CHANNEL);
-        registerReceiver(mReceiver, intentFilter);
     }
 
     private void init() {
         mContext = getApplicationContext();
         mHandler = new Handler(this);
 
-        initThread(mThreadName);
         mTvInputManager = (TvInputManager)getSystemService(Context.TV_INPUT_SERVICE);
         mTvInputChangeCallback = new TvInputChangeCallback();
-        mTvInputManager.registerCallback(mTvInputChangeCallback, new Handler());
-        mChannelDataManager = new ChannelDataManager(mContext);
         mTvDataBaseManager = new TvDataBaseManager(mContext);
 
         mTimePromptText = (TextView) findViewById(R.id.textView_time_prompt);
@@ -251,7 +234,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         mChannelListLayout.setOnChannelSelectListener(this);
         prompt_no_signal = (TextView)findViewById(R.id.no_signal);
 
-        initSourceMenuLayout();
+        mChannelDataManager = new ChannelDataManager(mContext);
+
         setStartUpInfo();
     }
 
@@ -267,6 +251,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private void releaseTvView() {
         if (mSourceView != null) {
             mSourceView.setVisibility(View.GONE);
+            //mSourceView.reset();
         }
     }
 
@@ -305,16 +290,10 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private void initSourceMenuLayout() {
         setDefaultChannelInfo();
         mSourceMenuLayout.refresh();
+        if (mSourceInput != null) {
+            mSourceMenuLayout.getCurSourceInput().setChannelVideoFormat(mSourceInput.getChannelVideoFormat());
+        }
         mSourceInput = mSourceMenuLayout.getCurSourceInput();
-    }
-
-    /**
-     * source may not be released when stopping tvapp, release it ahead of time.
-     * release it when KEY_EXIT or KEY_HOME in {@link this#onPause()}
-     */
-    private void prepareForSourceRelease() {
-        mCurrentKeyType = IS_KEY_HOME;
-        mSourceHasReleased = false;
     }
 
     private void startPlay() {
@@ -330,13 +309,13 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         Utils.logd(TAG, "== onResume ====");
         closeTouchSound();
         closeScreenOffTimeout();
+        initSourceMenuLayout();
 
         mSystemControlManager.setProperty(PROP_TV_PREVIEW, "false");
         addTvView();
         showUi(Utils.UI_TYPE_ALL_HIDE, false);
-        showUi(Utils.UI_TYPE_SOURCE_INFO, true);
         startPlay();
-        prepareForSourceRelease();
+        showUi(Utils.UI_TYPE_SOURCE_INFO, false);
         hasStopped = false;
         isMenuShowing = false;
         needUpdateSource = true;
@@ -349,6 +328,14 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         else
             showMuteIcon(false);
 
+        mTvInputManager.registerCallback(mTvInputChangeCallback, new Handler());
+        initThread(mThreadName);
+        IntentFilter intentFilter = new IntentFilter(DroidLogicTvUtils.ACTION_TIMEOUT_SUSPEND);
+        intentFilter.addAction(DroidLogicTvUtils.ACTION_UPDATE_TV_PLAY);
+        intentFilter.addAction(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH);
+        intentFilter.addAction(DroidLogicTvUtils.ACTION_DELETE_CHANNEL);
+        intentFilter.addAction(DroidLogicTvUtils.ACTION_SWITCH_CHANNEL);
+        registerReceiver(mReceiver, intentFilter);
         super.onResume();
     }
 
@@ -416,7 +403,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             releaseTvView();
             mMainView.setBackgroundDrawable(getResources().getDrawable(R.drawable.hotplug_out, null));
         }
-        showUi(Utils.UI_TYPE_SOURCE_INFO, true);
+        showUi(Utils.UI_TYPE_SOURCE_INFO, false);
     }
 
     private void switchToDtvChannel(int channelId) {
@@ -574,7 +561,6 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 if (!down)
                     return true;
 
-                mCurrentKeyType = IS_KEY_OTHER;
                 startSetupActivity();
                 return true;
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_DISPAYMODE:
@@ -592,7 +578,6 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     return true;
                 }
 
-                mCurrentKeyType = IS_KEY_OTHER;
                 startSettingActivity(keyCode);
                 return true;
             case KeyEvent.KEYCODE_MEDIA_AUDIO_TRACK:
@@ -820,7 +805,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         else
             keyInputNumber = Integer.toString((size + (index + offset) % size) % size);
 
-        showUi(Utils.UI_TYPE_SOURCE_INFO, true);
+        showUi(Utils.UI_TYPE_SOURCE_INFO, false);
         mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_CHANNEL_NUM_SWITCH), 300);
     }
 
@@ -833,7 +818,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         int val = keyCode - DroidLogicKeyEvent.KEYCODE_0;
         if (keyInputNumber.length() <= 8)
             keyInputNumber = keyInputNumber + val;
-        showUi(Utils.UI_TYPE_SOURCE_INFO, true);
+        showUi(Utils.UI_TYPE_SOURCE_INFO, false);
         mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_CHANNEL_NUM_SWITCH), 2000);
     }
 
@@ -848,7 +833,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     }
 
     private void inflateCurrentInfoLayout() {
-        if (!(mSourceInfoLayout.getChildCount() == 0 || mPreSigType != mSigType))
+        if (mPreSigType == mSigType)
             return;
         mSourceInfoLayout.removeAllViews();
         mInfoNumber = null;
@@ -950,34 +935,31 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
 
         switch (type) {
             case Utils.UI_TYPE_SOURCE_INFO:
-                if (mSourceInfoLayout.getVisibility() != View.VISIBLE || forceShow) {
-                    switch (mSigType) {
-                        case DroidLogicTvUtils.SIG_INFO_TYPE_ATV:
-                            initATVInfo();
-                            break;
-                        case DroidLogicTvUtils.SIG_INFO_TYPE_DTV:
-                            initDTVInfo();
-                            break;
-                        case DroidLogicTvUtils.SIG_INFO_TYPE_AV:
-                            initAVInfo();
-                            break;
-                        case DroidLogicTvUtils.SIG_INFO_TYPE_HDMI:
-                            initHmdiInfo();
-                            break;
-                        default:
-                            initOtherInfo();
-                            break;
-                    }
-                    if (!forceShow && (mSourceMenuLayout.getVisibility() == View.VISIBLE)) {
-                        return;
-                    } else {
-                        mHandler.removeMessages(MSG_UI_TIMEOUT);
-                        showTvView(mSourceInfoLayout);
-                        mSourceInfoLayout.requestLayout();
-                        mUiType = type;
-                        mHandler.sendEmptyMessageDelayed(MSG_UI_TIMEOUT, DEFAULT_TIMEOUT);
-                    }
+                if (mSourceMenuLayout.getVisibility() == View.VISIBLE) {
+                    return;
                 }
+                switch (mSigType) {
+                    case DroidLogicTvUtils.SIG_INFO_TYPE_ATV:
+                        initATVInfo();
+                        break;
+                    case DroidLogicTvUtils.SIG_INFO_TYPE_DTV:
+                        initDTVInfo();
+                        break;
+                    case DroidLogicTvUtils.SIG_INFO_TYPE_AV:
+                        initAVInfo();
+                        break;
+                    case DroidLogicTvUtils.SIG_INFO_TYPE_HDMI:
+                        initHmdiInfo();
+                        break;
+                    default:
+                        initOtherInfo();
+                        break;
+                }
+                mHandler.removeMessages(MSG_UI_TIMEOUT);
+                showTvView(mSourceInfoLayout);
+                mSourceInfoLayout.requestLayout();
+                mUiType = type;
+                mHandler.sendEmptyMessageDelayed(MSG_UI_TIMEOUT, DEFAULT_TIMEOUT);
                 break;
             case Utils.UI_TYPE_SOURCE_LIST:
                 if (forceShow || mSourceMenuLayout.getVisibility() != View.VISIBLE) {
@@ -1073,29 +1055,16 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 default:
                     break;
             }
-            showUi(Utils.UI_TYPE_SOURCE_INFO, true);
+            showUi(Utils.UI_TYPE_SOURCE_INFO, false);
         } else if (eventType.equals(DroidLogicTvUtils.AV_SIG_SCRAMBLED)) {
             mSignalState = SIGNAL_SCRAMBLED;
             showUi(Utils.UI_TYPE_NO_SINAL, false);
         }
     }
 
-    /**
-     * release something for next resume or destroy. e.g, if exit with home key, clear info which
-     * is unknown when next resume for pass through.
-     * clear info for pass through, and release session.
-     */
-    private void releaseBeforeExit() {
-        preSwitchSourceInput();
-        mSourceHasReleased = true;
-    }
-
     @Override
     protected void onPause() {
-        Utils.logd(TAG, "==== onPause ====" + mCurrentKeyType);
-        if (mCurrentKeyType == IS_KEY_EXIT || mCurrentKeyType == IS_KEY_HOME) {
-            releaseBeforeExit();
-        }
+        Utils.logd(TAG, "==== onPause ====");
         isRunning = false;
         // search is longer then 5min
         remove_nosignal_time();
@@ -1108,21 +1077,18 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         if (toast != null)
             toast.cancel();
         hasStopped = true;
-        if (!mSourceHasReleased) {
-            releaseBeforeExit();
-        }
         releaseTvView();
         restoreTouchSound();
         openScreenOffTimeout();
+        mTvInputManager.unregisterCallback(mTvInputChangeCallback);
+        releaseThread();
+        unregisterReceiver(mReceiver);
         super.onStop();
     }
 
     @Override
     protected void onDestroy() {
         Utils.logd(TAG, "==== onDestroy ====");
-        mTvInputManager.unregisterCallback(mTvInputChangeCallback);
-        releaseThread();
-        unregisterReceiver(mReceiver);
         mChannelDataManager.release();
         super.onDestroy();
     }
@@ -1152,8 +1118,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 }
                 break;
             case MSG_CHANNEL_NUM_SWITCH:
-                if (mSourceInput.moveToIndex(Integer.parseInt(keyInputNumber)))
+                if (mSourceInput.moveToIndex(Integer.parseInt(keyInputNumber))) {
                     sendTuneMessage();
+                }
                 isNumberSwitching = false;
                 keyInputNumber = "";
                 showUi(Utils.UI_TYPE_SOURCE_INFO, false);
@@ -1276,9 +1243,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    Uri channel_uri = mSourceInput.getUri();
-                    Utils.logd(TAG, "channelUri switching to is " + channel_uri);
-                    mSourceView.tune(mSourceInput.getInputId(), channel_uri);
+                    startPlay();
                 }
             }).start();
         }

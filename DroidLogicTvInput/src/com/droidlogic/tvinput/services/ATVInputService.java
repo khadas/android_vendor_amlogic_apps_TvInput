@@ -9,6 +9,8 @@ import android.media.tv.TvContentRating;
 import android.media.tv.TvInputManager;
 import android.media.tv.TvInputInfo;
 import android.media.tv.TvInputHardwareInfo;
+import android.media.tv.TvStreamConfig;
+import android.media.tv.TvInputManager.Hardware;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -30,14 +32,16 @@ public class ATVInputService extends DroidLogicTvInputService {
 
     private static final String TAG = "ATVInputService";
 
-    private ATVSessionImpl mSession;
+    private ATVSessionImpl mCurrentSession;
     private ChannelInfo mCurrentChannel = null;
+    private int number = 0;
+    private int currentNumber = 0;
 
     private final BroadcastReceiver mParentalControlsBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (mSession != null) {
-                mSession.checkContentBlockNeeded();
+            if (mCurrentSession != null) {
+                mCurrentSession.checkContentBlockNeeded();
             }
         }
     };
@@ -61,16 +65,19 @@ public class ATVInputService extends DroidLogicTvInputService {
     @Override
     public Session onCreateSession(String inputId) {
         super.onCreateSession(inputId);
-        if (mSession == null || !TextUtils.equals(inputId, mSession.getInputId())) {
-            mSession = new ATVSessionImpl(this, inputId, getHardwareDeviceId(inputId));
-            registerInputSession(mSession);
-        }
-        return mSession;
+
+        mCurrentSession = new ATVSessionImpl(this, inputId, getHardwareDeviceId(inputId));
+        registerInputSession(mCurrentSession);
+        mCurrentSession.setNumber(number);
+        number++;
+        return mCurrentSession;
     }
 
     public class ATVSessionImpl extends TvInputBaseSession {
         private final Context mContext;
         private TvInputManager mTvInputManager;
+        private TvControlManager mTvControlManager;
+        private TvDataBaseManager mTvDataBaseManager;
         private TvContentRating mLastBlockedRating;
         private TvContentRating mCurrentContentRating;
         private final Set<TvContentRating> mUnblockedRatingSet = new HashSet<>();
@@ -79,15 +86,31 @@ public class ATVInputService extends DroidLogicTvInputService {
             super(context, inputId, deviceId);
 
             mContext = context;
+            mTvDataBaseManager = new TvDataBaseManager(mContext);
+            mTvControlManager = TvControlManager.getInstance();
             mLastBlockedRating = null;
             mCurrentChannel = null;
+        }
+
+        public TvStreamConfig[] getConfigs() {
+            return mConfigs;
+        }
+
+        public Hardware getHardware() {
+            return mHardware;
+        }
+
+        public int getCurrentSessionNumber() {
+            return currentNumber;
+        }
+
+        public void setCurrentSessionNumber(int number) {
+           currentNumber = number;
         }
 
         @Override
         public void doRelease() {
             super.doRelease();
-            mSession = null;
-            // releasePlayer();
         }
 
         @Override
@@ -108,15 +131,6 @@ public class ATVInputService extends DroidLogicTvInputService {
         }
 
         @Override
-        public int doSurfaceChanged(Uri uri) {
-            int ret = super.doSurfaceChanged(uri);
-            if (ret == ACTION_SUCCESS) {
-                switchToSourceInput(uri);
-            }
-            return ret;
-        }
-
-        @Override
         public void doUnblockContent(TvContentRating rating) {
             super.doUnblockContent(rating);
             if (rating != null) {
@@ -126,11 +140,10 @@ public class ATVInputService extends DroidLogicTvInputService {
 
         private void switchToSourceInput(Uri uri) {
             mUnblockedRatingSet.clear();
-            Log.d(TAG, "switchToSourceInput  uri=" + uri);
+            Log.d(TAG, "switchToSourceInput  uri="+ uri);
             if (Utils.getChannelId(uri) < 0) {
                 Log.d(TAG, "ChannelId < 0, stop Play");
-                TvControlManager tcm = TvControlManager.getInstance();
-                tcm.SetFrontendParms(TvControlManager.tv_fe_type_e.TV_FE_ANALOG,
+                mTvControlManager.SetFrontendParms(TvControlManager.tv_fe_type_e.TV_FE_ANALOG,
                                      45250000,// try to get the tune into unlock status
                                      TvControlManager.tvin_color_system_e.COLOR_SYSTEM_PAL.toInt(),
                                      TvControlManager.ATV_AUDIO_STD_DK, 0, 0);
@@ -139,7 +152,6 @@ public class ATVInputService extends DroidLogicTvInputService {
                 mCurrentChannel = null;
                 return;
             }
-            TvDataBaseManager mTvDataBaseManager = new TvDataBaseManager(mContext);
             ChannelInfo ch = mTvDataBaseManager.getChannelInfo(uri);
             if (ch != null) {
                 playProgram(ch);
@@ -150,12 +162,11 @@ public class ATVInputService extends DroidLogicTvInputService {
 
         private boolean playProgram(ChannelInfo info) {
             info.print();
-            TvControlManager tcm = TvControlManager.getInstance();
-            tcm.PlayATVProgram(info.getFrequency() + info.getFineTune(),
-                               info.getVideoStd(),
-                               info.getAudioStd(),
-                               0,
-                               info.getAudioCompensation());
+            mTvControlManager.PlayATVProgram(info.getFrequency() + info.getFineTune(),
+                info.getVideoStd(),
+                info.getAudioStd(),
+                0,
+                info.getAudioCompensation());
             checkContentBlockNeeded();
             return true;
         }
@@ -182,7 +193,7 @@ public class ATVInputService extends DroidLogicTvInputService {
         private void unblockContent(TvContentRating rating) {
             // TIS should unblock content only if unblock request is legitimate.
             if (rating == null || mLastBlockedRating == null
-                || (mLastBlockedRating != null && rating.equals(mLastBlockedRating))) {
+                    || (mLastBlockedRating != null && rating.equals(mLastBlockedRating))) {
                 mLastBlockedRating = null;
                 if (rating != null) {
                     mUnblockedRatingSet.add(rating);
@@ -201,7 +212,7 @@ public class ATVInputService extends DroidLogicTvInputService {
         public final String logoBackgroundUrl;
 
         public TvInput(String displayName, String name, String description, String logoThumbUrl,
-                       String logoBackgroundUrl) {
+                String logoBackgroundUrl) {
             this.displayName = displayName;
             this.name = name;
             this.description = description;
@@ -212,7 +223,7 @@ public class ATVInputService extends DroidLogicTvInputService {
 
     public TvInputInfo onHardwareAdded(TvInputHardwareInfo hardwareInfo) {
         if (hardwareInfo.getDeviceId() != DroidLogicTvUtils.DEVICE_ID_ATV
-            || hasInfoExisted(hardwareInfo))
+                || hasInfoExisted(hardwareInfo))
             return null;
 
         Log.d(TAG, "=====onHardwareAdded=====" + hardwareInfo.getDeviceId());
@@ -222,7 +233,7 @@ public class ATVInputService extends DroidLogicTvInputService {
         if (rInfo != null) {
             try {
                 info = TvInputInfo.createTvInputInfo(this, rInfo, hardwareInfo,
-                                                     getTvInputInfoLabel(hardwareInfo.getDeviceId()), null);
+                        getTvInputInfoLabel(hardwareInfo.getDeviceId()), null);
             } catch (Exception e) {
             }
         }

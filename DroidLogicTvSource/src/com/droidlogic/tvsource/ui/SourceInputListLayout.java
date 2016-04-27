@@ -145,7 +145,7 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
             if (sb.getSigType() == DroidLogicTvUtils.SIG_INFO_TYPE_DTV) {
                 dtvSourceInput = sb;
             }
-            if (curSourceInput == null && defaultDeviceId == sb.getDeviceId()) {
+            if (defaultDeviceId == sb.getDeviceId()) {
                 curSourceInput = sb;
             }
             mSourceInputs.put(sb.getDeviceId(), sb);

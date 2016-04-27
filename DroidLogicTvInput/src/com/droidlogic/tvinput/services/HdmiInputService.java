@@ -14,6 +14,8 @@ import android.content.Context;
 import android.content.pm.ResolveInfo;
 import android.media.tv.TvInputHardwareInfo;
 import android.media.tv.TvInputInfo;
+import android.media.tv.TvStreamConfig;
+import android.media.tv.TvInputManager.Hardware;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.KeyEvent;
@@ -21,16 +23,20 @@ import android.view.Surface;
 
 public class HdmiInputService extends DroidLogicTvInputService {
     private static final String TAG = HdmiInputService.class.getSimpleName();
-    private HdmiInputSession mSession;
+    private HdmiInputSession mCurrentSession;
+    private int number = 0;
+    private int currentNumber = 0;
 
     @Override
     public Session onCreateSession(String inputId) {
         super.onCreateSession(inputId);
-        if (mSession == null || !TextUtils.equals(inputId, mSession.getInputId())) {
-            mSession = new HdmiInputSession(getApplicationContext(), inputId, getHardwareDeviceId(inputId));
-            registerInputSession(mSession);
-        }
-        return mSession;
+
+        mCurrentSession = new HdmiInputSession(getApplicationContext(), inputId, getHardwareDeviceId(inputId));
+        registerInputSession(mCurrentSession);
+        mCurrentSession.setNumber(number);
+        number++;
+
+        return mCurrentSession;
     }
 
     public class HdmiInputSession extends TvInputBaseSession {
@@ -39,12 +45,25 @@ public class HdmiInputService extends DroidLogicTvInputService {
             Utils.logd(TAG, "=====new HdmiInputSession=====");
         }
 
+        public TvStreamConfig[] getConfigs() {
+            return mConfigs;
+        }
+
+        public Hardware getHardware() {
+            return mHardware;
+        }
+
+        public int getCurrentSessionNumber() {
+            return currentNumber;
+        }
+
+        public void setCurrentSessionNumber(int number) {
+           currentNumber = number;
+        }
+
         @Override
         public void doRelease() {
             super.doRelease();
-            if (mSession != null && mSession.getDeviceId() == getDeviceId()) {
-                mSession = null;
-            }
         }
 
         @Override
@@ -58,9 +77,6 @@ public class HdmiInputService extends DroidLogicTvInputService {
         @Override
         public void doSetSurface(Surface surface) {
             super.doSetSurface(surface);
-            if (surface == null && getHardware() == null) {//device has been released
-                mSession = null;
-            }
         }
 
         @Override
@@ -116,10 +132,6 @@ public class HdmiInputService extends DroidLogicTvInputService {
         if (info != null)
             id = info.getId();
         updateInfoListIfNeededLocked(hardwareInfo, info, true);
-
-        if (mSession != null && hardwareInfo.getDeviceId() == mSession.getDeviceId()) {
-            mSession = null;
-        }
 
         Utils.logd(TAG, "=====onHardwareRemoved=====" + id);
         return id;

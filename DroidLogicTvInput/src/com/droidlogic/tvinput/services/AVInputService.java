@@ -14,22 +14,28 @@ import android.content.Context;
 import android.content.pm.ResolveInfo;
 import android.media.tv.TvInputHardwareInfo;
 import android.media.tv.TvInputInfo;
+import android.media.tv.TvStreamConfig;
+import android.media.tv.TvInputManager.Hardware;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.Surface;
 
 public class AVInputService extends DroidLogicTvInputService {
     private static final String TAG = AVInputService.class.getSimpleName();;
-    private AVInputSession mSession;
+    private AVInputSession mCurrentSession;
+    private int number = 0;
+    private int currentNumber = 0;
 
     @Override
     public Session onCreateSession(String inputId) {
         super.onCreateSession(inputId);
-        if (mSession == null || !TextUtils.equals(inputId, mSession.getInputId())) {
-            mSession = new AVInputSession(getApplicationContext(), inputId, getHardwareDeviceId(inputId));
-            registerInputSession(mSession);
-        }
-        return mSession;
+
+        mCurrentSession = new AVInputSession(getApplicationContext(), inputId, getHardwareDeviceId(inputId));
+        registerInputSession(mCurrentSession);
+        mCurrentSession.setNumber(number);
+        number++;
+
+        return mCurrentSession;
     }
 
     public class AVInputSession extends TvInputBaseSession {
@@ -38,12 +44,25 @@ public class AVInputService extends DroidLogicTvInputService {
             Utils.logd(TAG, "=====new AVInputSession=====");
         }
 
+        public TvStreamConfig[] getConfigs() {
+            return mConfigs;
+        }
+
+        public Hardware getHardware() {
+            return mHardware;
+        }
+
+        public int getCurrentSessionNumber() {
+            return currentNumber;
+        }
+
+        public void setCurrentSessionNumber(int number) {
+           currentNumber = number;
+        }
+
         @Override
         public void doRelease() {
             super.doRelease();
-            if (mSession != null && mSession.getDeviceId() == getDeviceId()) {
-                mSession = null;
-            }
         }
 
         @Override
@@ -57,9 +76,6 @@ public class AVInputService extends DroidLogicTvInputService {
         @Override
         public void doSetSurface(Surface surface) {
             super.doSetSurface(surface);
-            if (surface == null && getHardware() == null) {//device has been released
-                mSession = null;
-            }
         }
     }
 
@@ -102,9 +118,6 @@ public class AVInputService extends DroidLogicTvInputService {
             id = info.getId();
         updateInfoListIfNeededLocked(hardwareInfo, info, true);
 
-        if (mSession != null && hardwareInfo.getDeviceId() == mSession.getDeviceId()) {
-            mSession = null;
-        }
         Utils.logd(TAG, "=====onHardwareRemoved=====" + id);
         return id;
     }
