@@ -211,6 +211,16 @@ abstract public class DTVEpgScanner {
         native_epg_set_dvb_text_coding(coding);
     }
 
+    public void rescanTDT() {
+        if (!created)
+            return;
+
+        Log.d(TAG, "rescan TDT");
+
+        stopScan(SCAN_TDT);
+        startScan(SCAN_TDT);
+    }
+
     abstract void onEvent(Event event);
 }
 

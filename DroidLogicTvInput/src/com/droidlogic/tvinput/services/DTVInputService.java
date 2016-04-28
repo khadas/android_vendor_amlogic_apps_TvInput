@@ -60,7 +60,13 @@ public class DTVInputService extends DroidLogicTvInputService {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (mCurrentSession != null) {
-                mCurrentSession.checkContentBlockNeeded();
+                String action = intent.getAction();
+                if (action.equals(TvInputManager.ACTION_BLOCKED_RATINGS_CHANGED)
+                    || action.equals(TvInputManager.ACTION_PARENTAL_CONTROLS_ENABLED_CHANGED)) {
+                    mCurrentSession.checkContentBlockNeeded();
+                } else if (action.equals(Intent.ACTION_TIME_CHANGED)) {
+                    mCurrentSession.restartEPGTime();
+                }
             }
         }
     };
@@ -72,7 +78,8 @@ public class DTVInputService extends DroidLogicTvInputService {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(TvInputManager.ACTION_BLOCKED_RATINGS_CHANGED);
         intentFilter
-        .addAction(TvInputManager.ACTION_PARENTAL_CONTROLS_ENABLED_CHANGED);
+                .addAction(TvInputManager.ACTION_PARENTAL_CONTROLS_ENABLED_CHANGED);
+        intentFilter.addAction(Intent.ACTION_TIME_CHANGED);
         registerReceiver(mParentalControlsBroadcastReceiver, intentFilter);
     }
 
@@ -632,6 +639,12 @@ public class DTVInputService extends DroidLogicTvInputService {
             }
         }
 
+        private void restartEPGTime() {
+            Log.d(TAG, "restartEPGTime");
+            if (epg != null)
+                epg.restartEPGTime();
+        }
+
         public class EPGScanner {
             private static final String TAG = "EPGScanner";
             private static final int MSG_EPG_EVENT = 1000;
@@ -750,6 +763,10 @@ public class DTVInputService extends DroidLogicTvInputService {
                 else
                     epgScanner.enterProgram(channel);
                 tvservice = channel;
+            }
+
+            public void restartEPGTime(){
+                epgScanner.rescanTDT();
             }
 
             private List<Program> getChannelPrograms(Uri channelUri, ChannelInfo channel,
