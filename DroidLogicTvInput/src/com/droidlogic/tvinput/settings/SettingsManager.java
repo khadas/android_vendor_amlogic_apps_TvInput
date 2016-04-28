@@ -1308,6 +1308,7 @@ public class SettingsManager {
     }
 
     public void doFactoryReset() {
+        mTvControlManager.StopTv();
         setSleepTimer(DEFAULT_SLEEP_TIMER);
         setMenuTime(DEFUALT_MENU_TIME);
         setStartupSetting(0);
