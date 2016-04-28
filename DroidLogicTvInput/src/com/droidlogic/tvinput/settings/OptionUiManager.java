@@ -1093,6 +1093,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             String channel = edit.getText().toString();
             if (channel == null || channel.length() == 0)
                 channel = (String)edit.getHint();
+            mTvControlManager.DtvSetTextCoding("GB2312");
             mTvControlManager.DtvManualScan(getDvbFrequencyByPd(Integer.valueOf(channel)));
             isSearching = true;
             mSettingsManager.setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
@@ -1264,6 +1265,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             mTvControlManager.AtvAutoScan(TvControlManager.ATV_VIDEO_STD_PAL, TvControlManager.ATV_AUDIO_STD_I, 0, 1);
         } else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
             mTvControlManager.PlayDTVProgram(TVChannelParams.MODE_DTMB, 470000000, 0, 0, 0, 0, -1, -1, 0, 0);
+            mTvControlManager.DtvSetTextCoding("GB2312");
             mTvControlManager.DtvAutoScan();
             Intent intent = new Intent(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH);
             intent.putExtra(DroidLogicTvUtils.EXTRA_SUBTITLE_SWITCH_VALUE, 0);
