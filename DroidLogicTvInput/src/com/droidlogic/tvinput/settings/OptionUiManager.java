@@ -33,6 +33,7 @@ import java.util.Iterator;
 import com.droidlogic.app.tv.TvControlManager;
 import com.droidlogic.app.tv.TvControlManager.FreqList;
 import android.app.AlertDialog;
+import com.droidlogic.app.SystemControlManager;
 
 import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.app.tv.TVChannelParams;
@@ -1516,6 +1517,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
 
             case TvControlManager.EVENT_STORE_END:
                 Log.d(TAG, "Store end");
+                SystemControlManager scm = new SystemControlManager(mContext);
+                scm.setProperty("tv.channels.count", ""+(channelNumber+radioNumber));
                 onTvChannelStoreEnd();
                 ((TvSettingsActivity) mContext).finish();
                 break;
