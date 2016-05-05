@@ -148,6 +148,8 @@
     <string name="error_no_channel">No channel !</string>
     <string name="error_atv_error_1">Frequency must between 44250~868250 KHz</string>
     <string name="error_atv_error_2">start frequency must less than end frequency</string>
+    <string name="error_atv_error_3">start frequency must big than end frequency 1MHz</string>
+    <string name="error_atv_startSearch">failed to start search channels</string>
     <string name="searched">Searched</string>
 
     <!-- for time suspend ui -->

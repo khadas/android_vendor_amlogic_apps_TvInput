@@ -1080,11 +1080,18 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 showToast(mResources.getString(R.string.error_atv_error_1));
             else if (from > to)
                 showToast(mResources.getString(R.string.error_atv_error_2));
+            else if (to - from < 1000)
+                showToast(mResources.getString(R.string.error_atv_error_3));
             else {
                 mSettingsManager.setManualSearchProgress(0);
                 mSettingsManager.setManualSearchSearchedNumber(0);
-                mTvControlManager.AtvManualScan(from * 1000, to * 1000,
+                int ret = mTvControlManager.AtvManualScan(from * 1000, to * 1000,
                                                 TvControlManager.ATV_VIDEO_STD_PAL, TvControlManager.ATV_AUDIO_STD_DK);
+                Log.d(TAG, "mTvControlManager.AtvManualScan return " + ret);
+                if (ret < 0) {
+                    showToast(mResources.getString(R.string.error_atv_startSearch));
+                    return;
+                }
                 isSearching = true;
                 mSettingsManager.setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
                 mSettingsManager.sendBroadcastToTvapp("search_channel");
