@@ -517,8 +517,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     @Override
     public void onSourceInputClick() {
         Utils.logd(TAG, "==== onSourceInputClick ====");
+        hideTvView(mSourceMenuLayout);
+        showUi(Utils.UI_TYPE_SOURCE_INFO, false);
         if (mSourceInput.getSourceType() == mSourceMenuLayout.getCurSourceInput().getSourceType()) {
-            showUi(Utils.UI_TYPE_SOURCE_INFO, false);
             return;
         }
         preSwitchSourceInput();
@@ -833,8 +834,6 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     }
 
     private void inflateCurrentInfoLayout() {
-        if (mPreSigType == mSigType)
-            return;
         mSourceInfoLayout.removeAllViews();
         mInfoNumber = null;
         LayoutInflater inflate = LayoutInflater.from(mContext);
@@ -1105,7 +1104,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                         break;
                     case Utils.UI_TYPE_SOURCE_LIST:
                         hideTvView(mSourceMenuLayout);
-                        showUi(Utils.UI_TYPE_NO_SINAL, false);
+                        showUi(Utils.UI_TYPE_SOURCE_INFO, false);
                         break;
                     case Utils.UI_TYPE_ATV_CHANNEL_LIST:
                     case Utils.UI_TYPE_DTV_CHANNEL_LIST:

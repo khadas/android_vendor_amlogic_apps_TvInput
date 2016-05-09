@@ -1419,7 +1419,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                .setServiceType(Channels.SERVICE_TYPE_AUDIO_VIDEO)//default is SERVICE_TYPE_AUDIO_VIDEO
                .setServiceId(0)
                .setDisplayNumber(Integer.toString(tvDisplayNumber))
-               .setDisplayName(mResources.getString(R.string.atv_program))
+               .setDisplayName(mResources.getString(R.string.atv_program) + " " + tvDisplayNumber)
                .setLogoUrl(null)
                .setOriginalNetworkId(0)
                .setTransportStreamId(0)
@@ -1528,6 +1528,17 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 scm.setProperty("tv.channels.count", ""+(channelNumber+radioNumber));
                 onTvChannelStoreEnd();
                 ((TvSettingsActivity) mContext).finish();
+                String prompt = mResources.getString(R.string.searched);
+                if (channelNumber != 0) {
+                    prompt += " " + channelNumber + " " + mResources.getString(R.string.tv_channel);
+                    if (radioNumber != 0) {
+                        prompt += ",";
+                    }
+                }
+                if (radioNumber != 0) {
+                    prompt += " " + radioNumber + " " + mResources.getString(R.string.radio_channel);
+                }
+                showToast(prompt);
                 break;
             case TvControlManager.EVENT_SCAN_END:
                 Log.d(TAG, "Scan end");
@@ -1539,16 +1550,6 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 if (channelNumber == 0 && radioNumber == 0) {
                     ((TvSettingsActivity) mContext).finish();
                     showToast(mResources.getString(R.string.searched) + " 0 " + mResources.getString(R.string.channel));
-                } else {
-                    String prompt = mResources.getString(R.string.searched);
-                    if (channelNumber != 0) {
-                        prompt += " " + channelNumber + " " + mResources.getString(R.string.tv_channel);
-                        if (radioNumber != 0)
-                            prompt += ",";
-                    }
-                    if (radioNumber != 0)
-                        prompt += " " + radioNumber + " " + mResources.getString(R.string.radio_channel);
-                    showToast(prompt);
                 }
                 break;
             default:
