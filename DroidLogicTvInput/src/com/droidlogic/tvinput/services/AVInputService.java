@@ -56,8 +56,10 @@ public class AVInputService extends DroidLogicTvInputService {
             return currentNumber;
         }
 
-        public void setCurrentSessionNumber(int number) {
-           currentNumber = number;
+        public void setCurrentSession() {
+           currentNumber = getNumber();
+           mCurrentSession = this;
+           registerInputSession(mCurrentSession);
         }
 
         @Override

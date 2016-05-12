@@ -292,6 +292,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         mSourceMenuLayout.refresh();
         if (mSourceInput != null) {
             mSourceMenuLayout.getCurSourceInput().setChannelVideoFormat(mSourceInput.getChannelVideoFormat());
+            mSourceMenuLayout.getCurSourceInput().setAVType(mSourceInput.getAVType());
         }
         mSourceInput = mSourceMenuLayout.getCurSourceInput();
     }
