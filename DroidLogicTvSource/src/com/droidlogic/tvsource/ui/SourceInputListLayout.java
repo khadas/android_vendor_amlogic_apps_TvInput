@@ -131,6 +131,14 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
         return ACTION_SUCCESS;
     }
 
+    public SourceButton getSourceInput(TvInputInfo info) {
+        int id = getDeviceId(info);
+        if (id > 0) {
+            return mSourceInputs.get(id);
+        }
+        return null;
+    }
+
     public int refresh() {
         int device_id = -1;
 

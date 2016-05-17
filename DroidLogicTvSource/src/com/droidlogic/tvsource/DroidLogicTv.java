@@ -29,6 +29,12 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources.NotFoundException;
 import android.hardware.input.InputManager;
+import android.hardware.hdmi.HdmiTvClient;
+import android.hardware.hdmi.HdmiDeviceInfo;
+import android.hardware.hdmi.HdmiControlManager;
+import android.hardware.hdmi.HdmiTvClient.SelectCallback;
+import android.provider.Settings.Global;
+import android.provider.Settings.System;
 import android.media.AudioManager;
 import android.media.tv.TvInputInfo;
 import android.media.tv.TvInputManager;
@@ -76,6 +82,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private TvInputChangeCallback mTvInputChangeCallback;
     private ChannelDataManager mChannelDataManager;
     private TvDataBaseManager mTvDataBaseManager;
+    private HdmiTvClient mHdmiTvClient = null;
 
     private FrameLayout mRootView;
     private TvViewInputCallback mTvViewCallback = new TvViewInputCallback();
@@ -210,7 +217,6 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                           PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ON_AFTER_RELEASE, TAG);
         mAudioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
         mSystemControlManager = new SystemControlManager(this);
-
     }
 
     private void init() {
@@ -332,6 +338,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
 
         mTvInputManager.registerCallback(mTvInputChangeCallback, new Handler());
         initThread(mThreadName);
+        switchHdmiChannel();
         IntentFilter intentFilter = new IntentFilter(DroidLogicTvUtils.ACTION_TIMEOUT_SUSPEND);
         intentFilter.addAction(DroidLogicTvUtils.ACTION_UPDATE_TV_PLAY);
         intentFilter.addAction(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH);
@@ -534,6 +541,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
+        sendKeyEventToHdmi(event.getKeyCode(), event.getAction() == KeyEvent.ACTION_DOWN);
         boolean ret = processKeyEvent(event.getKeyCode(), event);
         return ret ? ret : super.dispatchKeyEvent(event);
     }
@@ -704,6 +712,51 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 break;
         }
         return false;
+    }
+
+    private void sendKeyEventToHdmi(int keyCode, boolean isPressed) {
+        if (mHdmiTvClient != null) {
+            mHdmiTvClient.sendKeyEvent(keyCode, isPressed);
+        }
+    }
+
+    private void selectHdmiDevice() {
+        boolean cecOption = (Global.getInt(getContentResolver(), Global.HDMI_CONTROL_ENABLED, 1) == 1);
+        if (mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_HDMI && cecOption) {
+            if (mHdmiTvClient == null) {
+                HdmiControlManager hdmiManager = (HdmiControlManager) getSystemService(Context.HDMI_CONTROL_SERVICE);
+                if (hdmiManager == null) return;
+                mHdmiTvClient = hdmiManager.getTvClient();
+            }
+            if (mHdmiTvClient != null) {
+                int fit = DroidLogicTvUtils.DEVICE_ID_HDMI1 - 1;
+                int id = System.getInt(getContentResolver(), DroidLogicTvUtils.TV_CURRENT_DEVICE_ID, 0) - fit;
+                for (HdmiDeviceInfo info : mHdmiTvClient.getDeviceList()) {
+                    int port = info.getPhysicalAddress() >> 12;
+                    if (id == port) {
+                        mHdmiTvClient.deviceSelect(info.getLogicalAddress(), new SelectCallback() {
+                            @Override
+                            public void onComplete(int result) {
+                            }
+                        });
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    private void switchHdmiChannel() {
+        String sourceName = SystemProperties.get(DroidLogicTvUtils.SOURCE_NAME, null);
+        if (sourceName != null) {
+            for (TvInputInfo info : mTvInputManager.getTvInputList()) {
+                String name = info.loadLabel(this).toString();
+                if (sourceName.equals(name)) {
+                    SourceButton source = mSourceMenuLayout.getSourceInput(info);
+                    source.performClick();
+                }
+            }
+        }
     }
 
     private void updateTracksInfo(int audioTrack, int subtitleTrack) {
@@ -1133,6 +1186,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 if (isBootvideoStopped()) {
                     Utils.logd(TAG, "======== bootvideo is stopped, start tv play");
                     switchToSourceInput();
+                    selectHdmiDevice();
                 } else {
                     Utils.logd(TAG, "======== bootvideo is not stopped, wait it");
                     mHandler.sendEmptyMessageDelayed(MSG_TUNE, 200);
