@@ -154,9 +154,9 @@ public class ATVInputService extends DroidLogicTvInputService {
                 mCurrentChannel = null;
                 return;
             }
-            ChannelInfo ch = mTvDataBaseManager.getChannelInfo(uri);
-            if (ch != null) {
-                playProgram(ch);
+            mCurrentChannel = mTvDataBaseManager.getChannelInfo(uri);
+            if (mCurrentChannel != null) {
+                playProgram(mCurrentChannel);
             } else {
                 Log.w(TAG, "Failed to get channel info for " + uri);
             }
@@ -263,7 +263,7 @@ public class ATVInputService extends DroidLogicTvInputService {
     public void onUpdateCurrentChannel(ChannelInfo channel, boolean store) {
         if (store) {
             TvDataBaseManager mTvDataBaseManager = new TvDataBaseManager(this);
-            mTvDataBaseManager.updateOrinsertAtvChannel(mCurrentChannel, channel);
+            mTvDataBaseManager.updateOrinsertAtvChannelFuzzy(channel);
         }
     }
 }
