@@ -284,6 +284,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private void releaseThread() {
         mHandlerThread.quit();
         mHandlerThread = null;
+        mThreadHandler.removeCallbacksAndMessages(null);
         mThreadHandler = null;
     }
 
@@ -383,6 +384,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private void switchToSourceInput() {
         if (mSourceInput == null)
             return;
+        if (mThreadHandler == null) {
+            return;
+        }
         mThreadHandler.obtainMessage(MSG_SAVE_CHANNEL_INFO).sendToTarget();
         mPreSigType = mSigType;
         mSigType = mSourceInput.getSigType();
@@ -1080,8 +1084,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         releaseTvView();
         restoreTouchSound();
         openScreenOffTimeout();
-        mTvInputManager.unregisterCallback(mTvInputChangeCallback);
         releaseThread();
+        mTvInputManager.unregisterCallback(mTvInputChangeCallback);
         unregisterReceiver(mReceiver);
         super.onStop();
     }
