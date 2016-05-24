@@ -36,6 +36,7 @@ import android.hardware.hdmi.HdmiTvClient.SelectCallback;
 import android.provider.Settings.Global;
 import android.provider.Settings.System;
 import android.media.AudioManager;
+import android.media.AudioSystem;
 import android.media.tv.TvInputInfo;
 import android.media.tv.TvInputManager;
 import android.media.tv.TvTrackInfo;
@@ -331,7 +332,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         if (mSignalState == SIGNAL_NOT_GOT)
             reset_nosignal_time();
 
-        if (mAudioManager.isMasterMute())
+        if (mAudioManager.isStreamMute(AudioSystem.STREAM_MUSIC))
             showMuteIcon(true);
         else
             showMuteIcon(false);
@@ -691,8 +692,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 if (!down)
                     break;
 
-                if (mAudioManager.isMasterMute()) {
-                    mAudioManager.setMasterMute(false, AudioManager.FLAG_PLAY_SOUND);
+                if (mAudioManager.isStreamMute(AudioSystem.STREAM_MUSIC)) {
+                    mAudioManager.setStreamMute(AudioSystem.STREAM_MUSIC, false);
                     showMuteIcon(false);
                 }
                 break;
@@ -700,11 +701,11 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 if (!down)
                     return true;
 
-                if (mAudioManager.isMasterMute()) {
-                    mAudioManager.setMasterMute(false, AudioManager.FLAG_PLAY_SOUND);
+                if (mAudioManager.isStreamMute(AudioSystem.STREAM_MUSIC)) {
+                    mAudioManager.setStreamMute(AudioSystem.STREAM_MUSIC, false);
                     showMuteIcon(false);
                 } else {
-                    mAudioManager.setMasterMute(true, AudioManager.FLAG_PLAY_SOUND);
+                    mAudioManager.setStreamMute(AudioSystem.STREAM_MUSIC, true);
                     showMuteIcon(true);
                 }
                 return true;
