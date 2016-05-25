@@ -26,6 +26,7 @@ public class HdmiInputService extends DroidLogicTvInputService {
     private HdmiInputSession mCurrentSession;
     private int number = 0;
     private int currentNumber = 0;
+    private Object mLock = new Object();
 
     @Override
     public Session onCreateSession(String inputId) {
@@ -65,7 +66,9 @@ public class HdmiInputService extends DroidLogicTvInputService {
 
         @Override
         public void doRelease() {
-            super.doRelease();
+            synchronized (mLock) {
+                super.doRelease();
+            }
         }
 
         @Override
@@ -78,7 +81,9 @@ public class HdmiInputService extends DroidLogicTvInputService {
 
         @Override
         public void doSetSurface(Surface surface) {
-            super.doSetSurface(surface);
+            synchronized (mLock) {
+                super.doSetSurface(surface);
+            }
         }
 
         @Override
