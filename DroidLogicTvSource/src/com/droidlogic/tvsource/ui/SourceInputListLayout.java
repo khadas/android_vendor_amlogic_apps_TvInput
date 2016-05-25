@@ -7,6 +7,7 @@ import com.droidlogic.app.tv.TvControlManager;
 import com.droidlogic.tvsource.R;
 import com.droidlogic.tvsource.Utils;
 import com.droidlogic.tvsource.ui.SourceButton.OnSourceClickListener;
+import com.droidlogic.tvsource.ChannelDataManager;
 
 import android.content.Context;
 import android.media.tv.TvInputInfo;
@@ -148,6 +149,8 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
             mRoot.removeViews(1, mRoot.getChildCount() - 1);
             mAvaiableSourceCount = 0;
         }
+        ChannelDataManager.clear();
+        mSourceInputs.clear();
 
         for (String id : getAllDeviceIds()) { //init all hardware devices
             device_id = Integer.parseInt(id);
@@ -184,6 +187,7 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
                 mAvaiableSourceCount++;
             }
         }
+
         if (defSourceInput == null) {//ATV hasn't been added, return and wait.
             return ACTION_SUCCESS;
         }

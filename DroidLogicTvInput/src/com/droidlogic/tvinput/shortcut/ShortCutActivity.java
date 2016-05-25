@@ -71,6 +71,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
     private SettingsManager mSettingsManager;
     private TvDataBaseManager mTvDataBaseManager;
     private Resources mResources;
+    private View viewToast = null;
     private Toast toast = null;
     private Toast guide_toast = null;
 
@@ -223,8 +224,10 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
     }
 
     private void showCustomToast(int mode) {
-        LayoutInflater inflater = getLayoutInflater();
-        View layout = inflater.inflate(R.layout.layout_shortcut_key, null);
+        if (viewToast == null) {
+            LayoutInflater inflater = getLayoutInflater();
+            viewToast = inflater.inflate(R.layout.layout_shortcut_key, null);
+        }
 
         Drawable bg = null;
         String str_title = null;
@@ -259,9 +262,9 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
             default:
                 break;
         }
-        layout.setBackgroundDrawable(bg);
-        TextView title = (TextView)layout.findViewById(R.id.toast_title);
-        TextView status = (TextView)layout.findViewById(R.id.toast_status);
+        viewToast.setBackgroundDrawable(bg);
+        TextView title = (TextView)viewToast.findViewById(R.id.toast_title);
+        TextView status = (TextView)viewToast.findViewById(R.id.toast_status);
 
         title.setText(str_title);
         status.setText(str_status);
@@ -270,8 +273,8 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
             toast = new Toast(this);
             toast.setDuration(TOAST_SHOW_TIME);
             toast.setGravity(Gravity.CENTER_VERTICAL, 400, 300);
+            toast.setView(viewToast);
         }
-        toast.setView(layout);
         toast.show();
         startShowActivityTimer();
     }

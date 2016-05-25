@@ -40,6 +40,10 @@ public class ChannelDataManager {
         mChannelTuners.remove(ct);
     }
 
+    public static void clear() {
+        mChannelTuners.clear();
+    }
+
     private void changeRowChannel(Uri uri) {
         for (ChannelTuner ct : mChannelTuners) {
             ct.changeRowChannel(uri);

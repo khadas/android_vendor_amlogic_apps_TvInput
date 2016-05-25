@@ -29,7 +29,7 @@ import com.droidlogic.tvinput.R;
 import com.droidlogic.app.tv.TvControlManager;
 
 public class TvSettingsActivity extends Activity implements OnClickListener, OnFocusChangeListener {
-    private static final String TAG = "MainActivity";
+    private static final String TAG = "TvSettingsActivity";
 
     private ContentFragment fragmentImage;
     private ContentFragment fragmentSound;
@@ -302,7 +302,6 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
         if (isExiting)
             return;
         setResult(mSettingsManager.getActivityResult());
-        mOptionUiManager.release();
         super.finish();
     }
 
@@ -323,10 +322,17 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
         Log.d(TAG, "onPause");
         isExiting = true;
         unregisterReceiver(mReceiver);
+        mOptionUiManager.release();
     }
 
     public void onStop() {
+        Log.d(TAG, "onStop");
         super.onStop();
+    }
+
+    public void onDestroy() {
+        Log.d(TAG, "onDestroy");
+        super.onDestroy();
     }
 
     public void startShowActivityTimer () {
