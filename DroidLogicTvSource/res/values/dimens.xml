@@ -1,42 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- size for source button -->
-    <dimen name="source_bt_width">271dp</dimen>
-    <dimen name="source_bt_height">55dp</dimen>
-    <dimen name="source_bt_textsize">30sp</dimen>
+    <dimen name="source_bt_title_margin_top">20dp</dimen>
+    <dimen name="source_bt_title_margin_bottom">30dp</dimen>
+    <dimen name="source_bt_select_margin_left">20dp</dimen>
+    <dimen name="source_bt_select_width">24dp</dimen>
+    <dimen name="source_bt_select_height">30dp</dimen>
+    <dimen name="source_bt_icon_margin_left">10dp</dimen>
+    <dimen name="source_bt_name_margin_left">5dp</dimen>
     <dimen name="source_bt_gap">10dp</dimen>
-    <dimen name="text_size_no_signal">50sp</dimen>
+    <dimen name="text_size_source_title">27sp</dimen>
+    <dimen name="text_size_source_name">25sp</dimen>
+    <dimen name="text_size_no_signal">25sp</dimen>
 
     <!-- dimention for hdmi info and av info -->
-    <dimen name="info_margin_top">50dp</dimen>
+    <dimen name="info_margin_top">15dp</dimen>
     <dimen name="info_margin_right">50dp</dimen>
     <dimen name="ha_info_margin_top">20dp</dimen>
-    <dimen name="text_size_info_ha_name">50sp</dimen>
-    <dimen name="text_size_info_ha_value">30sp</dimen>
+    <dimen name="ha_content_margin_top">25dp</dimen>
+    <dimen name="text_size_info_ha_name">30sp</dimen>
+    <dimen name="text_size_info_ha_value">25sp</dimen>
     <dimen name="gap_margin_to">20dp</dimen>
 
     <!-- dimention for atv info and dtv info -->
-    <dimen name="ad_info_margin_top">10dp</dimen>
+    <dimen name="info_title_margin_top">10dp</dimen>
+    <dimen name="info_content_margin_top">20dp</dimen>
+    <dimen name="info_number_margin_left">50dp</dimen>
+    <dimen name="info_name_margin_left">130dp</dimen>
+    <dimen name="info_name_margin_right">10dp</dimen>
     <dimen name="text_size_info_ad_name">30sp</dimen>
-    <dimen name="text_size_info_ad_number">65sp</dimen>
-    <dimen name="text_size_info_ad_value">30sp</dimen>
+    <dimen name="text_size_info_ad_number">50sp</dimen>
+    <dimen name="text_size_info_ad_value">25sp</dimen>
 
     <!-- dimention for channel list -->
-    <dimen name="text_size_tab">35sp</dimen>
+    <dimen name="text_size_tab">28sp</dimen>
     <dimen name="list_margin_top">20dp</dimen>
     <dimen name="list_margin_left">20dp</dimen>
-    <dimen name="list_width">501dp</dimen>
-    <dimen name="list_height">640dp</dimen>
+    <dimen name="list_width">334dp</dimen>
     <dimen name="list_padding_left">10dp</dimen>
     <dimen name="list_padding_right">10dp</dimen>
     <dimen name="list_padding_top">10dp</dimen>
     <dimen name="list_padding_bottom">20dp</dimen>
-    <dimen name="list_item_width">461dp</dimen>
-    <dimen name="list_item_height">61dp</dimen>
-    <dimen name="text_size_list_item">30sp</dimen>
-    <dimen name="list_item_padding_left">15dp</dimen>
-    <dimen name="list_item_padding_right">15dp</dimen>
-    <dimen name="list_item_padding_top">10dp</dimen>
-    <dimen name="list_item_padding_bottom">10dp</dimen>
+    <dimen name="list_item_height">40dp</dimen>
+    <dimen name="text_size_list_item">24sp</dimen>
+    <dimen name="list_item_padding_left">10dp</dimen>
+    <dimen name="list_item_padding_right">10dp</dimen>
+    <dimen name="list_item_padding_top">5dp</dimen>
+    <dimen name="list_item_padding_bottom">5dp</dimen>
 
 </resources>

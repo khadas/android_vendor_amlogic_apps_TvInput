@@ -1,23 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="tv_source_button">
-        <item name="android:layout_width">@dimen/source_bt_width</item>
-        <item name="android:layout_height">@dimen/source_bt_height</item>
-        <item name="android:textSize">@dimen/source_bt_textsize</item>
-        <item name="android:gravity">center</item>
-        <item name="android:layout_marginTop">@dimen/source_bt_gap</item>
-    </style>
-
     <style name="tv_channel_list">
-        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">match_parent</item>
         <item name="android:scrollbars">none</item>
         <item name="android:focusable">true</item>
         <item name="android:listSelector">@drawable/item_background</item>
-        <item name="android:divider">@drawable/list_line</item>
-        <item name="android:paddingLeft">@dimen/list_padding_left</item>
-        <item name="android:paddingRight">@dimen/list_padding_right</item>
+        <item name="android:divider">@color/transparent</item>
         <item name="android:paddingTop">@dimen/list_padding_top</item>
-        <item name="android:paddingBottom">@dimen/list_padding_bottom</item>
     </style>
 </resources>

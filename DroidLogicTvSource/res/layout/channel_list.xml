@@ -1,54 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="@dimen/list_width"
-    android:layout_height="@dimen/list_height"
+    android:layout_height="fill_parent"
     android:background="@drawable/bg_channel_list"
     android:orientation="vertical" >
-    <FrameLayout
+
+    <TextView
+        android:id="@+id/tx_title"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:focusable="true">
-        <TextView
-            android:id="@+id/tab_atv"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:gravity="center"
-            android:focusable="true"
-            android:textColor="@color/channel_list_tab_focus"
-            android:textSize="@dimen/text_size_tab"
-            android:text="@string/tab_atv"/>
+        android:layout_marginTop="10dp"
+        android:gravity="center"
+        android:textColor="@color/channel_list_tab_focus"
+        android:textSize="@dimen/text_size_tab"/>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal">
         <LinearLayout
-            android:id="@+id/tabs_dtv"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:orientation="horizontal" >
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="4"
+            android:layout_marginTop="160dp"
+            android:orientation="vertical" >
             <TextView
-                android:id="@+id/tab_dtv_video"
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                android:layout_weight="1"
+                android:id="@+id/tx_video"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:background="@drawable/item_background"
+                android:focusable="true"
+                android:textColor="@color/color_text_main"
+                android:textSize="@dimen/text_size_tab"
+                android:text="@string/video"/>
+            <TextView
+                android:id="@+id/tx_radio"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:background="@drawable/item_background"
                 android:gravity="center"
                 android:focusable="true"
                 android:textColor="@color/color_text_main"
                 android:textSize="@dimen/text_size_tab"
-                android:text="@string/tab_dtv_video"/>
-            <TextView
-                android:id="@+id/tab_dtv_radio"
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:focusable="true"
-                android:textColor="@color/color_text_main"
-                android:textSize="@dimen/text_size_tab"
-                android:text="@string/tab_dtv_radio"/>
+                android:text="@string/radio"/>
         </LinearLayout>
-    </FrameLayout>
 
-    <ListView
-        style="@style/tv_channel_list"
-        android:layout_marginTop="2dp"
-        android:id="@+id/channel_video_list">
-    </ListView>
-
+        <ListView
+            style="@style/tv_channel_list"
+            android:layout_weight="9"
+            android:id="@+id/channel_video_list">
+        </ListView>
+    </LinearLayout>
 </LinearLayout>

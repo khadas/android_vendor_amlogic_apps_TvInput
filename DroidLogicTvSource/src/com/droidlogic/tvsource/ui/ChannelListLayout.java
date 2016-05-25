@@ -13,9 +13,11 @@ import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnFocusChangeListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -23,16 +25,16 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.provider.Settings;
 
-public class ChannelListLayout extends LinearLayout implements OnItemClickListener {
+public class ChannelListLayout extends LinearLayout implements OnItemClickListener, OnFocusChangeListener, OnItemSelectedListener{
     private static final String TAG = "ChannelListLayout";
     private Context mContext;
+    private SourceButton mSourceInput;
     private int mType;
-    private boolean tabFlag = true;//true:first tab
+    private boolean modeVideo = true;//true:first tab
 
-    private TextView tabAtv;
-    private LinearLayout tabDtv;
-    private TextView tabDtvv;
-    private TextView tabDtvr;
+    private TextView title;
+    private TextView txVideo;
+    private TextView txRadio;
     private ListView mListView;
     private MyAdapter mAdapter;
     SparseArray<ChannelInfo> videoList;
@@ -51,33 +53,25 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
 
     private void init() {
         inflate(mContext, R.layout.channel_list, this);
-        tabAtv = (TextView)findViewById(R.id.tab_atv);
-        tabDtvv = (TextView)findViewById(R.id.tab_dtv_video);
-        tabDtvr = (TextView)findViewById(R.id.tab_dtv_radio);
-        tabDtv = (LinearLayout)findViewById(R.id.tabs_dtv);
+        title = (TextView)findViewById(R.id.tx_title);
+        txVideo = (TextView)findViewById(R.id.tx_video);
+        txRadio = (TextView)findViewById(R.id.tx_radio);
+        txVideo.setOnFocusChangeListener(this);
+        txRadio.setOnFocusChangeListener(this);
         mListView = (ListView)findViewById(R.id.channel_video_list);
         mListView.setOnItemClickListener(this);
+        mListView.setOnItemSelectedListener(this);
     }
 
-    public void initView(int type, SparseArray<ChannelInfo> list) {
-        Utils.logd(TAG, "==== init atv list, type =" + type + ", size =" + list.size());
+    public void initView(int type, SourceButton sourceInput) {
+        Utils.logd(TAG, "==== init list, type =" + type);
+        mSourceInput = sourceInput;
         mType = type;
-        tabFlag = true;
+        modeVideo = true;
         initTab();
 
-        videoList = list;
-        initList();
-    }
-
-    public void initView(int type, SparseArray<ChannelInfo> video, SparseArray<ChannelInfo> radio) {
-        Utils.logd(TAG, "==== init dtv list, type =" + type + ", video size =" + video.size()
-                   + ", radio size =" + radio.size());
-        mType = type;
-        tabFlag = true;
-        initTab();
-
-        videoList = video;
-        radioList = radio;
+        videoList = sourceInput.getChannelVideoList();
+        radioList = sourceInput.getChannelRadioList();
         initList();
     }
 
@@ -87,7 +81,7 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
         int index = getChannelIndex(channel);
 
         if (channel != null) {
-            mListener.onSelect(index, !tabFlag);
+            mListener.onSelect(index, !modeVideo);
         }
     }
 
@@ -122,15 +116,9 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
         Utils.logd(TAG, "==== event.keycode =" + event.getKeyCode());
         boolean down = event.getAction() == KeyEvent.ACTION_DOWN;
         switch (event.getKeyCode()) {
-            case KeyEvent.KEYCODE_DPAD_LEFT:
-                if (!tabFlag && down) {
-                    switchToChannelList();
-                }
+            case KeyEvent.KEYCODE_DPAD_DOWN:
                 break;
-            case KeyEvent.KEYCODE_DPAD_RIGHT:
-                if (tabFlag && down) {
-                    switchToChannelList();
-                }
+            case KeyEvent.KEYCODE_DPAD_UP:
                 break;
             default:
                 break;
@@ -139,83 +127,74 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
         return super.dispatchKeyEvent(event);
     }
 
-    private void switchToChannelList() {
+    @Override
+    public void onFocusChange (View v, boolean hasFocus) {
+        if (hasFocus) {
+            switch (v.getId()) {
+                case R.id.tx_video:
+                    switchToChannelList(true);
+                    break;
+                case R.id.tx_radio:
+                    switchToChannelList(false);
+                    break;
+            }
+        }
+    }
+
+    private void switchToChannelList(boolean isVideo) {
         if (mType == Utils.UI_TYPE_ATV_FAV_LIST || mType == Utils.UI_TYPE_ATV_CHANNEL_LIST)
             return;
-        tabFlag = !tabFlag;
+        modeVideo = isVideo;
         initTab();
         initList();
     }
 
     private void initList() {
-        if (mAdapter == null)
-            mAdapter = new MyAdapter(mContext);
+        mListView.setAdapter(null);
         switch (mType) {
             case Utils.UI_TYPE_ATV_CHANNEL_LIST:
             case Utils.UI_TYPE_ATV_FAV_LIST:
-                mAdapter.setFavorite(mType == Utils.UI_TYPE_ATV_FAV_LIST ? true : false);
-                mAdapter.setList(mType == Utils.UI_TYPE_ATV_FAV_LIST ? getFavList(videoList) : videoList);
+                mAdapter = new MyAdapter(mContext, mType == Utils.UI_TYPE_ATV_FAV_LIST ? getFavList(videoList) : videoList);
                 mListView.setAdapter(mAdapter);
                 break;
             case Utils.UI_TYPE_DTV_CHANNEL_LIST:
             case Utils.UI_TYPE_DTV_FAV_LIST:
-                mAdapter.setFavorite(mType == Utils.UI_TYPE_DTV_FAV_LIST ? true : false);
-                if (tabFlag) {
-                    mAdapter.setList(mType == Utils.UI_TYPE_DTV_FAV_LIST ? getFavList(videoList) : videoList);
+                if (modeVideo) {
+                    mAdapter = new MyAdapter(mContext, mType == Utils.UI_TYPE_DTV_FAV_LIST ? getFavList(videoList) : videoList);
                 } else {
-                    mAdapter.setList(mType == Utils.UI_TYPE_DTV_FAV_LIST ? getFavList(radioList) : radioList);
+                    mAdapter = new MyAdapter(mContext, mType == Utils.UI_TYPE_DTV_FAV_LIST ? getFavList(radioList) : radioList);
                 }
                 mListView.setAdapter(mAdapter);
                 break;
             default:
                 break;
         }
+
+        int current_index = mSourceInput.getChannelIndex();
+        if (modeVideo == !mSourceInput.isRadioChannel() && current_index != -1)
+            mListView.setSelection(current_index);
     }
 
     private void initTab() {
         switch (mType) {
             case Utils.UI_TYPE_ATV_FAV_LIST:
+                title.setText(mResources.getString(R.string.fav_list));
+                break;
             case Utils.UI_TYPE_ATV_CHANNEL_LIST:
-                tabAtv.setBackgroundResource(R.drawable.atv_tab_focus);
-                tabDtv.setVisibility(INVISIBLE);
-                tabAtv.setVisibility(VISIBLE);
-                tabAtv.requestFocus();
+                title.setText(mResources.getString(R.string.channel_list));
+                txRadio.setVisibility(INVISIBLE);
+                txVideo.requestFocus();
                 break;
             case Utils.UI_TYPE_DTV_FAV_LIST:
+                title.setText(mResources.getString(R.string.fav_list));
+                break;
             case Utils.UI_TYPE_DTV_CHANNEL_LIST:
-                tabAtv.setVisibility(INVISIBLE);
-                tabDtv.setVisibility(VISIBLE);
-                if (tabFlag) {
-                    textViewFocus(tabDtvv);
-                    textViewUnfocus(tabDtvr);
-                    tabDtvv.requestFocus();
-                } else {
-                    textViewFocus(tabDtvr);
-                    textViewUnfocus(tabDtvv);
-                    tabDtvr.requestFocus();
-                }
+                title.setText(mResources.getString(R.string.channel_list));
+                txRadio.setVisibility(VISIBLE);
                 break;
             default:
                 break;
         }
-    }
-
-    private void textViewFocus(TextView view) {
-        ColorStateList csl;
-        csl = (ColorStateList) mResources.getColorStateList(R.color.channel_list_tab_focus);
-        if (csl != null) {
-            view.setTextColor(csl);
-        }
-        view.setBackgroundResource(R.drawable.dtv_tab_focus);
-    }
-
-    private void textViewUnfocus(TextView view) {
-        ColorStateList csl;
-        csl = (ColorStateList) mResources.getColorStateList(R.color.color_text_main);
-        if (csl != null) {
-            view.setTextColor(csl);
-        }
-        view.setBackgroundResource(R.drawable.dtv_tab_unfocus);
     }
 
     public int getType() {
@@ -233,18 +212,10 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
     private class MyAdapter extends BaseAdapter {
         private LayoutInflater mInflater;
         private SparseArray<ChannelInfo> mList;
-        private boolean mIsFav = false;
 
-        private MyAdapter(Context context) {
+        private MyAdapter(Context context,SparseArray<ChannelInfo> list) {
             mContext = context;
             mInflater = LayoutInflater.from(context);
-        }
-
-        public void setFavorite(boolean isFav) {
-            mIsFav = isFav;
-        }
-
-        public void setList(SparseArray<ChannelInfo> list) {
             mList = list;
         }
 
@@ -279,28 +250,42 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
                 return null;
             Utils.logd(TAG, "==== number =" + channel.getNumber());
             Utils.logd(TAG, "==== name =" + channel.getDisplayNameLocal());
-            String numberMode = Settings.System.getString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DTV_NUMBER_MODE);
-            if ((numberMode != null) && (numberMode.equals("lcn")))
-                holder.channelNum.setText(channel.getDisplayNumber());
-            else
-                holder.channelNum.setText(Integer.toString(getChannelIndex(channel)));
-            holder.channelName.setText(channel.getDisplayNameLocal());
-            if (mIsFav) {
-                holder.favImg.setImageResource(R.drawable.list_fav);
+
+            if (ChannelInfo.isSameChannel(channel, mSourceInput.getChannelInfo())) {
+                holder.img_playing.setImageDrawable(mResources.getDrawable(R.drawable.icon_select));
+            } else {
+                holder.img_playing.setImageDrawable(null);
             }
+
+            String numberMode = Settings.System.getString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DTV_NUMBER_MODE);
+            String name;
+            if ((numberMode != null) && (numberMode.equals("lcn"))) {
+                name = channel.getDisplayNumber();
+            } else {
+                name = Integer.toString(getChannelIndex(channel));
+            }
+            name += "  " + channel.getDisplayNameLocal();
+            holder.tx_channel.setText(name);
             return convertView;
         }
     }
 
     private class ViewHolder {
-        public TextView channelNum;
-        public TextView channelName;
-        public ImageView favImg;
+        public TextView tx_channel;
+        public ImageView img_playing;
 
         public ViewHolder(View view) {
-            channelNum = (TextView)view.findViewById(R.id.list_item_channel_num);
-            channelName = (TextView)view.findViewById(R.id.list_item_channel_name);
-            favImg = (ImageView)view.findViewById(R.id.list_item_channel_fav);
+            tx_channel = (TextView)view.findViewById(R.id.tx_channel);
+            img_playing = (ImageView)view.findViewById(R.id.img_playing);
         }
     }
+
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+    }
+
 }

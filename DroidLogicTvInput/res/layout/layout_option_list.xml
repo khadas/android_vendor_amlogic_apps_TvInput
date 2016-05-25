@@ -13,6 +13,7 @@
         android:paddingLeft="15dp"
         android:textSize="27sp"
         android:textColor="@color/color_text_item"
+        android:singleLine="true"
         />
     <com.droidlogic.tvinput.settings.OptionListView
         android:id="@+id/option_list"

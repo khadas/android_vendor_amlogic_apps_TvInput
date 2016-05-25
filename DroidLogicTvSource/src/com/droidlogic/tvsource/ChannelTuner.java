@@ -414,9 +414,11 @@ public class ChannelTuner {
     public SparseArray<ChannelInfo> getChannelRadioList() {
         SparseArray<ChannelInfo> list = new SparseArray<>();
 
-        for (int i = 0; i < mRadioChannels.size(); i++) {
-            ChannelInfo info = mRadioChannels.get(i);
-            list.put(i, info);
+        if (mRadioChannels != null) {
+            for (int i = 0; i < mRadioChannels.size(); i++) {
+                ChannelInfo info = mRadioChannels.get(i);
+                list.put(i, info);
+            }
         }
 
         return list;

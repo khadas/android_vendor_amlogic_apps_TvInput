@@ -1038,12 +1038,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     switch (type) {
                         case Utils.UI_TYPE_ATV_CHANNEL_LIST:
                         case Utils.UI_TYPE_ATV_FAV_LIST:
-                            mChannelListLayout.initView(type, mSourceInput.getChannelVideoList());
-                            break;
                         case Utils.UI_TYPE_DTV_CHANNEL_LIST:
                         case Utils.UI_TYPE_DTV_FAV_LIST:
-                            mChannelListLayout.initView(type, mSourceInput.getChannelVideoList(),
-                                                        mSourceInput.getChannelRadioList());
+                            mChannelListLayout.initView(type, mSourceInput);
                             break;
                         default:
                             break;
@@ -1360,7 +1357,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                             InputManager.getInstance().injectInputEvent(up, InputManager.INJECT_INPUT_EVENT_MODE_WAIT_FOR_FINISH);
                         } else {
                             if (mNoSignalShutdownCount < 60) {
-                                String str = mNoSignalShutdownCount + " " + getResources().getString(R.string.auto_shutdown_info);
+                                String str = mNoSignalShutdownCount + "";
                                 mTimePromptText.setText(str);
                                 if (mTimePromptText.getVisibility() != View.VISIBLE)// if sleep time,no show view
                                     showTvView(mTimePromptText);

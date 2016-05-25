@@ -23,6 +23,7 @@ import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.database.IContentObserver;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -225,11 +226,45 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
         LayoutInflater inflater = getLayoutInflater();
         View layout = inflater.inflate(R.layout.layout_shortcut_key, null);
 
+        Drawable bg = null;
+        String str_title = null;
+        String str_status = null;
+        switch (mode) {
+            case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_DISPAYMODE:
+                bg = mResources.getDrawable(R.drawable.shortcut_ratio);
+                str_title = mResources.getString(R.string.aspect_ratio);
+                str_status = mSettingsManager.getAspectRatioStatus();
+                break;
+            case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_3DMODE:
+                break;
+            case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_VIEWMODE:
+                bg = mResources.getDrawable(R.drawable.shortcut_picture);
+                str_title = mResources.getString(R.string.picture_mode);
+                str_status = mSettingsManager.getPictureModeStatus();
+                break;
+            case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_VOICEMODE:
+                bg = mResources.getDrawable(R.drawable.shortcut_sound);
+                str_title = mResources.getString(R.string.sound_mode);
+                str_status = mSettingsManager.getSoundModeStatus();
+                break;
+            case DroidLogicKeyEvent.KEYCODE_TV_SLEEP:
+                bg = mResources.getDrawable(R.drawable.shortcut_sleep);
+                str_title = mResources.getString(R.string.sleep_timer);
+                str_status = mSettingsManager.getSleepTimerStatus();
+                break;
+            case DroidLogicKeyEvent.KEYCODE_MEDIA_AUDIO_CONTROL:
+                break;
+            case DroidLogicKeyEvent.KEYCODE_GUIDE:
+                break;
+            default:
+                break;
+        }
+        layout.setBackgroundDrawable(bg);
         TextView title = (TextView)layout.findViewById(R.id.toast_title);
         TextView status = (TextView)layout.findViewById(R.id.toast_status);
 
-        title.setText(getToastTitle(mode));
-        status.setText(getStatusTitle(mode));
+        title.setText(str_title);
+        status.setText(str_status);
 
         if (toast == null) {
             toast = new Toast(this);
@@ -239,50 +274,6 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
         toast.setView(layout);
         toast.show();
         startShowActivityTimer();
-    }
-
-    private String getToastTitle (int mode) {
-        switch (mode) {
-            case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_DISPAYMODE:
-                return mResources.getString(R.string.aspect_ratio);
-            case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_3DMODE:
-                break;
-            case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_VIEWMODE:
-                return mResources.getString(R.string.picture_mode);
-            case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_VOICEMODE:
-                return mResources.getString(R.string.sound_mode);
-            case DroidLogicKeyEvent.KEYCODE_TV_SLEEP:
-                return mResources.getString(R.string.sleep_timer);
-            case DroidLogicKeyEvent.KEYCODE_MEDIA_AUDIO_CONTROL:
-                break;
-            case DroidLogicKeyEvent.KEYCODE_GUIDE:
-                break;
-            default:
-                break;
-        }
-        return null;
-    }
-
-    private String getStatusTitle (int mode) {
-        switch (mode) {
-            case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_DISPAYMODE:
-                return mSettingsManager.getAspectRatioStatus();
-            case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_3DMODE:
-                break;
-            case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_VIEWMODE:
-                return mSettingsManager.getPictureModeStatus();
-            case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_VOICEMODE:
-                return mSettingsManager.getSoundModeStatus();
-            case DroidLogicKeyEvent.KEYCODE_TV_SLEEP:
-                return mSettingsManager.getSleepTimerStatus();
-            case DroidLogicKeyEvent.KEYCODE_MEDIA_AUDIO_CONTROL:
-                break;
-            case DroidLogicKeyEvent.KEYCODE_GUIDE:
-                break;
-            default:
-                break;
-        }
-        return null;
     }
 
     public void startShowActivityTimer () {

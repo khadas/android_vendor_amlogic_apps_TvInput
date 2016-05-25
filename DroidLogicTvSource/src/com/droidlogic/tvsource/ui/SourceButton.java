@@ -10,18 +10,22 @@ import com.droidlogic.tvsource.Utils;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.graphics.drawable.Drawable;
+import android.graphics.Rect;
 import android.media.tv.TvInputInfo;
 import android.media.tv.TvInputManager;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.SparseArray;
+import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.View.OnFocusChangeListener;
-import android.widget.Button;
+import android.view.KeyEvent;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
-public class SourceButton extends Button implements OnClickListener, OnFocusChangeListener {
+public class SourceButton extends LinearLayout {
     private static final String TAG = "SourceButton";
 
     private Context mContext;
@@ -31,6 +35,9 @@ public class SourceButton extends Button implements OnClickListener, OnFocusChan
     private int mHardwareDeviceId = -1;
     private int mSourceType;
     private String mSourceLabel;
+    private ImageView imageSelect;
+    private ImageView imageSource;
+    private TextView textName;
     private boolean mIsHardware = false;
     private String mAvType = "";
     private int recentChannelIndex = -1;
@@ -76,19 +83,17 @@ public class SourceButton extends Button implements OnClickListener, OnFocusChan
             this.setVisibility(View.GONE);
             return;
         }
-
-        setTextAppearance(mContext, R.style.tv_source_button);
-        setBackgroundResource(R.drawable.bg_source_bt);
-        setFocusableInTouchMode(true);
+        inflate(mContext, R.layout.layout_source_button, this);
+        imageSelect = (ImageView)findViewById(R.id.img_select);
+        imageSource = (ImageView)findViewById(R.id.img_source);
+        textName = (TextView)findViewById(R.id.tx_source_name);
 
         initDeviceId();
         initSourceLabel();
-        setText(getLabel());
+        textName.setText(getLabel());
         initTextColor();
         initSourceType();
         initChannelTuner();
-        setOnClickListener(this);
-        setOnFocusChangeListener(this);
     }
 
     public interface OnSourceClickListener {
@@ -218,9 +223,9 @@ public class SourceButton extends Button implements OnClickListener, OnFocusChan
 
     private void initTextColor() {
         if (mState != TvInputManager.INPUT_STATE_CONNECTED)
-            setTextColor(getResources().getColor(R.color.source_undisconnect));
+            textName.setTextColor(getResources().getColor(R.color.source_undisconnect));
         else
-            setTextColor(getResources().getColor(R.color.source_unfocus));
+            textName.setTextColor(getResources().getColor(R.color.source_unfocus));
     }
 
     /**
@@ -243,33 +248,42 @@ public class SourceButton extends Button implements OnClickListener, OnFocusChan
 
 
     private void initSourceLabel() {
+        Drawable icon = null;
         if (mIsHardware) {
             switch (mHardwareDeviceId) {
                 case DroidLogicTvUtils.DEVICE_ID_ATV:
                     mSourceLabel = mResources.getString(R.string.source_bt_atv);
+                    icon = mResources.getDrawable(R.drawable.icon_atv);
                     break;
                 case DroidLogicTvUtils.DEVICE_ID_DTV:
                     mSourceLabel = mResources.getString(R.string.source_bt_dtv);
+                    icon = mResources.getDrawable(R.drawable.icon_dtv);
                     break;
                 case DroidLogicTvUtils.DEVICE_ID_AV1:
                     mSourceLabel = mResources.getString(R.string.source_bt_av1);
+                    icon = mResources.getDrawable(R.drawable.icon_av);
                     break;
                 case DroidLogicTvUtils.DEVICE_ID_AV2:
                     mSourceLabel = mResources.getString(R.string.source_bt_av2);
+                    icon = mResources.getDrawable(R.drawable.icon_av);
                     break;
                 case DroidLogicTvUtils.DEVICE_ID_HDMI1:
                     mSourceLabel = mResources.getString(R.string.source_bt_hdmi1);
+                    icon = mResources.getDrawable(R.drawable.icon_hdmi);
                     break;
                 case DroidLogicTvUtils.DEVICE_ID_HDMI2:
                     mSourceLabel = mResources.getString(R.string.source_bt_hdmi2);
+                    icon = mResources.getDrawable(R.drawable.icon_hdmi);
                     break;
                 case DroidLogicTvUtils.DEVICE_ID_HDMI3:
                     mSourceLabel = mResources.getString(R.string.source_bt_hdmi3);
+                    icon = mResources.getDrawable(R.drawable.icon_hdmi);
                     break;
                 default:
                     break;
             }
         }
+        imageSource.setImageDrawable(icon);
     }
 
     private void initSourceType() {
@@ -293,6 +307,14 @@ public class SourceButton extends Button implements OnClickListener, OnFocusChan
         initChannelTuner();
     }
 
+    public void setSelected (boolean selected) {
+        if (selected) {
+            imageSelect.setImageDrawable(mResources.getDrawable(R.drawable.icon_select));
+        } else {
+            imageSelect.setImageDrawable(null);
+        }
+    }
+
     public int getState() {
         return mState;
     }
@@ -306,11 +328,11 @@ public class SourceButton extends Button implements OnClickListener, OnFocusChan
 
     private void stateChanged(int state) {
         if (hasFocus()) {
-            setTextColor(getResources().getColor(R.color.source_focus));
+            textName.setTextColor(getResources().getColor(R.color.source_focus));
         } else if (state != TvInputManager.INPUT_STATE_CONNECTED) {
-            setTextColor(getResources().getColor(R.color.source_undisconnect));
+            textName.setTextColor(getResources().getColor(R.color.source_undisconnect));
         } else {
-            setTextColor(getResources().getColor(R.color.source_unfocus));
+            textName.setTextColor(getResources().getColor(R.color.source_unfocus));
         }
     }
 
@@ -352,20 +374,17 @@ public class SourceButton extends Button implements OnClickListener, OnFocusChan
             recentChannelIndex = index;
     }
 
-    @Override
-    public void onFocusChange(View view, boolean hasFocus) {
-        if (hasFocus) {
-            setTextColor(getResources().getColor(R.color.source_focus));
-        } else if (mState != TvInputManager.INPUT_STATE_CONNECTED) {
-            setTextColor(getResources().getColor(R.color.source_undisconnect));
-        } else {
-            setTextColor(getResources().getColor(R.color.source_unfocus));
+    public boolean dispatchKeyEvent (KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            switch (event.getKeyCode()) {
+                case KeyEvent.KEYCODE_DPAD_CENTER:
+                case KeyEvent.KEYCODE_ENTER:
+                    mListener.onButtonClick(this);
+                    break;
+            }
         }
-    }
 
-    @Override
-    public void onClick(View v) {
-        mListener.onButtonClick(this);
+        return super.dispatchKeyEvent(event);
     }
 
     @Override

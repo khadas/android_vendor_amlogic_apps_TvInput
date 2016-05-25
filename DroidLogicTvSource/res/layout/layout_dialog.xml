@@ -19,7 +19,7 @@
         android:id="@+id/dialog_content"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="25dp"
         android:paddingLeft="10dp"
         android:paddingRight="10dp"
         android:gravity="center"
@@ -29,7 +29,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="25dp"
         android:gravity="center"
         >
 	    <LinearLayout
@@ -39,23 +39,23 @@
 	        >
 		    <TextView
                 android:id="@+id/dialog_ok"
-		        android:layout_width="wrap_content"
-		        android:layout_height="wrap_content"
+		        android:layout_width="211dp"
+		        android:layout_height="55dp"
 		        android:gravity="center"
 		        android:focusable="true"
-		        android:background="@drawable/button_background"
+		        android:background="@drawable/item_background"
 		        android:text="@string/ok"
 		        android:textSize="26sp"
 		        android:textColor="@color/color_text_prompt"
 		        />
 		    <TextView
                 android:id="@+id/dialog_cancel"
-		        android:layout_width="wrap_content"
-		        android:layout_height="wrap_content"
+		        android:layout_width="211dp"
+		        android:layout_height="55dp"
 		        android:layout_marginLeft="10dp"
 		        android:gravity="center"
 		        android:focusable="true"
-		        android:background="@drawable/button_background"
+		        android:background="@drawable/item_background"
 		        android:text="@string/cancel"
 		        android:textSize="26sp"
 		        android:textColor="@color/color_text_prompt"

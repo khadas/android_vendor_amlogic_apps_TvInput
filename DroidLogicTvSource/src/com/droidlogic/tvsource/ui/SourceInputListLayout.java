@@ -83,6 +83,7 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
                     mAvaiableSourceCount--;
                     if (TextUtils.equals(inputId, curSourceInput.getInputId())) {
                         curSourceInput = defSourceInput;
+                        curSourceInput.setSelected(true);
                         return INPUT_NEED_RESET;
                     }
                 }
@@ -124,6 +125,7 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
         }
         if (curSourceInput == null && input_list_size == mAvaiableSourceCount) {//all source has been added.
             curSourceInput = defSourceInput;
+            curSourceInput.setSelected(true);
             return INPUT_NEED_RESET;
         } else if (curSourceInput != null && device_id == curSourceInput.getDeviceId()) {
             return INPUT_NEED_RESET;
@@ -155,6 +157,7 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
             }
             if (defaultDeviceId == sb.getDeviceId()) {
                 curSourceInput = sb;
+                curSourceInput.setSelected(true);
             }
             mSourceInputs.put(sb.getDeviceId(), sb);
             Utils.logd(TAG, "==== refresh, sb = " + sb);
@@ -232,7 +235,9 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
     @Override
     public void onButtonClick(SourceButton sb) {
         Utils.logd(TAG, "==== onButtonClick ====" + sb);
+        curSourceInput.setSelected(false);
         curSourceInput = sb;
+        curSourceInput.setSelected(true);
         mClickListener.onSourceInputClick();
     }
 
