@@ -20,18 +20,17 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.Surface;
 
-public class AVInputService extends DroidLogicTvInputService {
-    private static final String TAG = AVInputService.class.getSimpleName();;
-    private AVInputSession mCurrentSession;
+public class AV2InputService extends DroidLogicTvInputService {
+    private static final String TAG = AV1InputService.class.getSimpleName();;
+    private AV2InputSession mCurrentSession;
     private int number = 0;
     private int currentNumber = 0;
-    private Object mLock = new Object();
 
     @Override
     public Session onCreateSession(String inputId) {
         super.onCreateSession(inputId);
 
-        mCurrentSession = new AVInputSession(getApplicationContext(), inputId, getHardwareDeviceId(inputId));
+        mCurrentSession = new AV2InputSession(getApplicationContext(), inputId, getHardwareDeviceId(inputId));
         registerInputSession(mCurrentSession);
         mCurrentSession.setNumber(number);
         number++;
@@ -39,8 +38,8 @@ public class AVInputService extends DroidLogicTvInputService {
         return mCurrentSession;
     }
 
-    public class AVInputSession extends TvInputBaseSession {
-        public AVInputSession(Context context, String inputId, int deviceId) {
+    public class AV2InputSession extends TvInputBaseSession {
+        public AV2InputSession(Context context, String inputId, int deviceId) {
             super(context, inputId, deviceId);
             Utils.logd(TAG, "=====new AVInputSession=====");
         }
@@ -65,9 +64,7 @@ public class AVInputService extends DroidLogicTvInputService {
 
         @Override
         public void doRelease() {
-            synchronized (mLock) {
-                super.doRelease();
-            }
+            super.doRelease();
         }
 
         @Override
@@ -80,21 +77,19 @@ public class AVInputService extends DroidLogicTvInputService {
 
         @Override
         public void doSetSurface(Surface surface) {
-            synchronized (mLock) {
-                super.doSetSurface(surface);
-            }
+            super.doSetSurface(surface);
         }
     }
 
     public TvInputInfo onHardwareAdded(TvInputHardwareInfo hardwareInfo) {
-        if (hardwareInfo.getType() != TvInputHardwareInfo.TV_INPUT_TYPE_COMPONENT
+        if (hardwareInfo.getDeviceId() != DroidLogicTvUtils.DEVICE_ID_AV2
             || hasInfoExisted(hardwareInfo))
             return null;
 
         Utils.logd(TAG, "=====onHardwareAdded=====" + hardwareInfo.getDeviceId());
 
         TvInputInfo info = null;
-        ResolveInfo rInfo = getResolveInfo(AVInputService.class.getName());
+        ResolveInfo rInfo = getResolveInfo(AV2InputService.class.getName());
         if (rInfo != null) {
             try {
                 info = TvInputInfo.createTvInputInfo(
@@ -115,7 +110,7 @@ public class AVInputService extends DroidLogicTvInputService {
     }
 
     public String onHardwareRemoved(TvInputHardwareInfo hardwareInfo) {
-        if (hardwareInfo.getType() != TvInputHardwareInfo.TV_INPUT_TYPE_COMPONENT
+        if (hardwareInfo.getDeviceId() != DroidLogicTvUtils.DEVICE_ID_AV2
             || !hasInfoExisted(hardwareInfo))
             return null;
 
@@ -130,3 +125,4 @@ public class AVInputService extends DroidLogicTvInputService {
     }
 
 }
+
