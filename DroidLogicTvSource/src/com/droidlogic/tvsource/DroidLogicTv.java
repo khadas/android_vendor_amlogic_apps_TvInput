@@ -122,6 +122,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private boolean needUpdateSource = true;
     //if activity has been stopped, source input must be switched again.
     private boolean hasStopped = true;
+    private boolean isSearchingChannel = false;
 
     //info
     private TextView mInfoLabel;
@@ -158,6 +159,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (action.equals(DroidLogicTvUtils.ACTION_DELETE_CHANNEL)) {
+                if (isSearchingChannel)
+                    return;
                 int channelNumber = intent.getIntExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, -1);
                 Utils.logd(TAG, "delete or skipped current channel, switch to: name=" + mSourceInput.getChannelName()
                            + " uri=" + mSourceInput.getUri());
@@ -178,7 +181,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 if (!TextUtils.isEmpty(operation)) {
                     if (operation.equals("search_channel")) {
                         mMainView.setBackgroundDrawable(null);
-                        mSourceView.sendAppPrivateCommand(DroidLogicTvUtils.ACTION_STOP_PLAY, null);
+                        //mSourceView.sendAppPrivateCommand(DroidLogicTvUtils.ACTION_STOP_PLAY, null);
+                        isSearchingChannel = true;
                     } else if (operation.equals("mute")) {
                         showMuteIcon(true);
                     } else if (operation.equals("unmute")) {
@@ -186,6 +190,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     }
                 }
             } else if (action.equals(DroidLogicTvUtils.ACTION_SWITCH_CHANNEL)) {
+                if (isSearchingChannel)
+                    return;
+
                 int channelIndex = intent.getIntExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, -1);
                 boolean isRadioChannel = intent.getBooleanExtra(DroidLogicTvUtils.EXTRA_IS_RADIO_CHANNEL, false);
                 boolean force_dtv = intent.getBooleanExtra("force_dtv", false);
@@ -331,6 +338,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         isMenuShowing = false;
         needUpdateSource = true;
         isRunning = true;
+        isSearchingChannel = false;
         if (mSignalState == SIGNAL_NOT_GOT)
             reset_nosignal_time();
 

@@ -1083,6 +1083,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             else if (to - from < 1000)
                 showToast(mResources.getString(R.string.error_atv_error_3));
             else {
+                mSettingsManager.sendBroadcastToTvapp("search_channel");
                 mSettingsManager.setManualSearchProgress(0);
                 mSettingsManager.setManualSearchSearchedNumber(0);
                 int ret = mTvControlManager.AtvManualScan(from * 1000, to * 1000,
@@ -1094,9 +1095,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 }
                 isSearching = true;
                 mSettingsManager.setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
-                mSettingsManager.sendBroadcastToTvapp("search_channel");
             }
         } else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
+            mSettingsManager.sendBroadcastToTvapp("search_channel");
             OptionEditText edit = (OptionEditText) parent.findViewById(R.id.manual_search_dtv_channel);
             String channel = edit.getText().toString();
             if (channel == null || channel.length() == 0)
@@ -1105,7 +1106,6 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             mTvControlManager.DtvManualScan(getDvbFrequencyByPd(Integer.valueOf(channel)));
             isSearching = true;
             mSettingsManager.setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
-            mSettingsManager.sendBroadcastToTvapp("search_channel");
             Intent intent = new Intent(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH);
             intent.putExtra(DroidLogicTvUtils.EXTRA_SUBTITLE_SWITCH_VALUE, 0);
             mContext.sendBroadcast(intent);
@@ -1263,13 +1263,14 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     }
 
     private void startAutosearch() {
+        mSettingsManager.sendBroadcastToTvapp("search_channel");
         mTvDataBaseManager.deleteChannels(mSettingsManager.getInputId());
         if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV) {
-            mTvControlManager.SetFrontendParms(TvControlManager.tv_fe_type_e.TV_FE_ANALOG,
+            /*mTvControlManager.SetFrontendParms(TvControlManager.tv_fe_type_e.TV_FE_ANALOG,
                     45250000,//try to get the tune into unlock status
                     TvControlManager.tvin_color_system_e.COLOR_SYSTEM_AUTO.toInt(),
                     TvControlManager.ATV_AUDIO_STD_AUTO,
-                    0, 0);
+                    0, 0);*/
             mTvControlManager.AtvAutoScan(TvControlManager.ATV_VIDEO_STD_PAL, TvControlManager.ATV_AUDIO_STD_I, 0, 1);
         } else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
             mTvControlManager.PlayDTVProgram(TVChannelParams.MODE_DTMB, 470000000, 0, 0, 0, 0, -1, -1, 0, 0);
@@ -1281,7 +1282,6 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         }
         isSearching = true;
         mSettingsManager.setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
-        mSettingsManager.sendBroadcastToTvapp("search_channel");
     }
 
     private void setAutoSearchFrequency(TvControlManager.ScannerEvent event) {
