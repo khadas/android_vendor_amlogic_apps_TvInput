@@ -33,8 +33,12 @@
             android:layout_marginLeft="@dimen/info_name_margin_left"
             android:layout_marginRight="@dimen/info_name_margin_right"
             android:layout_centerVertical="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
             android:textColor="@color/source_info_value"
             android:textSize="@dimen/text_size_info_ad_value"
-            android:singleLine="true"/>
+            android:singleLine="true"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit="marquee_forever"/>
     </RelativeLayout>
 </LinearLayout>

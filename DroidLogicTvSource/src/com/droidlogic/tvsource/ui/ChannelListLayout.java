@@ -179,6 +179,7 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
         switch (mType) {
             case Utils.UI_TYPE_ATV_FAV_LIST:
                 title.setText(mResources.getString(R.string.fav_list));
+                txRadio.setVisibility(INVISIBLE);
                 break;
             case Utils.UI_TYPE_ATV_CHANNEL_LIST:
                 title.setText(mResources.getString(R.string.channel_list));
@@ -187,6 +188,7 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
                 break;
             case Utils.UI_TYPE_DTV_FAV_LIST:
                 title.setText(mResources.getString(R.string.fav_list));
+                txRadio.setVisibility(VISIBLE);
                 break;
             case Utils.UI_TYPE_DTV_CHANNEL_LIST:
                 title.setText(mResources.getString(R.string.channel_list));
