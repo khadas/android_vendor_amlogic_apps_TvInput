@@ -259,7 +259,8 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
 
             String numberMode = Settings.System.getString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DTV_NUMBER_MODE);
             String name;
-            if ((numberMode != null) && (numberMode.equals("lcn"))) {
+            if ((mSourceInput.getSigType() == DroidLogicTvUtils.SIG_INFO_TYPE_DTV) &&
+                    (numberMode != null) && (numberMode.equals("lcn"))) {
                 name = channel.getDisplayNumber();
             } else {
                 name = Integer.toString(getChannelIndex(channel));

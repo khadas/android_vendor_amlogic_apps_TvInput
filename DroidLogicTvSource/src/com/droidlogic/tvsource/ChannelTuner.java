@@ -246,28 +246,14 @@ public class ChannelTuner {
         if (isPassthrough())
             return false;
 
-        String numberMode = Settings.System.getString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DTV_NUMBER_MODE);
-        if ((numberMode != null) && numberMode.equals("lcn")) {
-            for (ChannelInfo c : (isRadioChannel() ? mRadioChannels : mVideoChannels)) {
-                if (index == c.getNumber()) {
-                    mCurrentChannel = c;
-                    return true;
-                }
-            }
-
+        int total_size = 0;
+        total_size = isRadioChannel() ? mRadioChannels.size() : mVideoChannels.size();
+        if (index < 0 || index >= total_size) {
             return false;
-
-        } else {
-
-            int total_size = 0;
-            total_size = isRadioChannel() ? mRadioChannels.size() : mVideoChannels.size();
-            if (index < 0 || index >= total_size) {
-                return false;
-            }
-
-            mCurrentChannel = isRadioChannel() ? mRadioChannels.get(index) : mVideoChannels.get(index);
-            return true;
         }
+
+        mCurrentChannel = isRadioChannel() ? mRadioChannels.get(index) : mVideoChannels.get(index);
+        return true;
     }
 
     /**
