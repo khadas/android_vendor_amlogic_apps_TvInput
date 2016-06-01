@@ -410,7 +410,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             Utils.logd(TAG, "channelUri switching to is " + channel_uri);
             mSourceView.tune(mSourceInput.getInputId(), channel_uri);
             if (mSourceInput.isRadioChannel()) {
-                mMainView.setBackgroundDrawable(getResources().getDrawable(R.drawable.bg_radio, null));
+                mMainView.setBackgroundDrawable(getResources().getDrawable(R.drawable.bg_radio));
             } else {
                 mMainView.setBackgroundDrawable(null);
             }
@@ -418,7 +418,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             mSignalState = SIGNAL_NOT_GOT;
             reset_nosignal_time();
             releaseTvView();
-            mMainView.setBackgroundDrawable(getResources().getDrawable(R.drawable.hotplug_out, null));
+            mMainView.setBackgroundDrawable(getResources().getDrawable(R.drawable.hotplug_out));
         }
         showUi(Utils.UI_TYPE_SOURCE_INFO, false);
     }
