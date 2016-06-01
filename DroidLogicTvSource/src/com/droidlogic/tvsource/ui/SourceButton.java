@@ -96,6 +96,10 @@ public class SourceButton extends LinearLayout {
         initChannelTuner();
     }
 
+    public void switchSource () {
+        mListener.onButtonClick(this);
+    }
+
     public interface OnSourceClickListener {
         void onButtonClick(SourceButton sb);
     }
@@ -379,7 +383,7 @@ public class SourceButton extends LinearLayout {
             switch (event.getKeyCode()) {
                 case KeyEvent.KEYCODE_DPAD_CENTER:
                 case KeyEvent.KEYCODE_ENTER:
-                    mListener.onButtonClick(this);
+                    switchSource();
                     break;
             }
         }

@@ -205,7 +205,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     SourceButton dtvSourceButton = mSourceMenuLayout.getDtvSourceButton();
                     if (mSourceInput.getSourceType() != DroidLogicTvUtils.SOURCE_TYPE_DTV) {
                         dtvSourceButton.moveToChannel(channelIndex, isRadioChannel);
-                        mSourceMenuLayout.onButtonClick(dtvSourceButton);
+                        dtvSourceButton.switchSource();
                     } else {
                         onSelect(channelIndex, isRadioChannel);
                     }
@@ -458,7 +458,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             showUi(Utils.UI_TYPE_ALL_HIDE, true);
             if (mSourceInput.getSourceType() != DroidLogicTvUtils.SOURCE_TYPE_DTV) {
                 dtvSourceButton.moveToChannel(index, isRadio);
-                mSourceMenuLayout.onButtonClick(dtvSourceButton);
+                dtvSourceButton.switchSource();
             } else {
                 onSelect(index, isRadio);
             }
@@ -765,8 +765,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             for (TvInputInfo info : mTvInputManager.getTvInputList()) {
                 String name = info.loadLabel(this).toString();
                 if (sourceName.equals(name)) {
-                    SourceButton source = mSourceMenuLayout.getSourceInput(info);
-                    source.performClick();
+                    mSourceInput = mSourceMenuLayout.getSourceInput(info);
+                    mSourceInput.switchSource();
                 }
             }
         }
