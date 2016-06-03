@@ -86,8 +86,6 @@ public class ChannelTuner {
                 mCurrentChannel = mVideoChannels.get(DEFAULT_INDEX);
             }
         }
-        if (DEBUG)
-            printList();
     }
 
     /**
@@ -132,8 +130,6 @@ public class ChannelTuner {
         if (mCurrentChannel == null && mVideoChannels.size() > 0) {
             updateCurrentScreen(mVideoChannels.get(DEFAULT_INDEX));
         }
-        if (DEBUG)
-            printList();
     }
 
     /**
@@ -176,8 +172,6 @@ public class ChannelTuner {
             else
                 mCurrentChannel = mVideoChannels.get(index);
         }
-        if (DEBUG)
-            printList();
     }
 
     private ArrayList<ChannelInfo> updateSkippedChannel (ArrayList<ChannelInfo> channelList, ChannelInfo channel) {

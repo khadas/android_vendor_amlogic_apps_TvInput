@@ -25,7 +25,7 @@
     <!-- dimention for atv info and dtv info -->
     <dimen name="info_title_margin_top">10dp</dimen>
     <dimen name="info_content_margin_top">20dp</dimen>
-    <dimen name="info_number_margin_left">50dp</dimen>
+    <dimen name="info_number_margin_left">30dp</dimen>
     <dimen name="info_name_margin_left">130dp</dimen>
     <dimen name="info_name_margin_right">10dp</dimen>
     <dimen name="text_size_info_ad_name">30sp</dimen>

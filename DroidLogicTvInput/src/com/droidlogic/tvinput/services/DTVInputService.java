@@ -724,7 +724,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             public void reset() {
                 Log.d(TAG, "epg reset.");
 
-                reset(fend, dmx, src, Arrays.toString(languages).replace("[", "").replace("]", "").replace(",", " "));
+                reset(fend, dmx, src, EPG_LANGUAGE.replaceAll("local", TVMultilingualText.getLocalLang()));
 
                 enterChannel(tvchan, true);
                 enterService(tvservice);

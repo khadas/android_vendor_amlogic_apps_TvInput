@@ -1527,7 +1527,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 SystemControlManager scm = new SystemControlManager(mContext);
                 scm.setProperty("tv.channels.count", ""+(channelNumber+radioNumber));
                 onTvChannelStoreEnd();
-                ((TvSettingsActivity) mContext).finish();
+                //((TvSettingsActivity) mContext).finish();
                 String prompt = mResources.getString(R.string.searched);
                 if (channelNumber != 0) {
                     prompt += " " + channelNumber + " " + mResources.getString(R.string.tv_channel);
@@ -1547,8 +1547,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             case TvControlManager.EVENT_SCAN_EXIT:
                 Log.d(TAG, "Scan exit.");
                 isSearching = false;
+                ((TvSettingsActivity) mContext).finish();
                 if (channelNumber == 0 && radioNumber == 0) {
-                    ((TvSettingsActivity) mContext).finish();
+                    //((TvSettingsActivity) mContext).finish();
                     showToast(mResources.getString(R.string.searched) + " 0 " + mResources.getString(R.string.channel));
                 }
                 break;
