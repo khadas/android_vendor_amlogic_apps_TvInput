@@ -784,7 +784,7 @@ public class SettingsManager {
                 else
                     item.put(STRING_ICON, null);
 
-                item.put(STRING_NAME, i + ". " + info.getDisplayNameLocal());
+                item.put(STRING_NAME, info.getNumber() + ". " + info.getDisplayNameLocal());
                 list.add(item);
             }
         } else {

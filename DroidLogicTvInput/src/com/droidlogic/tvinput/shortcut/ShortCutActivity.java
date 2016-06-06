@@ -394,13 +394,8 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
                 ChannelInfo info = channelInfoList.get(i);
                 if (info != null) {
                     ArrayMap<String, Object> item = new ArrayMap<String, Object>();
-                    String numberMode = Settings.System.getString(getContentResolver(), DroidLogicTvUtils.TV_KEY_DTV_NUMBER_MODE);
 
-                    if ((mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) &&
-                            (numberMode != null) && numberMode.equals("lcn"))
-                        item.put(GuideListView.ITEM_1, info.getDisplayNumber() + "  " + info.getDisplayNameLocal());
-                    else
-                        item.put(GuideListView.ITEM_1, i + "  " + info.getDisplayNameLocal());
+                    item.put(GuideListView.ITEM_1, info.getNumber() + "  " + info.getDisplayNameLocal());
                     if (ChannelInfo.isRadioChannel(info)) {
                         item.put(GuideListView.ITEM_2, radioChannelIndex);
                         radioChannelIndex++;
@@ -614,7 +609,6 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
     private void sendSwitchChannelBroadcast(int position) {
         int channelIndex = (int)list_channels.get(position).get(GuideListView.ITEM_2);
         boolean isRadio = (boolean)list_channels.get(position).get(GuideListView.ITEM_3);
-
         Intent intent = new Intent(DroidLogicTvUtils.ACTION_SWITCH_CHANNEL);
         intent.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, channelIndex);
         intent.putExtra(DroidLogicTvUtils.EXTRA_IS_RADIO_CHANNEL, isRadio);

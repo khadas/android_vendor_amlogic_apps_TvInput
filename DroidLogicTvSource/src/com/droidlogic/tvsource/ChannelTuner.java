@@ -319,6 +319,22 @@ public class ChannelTuner {
         }
     }
 
+    public int getChannelIndex(int channelNumber, boolean isRadio) {
+        if (isDTVChannel() && isRadio) {
+            for (int i = 0; i < mRadioChannels.size(); i++) {
+                if (channelNumber == mRadioChannels.get(i).getNumber())
+                    return i;
+            }
+        } else {
+            for (int i = 0; i < mVideoChannels.size(); i++) {
+                if (channelNumber == mVideoChannels.get(i).getNumber())
+                    return i;
+            }
+        }
+        return -1;
+    }
+
+
     public int getCurrentChannelIndex() {
         if (mCurrentChannel == null)
             return -1;

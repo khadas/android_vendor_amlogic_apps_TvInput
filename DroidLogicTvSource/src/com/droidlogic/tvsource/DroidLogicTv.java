@@ -379,8 +379,12 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             return;
 
         Settings.System.putInt(getContentResolver(), DroidLogicTvUtils.TV_CURRENT_DEVICE_ID, mSourceInput.getDeviceId());
-
-        int index = mSourceInput.getChannelIndex();
+        int index;
+        if (mSourceInput.getChannelNumber().isEmpty()) {
+            index = -1;
+        } else {
+            index = Integer.parseInt(mSourceInput.getChannelNumber());
+        }
         int type = mSourceInput.getSourceType();
         boolean is_radio = mSourceInput.isRadioChannel();
         if (type == DroidLogicTvUtils.SOURCE_TYPE_ATV) {
@@ -533,8 +537,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     }
 
     @Override
-    public void onSelect(int channelIndex, boolean isRadio) {
-        if (mSourceInput.moveToChannel(channelIndex, isRadio)) {
+    public void onSelect(int channelNum, boolean isRadio) {
+        if (mSourceInput.moveToChannel(channelNum, isRadio)) {
             sendTuneMessage();
         }
     }
@@ -919,8 +923,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     number = keyInputNumber;
                     name = "";
                 } else {
-                    int index = mSourceInput.getChannelIndex();
-                    number = index != -1 ? Integer.toString(index) : "";
+                    number = mSourceInput.getChannelNumber();
                     name = mSourceInput.getChannelType();
                 }
                 break;
@@ -930,15 +933,11 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     number = keyInputNumber;
                     name = "";
                 } else {
-                    int index = mSourceInput.getChannelIndex();
-                    String numberMode = Settings.System.getString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DTV_NUMBER_MODE);
-                    if ((numberMode != null) && numberMode.equals("lcn"))
-                        number = mSourceInput.getChannelNumber();
-                    else
-                        number = index != -1 ? Integer.toString(index) : "";
+                    number = mSourceInput.getChannelNumber();
                     name = mSourceInput.getChannelName();
                 }
                 break;
+
             case DroidLogicTvUtils.SIG_INFO_TYPE_AV:
                 label = mSourceInput.getSourceLabel();
                 if (mSignalState == SIGNAL_NOT_GOT) {
@@ -1173,7 +1172,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 }
                 break;
             case MSG_CHANNEL_NUM_SWITCH:
-                if (mSourceInput.moveToIndex(Integer.parseInt(keyInputNumber))) {
+                boolean isRadio = mSourceInput.isRadioChannel();
+                int channelnum = Integer.parseInt(keyInputNumber);
+                if (mSourceInput.moveToIndex(mSourceInput.getChannelIndex(channelnum, isRadio))) {
                     sendTuneMessage();
                 }
                 isNumberSwitching = false;

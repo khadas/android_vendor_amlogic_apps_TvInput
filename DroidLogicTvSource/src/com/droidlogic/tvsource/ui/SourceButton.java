@@ -171,6 +171,10 @@ public class SourceButton extends LinearLayout {
         return mChannelTuner == null ? 0 : mChannelTuner.getCurrentChannelIndex();
     }
 
+    public int getChannelIndex(int channelNumber, boolean isRadio){
+        return mChannelTuner == null ? -1 : mChannelTuner.getChannelIndex(channelNumber, isRadio);
+    }
+
     public boolean isRadioChannel() {
         return mChannelTuner == null ? false : mChannelTuner.isRadioChannel();
     }
@@ -340,11 +344,11 @@ public class SourceButton extends LinearLayout {
         }
     }
 
-    public boolean moveToChannel(int index, boolean isRadio) {
+    public boolean moveToChannel(int channelNum, boolean isRadio) {
         if (mChannelTuner == null)
             return false;
         setRecentChannelIndex(getChannelIndex());
-        return mChannelTuner.moveToChannel(index, isRadio);
+        return mChannelTuner.moveToChannel(getChannelIndex(channelNum, isRadio), isRadio);
     }
 
     /**

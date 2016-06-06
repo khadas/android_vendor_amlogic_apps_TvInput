@@ -78,10 +78,8 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         ChannelInfo channel = (ChannelInfo)mAdapter.getItem(position);
-        int index = getChannelIndex(channel);
-
         if (channel != null) {
-            mListener.onSelect(index, !modeVideo);
+            mListener.onSelect(channel.getNumber(), !modeVideo);
         }
     }
 
@@ -204,7 +202,7 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
     }
 
     public interface OnChannelSelectListener {
-        void onSelect(int channelIndex, boolean isRadio);
+        void onSelect(int channelNum, boolean isRadio);
     }
 
     public void setOnChannelSelectListener (OnChannelSelectListener listener) {
@@ -259,14 +257,8 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
                 holder.img_playing.setImageDrawable(null);
             }
 
-            String numberMode = Settings.System.getString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DTV_NUMBER_MODE);
-            String name;
-            if ((mSourceInput.getSigType() == DroidLogicTvUtils.SIG_INFO_TYPE_DTV) &&
-                    (numberMode != null) && (numberMode.equals("lcn"))) {
-                name = channel.getDisplayNumber();
-            } else {
-                name = Integer.toString(getChannelIndex(channel));
-            }
+            String name = channel.getDisplayNumber();
+
             name += "  " + channel.getDisplayNameLocal();
             holder.tx_channel.setText(name);
             return convertView;
