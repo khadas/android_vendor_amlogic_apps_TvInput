@@ -109,6 +109,9 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
             return refresh();
         }
         TvInputInfo info = mTvInputManager.getTvInputInfo(inputId);
+        if (info == null)
+            return ACTION_FAILED;
+
         int device_id = getDeviceId(info);
         if (device_id >= 0) {//hardware input source
             SourceButton sb = mSourceInputs.get(device_id);
