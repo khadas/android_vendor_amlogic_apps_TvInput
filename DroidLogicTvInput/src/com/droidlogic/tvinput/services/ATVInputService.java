@@ -263,7 +263,7 @@ public class ATVInputService extends DroidLogicTvInputService {
     public void onUpdateCurrentChannel(ChannelInfo channel, boolean store) {
         if (store) {
             TvDataBaseManager mTvDataBaseManager = new TvDataBaseManager(this);
-            mTvDataBaseManager.updateOrinsertAtvChannelFuzzy(channel);
+            mTvDataBaseManager.updateOrinsertAtvChannel(mCurrentChannel, channel);
         }
     }
 }
