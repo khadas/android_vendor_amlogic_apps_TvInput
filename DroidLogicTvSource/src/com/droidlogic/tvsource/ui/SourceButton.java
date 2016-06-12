@@ -249,6 +249,9 @@ public class SourceButton extends LinearLayout {
 
         String[] temp = mInputInfo.getId().split("/");
         if (temp.length == 3) {
+            /*  ignore for HDMI CEC device */
+            if (temp[2].contains("HDMI"))
+                return ;
             mHardwareDeviceId = Integer.parseInt(temp[2].substring(2));
             mIsHardware = true;
         }

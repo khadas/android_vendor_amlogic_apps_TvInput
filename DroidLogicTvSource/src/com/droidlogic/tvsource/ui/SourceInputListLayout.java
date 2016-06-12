@@ -199,7 +199,14 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
 
     private int getDeviceId(TvInputInfo info) {
         String[] temp = info.getId().split("/");
-        return temp.length == 3 ? Integer.parseInt(temp[2].substring(2)) : -1;
+        if (temp.length == 3) {
+            /*  ignore for HDMI CEC device */
+            if (temp[2].contains("HDMI"))
+                return -1;
+            return Integer.parseInt(temp[2].substring(2));
+        } else {
+            return -1;
+        }
     }
 
     private String[] getAllDeviceIds() {

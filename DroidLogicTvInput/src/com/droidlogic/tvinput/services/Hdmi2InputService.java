@@ -16,6 +16,7 @@ import android.media.tv.TvInputHardwareInfo;
 import android.media.tv.TvInputInfo;
 import android.media.tv.TvStreamConfig;
 import android.media.tv.TvInputManager.Hardware;
+import android.hardware.hdmi.HdmiDeviceInfo;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.KeyEvent;
@@ -26,6 +27,8 @@ public class Hdmi2InputService extends DroidLogicTvInputService {
     private Hdmi2InputSession mCurrentSession;
     private int number = 0;
     private int currentNumber = 0;
+    private final int TV_SOURCE_EXTERNAL = 0;
+    private final int TV_SOURCE_INTERNAL = 1;
 
     @Override
     public Session onCreateSession(String inputId) {
@@ -139,4 +142,75 @@ public class Hdmi2InputService extends DroidLogicTvInputService {
         return id;
     }
 
+    int getPortIndex(int phyAddr) {
+        /* TODO: consider of tuner */
+        return ((phyAddr & 0xf000) >> 12) - 1;
+    }
+
+    @Override
+    public TvInputInfo onHdmiDeviceAdded(HdmiDeviceInfo deviceInfo) {
+        if (deviceInfo == null) {
+            return null;
+        }
+        int phyaddr = deviceInfo.getPhysicalAddress();
+        if (getTvInputInfo(phyaddr) != null) {
+            Utils.logd(TAG, "onHdmiDeviceAdded, phyaddr:" + phyaddr + " already add");
+            return null;
+        }
+        int sourceType = getPortIndex(phyaddr) + DroidLogicTvUtils.DEVICE_ID_HDMI1;
+
+        String parentId = null;
+        TvInputInfo info = null;
+        TvInputInfo parent = getTvInputInfo(sourceType);
+        if (parent != null) {
+            parentId = parent.getId();
+        } else {
+            Utils.logd(TAG, "onHdmiDeviceAdded, can't found parent");
+            return null;
+        }
+        Utils.logd(TAG, "onHdmiDeviceAdded, phyaddr:" + phyaddr +
+                    ", port:" + sourceType + ", parentID:" + parentId);
+        ResolveInfo rInfo = getResolveInfo(Hdmi2InputService.class.getName());
+        if (rInfo != null) {
+            try {
+                info = TvInputInfo.createTvInputInfo(
+                        getApplicationContext(),
+                        rInfo,
+                        deviceInfo,
+                        parentId,
+                        deviceInfo.getDisplayName(),
+                        null);
+            } catch (XmlPullParserException e) {
+                // TODO: handle exception
+            }catch (IOException e) {
+                // TODO: handle exception
+            }
+        } else {
+            return null;
+        }
+        Utils.logd(TAG, "createTvInputInfo, id:" + info.getId());
+        updateInfoListIfNeededLocked(phyaddr, info, false);
+        if (mCurrentSession != null) {
+            mCurrentSession.selectHdmiDevice(TV_SOURCE_EXTERNAL);
+        }
+
+        return info;
+    }
+
+    @Override
+    public String onHdmiDeviceRemoved(HdmiDeviceInfo deviceInfo) {
+        if (deviceInfo == null) {
+            return null;
+        }
+        int phyaddr = deviceInfo.getPhysicalAddress();
+        TvInputInfo info = getTvInputInfo(phyaddr);
+        if (info == null) {
+            return null;
+        }
+        String id = info.getId();
+        Utils.logd(TAG, "onHdmiDeviceRemoved, id:" + id);
+        updateInfoListIfNeededLocked(phyaddr, info, true);
+
+        return id;
+    }
 }
