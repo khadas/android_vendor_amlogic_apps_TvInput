@@ -685,7 +685,7 @@ public class SettingsManager {
         }
     }
 
-    private String getFineTuneStatus() {
+    public String getFineTuneStatus() {
         return Integer.toString(2 * (getFineTuneProgress() - 50)) + "%";
     }
 

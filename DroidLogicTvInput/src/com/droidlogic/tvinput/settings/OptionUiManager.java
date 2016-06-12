@@ -956,7 +956,14 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             for (int i = 0; i < progressLayout.getChildCount(); i++) {
                 View child = progressLayout.getChildAt(i);
                 if (child instanceof TextView) {
-                    ((TextView) child).setText(Integer.toString(progress) + "%");
+                    switch (optionTag) {
+                        case OPTION_FINE_TUNE:
+                            ((TextView) child).setText(mSettingsManager.getFineTuneStatus());
+                            break;
+                        default:
+                            ((TextView) child).setText(Integer.toString(progress) + "%");
+                            break;
+                    }
                 } else if (child instanceof ImageView) {
                     ((ImageView) child).setImageResource(getProgressResourceId(progress));
                 }
