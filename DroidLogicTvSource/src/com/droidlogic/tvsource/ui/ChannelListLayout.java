@@ -39,7 +39,7 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
     private MyAdapter mAdapter;
     SparseArray<ChannelInfo> videoList;
     SparseArray<ChannelInfo> radioList;
-
+    private int mPosition = -1;
     private Resources mResources;
 
     private OnChannelSelectListener mListener;
@@ -61,6 +61,8 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
         mListView = (ListView)findViewById(R.id.channel_video_list);
         mListView.setOnItemClickListener(this);
         mListView.setOnItemSelectedListener(this);
+        mListView.setNextFocusUpId(mListView.getId());
+        mListView.setNextFocusDownId(mListView.getId());
     }
 
     public void initView(int type, SourceButton sourceInput) {
@@ -115,8 +117,15 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
         boolean down = event.getAction() == KeyEvent.ACTION_DOWN;
         switch (event.getKeyCode()) {
             case KeyEvent.KEYCODE_DPAD_DOWN:
+                if (mListView.hasFocus() && mPosition != -1
+                        && mPosition >= mListView.getAdapter().getCount() -1) {
+                    mListView.setSelection(0);
+                }
                 break;
             case KeyEvent.KEYCODE_DPAD_UP:
+                if (mListView.hasFocus() && mPosition == 0) {
+                    mListView.setSelection(mListView.getAdapter().getCount() -1);
+                }
                 break;
             default:
                 break;
@@ -277,6 +286,7 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        mPosition = position;
     }
 
     @Override
