@@ -114,21 +114,22 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         Utils.logd(TAG, "==== event.keycode =" + event.getKeyCode());
-        boolean down = event.getAction() == KeyEvent.ACTION_DOWN;
-        switch (event.getKeyCode()) {
-            case KeyEvent.KEYCODE_DPAD_DOWN:
-                if (mListView.hasFocus() && mPosition != -1
-                        && mPosition >= mListView.getAdapter().getCount() -1) {
-                    mListView.setSelection(0);
-                }
-                break;
-            case KeyEvent.KEYCODE_DPAD_UP:
-                if (mListView.hasFocus() && mPosition == 0) {
-                    mListView.setSelection(mListView.getAdapter().getCount() -1);
-                }
-                break;
-            default:
-                break;
+        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            switch (event.getKeyCode()) {
+                case KeyEvent.KEYCODE_DPAD_DOWN:
+                    if (mListView.hasFocus() && mPosition != -1
+                            && mPosition >= mListView.getAdapter().getCount() -1) {
+                        mListView.setSelection(0);
+                    }
+                    break;
+                case KeyEvent.KEYCODE_DPAD_UP:
+                    if (mListView.hasFocus() && mPosition == 0) {
+                        mListView.setSelection(mListView.getAdapter().getCount() -1);
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
 
         return super.dispatchKeyEvent(event);

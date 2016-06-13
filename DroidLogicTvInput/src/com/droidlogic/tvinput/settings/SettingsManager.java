@@ -675,7 +675,7 @@ public class SettingsManager {
     }
 
 
-    private static final int FineTuneRange = 2 * 1000 * 1000; /*Hz*/
+    private static final int FineTuneRange = 2500 * 1000; /*Hz*/
     private static final int FineTuneStepSize = 50 * 1000; /*Hz*/
     public int getFrequency () {
         if (currentChannel != null)
