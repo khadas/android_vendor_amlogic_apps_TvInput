@@ -556,6 +556,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
+        if (!isBootvideoStopped())
+            return true;
         sendKeyEventToHdmi(event.getKeyCode(), event.getAction() == KeyEvent.ACTION_DOWN);
         boolean ret = processKeyEvent(event.getKeyCode(), event);
         return ret ? ret : super.dispatchKeyEvent(event);
