@@ -151,7 +151,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
 
     private boolean isRunning = true;
 
-    private IntentFilter mIntentFilter = null;
+    private boolean mReceiverRegisted = false;
     BroadcastReceiver mReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
@@ -224,6 +224,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                           PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ON_AFTER_RELEASE, TAG);
         mAudioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
         mSystemControlManager = new SystemControlManager(this);
+        initThread(mThreadName);
     }
 
     private void init() {
@@ -345,8 +346,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             showMuteIcon(false);
 
         mTvInputManager.registerCallback(mTvInputChangeCallback, new Handler());
-        initThread(mThreadName);
-        if (mIntentFilter == null) {
+        if (!mReceiverRegisted) {
+            mReceiverRegisted = true;
             IntentFilter intentFilter = new IntentFilter(DroidLogicTvUtils.ACTION_TIMEOUT_SUSPEND);
             intentFilter.addAction(DroidLogicTvUtils.ACTION_UPDATE_TV_PLAY);
             intentFilter.addAction(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH);
@@ -385,6 +386,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         boolean is_radio = mSourceInput.isRadioChannel();
         if (type == DroidLogicTvUtils.SOURCE_TYPE_ATV) {
             Settings.System.putInt(getContentResolver(), DroidLogicTvUtils.TV_ATV_CHANNEL_INDEX, index);
+            Settings.System.putInt(getContentResolver(), DroidLogicTvUtils.TV_CURRENT_CHANNEL_IS_RADIO, 0);
         } else if (type == DroidLogicTvUtils.SOURCE_TYPE_DTV) {
             Settings.System.putInt(getContentResolver(), DroidLogicTvUtils.TV_DTV_CHANNEL_INDEX, index);
             Settings.System.putInt(getContentResolver(), DroidLogicTvUtils.TV_CURRENT_CHANNEL_IS_RADIO, is_radio ? 1 : 0);
@@ -1095,16 +1097,16 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         releaseTvView();
         restoreTouchSound();
         openScreenOffTimeout();
-        releaseThread();
         mTvInputManager.unregisterCallback(mTvInputChangeCallback);
         unregisterReceiver(mReceiver);
-        mIntentFilter = null;
+        mReceiverRegisted = false;
         super.onStop();
     }
 
     @Override
     protected void onDestroy() {
         Utils.logd(TAG, "==== onDestroy ====");
+        releaseThread();
         mChannelDataManager.release();
         super.onDestroy();
     }
