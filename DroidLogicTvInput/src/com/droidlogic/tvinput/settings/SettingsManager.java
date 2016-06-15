@@ -78,6 +78,7 @@ public class SettingsManager {
     public static final String KEY_RESTORE_FACTORY                  = "restore_factory";
     public static final String KEY_DEFAULT_LANGUAGE                 = "default_language";
     public static final String KEY_SUBTITLE_SWITCH                  = "sub_switch";
+    public static final String KEY_HDMI20                           = "hdmi20";
 
     public static final String STATUS_STANDARD                      = "standard";
     public static final String STATUS_VIVID                         = "vivid";
@@ -310,6 +311,8 @@ public class SettingsManager {
             return getStartupSettingStatus();
         } else if (key.equals(KEY_DYNAMIC_BACKLIGHT)) {
             return getDynamicBacklightStatus();
+        } else if (key.equals(KEY_HDMI20)) {
+            return getHdmi20Status();
         }
         return null;
     }
@@ -905,6 +908,53 @@ public class SettingsManager {
             return mResources.getString(R.string.off);
         else
             return mResources.getString(R.string.on);
+    }
+
+    public TvControlManager.HdmiPortID getCurrHdmiPortID() {
+        TvControlManager.HdmiPortID hdmiPortID;
+        int device_id = Settings.System.getInt(mContext.getContentResolver(),
+                DroidLogicTvUtils.TV_CURRENT_DEVICE_ID, -1);
+        switch (device_id) {
+            case DroidLogicTvUtils.DEVICE_ID_HDMI1:
+                hdmiPortID = TvControlManager.HdmiPortID.HDMI_PORT_1;
+                break;
+            case DroidLogicTvUtils.DEVICE_ID_HDMI2:
+                hdmiPortID = TvControlManager.HdmiPortID.HDMI_PORT_2;
+                break;
+            case DroidLogicTvUtils.DEVICE_ID_HDMI3:
+                hdmiPortID = TvControlManager.HdmiPortID.HDMI_PORT_3;
+                break;
+            default:
+                hdmiPortID = TvControlManager.HdmiPortID.HDMI_PORT_1;
+                Log.w(TAG, "current source input is NOT HDMI");
+                break;
+        }
+        return hdmiPortID;
+    }
+
+    public String getHdmi20Status() {
+        TvControlManager.HdmiPortID hdmiPort = getCurrHdmiPortID();
+        int hdmiVer = mTvControlManager.SSMReadHdmiEdidVer(hdmiPort);
+        if (hdmiVer == TvControlManager.HdmiEdidVer.HDMI_EDID_VER_20.toInt()) {
+            return mResources.getString(R.string.on);
+        } else {
+            return mResources.getString(R.string.off);
+        }
+    }
+
+    public void setHdmi20Mode(String mode) {
+        if (mode.equals(STATUS_ON)) {
+            // set HDMI mode sequence: save than set
+            mTvControlManager.SSMSaveHdmiEdidVer(getCurrHdmiPortID(),
+                TvControlManager.HdmiEdidVer.HDMI_EDID_VER_20);
+            mTvControlManager.SetHdmiEdidVersion(getCurrHdmiPortID(),
+                TvControlManager.HdmiEdidVer.HDMI_EDID_VER_20);
+        } else if (mode.equals(STATUS_OFF)) {
+            mTvControlManager.SSMSaveHdmiEdidVer(getCurrHdmiPortID(),
+                TvControlManager.HdmiEdidVer.HDMI_EDID_VER_14);
+            mTvControlManager.SetHdmiEdidVersion(getCurrHdmiPortID(),
+                TvControlManager.HdmiEdidVer.HDMI_EDID_VER_14);
+        }
     }
 
     public void setPictureMode (String mode) {

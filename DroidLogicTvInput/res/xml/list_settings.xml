@@ -41,4 +41,9 @@
         android:title="@string/restore_factory" >
     </Preference>
 
+    <Preference
+        android:key="hdmi20"
+        android:title="@string/hdmi20" >
+    </Preference>
+
 </PreferenceScreen>

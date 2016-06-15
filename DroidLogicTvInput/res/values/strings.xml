@@ -137,6 +137,7 @@
     <string name="launcher">launcher</string>
     <string name="tv">TV</string>
     <string name="radio">Radio</string>
+    <string name="hdmi20">HDMI 2.0</string>
 
     <string name="ensure_restore">ensure restore</string>
     <string name="ok">OK</string>

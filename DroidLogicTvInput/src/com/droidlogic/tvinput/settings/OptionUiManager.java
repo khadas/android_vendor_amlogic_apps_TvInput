@@ -86,6 +86,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     public static final int OPTION_RESTORE_FACTORY = 404;
     public static final int OPTION_DEFAULT_LANGUAGE = 405;
     public static final int OPTION_SUBTITLE_SWITCH = 406;
+    public static final int OPTION_HDMI20 = 407;
 
     public static final int ALPHA_NO_FOCUS = 230;
     public static final int ALPHA_FOCUSED = 255;
@@ -248,6 +249,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         } else if (item_name.equals(mResources.getString(R.string.restore_factory))) {
             optionTag = OPTION_RESTORE_FACTORY;
             optionKey = SettingsManager.KEY_RESTORE_FACTORY;
+        } else if (item_name.equals(mResources.getString(R.string.hdmi20))) {
+            optionTag = OPTION_HDMI20;
+            optionKey = SettingsManager.KEY_HDMI20;
         }
     }
 
@@ -339,6 +343,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 return R.layout.layout_settings_dynamic_backlight;
             case OPTION_RESTORE_FACTORY:
                 return R.layout.layout_settings_restore_factory;
+            case OPTION_HDMI20:
+                return R.layout.layout_settings_hdmi20;
+
             default:
                 break;
         }
@@ -658,6 +665,13 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             case R.id.restore_factory:
                 createFactoryResetUi();
                 break;
+            // HDMI 2.0 ON-OFF
+            case R.id.hdmi20_on:
+                mSettingsManager.setHdmi20Mode(SettingsManager.STATUS_ON);
+                break;
+            case R.id.hdmi20_off:
+                mSettingsManager.setHdmi20Mode(SettingsManager.STATUS_OFF);
+                break;
             default:
                 break;
         }
@@ -853,6 +867,14 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                     setIcon(parent, R.id.dynamic_backlight_on);
                 }
                 break;
+            case OPTION_HDMI20:
+                if (TextUtils.equals(mSettingsManager.getHdmi20Status(), mResources.getString(R.string.off))) {
+                    setIcon(parent, R.id.hdmi20_off);
+                } else if (TextUtils.equals(mSettingsManager.getHdmi20Status(), mResources.getString(R.string.on))) {
+                    setIcon(parent, R.id.hdmi20_on);
+                }
+                break;
+
             default:
                 break;
         }
