@@ -386,9 +386,6 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
     public ArrayList<ArrayMap<String, Object>> getChannelList (ArrayList<ChannelInfo> channelInfoList) {
         ArrayList<ArrayMap<String, Object>> list =  new ArrayList<ArrayMap<String, Object>>();
 
-        int videoChannelIndex = 0;
-        int radioChannelIndex = 0;
-
         if (channelInfoList.size() > 0) {
             for (int i = 0 ; i < channelInfoList.size(); i++) {
                 ChannelInfo info = channelInfoList.get(i);
@@ -396,13 +393,10 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
                     ArrayMap<String, Object> item = new ArrayMap<String, Object>();
 
                     item.put(GuideListView.ITEM_1, info.getNumber() + "  " + info.getDisplayNameLocal());
+                    item.put(GuideListView.ITEM_2, info.getNumber());
                     if (ChannelInfo.isRadioChannel(info)) {
-                        item.put(GuideListView.ITEM_2, radioChannelIndex);
-                        radioChannelIndex++;
                         item.put(GuideListView.ITEM_3, true);
                     } else {
-                        item.put(GuideListView.ITEM_2, videoChannelIndex);
-                        videoChannelIndex++;
                         item.put(GuideListView.ITEM_3, false);
                     }
                     list.add(item);
