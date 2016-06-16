@@ -279,8 +279,11 @@ public class DTVInputService extends DroidLogicTvInputService {
                 notifySessionEvent(DroidLogicTvUtils.AV_SIG_SCRAMBLED, null);
             else if (msgType == TvControlManager.EVENT_AV_PLAYBACK_NODATA)
                 ;
-            else if (msgType == TvControlManager.EVENT_AV_PLAYBACK_RESUME)
-                notifyVideoAvailable();
+            else if (msgType == TvControlManager.EVENT_AV_PLAYBACK_RESUME) {
+                if (mCurrentChannel != null && ChannelInfo.isRadioChannel(mCurrentChannel)) {
+                    notifyVideoAvailable();
+                }
+            }
         }
 
         @Override
