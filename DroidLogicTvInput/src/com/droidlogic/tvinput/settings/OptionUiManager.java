@@ -1301,10 +1301,12 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                     TvControlManager.ATV_AUDIO_STD_AUTO,
                     0, 0);*/
             mTvControlManager.AtvAutoScan(TvControlManager.ATV_VIDEO_STD_PAL, TvControlManager.ATV_AUDIO_STD_I, 0, 1);
+            Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_ATV_CHANNEL_INDEX, -1);
         } else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
             mTvControlManager.PlayDTVProgram(TVChannelParams.MODE_DTMB, 470000000, 0, 0, 0, 0, -1, -1, 0, 0);
             mTvControlManager.DtvSetTextCoding("GB2312");
             mTvControlManager.DtvAutoScan();
+            Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_DTV_CHANNEL_INDEX, -1);
             Intent intent = new Intent(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH);
             intent.putExtra(DroidLogicTvUtils.EXTRA_SUBTITLE_SWITCH_VALUE, 0);
             mContext.sendBroadcast(intent);
