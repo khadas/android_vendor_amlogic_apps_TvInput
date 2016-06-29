@@ -95,6 +95,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
 
     private int mSigType = 0;
     private boolean isMenuShowing;
+    private String mSourceInputId = null;
 
     private volatile int mNoSignalShutdownCount = -1;
     private TextView mTimePromptText = null;
@@ -225,6 +226,14 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         mAudioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
         mSystemControlManager = new SystemControlManager(this);
         initThread(mThreadName);
+        mSourceInputId = getIntent().getStringExtra(DroidLogicTvUtils.SOURCE_INPUT_ID);
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        // TODO Auto-generated method stub
+        super.onNewIntent(intent);
+        mSourceInputId = intent.getStringExtra(DroidLogicTvUtils.SOURCE_INPUT_ID);
     }
 
     private void init() {
@@ -344,8 +353,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             showMuteIcon(true);
         else
             showMuteIcon(false);
-
         mTvInputManager.registerCallback(mTvInputChangeCallback, new Handler());
+        switchHdmiChannel();
         if (!mReceiverRegisted) {
             mReceiverRegisted = true;
             IntentFilter intentFilter = new IntentFilter(DroidLogicTvUtils.ACTION_TIMEOUT_SUSPEND);
@@ -464,6 +473,17 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             } else {
                 onSelect(index, isRadio);
             }
+        }
+    }
+
+    private void switchHdmiChannel() {
+        if (mSourceInputId != null) {
+            TvInputInfo info = mTvInputManager.getTvInputInfo(mSourceInputId);
+            if (info != null) {
+                mSourceInput = mSourceMenuLayout.getSourceInput(info);
+                if (mSourceInput != null) mSourceInput.switchSource();
+            }
+            mSourceInputId = null;
         }
     }
 
