@@ -1057,6 +1057,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     }
 
     private void processSessionEvent(String inputId, String eventType, Bundle eventArgs) {
+        if (eventType == null || eventArgs == null)
+            return;
+
         if (eventType.equals(DroidLogicTvUtils.SIG_INFO_EVENT)) {//sig_info
             mSigType = mSourceInput.getSigType();
             String args = "";
