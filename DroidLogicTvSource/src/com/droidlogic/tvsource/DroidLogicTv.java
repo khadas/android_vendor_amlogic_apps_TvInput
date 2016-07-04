@@ -793,23 +793,19 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
 
                 if (isToastShow) {
                     sTrackIndex ++;
-                    if (subtitleTrackId == null)
-                        sTrackIndex = 0;
-                    if (sTrackIndex == 0) {
-                        mSourceView.selectTrack(TvTrackInfo.TYPE_SUBTITLE, sTrackList.get(sTrackIndex).getId());
-                        updateTracksInfo(-1, sTrackIndex);
-                        showCustomToast(getResources().getString(R.string.subtitle), sTrackList.get(sTrackIndex).getLanguage());
-                        return;
-                    }
                     if (sTrackIndex == sTrackList.size()) {
                         mSourceView.selectTrack(TvTrackInfo.TYPE_SUBTITLE, null);
                         updateTracksInfo(-1, -2);
                         showCustomToast(getResources().getString(R.string.subtitle), getResources().getString(R.string.off));
                         return;
                     }
+                    if (subtitleTrackId == null) {
+                        sTrackIndex = 0;
+                    }
                     mSourceView.selectTrack(TvTrackInfo.TYPE_SUBTITLE, sTrackList.get(sTrackIndex).getId());
                     updateTracksInfo(-1, sTrackIndex);
                     showCustomToast(getResources().getString(R.string.subtitle), sTrackList.get(sTrackIndex).getLanguage());
+                    Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_SUBTITLE_SWITCH, 1);
                 } else {
                     showCustomToast(getResources().getString(R.string.subtitle), sTrackList.get(sTrackIndex).getLanguage());
                 }
