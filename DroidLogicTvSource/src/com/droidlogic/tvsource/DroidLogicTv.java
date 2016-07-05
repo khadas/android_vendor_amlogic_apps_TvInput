@@ -1162,11 +1162,30 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         return false;
     }
 
+    /**
+     * when {@code TvInputChangeCallback} is invoked, must distinguish whether the {@value inputId}
+     * is valid or a HDMI device.
+     */
+    private boolean isValidInputId(String inputId) {
+        Utils.logd(TAG, "isValidInputId, inputId = " + inputId);
+        if (TextUtils.isEmpty(inputId))
+            return false;
+
+        String[] temp = inputId.split("/");
+        if (temp.length == 3 && temp[2].startsWith("HDMI"))
+            return false;
+
+        return true;
+    }
+
     private final class TvInputChangeCallback extends TvInputManager.TvInputCallback {
 
         @Override
         public void onInputAdded(String inputId) {
             Utils.logd(TAG, "==== onInputAdded, inputId=" + inputId);
+            if (!isValidInputId(inputId))
+                return;
+
             int input_need_reset = mSourceMenuLayout.add(inputId);
             Utils.logd(TAG, "==== input_need_reset=" + input_need_reset);
             if (input_need_reset == SourceInputListLayout.ACTION_FAILED)
@@ -1186,6 +1205,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         @Override
         public void onInputRemoved(String inputId) {
             Utils.logd(TAG, "==== onInputRemoved, inputId=" + inputId);
+            if (!isValidInputId(inputId))
+                return;
+
             int input_need_reset = mSourceMenuLayout.remove(inputId);
             Utils.logd(TAG, "==== input_need_reset=" + input_need_reset);
             if (input_need_reset == SourceInputListLayout.ACTION_FAILED)
@@ -1204,6 +1226,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         @Override
         public void onInputStateChanged(String inputId, int state) {
             Utils.logd(TAG, "==== onInputStateChanged, inputId=" + inputId + ", state=" + state);
+            if (!isValidInputId(inputId))
+                return;
+
             int input_need_reset =  mSourceMenuLayout.stateChange(inputId, state);
             Utils.logd(TAG, "==== input_need_reset=" + input_need_reset);
             if (input_need_reset == SourceInputListLayout.ACTION_FAILED)
@@ -1222,6 +1247,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         @Override
         public void onInputUpdated(String inputId) {
             Utils.logd(TAG, "==== onInputUpdated, inputId=" + inputId);
+            if (!isValidInputId(inputId))
+                return;
+
             int input_need_reset =  mSourceMenuLayout.update(inputId);
             Utils.logd(TAG, "==== input_need_reset=" + input_need_reset);
             if (input_need_reset == SourceInputListLayout.ACTION_FAILED)
