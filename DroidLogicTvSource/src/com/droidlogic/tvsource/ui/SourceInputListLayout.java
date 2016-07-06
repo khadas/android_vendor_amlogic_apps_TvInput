@@ -121,7 +121,7 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
             sb.setState(TvInputManager.INPUT_STATE_CONNECTED);
             initSourceInput(sb);
             mAvaiableSourceCount++;
-        } else {
+        } else if (info.getType() != TvInputInfo.TYPE_HDMI) {
             SourceButton sb = new SourceButton(mContext, info);
             mRoot.addView(sb);
             sb.setOnSourceClickListener(this);
@@ -183,7 +183,7 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
                 sb.setState(TvInputManager.INPUT_STATE_CONNECTED);
                 initSourceInput(sb);
                 mAvaiableSourceCount++;
-            } else {//non-hardware device
+            } else if (info.getType() != TvInputInfo.TYPE_HDMI) {//non-hardware device
                 SourceButton sb = new SourceButton(mContext, info);
                 mRoot.addView(sb);
                 sb.setOnSourceClickListener(this);
