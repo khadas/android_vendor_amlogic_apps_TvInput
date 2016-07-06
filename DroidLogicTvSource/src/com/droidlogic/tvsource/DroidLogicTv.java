@@ -757,7 +757,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             if (hdmiManager == null) return;
             mHdmiTvClient = hdmiManager.getTvClient();
         }
-        if (mHdmiTvClient != null) {
+        if (mHdmiTvClient != null && mUiType != Utils.UI_TYPE_SOURCE_LIST) {
             mHdmiTvClient.sendKeyEvent(keyCode, isPressed);
         }
     }
