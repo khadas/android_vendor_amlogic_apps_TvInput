@@ -428,7 +428,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             Uri channel_uri = mSourceInput.getUri();
             Utils.logd(TAG, "channelUri switching to is " + channel_uri);
             mSourceView.tune(mSourceInput.getInputId(), channel_uri);
-            if (mSourceInput.isRadioChannel()) {
+            if (mSourceInput.isRadioChannel() || mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_SPDIF) {
                 mMainView.setBackgroundDrawable(getResources().getDrawable(R.drawable.bg_radio));
             } else {
                 mMainView.setBackgroundDrawable(null);
@@ -936,6 +936,10 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     name = mSourceInput.getChannelVideoFormat();
                 }
                 break;
+            case DroidLogicTvUtils.SIG_INFO_TYPE_SPDIF:
+                label = mSourceInput.getSourceLabel();
+                name = "";
+                break;
             default:
                 label = mSourceInput.getSourceLabel();
                 number = mSourceInput.getChannelNumber();
@@ -969,6 +973,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     break;
                 case DroidLogicTvUtils.SIG_INFO_TYPE_AV:
                 case DroidLogicTvUtils.SIG_INFO_TYPE_HDMI:
+                case DroidLogicTvUtils.SIG_INFO_TYPE_SPDIF:
                     mSourceInfoLayout.addView(inflate.inflate(R.layout.hdmi_av_info, mSourceInfoLayout, false));
                     mInfoLabel = (TextView) findViewById(R.id.ha_info_name);
                     mInfoName = (TextView) findViewById(R.id.ha_info_value);

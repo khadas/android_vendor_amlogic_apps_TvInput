@@ -12,6 +12,7 @@
     <string name="source_bt_hdmi2">HDMI2</string>
     <string name="source_bt_hdmi3">HDMI3</string>
     <string name="source_bt_hdmi4">HDMI4</string>
+    <string name="source_bt_spdif">SPDIF</string>
 
     <string name="signal_source">Signal source</string>
     <string name="no_signal">No Signal</string>
