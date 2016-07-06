@@ -549,6 +549,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 break;
             case R.id.sound_channel_right_channel:
                 mSettingsManager.setSoundChannel(TvControlManager.LEFT_RIGHT_SOUND_CHANNEL.LEFT_RIGHT_SOUND_CHANNEL_RIGHT.toInt());
+            // subtitle
             case R.id.sub_off:
                 mSettingsManager.setSubtitleSwitch(0);
                 Intent intent = new Intent(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH);
@@ -655,13 +656,14 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             case R.id.switch_channel_black_frame:
                 mTvControlManager.setBlackoutEnable(1);
                 break;
-            // Restore Factory Settings
+            // startup app
             case R.id.startup_setting_launcher:
                 mSettingsManager.setStartupSetting(0);
                 break;
             case R.id.startup_setting_tv:
                 mSettingsManager.setStartupSetting(1);
                 break;
+            // Restore Factory Settings
             case R.id.restore_factory:
                 createFactoryResetUi();
                 break;
@@ -956,8 +958,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 break;
             default:
                 progress = getIntegerFromString(mSettingsManager.getStatus(optionKey));
-                if (progress >= 0)
-                    setProgress(progress);
+                setProgress(progress);
                 break;
         }
     }
@@ -1023,7 +1024,10 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
 
         switch (progress / 5) {
             case 0:
-                return R.drawable.progress_1;
+                if (progress > 0)
+                    return R.drawable.progress_1;
+                else
+                    return R.drawable.progress_m1;
             case 1:
                 return R.drawable.progress_2;
             case 2:
@@ -1064,6 +1068,48 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 return R.drawable.progress_20;
             case 20:
                 return R.drawable.progress_21;
+            // minus progress
+            case -1:
+                return R.drawable.progress_m2;
+            case -2:
+                return R.drawable.progress_m3;
+            case -3:
+                return R.drawable.progress_m4;
+            case -4:
+                return R.drawable.progress_m5;
+            case -5:
+                return R.drawable.progress_m6;
+            case -6:
+                return R.drawable.progress_m7;
+            case -7:
+                return R.drawable.progress_m8;
+            case -8:
+                return R.drawable.progress_m9;
+            case -9:
+                return R.drawable.progress_m10;
+            case -10:
+                return R.drawable.progress_m11;
+            case -11:
+                return R.drawable.progress_m12;
+            case -12:
+                return R.drawable.progress_m13;
+            case -13:
+                return R.drawable.progress_m14;
+            case -14:
+                return R.drawable.progress_m15;
+            case -15:
+                return R.drawable.progress_m16;
+            case -16:
+                return R.drawable.progress_m17;
+            case -17:
+                return R.drawable.progress_m18;
+            case -18:
+                return R.drawable.progress_m19;
+            case -19:
+                return R.drawable.progress_m20;
+            case -20:
+                return R.drawable.progress_m21;
+
             default:
                 break;
         }
