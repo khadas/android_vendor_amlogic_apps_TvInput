@@ -100,12 +100,7 @@ public class ATVInputService extends DroidLogicTvInputService {
             return mHardware;
         }
 
-        public int getCurrentSessionNumber() {
-            return currentNumber;
-        }
-
         public void setCurrentSession() {
-           currentNumber = getNumber();
            mCurrentSession = this;
            registerInputSession(mCurrentSession);
         }

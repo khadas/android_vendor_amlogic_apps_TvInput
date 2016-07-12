@@ -56,12 +56,7 @@ public class Hdmi3InputService extends DroidLogicTvInputService {
             return mHardware;
         }
 
-        public int getCurrentSessionNumber() {
-            return currentNumber;
-        }
-
         public void setCurrentSession() {
-           currentNumber = getNumber();
            mCurrentSession = this;
            registerInputSession(mCurrentSession);
         }

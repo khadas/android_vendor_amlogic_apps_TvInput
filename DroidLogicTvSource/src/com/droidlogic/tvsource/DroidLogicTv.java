@@ -1194,8 +1194,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         if (TextUtils.isEmpty(inputId))
             return false;
 
-        String[] temp = inputId.split("/");
-        if (temp.length == 3 && temp[2].startsWith("HDMI"))
+        String[] temp = inputId.split(Utils.DELIMITER_INFO_IN_ID);
+        if (temp.length == 3 && temp[2].startsWith(Utils.PREFIX_HDMI_DEVICE))
             return false;
 
         return true;
