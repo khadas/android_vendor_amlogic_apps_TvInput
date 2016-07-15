@@ -278,6 +278,8 @@ public class DTVInputService extends DroidLogicTvInputService {
                 if (mCurrentChannel != null && ChannelInfo.isRadioChannel(mCurrentChannel)) {
                     notifyVideoAvailable();
                 }
+            } else if (msgType == TvControlManager.EVENT_AV_VIDEO_AVAILABLE) {
+                notifyVideoAvailable();
             }
         }
 
