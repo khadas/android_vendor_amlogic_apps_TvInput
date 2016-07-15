@@ -30,6 +30,7 @@ import android.content.IntentFilter;
 import android.content.res.Resources.NotFoundException;
 import android.hardware.input.InputManager;
 import android.hardware.hdmi.HdmiTvClient;
+import android.hardware.hdmi.HdmiTvClient.InputChangeListener;
 import android.hardware.hdmi.HdmiDeviceInfo;
 import android.hardware.hdmi.HdmiControlManager;
 import android.media.AudioManager;
@@ -81,6 +82,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private ChannelDataManager mChannelDataManager;
     private TvDataBaseManager mTvDataBaseManager;
     private HdmiTvClient mHdmiTvClient = null;
+    private InputChangeListener mInputListener = null;
 
     private FrameLayout mRootView;
     private TvViewInputCallback mTvViewCallback = new TvViewInputCallback();
@@ -227,6 +229,56 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         mSystemControlManager = new SystemControlManager(this);
         initThread(mThreadName);
         mSourceInputId = getIntent().getStringExtra(DroidLogicTvUtils.SOURCE_INPUT_ID);
+        mInputListener = new InputChangeListener() {
+            @Override
+            public void onChanged(HdmiDeviceInfo info) {
+                int tvInputId;
+                int hdmiId;
+                Utils.logd(TAG, "onChanged:" + info);
+                if (mTvInputManager == null || info == null)
+                    return ;
+                List<TvInputInfo> inputList = mTvInputManager.getTvInputList();
+                // TODO: process hdmiId for repeat connections
+                // TODO: add configurations for One Touch Play features of CEC
+                hdmiId = info.getPhysicalAddress() >> 12;
+                hdmiId += (DroidLogicTvUtils.DEVICE_ID_HDMI1 - 1);
+                for (TvInputInfo tvInfo : inputList) {
+                    tvInputId = getDeviceId(tvInfo);
+                    Utils.logd(TAG, "cec onChanged, tvId:" + tvInputId + ", hdmiId:" + hdmiId);
+                    if (tvInputId == hdmiId) {
+                        /*
+                         * change to correct source according HdmiDeviceInfo
+                         * and CEC One Touch Play feature.
+                         */
+                        mSourceInput = mSourceMenuLayout.getSourceInput(tvInfo);
+                        Utils.logd(TAG, "cec onChanged, mSourceInput:" + mSourceInput);
+                        if (mSourceInput != null) {
+                            Utils.logd(TAG, "cec switchSource, mSourceInput:" + mSourceInput);
+                            mSourceInput.switchSource();
+                        }
+                        return ;
+                    }
+                }
+            }
+        };
+        if (mHdmiTvClient == null) {
+            HdmiControlManager hdmiManager = (HdmiControlManager) getSystemService(Context.HDMI_CONTROL_SERVICE);
+            if (hdmiManager == null) return;
+            mHdmiTvClient = hdmiManager.getTvClient();
+            mHdmiTvClient.setInputChangeListener(mInputListener);
+        }
+    }
+
+    private int getDeviceId(TvInputInfo info) {
+        String[] temp = info.getId().split(Utils.DELIMITER_INFO_IN_ID);
+        if (temp.length == 3) {
+            /*  ignore for HDMI CEC device */
+            if (temp[2].contains(Utils.PREFIX_HDMI_DEVICE))
+                return -1;
+            return Integer.parseInt(temp[2].substring(2));
+        } else {
+            return -1;
+        }
     }
 
     @Override
@@ -752,11 +804,6 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     }
 
     private void sendKeyEventToHdmi(int keyCode, boolean isPressed) {
-        if (mHdmiTvClient == null) {
-            HdmiControlManager hdmiManager = (HdmiControlManager) getSystemService(Context.HDMI_CONTROL_SERVICE);
-            if (hdmiManager == null) return;
-            mHdmiTvClient = hdmiManager.getTvClient();
-        }
         if (mHdmiTvClient != null && mUiType != Utils.UI_TYPE_SOURCE_LIST) {
             mHdmiTvClient.sendKeyEvent(keyCode, isPressed);
         }
