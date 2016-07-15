@@ -328,6 +328,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
     public void onStop() {
         Log.d(TAG, "onStop");
         super.onStop();
+        finish();
     }
 
     public void onDestroy() {

@@ -1112,15 +1112,18 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     @Override
     protected void onStop() {
         Utils.logd(TAG, "==== onStop ====");
-        if (toast != null)
-            toast.cancel();
-        hasStopped = true;
-        releaseTvView();
-        restoreTouchSound();
-        openScreenOffTimeout();
-        mTvInputManager.unregisterCallback(mTvInputChangeCallback);
-        unregisterReceiver(mReceiver);
-        mReceiverRegisted = false;
+        // prevent twice resources release
+        if (!hasStopped) {
+            if (toast != null)
+                toast.cancel();
+            hasStopped = true;
+            releaseTvView();
+            restoreTouchSound();
+            openScreenOffTimeout();
+            mTvInputManager.unregisterCallback(mTvInputChangeCallback);
+            unregisterReceiver(mReceiver);
+            mReceiverRegisted = false;
+        }
         super.onStop();
     }
 
