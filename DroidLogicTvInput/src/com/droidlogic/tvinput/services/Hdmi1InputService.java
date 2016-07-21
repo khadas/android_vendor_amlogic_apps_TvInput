@@ -22,13 +22,17 @@ import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.Surface;
 
+import java.util.HashMap;
+import java.util.Map;
+import android.net.Uri;
+
 public class Hdmi1InputService extends DroidLogicTvInputService {
     private static final String TAG = Hdmi1InputService.class.getSimpleName();
     private Hdmi1InputSession mCurrentSession;
-    private int number = 0;
-    private int currentNumber = 0;
+    private int id = 0;
     private final int TV_SOURCE_EXTERNAL = 0;
     private final int TV_SOURCE_INTERNAL = 1;
+    private Map<Integer, Hdmi1InputSession> sessionMap = new HashMap<>();
 
     @Override
     public Session onCreateSession(String inputId) {
@@ -36,10 +40,21 @@ public class Hdmi1InputService extends DroidLogicTvInputService {
 
         mCurrentSession = new Hdmi1InputSession(getApplicationContext(), inputId, getHardwareDeviceId(inputId));
         registerInputSession(mCurrentSession);
-        mCurrentSession.setNumber(number);
-        number++;
+        mCurrentSession.setSessionId(id);
+
+        sessionMap.put(id, mCurrentSession);
+        id++;
 
         return mCurrentSession;
+    }
+
+    @Override
+    public void setCurrentSessionById(int sessionId) {
+        Utils.logd(TAG, "setCurrentSessionById:"+sessionId);
+        AV1InputSession session = sessionMap.get(sessionId);
+        if (session != null) {
+            mCurrentSession = session;
+        }
     }
 
     public class Hdmi1InputSession extends TvInputBaseSession {
@@ -48,17 +63,14 @@ public class Hdmi1InputService extends DroidLogicTvInputService {
             Utils.logd(TAG, "=====new HdmiInputSession=====");
         }
 
-        public TvStreamConfig[] getConfigs() {
-            return mConfigs;
+        @Override
+        public boolean onSetSurface(Surface surface) {
+            return setSurfaceInService(surface,this);
         }
 
-        public Hardware getHardware() {
-            return mHardware;
-        }
-
-        public void setCurrentSession() {
-           mCurrentSession = this;
-           registerInputSession(mCurrentSession);
+        @Override
+        public boolean onTune(Uri channelUri) {
+            return doTuneInService(channelUri, getSessionId());
         }
 
         @Override
@@ -75,11 +87,6 @@ public class Hdmi1InputService extends DroidLogicTvInputService {
         }
 
         @Override
-        public void doSetSurface(Surface surface) {
-            super.doSetSurface(surface);
-        }
-
-        @Override
         public boolean onKeyUp(int keyCode, KeyEvent event) {
             return false;
         }
@@ -87,7 +94,7 @@ public class Hdmi1InputService extends DroidLogicTvInputService {
         @Override
         public boolean onKeyDown(int keyCode, KeyEvent event) {
             if (isNavigationKey(keyCode)) {
-                getHardware().dispatchKeyEventToHdmi(event);
+                mHardware.dispatchKeyEventToHdmi(event);
                 return true;
             }
             return false;
@@ -185,10 +192,7 @@ public class Hdmi1InputService extends DroidLogicTvInputService {
         }
         Utils.logd(TAG, "createTvInputInfo, id:" + info.getId());
         updateInfoListIfNeededLocked(phyaddr, info, false);
-        if (mCurrentSession != null) {
-            mCurrentSession.selectHdmiDevice(TV_SOURCE_EXTERNAL);
-        }
-
+        selectHdmiDevice(TV_SOURCE_EXTERNAL);
         return info;
     }
 

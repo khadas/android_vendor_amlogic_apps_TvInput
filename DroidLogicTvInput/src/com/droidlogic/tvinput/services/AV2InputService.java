@@ -20,11 +20,15 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.Surface;
 
+import java.util.HashMap;
+import java.util.Map;
+import android.net.Uri;
+
 public class AV2InputService extends DroidLogicTvInputService {
     private static final String TAG = AV1InputService.class.getSimpleName();;
     private AV2InputSession mCurrentSession;
-    private int number = 0;
-    private int currentNumber = 0;
+    private int id = 0;
+    private Map<Integer, AV2InputSession> sessionMap = new HashMap<>();
 
     @Override
     public Session onCreateSession(String inputId) {
@@ -32,11 +36,24 @@ public class AV2InputService extends DroidLogicTvInputService {
 
         mCurrentSession = new AV2InputSession(getApplicationContext(), inputId, getHardwareDeviceId(inputId));
         registerInputSession(mCurrentSession);
-        mCurrentSession.setNumber(number);
-        number++;
+        mCurrentSession.setSessionId(id);
+        sessionMap.put(id, mCurrentSession);
+        /**** END  ****/
+        id++;
 
         return mCurrentSession;
     }
+
+    @Override
+    public void setCurrentSessionById(int sessionId) {
+        Utils.logd(TAG, "setCurrentSessionById:"+sessionId);
+        AV1InputSession session = sessionMap.get(sessionId);
+        if (session != null) {
+            mCurrentSession = session;
+        }
+    }
+
+
 
     public class AV2InputSession extends TvInputBaseSession {
         public AV2InputSession(Context context, String inputId, int deviceId) {
@@ -44,17 +61,14 @@ public class AV2InputService extends DroidLogicTvInputService {
             Utils.logd(TAG, "=====new AVInputSession=====");
         }
 
-        public TvStreamConfig[] getConfigs() {
-            return mConfigs;
+        @Override
+        public boolean onSetSurface(Surface surface) {
+            return setSurfaceInService(surface,this);
         }
 
-        public Hardware getHardware() {
-            return mHardware;
-        }
-
-        public void setCurrentSession() {
-           mCurrentSession = this;
-           registerInputSession(mCurrentSession);
+        @Override
+        public boolean onTune(Uri channelUri) {
+            return doTuneInService(channelUri, getSessionId());
         }
 
         @Override
@@ -68,11 +82,6 @@ public class AV2InputService extends DroidLogicTvInputService {
             if (TextUtils.equals(DroidLogicTvUtils.ACTION_STOP_TV, action)) {
                 stopTv();
             }
-        }
-
-        @Override
-        public void doSetSurface(Surface surface) {
-            super.doSetSurface(surface);
         }
     }
 

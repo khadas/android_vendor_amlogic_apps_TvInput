@@ -18,13 +18,16 @@ import android.media.tv.TvStreamConfig;
 import android.media.tv.TvInputManager.Hardware;
 import android.os.Bundle;
 import android.text.TextUtils;
+import java.util.HashMap;
+import java.util.Map;
 import android.view.Surface;
+import android.net.Uri;
 
 public class SPDIFInputService extends DroidLogicTvInputService {
     private static final String TAG = SPDIFInputService.class.getSimpleName();;
     private SPDIFInputSession mCurrentSession;
-    private int number = 0;
-    private int currentNumber = 0;
+    private int id = 0;
+    private Map<Integer, SPDIFInputSession> sessionMap = new HashMap<>();
 
     @Override
     public Session onCreateSession(String inputId) {
@@ -32,10 +35,20 @@ public class SPDIFInputService extends DroidLogicTvInputService {
 
         mCurrentSession = new SPDIFInputSession(getApplicationContext(), inputId, getHardwareDeviceId(inputId));
         registerInputSession(mCurrentSession);
-        mCurrentSession.setNumber(number);
-        number++;
+        mCurrentSession.setSessionId(id);
+        sessionMap.put(id, mCurrentSession);
+        id++;
 
         return mCurrentSession;
+    }
+
+    @Override
+    public void setCurrentSessionById(int sessionId) {
+        Utils.logd(TAG, "setCurrentSessionById:"+sessionId);
+        AV1InputSession session = sessionMap.get(sessionId);
+        if (session != null) {
+            mCurrentSession = session;
+        }
     }
 
     public class SPDIFInputSession extends TvInputBaseSession {
@@ -44,22 +57,14 @@ public class SPDIFInputService extends DroidLogicTvInputService {
             Utils.logd(TAG, "=====new SPDIFInputSession=====");
         }
 
-        public TvStreamConfig[] getConfigs() {
-            return mConfigs;
+        @Override
+        public boolean onSetSurface(Surface surface) {
+            return setSurfaceInService(surface,this);
         }
 
-        public Hardware getHardware() {
-            return mHardware;
-        }
-
-        public int getCurrentSessionNumber() {
-            return currentNumber;
-        }
-
-        public void setCurrentSession() {
-           currentNumber = getNumber();
-           mCurrentSession = this;
-           registerInputSession(mCurrentSession);
+        @Override
+        public boolean onTune(Uri channelUri) {
+            return doTuneInService(channelUri, getSessionId());
         }
 
         @Override
@@ -73,11 +78,6 @@ public class SPDIFInputService extends DroidLogicTvInputService {
             if (TextUtils.equals(DroidLogicTvUtils.ACTION_STOP_TV, action)) {
                 stopTv();
             }
-        }
-
-        @Override
-        public void doSetSurface(Surface surface) {
-            super.doSetSurface(surface);
         }
     }
 

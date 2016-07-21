@@ -48,14 +48,19 @@ import java.util.Arrays;
 
 import com.droidlogic.app.tv.TvControlManager;
 
+import java.util.HashMap;
+import java.util.Map;
+import android.net.Uri;
+import android.view.Surface;
+
 public class DTVInputService extends DroidLogicTvInputService {
 
     private static final String TAG = "DTVInputService";
 
     private DTVSessionImpl mCurrentSession;
-    private int number = 0;
-    private int currentNumber = 0;
+    private int id = 0;
 
+    private Map<Integer, DTVSessionImpl> sessionMap = new HashMap<>();
     private final BroadcastReceiver mParentalControlsBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -95,11 +100,40 @@ public class DTVInputService extends DroidLogicTvInputService {
 
         mCurrentSession = new DTVSessionImpl(this, inputId, getHardwareDeviceId(inputId));
         registerInputSession(mCurrentSession);
-        mCurrentSession.setNumber(number);
-        number++;
+        mCurrentSession.setSessionId(id);
+        sessionMap.put(id, mCurrentSession);
+        id++;
 
         return mCurrentSession;
     }
+
+    @Override
+    public void tvPlayStopped(int sessionId) {
+        DTVSessionImpl session = sessionMap.get(sessionId);
+        if (session != null) {
+            session.stopSubtitle();
+        }
+    }
+
+    @Override
+    public void setCurrentSessionById(int sessionId) {
+        Utils.logd(TAG, "setCurrentSessionById:"+sessionId);
+        AV1InputSession session = sessionMap.get(sessionId);
+        if (session != null) {
+            mCurrentSession = session;
+        }
+    }
+
+    @Override
+    public void doTuneFinish(int result, Uri uri, int sessionId) {
+        Log.d(TAG, "doTuneFinish,result:"+result+"sessionId:"+sessionId);
+        if (result == ACTION_SUCCESS) {
+            DTVSessionImpl session = sessionMap.get(sessionId);
+            if (session != null)
+                session.switchToSourceInput(uri);
+        }
+    }
+
 
     public class DTVSessionImpl extends TvInputBaseSession implements TvControlManager.AVPlaybackListener {
         private final Context mContext;
@@ -121,26 +155,14 @@ public class DTVInputService extends DroidLogicTvInputService {
             mCurrentChannel = null;
         }
 
-        public TvStreamConfig[] getConfigs() {
-            return mConfigs;
-        }
-
-        public Hardware getHardware() {
-            return mHardware;
-        }
-
-        public void setCurrentSession() {
-           mCurrentSession = this;
-           registerInputSession(mCurrentSession);
+        @Override
+        public boolean onSetSurface(Surface surface) {
+            return setSurfaceInService(surface,this);
         }
 
         @Override
-        public int stopTvPlay() {
-            int ret = super.stopTvPlay();
-            if (ret == ACTION_SUCCESS) {
-                stopSubtitle();
-            }
-            return ret;
+        public boolean onTune(Uri channelUri) {
+            return doTuneInService(channelUri, getSessionId());
         }
 
         @Override
@@ -148,15 +170,6 @@ public class DTVInputService extends DroidLogicTvInputService {
             super.doRelease();
             stopSubtitle();
             setEPG(null);
-        }
-
-        @Override
-        public int doTune(Uri uri) {
-            int ret = super.doTune(uri);
-            if (ret == ACTION_SUCCESS) {
-                switchToSourceInput(uri);
-            }
-            return ret;
         }
 
         @Override
