@@ -232,31 +232,18 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         mInputListener = new InputChangeListener() {
             @Override
             public void onChanged(HdmiDeviceInfo info) {
-                int tvInputId;
-                int hdmiId;
-                Utils.logd(TAG, "onChanged:" + info);
-                if (mTvInputManager == null || info == null)
-                    return ;
+                if (mTvInputManager == null || info == null) return ;
                 List<TvInputInfo> inputList = mTvInputManager.getTvInputList();
                 // TODO: process hdmiId for repeat connections
                 // TODO: add configurations for One Touch Play features of CEC
-                hdmiId = info.getPhysicalAddress() >> 12;
+                int hdmiId = info.getPhysicalAddress() >> 12;
                 hdmiId += (DroidLogicTvUtils.DEVICE_ID_HDMI1 - 1);
                 for (TvInputInfo tvInfo : inputList) {
-                    tvInputId = getDeviceId(tvInfo);
-                    Utils.logd(TAG, "cec onChanged, tvId:" + tvInputId + ", hdmiId:" + hdmiId);
+                    int tvInputId = getDeviceId(tvInfo);
                     if (tvInputId == hdmiId) {
-                        /*
-                         * change to correct source according HdmiDeviceInfo
-                         * and CEC One Touch Play feature.
-                         */
+                        preSwitchSourceInput();
                         mSourceInput = mSourceMenuLayout.getSourceInput(tvInfo);
-                        Utils.logd(TAG, "cec onChanged, mSourceInput:" + mSourceInput);
-                        if (mSourceInput != null) {
-                            Utils.logd(TAG, "cec switchSource, mSourceInput:" + mSourceInput);
-                            mSourceInput.switchSource();
-                        }
-                        return ;
+                        sendTuneMessage();
                     }
                 }
             }
