@@ -79,6 +79,7 @@ public class SettingsManager {
     public static final String KEY_DEFAULT_LANGUAGE                 = "default_language";
     public static final String KEY_SUBTITLE_SWITCH                  = "sub_switch";
     public static final String KEY_HDMI20                           = "hdmi20";
+    public static final String KEY_FBC_UPGRADE                      ="fbc_upgrade";
 
     public static final String STATUS_STANDARD                      = "standard";
     public static final String STATUS_VIVID                         = "vivid";

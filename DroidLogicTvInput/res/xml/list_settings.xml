@@ -42,6 +42,11 @@
     </Preference>
 
     <Preference
+        android:key="fbc_upgrade"
+        android:title="@string/fbc_upgrade" >
+    </Preference>
+
+    <Preference
         android:key="hdmi20"
         android:title="@string/hdmi20" >
     </Preference>

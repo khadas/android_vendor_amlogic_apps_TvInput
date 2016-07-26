@@ -87,6 +87,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     public static final int OPTION_DEFAULT_LANGUAGE = 405;
     public static final int OPTION_SUBTITLE_SWITCH = 406;
     public static final int OPTION_HDMI20 = 407;
+    public static final int OPTION_FBC_UPGRADE = 408;
 
     public static final int ALPHA_NO_FOCUS = 230;
     public static final int ALPHA_FOCUSED = 255;
@@ -252,6 +253,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         } else if (item_name.equals(mResources.getString(R.string.hdmi20))) {
             optionTag = OPTION_HDMI20;
             optionKey = SettingsManager.KEY_HDMI20;
+        } else if (item_name.equals(mResources.getString(R.string.fbc_upgrade))){
+            optionTag = OPTION_FBC_UPGRADE;
+            optionKey = SettingsManager.KEY_FBC_UPGRADE;
         }
     }
 
@@ -345,6 +349,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 return R.layout.layout_settings_restore_factory;
             case OPTION_HDMI20:
                 return R.layout.layout_settings_hdmi20;
+            case OPTION_FBC_UPGRADE:
+                return R.layout.layout_option_list;
 
             default:
                 break;
