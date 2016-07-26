@@ -72,7 +72,7 @@ public class AppointedProgramReceiver extends BroadcastReceiver implements OnCli
             }
             for (int i = 0; i < channelList.size(); i++) {
                 if (ChannelInfo.isSameChannel(channel, channelList.get(i))) {
-                    channelIndex = i;
+                    channelIndex = channelList.get(i).getNumber();
                     break;
                 }
             }
