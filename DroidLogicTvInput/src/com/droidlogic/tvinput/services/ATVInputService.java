@@ -28,14 +28,19 @@ import java.util.HashSet;
 import java.util.Set;
 import com.droidlogic.app.tv.TvControlManager;
 
+import java.util.HashMap;
+import java.util.Map;
+import android.view.Surface;
+
 public class ATVInputService extends DroidLogicTvInputService {
 
     private static final String TAG = "ATVInputService";
 
     private ATVSessionImpl mCurrentSession;
     private ChannelInfo mCurrentChannel = null;
-    private int number = 0;
-    private int currentNumber = 0;
+    private int id = 0;
+    private Map<Integer, ATVSessionImpl> sessionMap = new HashMap<>();
+
 
     private final BroadcastReceiver mParentalControlsBroadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -68,10 +73,31 @@ public class ATVInputService extends DroidLogicTvInputService {
 
         mCurrentSession = new ATVSessionImpl(this, inputId, getHardwareDeviceId(inputId));
         registerInputSession(mCurrentSession);
-        mCurrentSession.setNumber(number);
-        number++;
+        mCurrentSession.setSessionId(id);
+        sessionMap.put(id, mCurrentSession);
+        id++;
         return mCurrentSession;
     }
+
+    @Override
+    public void setCurrentSessionById(int sessionId) {
+        Utils.logd(TAG, "setCurrentSessionById:"+sessionId);
+        AV1InputSession session = sessionMap.get(sessionId);
+        if (session != null) {
+            mCurrentSession = session;
+        }
+    }
+
+    @Override
+    public void doTuneFinish(int result, Uri uri, int sessionId) {
+        Utils.logd(TAG, "doTuneFinish,result:"+result+"sessionId:"+sessionId);
+        if (result == ACTION_SUCCESS) {
+            ATVSessionImpl session = sessionMap.get(sessionId);
+            if (session != null)
+                session.switchToSourceInput(uri);
+        }
+    }
+
 
     public class ATVSessionImpl extends TvInputBaseSession {
         private final Context mContext;
@@ -91,32 +117,19 @@ public class ATVInputService extends DroidLogicTvInputService {
             mLastBlockedRating = null;
             mCurrentChannel = null;
         }
-
-        public TvStreamConfig[] getConfigs() {
-            return mConfigs;
+        @Override
+        public boolean onSetSurface(Surface surface) {
+            return setSurfaceInService(surface,this);
         }
 
-        public Hardware getHardware() {
-            return mHardware;
-        }
-
-        public void setCurrentSession() {
-           mCurrentSession = this;
-           registerInputSession(mCurrentSession);
+        @Override
+        public boolean onTune(Uri channelUri) {
+            return doTuneInService(channelUri, getSessionId());
         }
 
         @Override
         public void doRelease() {
             super.doRelease();
-        }
-
-        @Override
-        public int doTune(Uri uri) {
-            int ret = super.doTune(uri);
-            if (ret == ACTION_SUCCESS) {
-                switchToSourceInput(uri);
-            }
-            return ret;
         }
 
         @Override
