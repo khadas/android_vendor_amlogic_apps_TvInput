@@ -47,7 +47,7 @@ public class AV2InputService extends DroidLogicTvInputService {
     @Override
     public void setCurrentSessionById(int sessionId) {
         Utils.logd(TAG, "setCurrentSessionById:"+sessionId);
-        AV1InputSession session = sessionMap.get(sessionId);
+        AV2InputSession session = sessionMap.get(sessionId);
         if (session != null) {
             mCurrentSession = session;
         }

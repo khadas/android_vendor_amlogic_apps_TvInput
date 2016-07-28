@@ -118,7 +118,7 @@ public class DTVInputService extends DroidLogicTvInputService {
     @Override
     public void setCurrentSessionById(int sessionId) {
         Utils.logd(TAG, "setCurrentSessionById:"+sessionId);
-        AV1InputSession session = sessionMap.get(sessionId);
+        DTVSessionImpl session = sessionMap.get(sessionId);
         if (session != null) {
             mCurrentSession = session;
         }
