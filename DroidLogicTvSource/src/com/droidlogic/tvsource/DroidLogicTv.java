@@ -11,6 +11,8 @@ import com.droidlogic.app.tv.Program;
 import com.droidlogic.app.tv.TvDataBaseManager;
 import com.droidlogic.app.tv.TVTime;
 import com.droidlogic.app.tv.ChannelInfo;
+import com.droidlogic.app.tv.TVInSignalInfo;
+import com.droidlogic.app.tv.TvControlManager;
 
 import com.droidlogic.tvsource.ui.ChannelListLayout;
 import com.droidlogic.tvsource.ui.ChannelListLayout.OnChannelSelectListener;
@@ -81,6 +83,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private TvInputChangeCallback mTvInputChangeCallback;
     private ChannelDataManager mChannelDataManager;
     private TvDataBaseManager mTvDataBaseManager;
+    private TvControlManager mTvControlManager = TvControlManager.getInstance();
     private HdmiTvClient mHdmiTvClient = null;
     private InputChangeListener mInputListener = null;
 
@@ -358,6 +361,16 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             mSourceMenuLayout.getCurSourceInput().setAVType(mSourceInput.getAVType());
         }
         mSourceInput = mSourceMenuLayout.getCurSourceInput();
+        if (mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_HDMI1 ||
+            mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_HDMI2 ||
+            mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_HDMI3) {
+            TVInSignalInfo si = mTvControlManager.GetCurrentSignalInfo();
+            String[] strings = si.sigFmt.toString().split("_");
+            if (strings != null && strings.length <= 4)
+                mSourceInput.setChannelVideoFormat("0_0HZ");
+            else
+                mSourceInput.setChannelVideoFormat(strings[4] + "_" + si.reserved + "HZ");
+        }
     }
 
     private void startPlay() {
