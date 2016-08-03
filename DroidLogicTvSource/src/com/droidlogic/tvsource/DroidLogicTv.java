@@ -384,6 +384,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     @Override
     protected void onResume() {
         Utils.logd(TAG, "== onResume ====");
+        mTvInputManager.registerCallback(mTvInputChangeCallback, new Handler());
         closeTouchSound();
         closeScreenOffTimeout();
         initSourceMenuLayout();
@@ -405,7 +406,6 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             showMuteIcon(true);
         else
             showMuteIcon(false);
-        mTvInputManager.registerCallback(mTvInputChangeCallback, new Handler());
         switchHdmiChannel();
         if (!mReceiverRegisted) {
             mReceiverRegisted = true;
