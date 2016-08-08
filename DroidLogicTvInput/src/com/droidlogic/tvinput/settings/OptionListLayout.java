@@ -20,6 +20,7 @@ import java.util.HashMap;
 import com.droidlogic.tvinput.R;
 import com.droidlogic.app.tv.TvControlManager;
 import com.droidlogic.app.tv.TvControlManager.UpgradeFBCListener;
+import android.os.Build;
 
 public class OptionListLayout implements OnItemClickListener,UpgradeFBCListener {
     private static final String TAG = "OptionListLayout";
@@ -68,7 +69,7 @@ public class OptionListLayout implements OnItemClickListener,UpgradeFBCListener 
                 break;
             case OptionUiManager.OPTION_FBC_UPGRADE:
                 title.setText(mContext.getResources().getString(R.string.fbc_upgrade));
-                RecursionAddFile("/storage", optionListData);
+                RecursionAddFile(FolderFilter(), optionListData);
                 optionAdapter = new SimpleAdapter(mContext, optionListData,
                                                   R.layout.layout_option_single_text,
                                                   new String[] { SettingsManager.STRING_NAME }, new int[] { R.id.text_name });
@@ -79,6 +80,14 @@ public class OptionListLayout implements OnItemClickListener,UpgradeFBCListener 
             optionListView.setOnItemClickListener(this);
         }
     }
+    public String FolderFilter(){
+        int buildVersion = Build.VERSION.SDK_INT;
+        if (buildVersion > 22 )
+            return "storage";
+        else
+            return "storage/udisk0";
+    }
+
 
     public static void RecursionAddFile(String path, ArrayList<HashMap<String, Object>> result) {
         try {
