@@ -194,7 +194,7 @@ public class Hdmi3InputService extends DroidLogicTvInputService {
         }
         Utils.logd(TAG, "createTvInputInfo, id:" + info.getId());
         updateInfoListIfNeededLocked(phyaddr, info, false);
-        selectHdmiDevice(TV_SOURCE_EXTERNAL);
+        selectHdmiDevice(DroidLogicTvUtils.DEVICE_ID_HDMI3);
 
         return info;
     }
