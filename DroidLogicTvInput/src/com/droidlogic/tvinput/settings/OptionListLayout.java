@@ -1,9 +1,15 @@
 package com.droidlogic.tvinput.settings;
 
 import android.app.Activity;
-
+import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
@@ -30,6 +36,8 @@ public class OptionListLayout implements OnItemClickListener,UpgradeFBCListener 
     private int mTag = -1;
     private View optionView = null;
 
+    private TvControlManager mTvControlManager;
+    private String listitem;
     public OptionListLayout (Context context, View view, int tag) {
         mContext = context;
         optionView = view;
@@ -123,15 +131,37 @@ public class OptionListLayout implements OnItemClickListener,UpgradeFBCListener 
                 getSettingsManager().setDefLanguage(position);
                 break;
             case OptionUiManager.OPTION_FBC_UPGRADE:
-                TvControlManager mTvControlManager;
-                String listitem = optionListData.get(position).get(SettingsManager.STRING_NAME).toString();
-                mTvControlManager = TvControlManager.getInstance();
-                mTvControlManager.SetUpgradeFBCListener(this);
-                mTvControlManager.StartUpgradeFBC(listitem,0, 0x10000);
+                listitem = optionListData.get(position).get(SettingsManager.STRING_NAME).toString();
+                AlertDialog.Builder mbuiler = new Builder(mContext,AlertDialog.THEME_HOLO_LIGHT);
+                mbuiler.setTitle("Warning!");
+                mbuiler.setMessage("Please do not power off during the upgrade.");
+                mbuiler.setPositiveButton("Sure",mOnClickListener);
+                mbuiler.setNegativeButton("Cancel", mOnClickListener);
+                AlertDialog mdialog = mbuiler.create();
+                mdialog.show();
+                Window window = mdialog.getWindow();
+                WindowManager.LayoutParams lp = window.getAttributes();
+                lp.alpha = 0.8f;
+                window.setAttributes(lp);
                 break;
         }
         ((TvSettingsActivity) mContext).getCurrentFragment().refreshList();
     }
+
+    OnClickListener mOnClickListener = new OnClickListener() {
+        public void onClick(DialogInterface dialog, int which) {
+            switch (which) {
+              case Dialog.BUTTON_POSITIVE:
+                   mTvControlManager = TvControlManager.getInstance();
+                   mTvControlManager.SetUpgradeFBCListener(OptionListLayout.this);
+                   mTvControlManager.StartUpgradeFBC(listitem,0, 0x10000);
+              break;
+              case Dialog.BUTTON_NEGATIVE:
+                   Toast.makeText(mContext, "Upgrade cancelled!", Toast.LENGTH_LONG).show();
+              break;
+            }
+        }
+    };
 
     public void onUpgradeStatus(int paramInt1, int paramInt2)
     {
