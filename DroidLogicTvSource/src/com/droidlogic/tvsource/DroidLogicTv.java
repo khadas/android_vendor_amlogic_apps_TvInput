@@ -367,7 +367,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             TVInSignalInfo si = mTvControlManager.GetCurrentSignalInfo();
             String[] strings = si.sigFmt.toString().split("_");
             if (strings != null && strings.length <= 4)
-                mSourceInput.setChannelVideoFormat("0_0HZ");
+                mSourceInput.setChannelVideoFormat(" ");
             else
                 mSourceInput.setChannelVideoFormat(strings[4] + "_" + si.reserved + "HZ");
         }
