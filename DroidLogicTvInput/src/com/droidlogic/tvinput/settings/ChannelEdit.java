@@ -194,6 +194,7 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener, OnIt
     private void setChannelName () {
         EditText edit_name = (EditText)channelEditView.findViewById(R.id.edit_name);
         getSettingsManager().setChannelName(channelType, currentChannelPosition, edit_name.getText().toString());
+        edit_name.setText("");
     }
 
     private void swapChannelPosition () {
