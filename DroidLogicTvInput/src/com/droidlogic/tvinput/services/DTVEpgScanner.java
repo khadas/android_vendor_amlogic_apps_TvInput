@@ -1,6 +1,8 @@
 package com.droidlogic.tvinput.services;
 
 import android.util.Log;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import com.droidlogic.app.tv.TVChannelParams;
 import com.droidlogic.app.tv.ChannelInfo;
@@ -57,6 +59,7 @@ abstract public class DTVEpgScanner {
         public int dvbVersion;
         public Evt[] evts;
         public ChannelInfo channel;
+        public ServiceInfosFromSDT services;
 
         public class Evt {
             int src;
@@ -78,6 +81,25 @@ abstract public class DTVEpgScanner {
             byte[] rrt_ratings;
 
             Evt() {}
+        }
+
+        public class ServiceInfosFromSDT {
+
+            public int mNetworkId;
+            public int mTSId;
+            public int mVersion;
+            public ArrayList<ServiceInfoFromSDT> mServices;
+
+            public class ServiceInfoFromSDT {
+                public int mId;
+                public int mType;
+                public String mName;
+                public int mRunning;
+                public int mFreeCA;
+
+                ServiceInfoFromSDT(){}
+            }
+            ServiceInfosFromSDT(){}
         }
 
         public Event(int type) {
@@ -104,8 +126,10 @@ abstract public class DTVEpgScanner {
     private int fend_type   = -1;
     private ChannelInfo mChannel;
 
+    private int mode;
+
     /*Start scan the sections.*/
-    private void startScan(int mode) {
+    public void startScan(int mode) {
         if (!created)
             return;
 
@@ -113,14 +137,15 @@ abstract public class DTVEpgScanner {
     }
 
     /*Stop scan the sections.*/
-    private void stopScan(int mode) {
+    public void stopScan(int mode) {
         if (!created)
             return;
 
         native_epg_change_mode(MODE_REMOVE, mode);
     }
 
-    public DTVEpgScanner() {
+    public DTVEpgScanner(int mode) {
+        this.mode = mode;
     }
 
     public void setSource(int fend, int dmx, int src, String textLanguages) {
@@ -151,11 +176,14 @@ abstract public class DTVEpgScanner {
 
         Log.d(TAG, "enter Channel");
 
+        startScan(mode);
+/*
         if (fend_type == TVChannelParams.MODE_ATSC) {
             startScan(SCAN_PSIP_EIT | SCAN_MGT | SCAN_VCT | SCAN_RRT | SCAN_STT);
         } else {
-            startScan(SCAN_EIT_ALL | SCAN_TDT | SCAN_SDT/*|SCAN_NIT|SCAN_CAT*/);
+            startScan(SCAN_EIT_ALL | SCAN_TDT | SCAN_SDT);//SCAN_NIT|SCAN_CAT
         }
+*/
     }
 
     /*Leave the channel.*/
@@ -170,11 +198,13 @@ abstract public class DTVEpgScanner {
 
     /*Enter the program.*/
     public void enterProgram(ChannelInfo channel) {
+        /*do not check this, we need show all channel info to lower level.
         if (mChannel != null
             && channel.getServiceId() == mChannel.getServiceId()
             && channel.getTransportStreamId() == mChannel.getTransportStreamId()
             && channel.getOriginalNetworkId() == mChannel.getOriginalNetworkId())
             return;
+        */
 
         if (!created)
             return;
@@ -183,7 +213,8 @@ abstract public class DTVEpgScanner {
             leaveProgram();
         }
 
-        Log.d(TAG, "enter Program sid[" + channel.getServiceId() + "] name[" + channel.getDisplayName() + "]");
+        Log.d(TAG, "enter Program sid["+channel.getServiceId()+"] name["+channel.getDisplayName()+"]");
+        Log.d(TAG, "\tapid:["+Arrays.toString(channel.getAudioPids())+"] spid:["+Arrays.toString(channel.getSubtitlePids())+"]");
 
         native_epg_monitor_service(channel);
         startScan(SCAN_PAT | SCAN_PMT);

@@ -27,6 +27,10 @@ static jclass    gEvtClass;
 static jmethodID gEvtInitID;
 static jclass    gChannelClass;
 static jmethodID gChannelInitID;
+static jclass    gServiceInfosFromSDTClass;
+static jmethodID gServiceInfosFromSDTInitID;
+static jclass    gServiceInfoFromSDTClass;
+static jmethodID gServiceInfoFromSDTInitID;
 
 typedef struct{
 	int dmx_id;
@@ -46,9 +50,16 @@ typedef struct {
 	int dvbVersion;
 }EPGEventData;
 
+struct sdt_service;
+typedef struct sdt_service sdt_service_t;
+
+#define MAX_LEN_MULTINAME ((64+4)*4 + 1)
+#define SPLIT_MULTINAME     {0x80}
+#define LEN_SPLIT_MULTINAME 1
+
 typedef struct {
 	int valid;
-	char name[(64+4)*4 + 1];
+	char name[MAX_LEN_MULTINAME];
 	int mOriginalNetworkId;
 	int mTransportStreamId;
 	int mServiceId;
@@ -63,9 +74,20 @@ typedef struct {
 	int mVideoFormat;
 	AM_SI_AudioInfo_t mAudioInfo;
 	AM_SI_SubtitleInfo_t mSubtitleInfo;
+	AM_SI_TeletextInfo_t mTeletextInfo;
 	int mPcrPID;
 	int mSdtVersion;
+	sdt_service_t *services;
 }EPGChannelData;
+
+struct sdt_service{
+	int id;
+	int type;
+	char name[MAX_LEN_MULTINAME];
+	int running;
+	int free_ca;
+	sdt_service_t *next;
+};
 
 EPGChannelData gChannelMonitored = {.valid = 0};
 
@@ -261,48 +283,166 @@ static void format_audio_strings(AM_SI_AudioInfo_t *ai, char *pids, char *fmts, 
 	}
 }
 
+#define gen_type_n_string(array, item, fmt, n, string, n_s) do { \
+		int i; char tmp[32]; \
+		(string)[0] = 0; \
+		for (i=0; i<(n); i++) \
+			snprintf(string, n_s, "%s " fmt, string, (array)[i].item); \
+		}while(0)
+
+#define gen_audio_3strings(array, n, strings, n_s) do { \
+		gen_type_n_string(array,pid,"%d",n,(strings)[0],n_s); \
+		gen_type_n_string(array,fmt,"%d",n,(strings)[1],n_s); \
+		gen_type_n_string(array,lang,"%s",n,(strings)[2],n_s); \
+		}while(0)
+#define gen_subtitle_5strings(array, n, strings, n_s) do { \
+		gen_type_n_string(array,pid,"%d",n,(strings)[0],n_s); \
+		gen_type_n_string(array,type,"%d",n,(strings)[1],n_s); \
+		gen_type_n_string(array,comp_page_id,"%d",n,(strings)[2],n_s); \
+		gen_type_n_string(array,anci_page_id,"%d",n,(strings)[3],n_s); \
+		gen_type_n_string(array,lang,"%s",n,(strings)[4],n_s); \
+		}while(0)
+#define gen_teletext_5strings(array, n, strings, n_s) do { \
+		gen_type_n_string(array,pid,"%d",n,(strings)[0],n_s); \
+		gen_type_n_string(array,type,"%d",n,(strings)[1],n_s); \
+		gen_type_n_string(array,magazine_no,"%d",n,(strings)[2],n_s); \
+		gen_type_n_string(array,page_no,"%d",n,(strings)[3],n_s); \
+		gen_type_n_string(array,lang,"%s",n,(strings)[4],n_s); \
+		}while(0)
+
+
 static int check_pmt_update(EPGChannelData *c1, EPGChannelData *c2)
 {
 	int ret=0;
+	int i, j;
 
-	if (c1->mVideoPID != c2->mVideoPID || c1->mVideoFormat != c2->mVideoFormat)
-	{
+	if (c1->mVideoPID != c2->mVideoPID || c1->mVideoFormat != c2->mVideoFormat) { //check video
 		//notify
 		ret = 1;
 	}
-	else
-	{
-		int i, j;
-		for (i=0; i<c1->mAudioInfo.audio_count; i++)
-		{
-			for (j=0; j<c2->mAudioInfo.audio_count; j++)
-			{
+
+	if (ret == 0) {
+		if (c1->mAudioInfo.audio_count != c2->mAudioInfo.audio_count)
+			ret = 2;
+	}
+	if (ret == 0) {//check audio
+		for (i=0; i<c1->mAudioInfo.audio_count; i++) {
+			for (j=0; j<c2->mAudioInfo.audio_count; j++) {
 				if (c1->mAudioInfo.audios[i].pid == c2->mAudioInfo.audios[j].pid &&
 					c1->mAudioInfo.audios[i].fmt == c2->mAudioInfo.audios[j].fmt &&
 					!strncmp(c1->mAudioInfo.audios[i].lang, c2->mAudioInfo.audios[j].lang, 3))
 					break;
 			}
-			if (j >= c2->mAudioInfo.audio_count)
-			{
+			if (j >= c2->mAudioInfo.audio_count) {
 				//notify
-				ret = 1;
+				ret = 2;
 				break;
 			}
 		}
 	}
-	if (ret) {
-		char str_prev_apids[256], str_cur_apids[256];
-		char str_prev_afmts[256], str_cur_afmts[256];
-		char str_prev_alangs[256], str_cur_alangs[256];
-		log_info(">>> Video/Audio changed ");
-		log_info("Video pid/fmt: (%d/%d) -> (%d/%d)", c1->mVideoPID, c1->mVideoFormat, c1->mVideoPID, c1->mVideoFormat);
-		format_audio_strings(&c1->mAudioInfo, str_prev_apids, str_prev_afmts, str_prev_alangs);
-		format_audio_strings(&c2->mAudioInfo, str_cur_apids, str_cur_afmts, str_cur_alangs);
-		log_info("Audio pid/fmt/lang: ('%s'/'%s'/'%s') -> ('%s'/'%s'/'%s')",
-			str_prev_apids, str_prev_afmts, str_prev_alangs, str_cur_apids, str_cur_afmts, str_cur_alangs);
+	if (ret == 0) {
+		if (c1->mSubtitleInfo.subtitle_count != c2->mSubtitleInfo.subtitle_count)
+			ret = 3;
+	}
+	if (ret == 0) {//check subtitle
+		for (i=0; i<c1->mSubtitleInfo.subtitle_count; i++) {
+			for (j=0; j<c2->mSubtitleInfo.subtitle_count; j++) {
+				if (c1->mSubtitleInfo.subtitles[i].pid == c2->mSubtitleInfo.subtitles[j].pid &&
+					c1->mSubtitleInfo.subtitles[i].type == c2->mSubtitleInfo.subtitles[j].type &&
+					c1->mSubtitleInfo.subtitles[i].comp_page_id == c2->mSubtitleInfo.subtitles[j].comp_page_id &&
+					c1->mSubtitleInfo.subtitles[i].anci_page_id == c2->mSubtitleInfo.subtitles[j].anci_page_id &&
+					!strncmp(c1->mSubtitleInfo.subtitles[i].lang, c2->mSubtitleInfo.subtitles[j].lang, 3))
+					break;
+			}
+			if (j >= c2->mSubtitleInfo.subtitle_count) {
+				//notify
+				ret = 3;
+				break;
+			}
+		}
+	}
+	if (ret == 0) {
+		int sub_txt_cnt = 0;
+		for (i=0; i<c2->mTeletextInfo.teletext_count; i++) {
+			if ((c2->mTeletextInfo.teletexts[i].type == 0x2)
+				|| (c2->mTeletextInfo.teletexts[i].type == 0x5))
+				sub_txt_cnt++;
+		}
+		if (c1->mTeletextInfo.teletext_count != sub_txt_cnt)
+			ret = 4;
+	}
+	if (ret == 0) {//check teletext
+		for (i=0; i<c1->mTeletextInfo.teletext_count; i++) {
+			for (j=0; j<c2->mTeletextInfo.teletext_count; j++) {
+				//remove the check below when teletext's stored for tvinput.
+				if ((c2->mTeletextInfo.teletexts[j].type != 0x2)
+					&& (c2->mTeletextInfo.teletexts[j].type != 0x5))
+					continue;
+				if (c1->mTeletextInfo.teletexts[i].pid == c2->mTeletextInfo.teletexts[j].pid &&
+					c1->mTeletextInfo.teletexts[i].type == c2->mTeletextInfo.teletexts[j].type &&
+					c1->mTeletextInfo.teletexts[i].magazine_no == c2->mTeletextInfo.teletexts[j].magazine_no &&
+					c1->mTeletextInfo.teletexts[i].page_no == c2->mTeletextInfo.teletexts[j].page_no &&
+					!strncmp(c1->mTeletextInfo.teletexts[i].lang, c2->mTeletextInfo.teletexts[j].lang, 3))
+					break;
+			}
+			if (j >= c2->mTeletextInfo.teletext_count) {
+				//notify
+				ret = 4;
+				break;
+			}
+		}
+	}
+
+	switch (ret) {
+		case 1:	{
+			log_info(">>> Video/Audio changed ");
+			log_info("Video pid/fmt: (%d/%d) -> (%d/%d)",
+				c1->mVideoPID, c1->mVideoFormat,
+				c2->mVideoPID, c2->mVideoFormat);
+			}break;
+		case 2: {
+			char str_prev_ainfo[3][256], str_cur_ainfo[3][256];
+			gen_audio_3strings(c1->mAudioInfo.audios, c1->mAudioInfo.audio_count, str_prev_ainfo, 256);
+			gen_audio_3strings(c2->mAudioInfo.audios, c2->mAudioInfo.audio_count, str_cur_ainfo, 256);
+			log_info(">>> Audio changed pid/fmt/lang:");
+			log_info("pid '%s'\nfmt '%s'\nlang '%s'", str_prev_ainfo[0], str_prev_ainfo[1], str_prev_ainfo[2]);
+			log_info("changed to ->\npid '%s'\nfmt '%s'\nlang '%s'", str_cur_ainfo[0], str_cur_ainfo[1], str_cur_ainfo[2]);
+			}break;
+		case 3: {
+			char str_prev_sinfo[5][256], str_cur_sinfo[5][256];
+			gen_subtitle_5strings(c1->mSubtitleInfo.subtitles, c1->mSubtitleInfo.subtitle_count, str_prev_sinfo, 256);
+			gen_subtitle_5strings(c2->mSubtitleInfo.subtitles, c2->mSubtitleInfo.subtitle_count, str_cur_sinfo, 256);
+			log_info(">>> Subtitle changed pid/type/id1/id2/lang");
+			log_info("pid [%s]\ntype [%s]\nid1 [%s]\nid2 [%s]\nlang [%s]",
+				str_prev_sinfo[0], str_prev_sinfo[1], str_prev_sinfo[2],str_prev_sinfo[3], str_prev_sinfo[4]);
+			log_info("changed to ->\npid [%s]\ntype [%s]\nid1 [%s]\nid2 [%s]\nlang [%s]",
+				str_cur_sinfo[0], str_cur_sinfo[1], str_cur_sinfo[2],str_cur_sinfo[3], str_cur_sinfo[4]);
+			}break;
+		case 4: {
+			char str_prev_tinfo[5][256], str_cur_tinfo[5][256];
+			gen_teletext_5strings(c1->mTeletextInfo.teletexts, c1->mTeletextInfo.teletext_count, str_prev_tinfo, 256);
+			gen_teletext_5strings(c2->mTeletextInfo.teletexts, c2->mTeletextInfo.teletext_count, str_cur_tinfo, 256);
+			log_info(">>> Teletext changed pid/type/id1/id2/lang");
+			log_info("pid [%s]\ntype [%s]\nid1 [%s]\nid2 [%s]\nlang [%s]",
+				str_prev_tinfo[0], str_prev_tinfo[1], str_prev_tinfo[2],str_prev_tinfo[3], str_prev_tinfo[4]);
+			log_info("changed to ->\npid [%s]\ntype [%s]\nid1 [%s]\nid2 [%s]\nlang [%s]",
+				str_cur_tinfo[0], str_cur_tinfo[1], str_cur_tinfo[2],str_cur_tinfo[3], str_cur_tinfo[4]);
+			}break;
 	}
 	return ret;
 }
+
+typedef struct {
+	int sub_count;
+	struct {
+		int type;
+		int pid;
+		int stype;
+		int id1;
+		int id2;
+		char lang[16];
+	}subs[AM_SI_MAX_SUB_CNT];
+}sub_t;
 
 #define FUNC_get_int_array(_n, _S, _c, _s, _e) \
 static jintArray get_##_n##_array(_S *s) \
@@ -334,9 +474,6 @@ static jintArray get_##_n##_array(_S *s) \
 	} \
 	return result; \
 }
-
-FUNC_get_int_array(aids, AM_SI_AudioInfo_t, audio_count, audios, pid);
-FUNC_get_int_array(afmts, AM_SI_AudioInfo_t, audio_count, audios, fmt);
 
 #define FUNC_get_string_array(_n, _S, _c, _s, _e) \
 static jobjectArray get_##_n##_array(_S *s)\
@@ -373,7 +510,18 @@ static jobjectArray get_##_n##_array(_S *s)\
 	return args; \
 }
 
+/*for Audios*/
+FUNC_get_int_array(aids, AM_SI_AudioInfo_t, audio_count, audios, pid);
+FUNC_get_int_array(afmts, AM_SI_AudioInfo_t, audio_count, audios, fmt);
 FUNC_get_string_array(alangs, AM_SI_AudioInfo_t, audio_count, audios, lang);
+
+/*for Subs*/
+FUNC_get_int_array(sids, sub_t, sub_count, subs, pid);
+FUNC_get_int_array(stypes, sub_t, sub_count, subs, type);
+FUNC_get_int_array(sstypes, sub_t, sub_count, subs, stype);
+FUNC_get_int_array(sid1s, sub_t, sub_count, subs, id1);
+FUNC_get_int_array(sid2s, sub_t, sub_count, subs, id2);
+FUNC_get_string_array(slangs, sub_t, sub_count, subs, lang);
 
 static void PMT_Update(AM_EPG_Handle_t handle, dvbpsi_pmt_t *pmts)
 {
@@ -393,11 +541,12 @@ static void PMT_Update(AM_EPG_Handle_t handle, dvbpsi_pmt_t *pmts)
 	ch.mVideoFormat = -1;
 	ch.mPcrPID = (pmts) ? pmts->i_pcr_pid : 0x1fff;
 
+	log_info("PMT update");
 	AM_SI_LIST_BEGIN(pmts, pmt)
 		AM_SI_LIST_BEGIN(pmt->p_first_es, es)
 			AM_SI_ExtractAVFromES(es, &ch.mVideoPID, &ch.mVideoFormat, &ch.mAudioInfo);
-			//AM_SI_ExtractDVBSubtitleFromES(es, &ch.sub_info);
-			//AM_SI_ExtractDVBTeletextFromES(es, &ch.ttx_info);
+			AM_SI_ExtractDVBSubtitleFromES(es, &ch.mSubtitleInfo);
+			AM_SI_ExtractDVBTeletextFromES(es, &ch.mTeletextInfo);
 		AM_SI_LIST_END()
 	AM_SI_LIST_END()
 
@@ -406,6 +555,35 @@ static void PMT_Update(AM_EPG_Handle_t handle, dvbpsi_pmt_t *pmts)
 
 		/*update current*/
 		memcpy(pch_cur, &ch, sizeof(pch_cur[0]));
+
+		/*merge ebu subtitle & dvb subtitle*/
+		sub_t sub;
+		{
+			int i;
+			sub.sub_count = ch.mSubtitleInfo.subtitle_count;
+			for (i=0; i<ch.mSubtitleInfo.subtitle_count; i++) {
+				sub.subs[i].type = 1;
+				sub.subs[i].pid = ch.mSubtitleInfo.subtitles[i].pid;
+				sub.subs[i].stype = ch.mSubtitleInfo.subtitles[i].type;
+				sub.subs[i].id1 = ch.mSubtitleInfo.subtitles[i].comp_page_id;
+				sub.subs[i].id2 = ch.mSubtitleInfo.subtitles[i].anci_page_id;
+				strncpy(sub.subs[i].lang, ch.mSubtitleInfo.subtitles[i].lang, 10);
+			}
+			int nsub = sub.sub_count;
+			for (i=0; i<ch.mTeletextInfo.teletext_count && nsub<AM_SI_MAX_SUB_CNT; i++) {
+				if (ch.mTeletextInfo.teletexts[i].type != 0x2 &&
+			                ch.mTeletextInfo.teletexts[i].type != 0x5)
+			                continue;
+				sub.subs[nsub].type = 2;
+				sub.subs[nsub].pid = ch.mSubtitleInfo.subtitles[i].pid;
+				sub.subs[nsub].stype = ch.mSubtitleInfo.subtitles[i].type;
+				sub.subs[nsub].id1 = ch.mSubtitleInfo.subtitles[i].comp_page_id;
+				sub.subs[nsub].id2 = ch.mSubtitleInfo.subtitles[i].anci_page_id;
+				strncpy(sub.subs[nsub].lang, ch.mSubtitleInfo.subtitles[i].lang, 10);
+				nsub++;
+			}
+			sub.sub_count = nsub;
+		}
 
 		JNIEnv *env;
 		int ret;
@@ -441,6 +619,18 @@ static void PMT_Update(AM_EPG_Handle_t handle, dvbpsi_pmt_t *pmts)
 				(*env)->GetFieldID(env, gChannelClass, "mAudioFormats", "[I"), get_afmts_array(&ch.mAudioInfo));
 		(*env)->SetObjectField(env,channel,\
 				(*env)->GetFieldID(env, gChannelClass, "mAudioLangs", "[Ljava/lang/String;"), get_alangs_array(&ch.mAudioInfo));
+		(*env)->SetObjectField(env,channel,\
+				(*env)->GetFieldID(env, gChannelClass, "mSubtitlePids", "[I"), get_sids_array(&sub));
+		(*env)->SetObjectField(env,channel,\
+				(*env)->GetFieldID(env, gChannelClass, "mSubtitleTypes", "[I"), get_stypes_array(&sub));
+		(*env)->SetObjectField(env,channel,\
+				(*env)->GetFieldID(env, gChannelClass, "mSubtitleStypes", "[I"), get_sstypes_array(&sub));
+		(*env)->SetObjectField(env,channel,\
+				(*env)->GetFieldID(env, gChannelClass, "mSubtitleId1s", "[I"), get_sid1s_array(&sub));
+		(*env)->SetObjectField(env,channel,\
+				(*env)->GetFieldID(env, gChannelClass, "mSubtitleId2s", "[I"), get_sid2s_array(&sub));
+		(*env)->SetObjectField(env,channel,\
+				(*env)->GetFieldID(env, gChannelClass, "mSubtitleLangs", "[Ljava/lang/String;"), get_slangs_array(&sub));
 		(*env)->SetIntField(env,channel,\
 				(*env)->GetFieldID(env, gChannelClass, "mPcrPid", "I"), ch.mPcrPID);
 
@@ -461,6 +651,170 @@ static int epg_sdt_update_check_version(EPGChannelData *ch, dvbpsi_sdt_t *sdts) 
 		&& (ch->mOriginalNetworkId == sdts->i_network_id))
 		return 0;
 	return 1;
+}
+
+static int string_cat(void *d, int n_d, void *s, int n_s) {
+	int l = strlen(d);
+	if ((l+n_s) < n_d) {
+		memcpy(((unsigned char*)d)+l, s, n_s);
+		((unsigned char*)d)[l+n_s] = 0;
+		return n_s;
+	}
+	return 0;
+}
+
+static int sdt_get_services(dvbpsi_sdt_t *sdts, EPGChannelData *pch_cur) {
+	dvbpsi_sdt_t *sdt;
+
+	AM_SI_LIST_BEGIN(sdts, sdt)
+	dvbpsi_sdt_service_t *srv;
+	AM_SI_LIST_BEGIN(sdt->p_first_service, srv)
+		dvbpsi_descriptor_t *descr;
+
+		sdt_service_t *pservice = calloc(sizeof(sdt_service_t), 1);
+		if (!pservice) {
+			log_error("No memory for sdt update");
+			continue;
+		}
+
+		pservice->id = srv->i_service_id;
+		pservice->running = srv->i_running_status;
+		pservice->free_ca = srv->b_free_ca;
+
+		AM_SI_LIST_BEGIN(srv->p_first_descriptor, descr)
+		if (descr->p_decoded && descr->i_tag == AM_SI_DESCR_SERVICE) {
+			dvbpsi_service_dr_t *psd = (dvbpsi_service_dr_t*)descr->p_decoded;
+			char name[AM_DB_MAX_SRV_NAME_LEN + 4];
+			char *old_name = pch_cur->name;
+
+			pservice->type = psd->i_service_type;
+
+			if (psd->i_service_name_length > 0) {
+				AM_SI_ConvertDVBTextCode((char*)psd->i_service_name, psd->i_service_name_length,\
+							name, AM_DB_MAX_SRV_NAME_LEN);
+				name[AM_DB_MAX_SRV_NAME_LEN+3] = 0;
+
+				sprintf(pservice->name, "xxx%s", name);
+
+				if (pch_cur->mServiceId == pservice->id) {
+					log_info("SDT Update: Program name changed: %s -> %s", old_name, name);
+					memcpy(pch_cur->name, name, sizeof(pch_cur->name));
+				}
+			}
+		}
+
+		if (descr->p_decoded && descr->i_tag == AM_SI_DESCR_MULTI_SERVICE_NAME) {
+			int i;
+			dvbpsi_multi_service_name_dr_t *pmsnd = (dvbpsi_multi_service_name_dr_t*)descr->p_decoded;
+			char name[AM_DB_MAX_SRV_NAME_LEN + 4];
+			for (i=0; i<pmsnd->i_name_count; i++) {
+				name[0] = 0;
+				AM_SI_ConvertDVBTextCode((char*)pmsnd->p_service_name[i].i_service_name,
+					pmsnd->p_service_name[i].i_service_name_length,
+					name, AM_DB_MAX_SRV_NAME_LEN);
+				name[AM_DB_MAX_SRV_NAME_LEN] = 0;
+
+				if (pservice->name[0]) {
+					char split[] = SPLIT_MULTINAME;
+					string_cat(pservice->name, MAX_LEN_MULTINAME, split, LEN_SPLIT_MULTINAME);
+				}
+				string_cat(pservice->name, MAX_LEN_MULTINAME, pmsnd->p_service_name[i].i_iso_639_code, 3);
+				string_cat(pservice->name, MAX_LEN_MULTINAME, name, strlen(name));
+			}
+		}
+
+		AM_SI_LIST_END()
+
+		pservice->next = pch_cur->services;
+		pch_cur->services = pservice;
+
+	AM_SI_LIST_END()
+	AM_SI_LIST_END()
+
+	return 0;
+}
+
+static void SDT_Update(AM_EPG_Handle_t handle, EPGChannelData *pch) {
+	JNIEnv *env;
+	int ret;
+	int attached = 0;
+	EPGData *priv_data;
+
+	AM_EPG_GetUserData(handle, (void**)&priv_data);
+	if (!priv_data)
+		return ;
+
+	ret = (*gJavaVM)->GetEnv(gJavaVM, (void**) &env, JNI_VERSION_1_4);
+	if (ret <0) {
+		ret = (*gJavaVM)->AttachCurrentThread(gJavaVM,&env,NULL);
+		if (ret <0) {
+			log_error("callback handler:failed to attach current thread");
+			return ;
+		}
+		attached = 1;
+	}
+
+	jobject event = (*env)->NewObject(env, gEventClass, gEventInitID, priv_data->obj, EVENT_PROGRAM_NAME_UPDATE);
+
+	jobject channel = (*env)->NewObject(env, gChannelClass, gChannelInitID, event, 0);
+
+	(*env)->SetIntField(env,channel,\
+			(*env)->GetFieldID(env, gChannelClass, "mSdtVersion", "I"), pch->mSdtVersion);
+	(*env)->SetIntField(env,channel,\
+			(*env)->GetFieldID(env, gChannelClass, "mOriginalNetworkId", "I"), pch->mOriginalNetworkId);
+	(*env)->SetObjectField(env,channel,\
+			(*env)->GetFieldID(env, gChannelClass, "mDisplayName", "Ljava/lang/String;"), (*env)->NewStringUTF(env, pch->name));
+	(*env)->SetIntField(env,channel,\
+			(*env)->GetFieldID(env, gChannelClass, "mServiceId", "I"), pch->mServiceId);
+
+	(*env)->SetObjectField(env,event,(*env)->GetFieldID(env, gEventClass, "channel", "Lcom/droidlogic/app/tv/ChannelInfo;"), channel);
+
+
+	jobject serviceinfos = (*env)->NewObject(env, gServiceInfosFromSDTClass, gServiceInfosFromSDTInitID, event, 0);
+
+	(*env)->SetIntField(env, serviceinfos,\
+			(*env)->GetFieldID(env, gServiceInfosFromSDTClass, "mNetworkId", "I"), pch->mOriginalNetworkId);
+	(*env)->SetIntField(env, serviceinfos,\
+			(*env)->GetFieldID(env, gServiceInfosFromSDTClass, "mTSId", "I"), pch->mTransportStreamId);
+	(*env)->SetIntField(env, serviceinfos,\
+			(*env)->GetFieldID(env, gServiceInfosFromSDTClass, "mVersion", "I"), pch->mSdtVersion);
+
+	jclass list_cls = (*env)->FindClass(env, "java/util/ArrayList");
+	jmethodID list_costruct = (*env)->GetMethodID(env, list_cls , "<init>","()V");
+	jmethodID list_add  = (*env)->GetMethodID(env, list_cls,"add","(Ljava/lang/Object;)Z");
+
+	jobject services =  (*env)->NewObject(env, list_cls, list_costruct, serviceinfos, 0);
+
+	sdt_service_t *pservice = pch->services;
+	while (pservice) {
+		jobject service = (*env)->NewObject(env, gServiceInfoFromSDTClass, gServiceInfoFromSDTInitID, serviceinfos, 0);
+		(*env)->SetIntField(env, service,\
+			(*env)->GetFieldID(env, gServiceInfoFromSDTClass, "mId", "I"), pservice->id);
+		(*env)->SetIntField(env, service,\
+			(*env)->GetFieldID(env, gServiceInfoFromSDTClass, "mType", "I"), pservice->type);
+		(*env)->SetObjectField(env,service,\
+			(*env)->GetFieldID(env, gServiceInfoFromSDTClass, "mName", "Ljava/lang/String;"), (*env)->NewStringUTF(env, pservice->name));
+		(*env)->SetIntField(env, service,\
+			(*env)->GetFieldID(env, gServiceInfoFromSDTClass, "mRunning", "I"), pservice->running);
+		(*env)->SetIntField(env, service,\
+			(*env)->GetFieldID(env, gServiceInfoFromSDTClass, "mFreeCA", "I"), pservice->free_ca);
+
+		(*env)->CallBooleanMethod(env, services, list_add, service);
+
+		pservice = pservice->next;
+	}
+
+	(*env)->SetObjectField(env, serviceinfos,\
+			(*env)->GetFieldID(env, gServiceInfosFromSDTClass, "mServices", "Ljava/util/ArrayList;"), services);
+
+	(*env)->SetObjectField(env, event,\
+			(*env)->GetFieldID(env, gEventClass, "services", "Lcom/droidlogic/tvinput/services/DTVEpgScanner$Event$ServiceInfosFromSDT;"), serviceinfos);
+
+	(*env)->CallVoidMethod(env, priv_data->obj, gOnEventID, event);
+
+	if (attached) {
+		(*gJavaVM)->DetachCurrentThread(gJavaVM);
+	}
 }
 
 static int epg_sdt_update(AM_EPG_Handle_t handle, int type, void *tables, void *user_data)
@@ -506,72 +860,15 @@ static int epg_sdt_update(AM_EPG_Handle_t handle, int type, void *tables, void *
 		return 0;
 	}
 
+	/*sdt not received yet, request name update*/
 	pch_cur->mOriginalNetworkId = sdts->i_network_id;
 	pch_cur->mTransportStreamId = sdts->i_ts_id;
 	pch_cur->mSdtVersion = sdts->i_version;
 
-	AM_SI_LIST_BEGIN(sdts, sdt)
-	dvbpsi_sdt_service_t *srv;
-	AM_SI_LIST_BEGIN(sdt->p_first_service, srv)
-		dvbpsi_descriptor_t *descr;
+	sdt_get_services(sdts, pch_cur);
 
-		if (srv->i_service_id != pch_cur->mServiceId)
-			continue;
+	SDT_Update(handle, pch_cur);
 
-		AM_SI_LIST_BEGIN(srv->p_first_descriptor, descr)
-		if (descr->p_decoded && descr->i_tag == AM_SI_DESCR_SERVICE)
-		{
-			dvbpsi_service_dr_t *psd = (dvbpsi_service_dr_t*)descr->p_decoded;
-			char name[AM_DB_MAX_SRV_NAME_LEN + 4];
-			char *old_name = pch_cur->name;
-			if (psd->i_service_name_length > 0)
-			{
-				AM_SI_ConvertDVBTextCode((char*)psd->i_service_name, psd->i_service_name_length,\
-							name, AM_DB_MAX_SRV_NAME_LEN);
-				name[AM_DB_MAX_SRV_NAME_LEN+3] = 0;
-				log_info("SDT Update: Program name changed: %s -> %s", old_name, name);
-			}
-		}
-		AM_SI_LIST_END()
-	AM_SI_LIST_END()
-	AM_SI_LIST_END()
-
-	JNIEnv *env;
-	int ret;
-	int attached = 0;
-	EPGData *priv_data;
-
-	AM_EPG_GetUserData(handle, (void**)&priv_data);
-	if (!priv_data)
-		return 1;
-
-	ret = (*gJavaVM)->GetEnv(gJavaVM, (void**) &env, JNI_VERSION_1_4);
-	if (ret <0) {
-		ret = (*gJavaVM)->AttachCurrentThread(gJavaVM,&env,NULL);
-		if (ret <0) {
-			log_error("callback handler:failed to attach current thread");
-			return 1;
-		}
-		attached = 1;
-	}
-
-	jobject event = (*env)->NewObject(env, gEventClass, gEventInitID, priv_data->obj, EVENT_PROGRAM_NAME_UPDATE);
-	jobject channel = (*env)->NewObject(env, gChannelClass, gChannelInitID, event, 0);
-
-	(*env)->SetIntField(env,channel,\
-			(*env)->GetFieldID(env, gChannelClass, "mSdtVersion", "I"), pch_cur->mSdtVersion);
-	(*env)->SetIntField(env,channel,\
-			(*env)->GetFieldID(env, gChannelClass, "mOriginalNetworkId", "I"), pch_cur->mOriginalNetworkId);
-	(*env)->SetObjectField(env,channel,\
-			(*env)->GetFieldID(env, gChannelClass, "mDisplayName", "Ljava/lang/String;"), (*env)->NewStringUTF(env, pch_cur->name));
-
-	(*env)->SetObjectField(env,event,(*env)->GetFieldID(env, gEventClass, "channel", "Lcom/droidlogic/app/tv/ChannelInfo;"), channel);
-
-	(*env)->CallVoidMethod(env, priv_data->obj, gOnEventID, event);
-
-	if (attached) {
-		(*gJavaVM)->DetachCurrentThread(gJavaVM);
-	}
 	return 0;
 }
 
@@ -703,14 +1000,9 @@ static int get_channel_data(JNIEnv* env, jobject obj, jobject channel, EPGChanne
 	}
 	pch->mOriginalNetworkId = (*env)->GetIntField(env, channel, (*env)->GetFieldID(env, objclass, "mOriginalNetworkId", "I"));
 	pch->mTransportStreamId = (*env)->GetIntField(env, channel, (*env)->GetFieldID(env, objclass, "mTransportStreamId", "I"));
-	//pch->mType = (*env)->GetIntField(env, (*env)->GetFieldID(env, objclass, "mType", "I"),0);
-	//pch->mServiceType = (*env)->GetIntField(env, channel, (*env)->GetFieldID(env, objclass, "mServiceType", "I"),0);
 	pch->mServiceId = (*env)->GetIntField(env, channel, (*env)->GetFieldID(env, objclass, "mServiceId", "I"));
 	pch->mFrequency = (*env)->GetIntField(env, channel, (*env)->GetFieldID(env, objclass, "mFrequency", "I"));
 	pch->mBandwidth = (*env)->GetIntField(env, channel, (*env)->GetFieldID(env, objclass, "mBandwidth", "I"));
-	//pch->mModulation = (*env)->GetIntField(env, channel, (*env)->GetFieldID(env, objclass, "mModulation", "I"),0);
-	//pch->mSymbolRate = (*env)->GetIntField(env, channel, (*env)->GetFieldID(env, objclass, "mSymbolRate", "I"),0);
-	//pch->mFEMisc = (*env)->GetIntField(env, channel, (*env)->GetFieldID(env, objclass, "mFEMisc", "I"),0);
 	pch->mVideoPID = (*env)->GetIntField(env, channel, (*env)->GetFieldID(env, objclass, "mVideoPid", "I"));
 	pch->mVideoFormat = (*env)->GetIntField(env, channel, (*env)->GetFieldID(env, objclass, "mVfmt", "I"));
 	pch->mPcrPID = (*env)->GetIntField(env, channel, (*env)->GetFieldID(env, objclass, "mPcrPid", "I"));
@@ -720,6 +1012,7 @@ static int get_channel_data(JNIEnv* env, jobject obj, jobject channel, EPGChanne
 	if (aids && afmts) {
 		jint *paids = (*env)->GetIntArrayElements(env, aids, 0);
 		jint *pafmts = (*env)->GetIntArrayElements(env, afmts, 0);
+
 		pch->mAudioInfo.audio_count = (*env)->GetArrayLength(env, aids);
 		for (i=0; i<pch->mAudioInfo.audio_count; i++) {
 			jstring jstr = (*env)->GetObjectArrayElement(env, alangs, i);
@@ -728,10 +1021,60 @@ static int get_channel_data(JNIEnv* env, jobject obj, jobject channel, EPGChanne
 			pch->mAudioInfo.audios[i].fmt = pafmts[i];
 			strncpy(pch->mAudioInfo.audios[i].lang, str, 10);
 			(*env)->ReleaseStringUTFChars(env, jstr, str);
+			(*env)->DeleteLocalRef(env, jstr);
 		}
 		(*env)->ReleaseIntArrayElements(env, aids, paids, JNI_ABORT);
 		(*env)->ReleaseIntArrayElements(env, afmts, pafmts, JNI_ABORT);
 	}
+	jintArray stypes = (jintArray)(*env)->GetObjectField(env, channel, (*env)->GetFieldID(env, objclass, "mSubtitleTypes", "[I"));
+	jintArray sids = (jintArray)(*env)->GetObjectField(env, channel, (*env)->GetFieldID(env, objclass, "mSubtitlePids", "[I"));
+	jintArray sstypes = (jintArray)(*env)->GetObjectField(env, channel, (*env)->GetFieldID(env, objclass, "mSubtitleStypes", "[I"));
+	jintArray sid1s = (jintArray)(*env)->GetObjectField(env, channel, (*env)->GetFieldID(env, objclass, "mSubtitleId1s", "[I"));
+	jintArray sid2s = (jintArray)(*env)->GetObjectField(env, channel, (*env)->GetFieldID(env, objclass, "mSubtitleId2s", "[I"));
+	jobjectArray slangs = (jobjectArray)(*env)->GetObjectField(env, channel, (*env)->GetFieldID(env, objclass, "mSubtitleLangs", "[Ljava/lang/String;"));
+	if (sids && stypes && sstypes && sid1s && sid2s) {
+
+		jint *psids = (*env)->GetIntArrayElements(env, sids, 0);
+		jint *pstypes = (*env)->GetIntArrayElements(env, stypes, 0);
+		jint *psstypes = (*env)->GetIntArrayElements(env, sstypes, 0);
+		jint *psid1s = (*env)->GetIntArrayElements(env, sid1s, 0);
+		jint *psid2s = (*env)->GetIntArrayElements(env, sid2s, 0);
+
+		int subtitle_count = (*env)->GetArrayLength(env, sids);
+		for (i=0; i<subtitle_count; i++) {
+			if (pstypes[i] == 1) {//subtitle
+				jstring jstr = (*env)->GetObjectArrayElement(env, slangs, i);
+				const char *str = (char *)(*env)->GetStringUTFChars(env, jstr, 0);
+				int ii = pch->mSubtitleInfo.subtitle_count;
+				pch->mSubtitleInfo.subtitles[ii].pid = psids[i];
+				pch->mSubtitleInfo.subtitles[ii].type = psstypes[i];
+				pch->mSubtitleInfo.subtitles[ii].comp_page_id = psid1s[i];
+				pch->mSubtitleInfo.subtitles[ii].anci_page_id = psid2s[i];
+				strncpy(pch->mSubtitleInfo.subtitles[ii].lang, str, 10);
+				(*env)->ReleaseStringUTFChars(env, jstr, str);
+				(*env)->DeleteLocalRef(env, jstr);
+				pch->mSubtitleInfo.subtitle_count++;
+			} else if (pstypes[i] == 2) {//teletext subtitle
+				jstring jstr = (*env)->GetObjectArrayElement(env, slangs, i);
+				const char *str = (char *)(*env)->GetStringUTFChars(env, jstr, 0);
+				int ii = pch->mTeletextInfo.teletext_count;
+				pch->mTeletextInfo.teletexts[ii].pid = psids[i];
+				pch->mTeletextInfo.teletexts[ii].type = psstypes[i];
+				pch->mTeletextInfo.teletexts[ii].magazine_no = psid1s[i];
+				pch->mTeletextInfo.teletexts[ii].page_no = psid2s[i];
+				strncpy(pch->mTeletextInfo.teletexts[ii].lang, str, 10);
+				(*env)->ReleaseStringUTFChars(env, jstr, str);
+				(*env)->DeleteLocalRef(env, jstr);
+				pch->mTeletextInfo.teletext_count++;
+			}
+		}
+		(*env)->ReleaseIntArrayElements(env, sids,    psids,    JNI_ABORT);
+		(*env)->ReleaseIntArrayElements(env, stypes,  pstypes,  JNI_ABORT);
+		(*env)->ReleaseIntArrayElements(env, sstypes, psstypes, JNI_ABORT);
+		(*env)->ReleaseIntArrayElements(env, sid1s,   psid1s,   JNI_ABORT);
+		(*env)->ReleaseIntArrayElements(env, sid2s,   psid2s,   JNI_ABORT);
+	}
+
 	pch->mSdtVersion = (*env)->GetIntField(env, channel, (*env)->GetFieldID(env, objclass, "mSdtVersion", "I"));
 	pch->valid = 1;
 	return 0;
@@ -850,6 +1193,14 @@ JNI_OnLoad(JavaVM* vm, void* reserved)
 	gChannelClass   = (jclass)(*env)->NewGlobalRef(env, (jobject)gChannelClass);
 	gChannelInitID  = (*env)->GetMethodID(env, gChannelClass, "<init>", "()V");
 
+	gServiceInfosFromSDTClass   = (*env)->FindClass(env, "com/droidlogic/tvinput/services/DTVEpgScanner$Event$ServiceInfosFromSDT");
+	gServiceInfosFromSDTClass   = (jclass)(*env)->NewGlobalRef(env, (jobject)gServiceInfosFromSDTClass);
+	gServiceInfosFromSDTInitID  = (*env)->GetMethodID(env, gServiceInfosFromSDTClass, "<init>", "(Lcom/droidlogic/tvinput/services/DTVEpgScanner$Event;)V");
+
+	gServiceInfoFromSDTClass   = (*env)->FindClass(env, "com/droidlogic/tvinput/services/DTVEpgScanner$Event$ServiceInfosFromSDT$ServiceInfoFromSDT");
+	gServiceInfoFromSDTClass   = (jclass)(*env)->NewGlobalRef(env, (jobject)gServiceInfoFromSDTClass);
+	gServiceInfoFromSDTInitID  = (*env)->GetMethodID(env, gServiceInfoFromSDTClass, "<init>", "(Lcom/droidlogic/tvinput/services/DTVEpgScanner$Event$ServiceInfosFromSDT;)V");
+
 	return JNI_VERSION_1_4;
 }
 
@@ -867,5 +1218,7 @@ JNI_OnUnload(JavaVM* vm, void* reserved)
 	(*env)->DeleteGlobalRef(env, (jobject)gChannelClass);
 	(*env)->DeleteGlobalRef(env, (jobject)gEventClass);
 	(*env)->DeleteGlobalRef(env, (jobject)gEvtClass);
+	(*env)->DeleteGlobalRef(env, (jobject)gServiceInfosFromSDTClass);
+	(*env)->DeleteGlobalRef(env, (jobject)gServiceInfoFromSDTClass);
 }
 
