@@ -104,22 +104,27 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
 
         int mode = getIntent().getIntExtra(DroidLogicTvUtils.EXTRA_KEY_CODE, 0);
         setShortcutMode(mode);
+    }
 
+    @Override
+    protected void onStart() {
+        Log.d(TAG, "------onStart");
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_TIME_TICK);
         filter.addAction(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
         registerReceiver(mReceiver, filter);
+        super.onStart();
     }
 
     @Override
     protected void onStop() {
-        super.onStop();
+        Log.d(TAG, "------onStop");
         unregisterReceiver(mReceiver);
         if (mProgramObserver != null) {
             getContentResolver().unregisterContentObserver(mProgramObserver);
             mProgramObserver = null;
         }
-        Log.d(TAG, "------onStop");
+        super.onStop();
     }
 
     public boolean onKeyDown(int keyCode, KeyEvent event) {

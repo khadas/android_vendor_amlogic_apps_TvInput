@@ -376,14 +376,12 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private void startPlay() {
         if (mSourceMenuLayout.getSourceCount() == 0)
             return;
-        if (hasStopped || needUpdateSource) {
-            sendTuneMessage();
-        }
+        sendTuneMessage();
     }
 
     @Override
-    protected void onResume() {
-        Utils.logd(TAG, "== onResume ====");
+    protected void onStart() {
+        Utils.logd(TAG, "== onStart ====");
         mTvInputManager.registerCallback(mTvInputChangeCallback, new Handler());
         closeTouchSound();
         closeScreenOffTimeout();
@@ -393,10 +391,29 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         addTvView();
         showUi(Utils.UI_TYPE_ALL_HIDE, false);
         startPlay();
-        showUi(Utils.UI_TYPE_SOURCE_INFO, false);
         hasStopped = false;
+        needUpdateSource = false;
+
+        if (!mReceiverRegisted) {
+            mReceiverRegisted = true;
+            IntentFilter intentFilter = new IntentFilter(DroidLogicTvUtils.ACTION_TIMEOUT_SUSPEND);
+            intentFilter.addAction(DroidLogicTvUtils.ACTION_UPDATE_TV_PLAY);
+            intentFilter.addAction(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH);
+            intentFilter.addAction(DroidLogicTvUtils.ACTION_DELETE_CHANNEL);
+            intentFilter.addAction(DroidLogicTvUtils.ACTION_SWITCH_CHANNEL);
+            registerReceiver(mReceiver, intentFilter);
+        }
+        super.onStart();
+    }
+
+    @Override
+    protected void onResume() {
+        Utils.logd(TAG, "== onResume ====");
+        if (needUpdateSource)
+            startPlay();
+        showUi(Utils.UI_TYPE_SOURCE_INFO, false);
+
         isMenuShowing = false;
-        needUpdateSource = true;
         isRunning = true;
         isSearchingChannel = false;
         if (mSignalState == SIGNAL_NOT_GOT)
@@ -407,15 +424,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         else
             showMuteIcon(false);
         switchHdmiChannel();
-        if (!mReceiverRegisted) {
-            mReceiverRegisted = true;
-            IntentFilter intentFilter = new IntentFilter(DroidLogicTvUtils.ACTION_TIMEOUT_SUSPEND);
-            intentFilter.addAction(DroidLogicTvUtils.ACTION_UPDATE_TV_PLAY);
-            intentFilter.addAction(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH);
-            intentFilter.addAction(DroidLogicTvUtils.ACTION_DELETE_CHANNEL);
-            intentFilter.addAction(DroidLogicTvUtils.ACTION_SWITCH_CHANNEL);
-            registerReceiver(mReceiver, intentFilter);
-        }
+
         super.onResume();
     }
 
