@@ -322,6 +322,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                 ;
             else if (msgType == TvControlManager.EVENT_AV_PLAYBACK_RESUME) {
                 if (mCurrentChannel != null && ChannelInfo.isRadioChannel(mCurrentChannel)) {
+                    mTvControlManager.SetAudioMuteForTv(TvControlManager.AUDIO_UNMUTE_FOR_TV);
                     notifyVideoAvailable();
                 }
             } else if (msgType == TvControlManager.EVENT_AV_VIDEO_AVAILABLE) {
