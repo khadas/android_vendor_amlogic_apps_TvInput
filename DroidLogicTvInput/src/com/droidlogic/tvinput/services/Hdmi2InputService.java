@@ -211,6 +211,7 @@ public class Hdmi2InputService extends DroidLogicTvInputService {
         String id = info.getId();
         Utils.logd(TAG, "onHdmiDeviceRemoved, id:" + id);
         updateInfoListIfNeededLocked(phyaddr, info, true);
+        disconnectHdmiCec();
 
         return id;
     }

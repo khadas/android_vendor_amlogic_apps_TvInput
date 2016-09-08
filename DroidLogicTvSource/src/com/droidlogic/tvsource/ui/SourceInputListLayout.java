@@ -238,6 +238,10 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
         defaultDtvType = is_radio;
     }
 
+    public void setCurSourceInput(SourceButton sb) {
+        curSourceInput = sb;
+    }
+
     public SourceButton getCurSourceInput() {
         return curSourceInput;
     }

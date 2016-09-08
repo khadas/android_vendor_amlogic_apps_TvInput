@@ -6,10 +6,9 @@ import java.util.List;
 
 import com.droidlogic.app.SystemControlManager;
 import com.droidlogic.app.DroidLogicKeyEvent;
+import com.droidlogic.app.tv.DroidLogicHdmiCecManager;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
-import com.droidlogic.app.tv.Program;
 import com.droidlogic.app.tv.TvDataBaseManager;
-import com.droidlogic.app.tv.TVTime;
 import com.droidlogic.app.tv.ChannelInfo;
 import com.droidlogic.app.tv.TVInSignalInfo;
 import com.droidlogic.app.tv.TvControlManager;
@@ -21,15 +20,11 @@ import com.droidlogic.tvsource.ui.SourceInputListLayout;
 import com.droidlogic.tvsource.ui.SourceInputListLayout.onSourceInputClickListener;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.DialogInterface.OnKeyListener;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.res.Resources.NotFoundException;
 import android.hardware.input.InputManager;
 import android.hardware.hdmi.HdmiTvClient;
 import android.hardware.hdmi.HdmiTvClient.InputChangeListener;
@@ -41,40 +36,33 @@ import android.media.tv.TvInputInfo;
 import android.media.tv.TvInputManager;
 import android.media.tv.TvTrackInfo;
 import android.media.tv.TvView;
-import android.media.tv.TvContract.Channels;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.PowerManager;
 import android.os.SystemClock;
-import android.os.SystemProperties;
 import android.os.Handler.Callback;
 import android.os.Message;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.ArrayMap;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View.OnAttachStateChangeListener;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 
 public class DroidLogicTv extends Activity implements Callback, onSourceInputClickListener, OnChannelSelectListener {
     private static final String TAG = "DroidLogicTv";
-    private static final String SHARE_NAME = "tv_app";
 
     public static final String PROP_TV_PREVIEW = "tv.is.preview.window";
 
@@ -86,6 +74,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private TvControlManager mTvControlManager = TvControlManager.getInstance();
     private HdmiTvClient mHdmiTvClient = null;
     private InputChangeListener mInputListener = null;
+    private DroidLogicHdmiCecManager mHdmiCecManager;
 
     private FrameLayout mRootView;
     private TvViewInputCallback mTvViewCallback = new TvViewInputCallback();
@@ -242,10 +231,11 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 int hdmiId = info.getPhysicalAddress() >> 12;
                 hdmiId += (DroidLogicTvUtils.DEVICE_ID_HDMI1 - 1);
                 for (TvInputInfo tvInfo : inputList) {
-                    int tvInputId = getDeviceId(tvInfo);
-                    if (tvInputId == hdmiId) {
+                    int tvDeviceId = getDeviceId(tvInfo);
+                    if (tvDeviceId == hdmiId && !tvInfo.equals(mSourceInput.getTvInputInfo())) {
                         preSwitchSourceInput();
                         mSourceInput = mSourceMenuLayout.getSourceInput(tvInfo);
+                        mSourceMenuLayout.setCurSourceInput(mSourceInput);
                         sendTuneMessage();
                     }
                 }
@@ -257,6 +247,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             mHdmiTvClient = hdmiManager.getTvClient();
             mHdmiTvClient.setInputChangeListener(mInputListener);
         }
+        mHdmiCecManager = new DroidLogicHdmiCecManager(this);
     }
 
     private int getDeviceId(TvInputInfo info) {
@@ -479,6 +470,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         if (mThreadHandler == null) {
             return;
         }
+        Log.d(TAG, "==== switchToSourceInput");
         mThreadHandler.obtainMessage(MSG_SAVE_CHANNEL_INFO).sendToTarget();
         mPreSigType = mSigType;
         mSigType = mSourceInput.getSigType();
@@ -632,6 +624,11 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         }
         preSwitchSourceInput();
         mSourceInput = mSourceMenuLayout.getCurSourceInput();
+        if (mHdmiCecManager.hasHdmiCecDevice(mSourceInput.getDeviceId())) {
+            mHdmiCecManager.selectHdmiDevice(mSourceInput.getDeviceId());
+        } else {
+            mHdmiCecManager.disconnectHdmiCec();
+        }
         sendTuneMessage();
     }
 
@@ -1262,14 +1259,45 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     }
 
     private final class TvInputChangeCallback extends TvInputManager.TvInputCallback {
+        private final static int CMD_ADD = 1;
+        private final static int CMD_REMOVE = 2;
+        private final static int CMD_STATE_CHANGE = 3;
+        private final static int CMD_UPDATE = 4;
 
-        @Override
-        public void onInputAdded(String inputId) {
-            Utils.logd(TAG, "==== onInputAdded, inputId=" + inputId);
-            if (!isValidInputId(inputId))
+        private boolean isHdmiCecInputId(String inputId) {
+            if (TextUtils.isEmpty(inputId))
+                return false;
+
+            String[] temp = inputId.split(Utils.DELIMITER_INFO_IN_ID);
+            if (temp.length == 3 && temp[2].startsWith(Utils.PREFIX_HDMI_DEVICE))
+                return true;
+
+            return false;
+        }
+
+        private void processInputCallback(int cmd, String inputId, int state) {
+            if (isHdmiCecInputId(inputId))
                 return;
 
-            int input_need_reset = mSourceMenuLayout.add(inputId);
+            Utils.logd(TAG, "==== processInputCallback, cmd = " + cmd + ", inputId = " + inputId);
+            int input_need_reset = -1;
+            switch (cmd) {
+            case CMD_ADD:
+                input_need_reset = mSourceMenuLayout.add(inputId);
+                break;
+            case CMD_REMOVE:
+                input_need_reset = mSourceMenuLayout.remove(inputId);
+                break;
+            case CMD_STATE_CHANGE:
+                input_need_reset =  mSourceMenuLayout.stateChange(inputId, state);
+                break;
+            case CMD_UPDATE:
+                input_need_reset =  mSourceMenuLayout.update(inputId);
+                break;
+            default:
+                return;
+            }
+
             Utils.logd(TAG, "==== input_need_reset=" + input_need_reset);
             if (input_need_reset == SourceInputListLayout.ACTION_FAILED)
                 return;
@@ -1286,66 +1314,23 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         }
 
         @Override
+        public void onInputAdded(String inputId) {
+            processInputCallback(CMD_ADD, inputId, 0);
+        }
+
+        @Override
         public void onInputRemoved(String inputId) {
-            Utils.logd(TAG, "==== onInputRemoved, inputId=" + inputId);
-            if (!isValidInputId(inputId))
-                return;
-
-            int input_need_reset = mSourceMenuLayout.remove(inputId);
-            Utils.logd(TAG, "==== input_need_reset=" + input_need_reset);
-            if (input_need_reset == SourceInputListLayout.ACTION_FAILED)
-                return;
-
-            if (mSourceMenuLayout.getVisibility() == View.VISIBLE) {
-                showUi(Utils.UI_TYPE_SOURCE_LIST, true);
-            }
-            if (input_need_reset == SourceInputListLayout.INPUT_NEED_RESET) {
-                preSwitchSourceInput();
-                mSourceInput = mSourceMenuLayout.getCurSourceInput();
-                startPlay();
-            }
+            processInputCallback(CMD_REMOVE, inputId, 0);
         }
 
         @Override
         public void onInputStateChanged(String inputId, int state) {
-            Utils.logd(TAG, "==== onInputStateChanged, inputId=" + inputId + ", state=" + state);
-            if (!isValidInputId(inputId))
-                return;
-
-            int input_need_reset =  mSourceMenuLayout.stateChange(inputId, state);
-            Utils.logd(TAG, "==== input_need_reset=" + input_need_reset);
-            if (input_need_reset == SourceInputListLayout.ACTION_FAILED)
-                return;
-
-            if (mSourceMenuLayout.getVisibility() == View.VISIBLE) {
-                showUi(Utils.UI_TYPE_SOURCE_LIST, true);
-            }
-            if (input_need_reset == SourceInputListLayout.INPUT_NEED_RESET) {
-                preSwitchSourceInput();
-                mSourceInput = mSourceMenuLayout.getCurSourceInput();
-                startPlay();
-            }
+            processInputCallback(CMD_STATE_CHANGE, inputId, state);
         }
 
         @Override
         public void onInputUpdated(String inputId) {
-            Utils.logd(TAG, "==== onInputUpdated, inputId=" + inputId);
-            if (!isValidInputId(inputId))
-                return;
-
-            int input_need_reset =  mSourceMenuLayout.update(inputId);
-            Utils.logd(TAG, "==== input_need_reset=" + input_need_reset);
-            if (input_need_reset == SourceInputListLayout.ACTION_FAILED)
-                return;
-
-            if (mSourceMenuLayout.getVisibility() == View.VISIBLE) {
-                showUi(Utils.UI_TYPE_SOURCE_LIST, true);
-            }
-            if (input_need_reset == SourceInputListLayout.INPUT_NEED_RESET) {
-                preSwitchSourceInput();
-                mSourceInput = mSourceMenuLayout.getCurSourceInput();
-                startPlay();
-            }
+            processInputCallback(CMD_UPDATE, inputId, 0);
         }
     }
 
