@@ -290,10 +290,11 @@ static void format_audio_strings(AM_SI_AudioInfo_t *ai, char *pids, char *fmts, 
 			snprintf(string, n_s, "%s " fmt, string, (array)[i].item); \
 		}while(0)
 
-#define gen_audio_3strings(array, n, strings, n_s) do { \
+#define gen_audio_4strings(array, n, strings, n_s) do { \
 		gen_type_n_string(array,pid,"%d",n,(strings)[0],n_s); \
 		gen_type_n_string(array,fmt,"%d",n,(strings)[1],n_s); \
 		gen_type_n_string(array,lang,"%s",n,(strings)[2],n_s); \
+		gen_type_n_string(array,audio_exten,"%d",n,(strings)[3],n_s); \
 		}while(0)
 #define gen_subtitle_5strings(array, n, strings, n_s) do { \
 		gen_type_n_string(array,pid,"%d",n,(strings)[0],n_s); \
@@ -330,6 +331,7 @@ static int check_pmt_update(EPGChannelData *c1, EPGChannelData *c2)
 			for (j=0; j<c2->mAudioInfo.audio_count; j++) {
 				if (c1->mAudioInfo.audios[i].pid == c2->mAudioInfo.audios[j].pid &&
 					c1->mAudioInfo.audios[i].fmt == c2->mAudioInfo.audios[j].fmt &&
+					c1->mAudioInfo.audios[i].audio_exten == c2->mAudioInfo.audios[j].audio_exten &&
 					!strncmp(c1->mAudioInfo.audios[i].lang, c2->mAudioInfo.audios[j].lang, 3))
 					break;
 			}
@@ -401,12 +403,12 @@ static int check_pmt_update(EPGChannelData *c1, EPGChannelData *c2)
 				c2->mVideoPID, c2->mVideoFormat);
 			}break;
 		case 2: {
-			char str_prev_ainfo[3][256], str_cur_ainfo[3][256];
-			gen_audio_3strings(c1->mAudioInfo.audios, c1->mAudioInfo.audio_count, str_prev_ainfo, 256);
-			gen_audio_3strings(c2->mAudioInfo.audios, c2->mAudioInfo.audio_count, str_cur_ainfo, 256);
-			log_info(">>> Audio changed pid/fmt/lang:");
-			log_info("pid '%s'\nfmt '%s'\nlang '%s'", str_prev_ainfo[0], str_prev_ainfo[1], str_prev_ainfo[2]);
-			log_info("changed to ->\npid '%s'\nfmt '%s'\nlang '%s'", str_cur_ainfo[0], str_cur_ainfo[1], str_cur_ainfo[2]);
+			char str_prev_ainfo[4][256], str_cur_ainfo[4][256];
+			gen_audio_4strings(c1->mAudioInfo.audios, c1->mAudioInfo.audio_count, str_prev_ainfo, 256);
+			gen_audio_4strings(c2->mAudioInfo.audios, c2->mAudioInfo.audio_count, str_cur_ainfo, 256);
+			log_info(">>> Audio changed pid/fmt/lang/ext:");
+			log_info("pid [%s]\nfmt [%s]\nlang [%s]\next [%s]", str_prev_ainfo[0], str_prev_ainfo[1], str_prev_ainfo[2], str_prev_ainfo[3]);
+			log_info("changed to ->\npid [%s]\nfmt [%s]\nlang [%s]\next [%s]", str_cur_ainfo[0], str_cur_ainfo[1], str_cur_ainfo[2], str_cur_ainfo[3]);
 			}break;
 		case 3: {
 			char str_prev_sinfo[5][256], str_cur_sinfo[5][256];
@@ -514,6 +516,7 @@ static jobjectArray get_##_n##_array(_S *s)\
 FUNC_get_int_array(aids, AM_SI_AudioInfo_t, audio_count, audios, pid);
 FUNC_get_int_array(afmts, AM_SI_AudioInfo_t, audio_count, audios, fmt);
 FUNC_get_string_array(alangs, AM_SI_AudioInfo_t, audio_count, audios, lang);
+FUNC_get_int_array(aexts, AM_SI_AudioInfo_t, audio_count, audios, audio_exten);
 
 /*for Subs*/
 FUNC_get_int_array(sids, sub_t, sub_count, subs, pid);
@@ -619,6 +622,8 @@ static void PMT_Update(AM_EPG_Handle_t handle, dvbpsi_pmt_t *pmts)
 				(*env)->GetFieldID(env, gChannelClass, "mAudioFormats", "[I"), get_afmts_array(&ch.mAudioInfo));
 		(*env)->SetObjectField(env,channel,\
 				(*env)->GetFieldID(env, gChannelClass, "mAudioLangs", "[Ljava/lang/String;"), get_alangs_array(&ch.mAudioInfo));
+		(*env)->SetObjectField(env,channel,\
+				(*env)->GetFieldID(env, gChannelClass, "mAudioExts", "[I"), get_aexts_array(&ch.mAudioInfo));
 		(*env)->SetObjectField(env,channel,\
 				(*env)->GetFieldID(env, gChannelClass, "mSubtitlePids", "[I"), get_sids_array(&sub));
 		(*env)->SetObjectField(env,channel,\
@@ -1009,9 +1014,11 @@ static int get_channel_data(JNIEnv* env, jobject obj, jobject channel, EPGChanne
 	jintArray aids = (jintArray)(*env)->GetObjectField(env, channel, (*env)->GetFieldID(env, objclass, "mAudioPids", "[I"));
 	jintArray afmts = (jintArray)(*env)->GetObjectField(env, channel, (*env)->GetFieldID(env, objclass, "mAudioFormats", "[I"));
 	jobjectArray alangs = (jobjectArray)(*env)->GetObjectField(env, channel, (*env)->GetFieldID(env, objclass, "mAudioLangs", "[Ljava/lang/String;"));
+	jintArray aexts = (jintArray)(*env)->GetObjectField(env, channel, (*env)->GetFieldID(env, objclass, "mAudioExts", "[I"));
 	if (aids && afmts) {
 		jint *paids = (*env)->GetIntArrayElements(env, aids, 0);
 		jint *pafmts = (*env)->GetIntArrayElements(env, afmts, 0);
+		jint *paexts = (*env)->GetIntArrayElements(env, aexts, 0);
 
 		pch->mAudioInfo.audio_count = (*env)->GetArrayLength(env, aids);
 		for (i=0; i<pch->mAudioInfo.audio_count; i++) {
@@ -1019,12 +1026,14 @@ static int get_channel_data(JNIEnv* env, jobject obj, jobject channel, EPGChanne
 			const char *str = (char *)(*env)->GetStringUTFChars(env, jstr, 0);
 			pch->mAudioInfo.audios[i].pid = paids[i];
 			pch->mAudioInfo.audios[i].fmt = pafmts[i];
+			pch->mAudioInfo.audios[i].audio_exten = paexts[i];
 			strncpy(pch->mAudioInfo.audios[i].lang, str, 10);
 			(*env)->ReleaseStringUTFChars(env, jstr, str);
 			(*env)->DeleteLocalRef(env, jstr);
 		}
 		(*env)->ReleaseIntArrayElements(env, aids, paids, JNI_ABORT);
 		(*env)->ReleaseIntArrayElements(env, afmts, pafmts, JNI_ABORT);
+		(*env)->ReleaseIntArrayElements(env, aexts, paexts, JNI_ABORT);
 	}
 	jintArray stypes = (jintArray)(*env)->GetObjectField(env, channel, (*env)->GetFieldID(env, objclass, "mSubtitleTypes", "[I"));
 	jintArray sids = (jintArray)(*env)->GetObjectField(env, channel, (*env)->GetFieldID(env, objclass, "mSubtitlePids", "[I"));

@@ -90,6 +90,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     public static final int OPTION_SUBTITLE_SWITCH = 407;
     public static final int OPTION_HDMI20 = 408;
     public static final int OPTION_FBC_UPGRADE = 409;
+    public static final int OPTION_AD_SWITCH = 410;
+    public static final int OPTION_AD_MIX = 411;
+    public static final int OPTION_AD_LIST = 412;
 
     public static final int ALPHA_NO_FOCUS = 230;
     public static final int ALPHA_FOCUSED = 255;
@@ -211,6 +214,12 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         } else if (item_name.equals(mContext.getResources().getString(R.string.sub_switch))) {
             optionTag = OPTION_SUBTITLE_SWITCH;
             optionKey = SettingsManager.KEY_SUBTITLE_SWITCH;
+        } else if (item_name.equals(mContext.getResources().getString(R.string.ad_switch))) {
+            optionTag = OPTION_AD_SWITCH;
+            optionKey = SettingsManager.KEY_AD_SWITCH;
+        } else if (item_name.equals(mContext.getResources().getString(R.string.ad_mix))) {
+            optionTag = OPTION_AD_MIX;
+            optionKey = SettingsManager.KEY_AD_MIX;
         } else if (item_name.equals(mContext.getResources().getString(R.string.color_system))) {
             optionTag = OPTION_COLOR_SYSTEM;
             optionKey = SettingsManager.KEY_COLOR_SYSTEM;
@@ -261,6 +270,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         } else if (item_name.equals(mResources.getString(R.string.fbc_upgrade))){
             optionTag = OPTION_FBC_UPGRADE;
             optionKey = SettingsManager.KEY_FBC_UPGRADE;
+        } else if (item_name.equals(mResources.getString(R.string.ad_list))){
+            optionTag = OPTION_AD_LIST;
+            optionKey = SettingsManager.KEY_AD_LIST;
         }
     }
 
@@ -319,6 +331,10 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 return R.layout.layout_option_list;
             case OPTION_SUBTITLE_SWITCH:
                 return R.layout.layout_channel_subtitle_switch;
+            case OPTION_AD_SWITCH:
+                return R.layout.layout_channel_ad_switch;
+            case OPTION_AD_MIX:
+                return R.layout.layout_channel_ad_mix;
             case OPTION_COLOR_SYSTEM:
                 return R.layout.layout_channel_color_system;
             case OPTION_SOUND_SYSTEM:
@@ -357,6 +373,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             case OPTION_HDMI20:
                 return R.layout.layout_settings_hdmi20;
             case OPTION_FBC_UPGRADE:
+            case OPTION_AD_LIST:
                 return R.layout.layout_option_list;
 
             default:
@@ -566,14 +583,30 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             case R.id.sub_off:
                 mSettingsManager.setSubtitleSwitch(0);
                 Intent intent = new Intent(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH);
-                intent.putExtra(DroidLogicTvUtils.EXTRA_SUBTITLE_SWITCH_VALUE, 0);
+                intent.putExtra(DroidLogicTvUtils.EXTRA_SWITCH_VALUE, 0);
                 mContext.sendBroadcast(intent);
                 break;
             case R.id.sub_on:
                 mSettingsManager.setSubtitleSwitch(1);
                 intent = new Intent(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH);
-                intent.putExtra(DroidLogicTvUtils.EXTRA_SUBTITLE_SWITCH_VALUE, 1);
+                intent.putExtra(DroidLogicTvUtils.EXTRA_SWITCH_VALUE, 1);
                 mContext.sendBroadcast(intent);
+                break;
+            case R.id.ad_off:
+                mSettingsManager.setAudioADSwitch(0);
+                break;
+            case R.id.ad_on:
+                mSettingsManager.setAudioADSwitch(1);
+                intent = new Intent(DroidLogicTvUtils.ACTION_AD_SWITCH);
+                intent.putExtra(DroidLogicTvUtils.EXTRA_SWITCH_VALUE, 1);
+                mContext.sendBroadcast(intent);
+                break;
+            // ad mix
+            case R.id.ad_mix_increase:
+                mSettingsManager.setADMix(1);
+                break;
+            case R.id.ad_mix_decrease:
+                mSettingsManager.setADMix(-1);
                 break;
             // color system
             case R.id.color_system_pal:
@@ -810,6 +843,13 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                     setIcon(parent, R.id.sub_on);
                 } else if (TextUtils.equals(mSettingsManager.getSubtitleSwitchStatus(), mResources.getString(R.string.off))) {
                     setIcon(parent, R.id.sub_off);
+                }
+                break;
+            case OPTION_AD_SWITCH:
+                if (TextUtils.equals(mSettingsManager.getADSwitchStatus(), mResources.getString(R.string.on))) {
+                    setIcon(parent, R.id.ad_on);
+                } else if (TextUtils.equals(mSettingsManager.getADSwitchStatus(), mResources.getString(R.string.off))) {
+                    setIcon(parent, R.id.ad_off);
                 }
                 break;
             case OPTION_SOUND_CHANNEL:
@@ -1221,7 +1261,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             isSearching = true;
             mSettingsManager.setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
             Intent intent = new Intent(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH);
-            intent.putExtra(DroidLogicTvUtils.EXTRA_SUBTITLE_SWITCH_VALUE, 0);
+            intent.putExtra(DroidLogicTvUtils.EXTRA_SWITCH_VALUE, 0);
             mContext.sendBroadcast(intent);
         }
     }
@@ -1391,12 +1431,12 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         } else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
             int mode = mSettingsManager.getDtvMode();
             int lowerMode = getDtvLowerMode(mode);
-            mTvControlManager.PlayDTVProgram(lowerMode, 470000000, 0, 0, 0, 0, -1, -1, 0, 0);
+            mTvControlManager.PlayDTVProgram(lowerMode, 470000000, 0, 0, 0, 0, -1, -1, 0, 0, false);
             mTvControlManager.DtvSetTextCoding("GB2312");
             mTvControlManager.DtvAutoScan(lowerMode);
             Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_DTV_CHANNEL_INDEX, -1);
             Intent intent = new Intent(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH);
-            intent.putExtra(DroidLogicTvUtils.EXTRA_SUBTITLE_SWITCH_VALUE, 0);
+            intent.putExtra(DroidLogicTvUtils.EXTRA_SWITCH_VALUE, 0);
             mContext.sendBroadcast(intent);
         }
         isSearching = true;
@@ -1505,6 +1545,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                .setAudioPids(event.aids)
                .setAudioFormats(event.afmts)
                .setAudioLangs(event.alangs)
+               .setAudioFormats(event.aexts)
                .setAudioStd(0)
                .setIsAutoStd(event.isAutoStd)
                //.setAudioTrackIndex(getidxByDefLan(event.alangs))

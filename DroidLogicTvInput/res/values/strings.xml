@@ -49,6 +49,9 @@
     <string name="channel_info">Channel Information</string>
     <string name="defalut_lan">Default Language</string>
     <string name="sub_switch">Subtitle Switch</string>
+    <string name="ad_switch">Audio AD Switch</string>
+    <string name="ad_mix">Audio AD Mix Level</string>
+    <string name="ad_list">Audio AD List</string>
     <string name="color_system">Color System</string>
     <string name="sound_system">Sound System</string>
     <string name="volume_compensate">Volume Compensate</string>

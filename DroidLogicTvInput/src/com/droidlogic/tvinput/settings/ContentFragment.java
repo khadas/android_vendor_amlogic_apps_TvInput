@@ -157,7 +157,7 @@ public class ContentFragment extends Fragment {
                 content_title.setText(title);
             } else {
                 if ((key.equals(SettingsManager.KEY_TINT) && !getSettingsManager().isShowTint())
-                    || ((key.equals(SettingsManager.KEY_DEFAULT_LANGUAGE) || key.equals(SettingsManager.KEY_SUBTITLE_SWITCH))
+                    || ((key.equals(SettingsManager.KEY_DEFAULT_LANGUAGE) || key.equals(SettingsManager.KEY_SUBTITLE_SWITCH) || key.equals(SettingsManager.KEY_AD_SWITCH))
                             && getSettingsManager().getCurentTvSource() != TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV))
                     return;
                 if (getSettingsManager().getCurentTvSource() != TvControlManager.SourceInput_Type.SOURCE_TYPE_HDMI &&

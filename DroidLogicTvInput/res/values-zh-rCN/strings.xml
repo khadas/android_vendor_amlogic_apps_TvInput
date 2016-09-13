@@ -47,6 +47,9 @@
     <string name="channel_info">频道信息</string>
     <string name="defalut_lan">默认语言</string>
     <string name="sub_switch">字幕开关</string>
+    <string name="ad_switch">声音AD开关</string>
+    <string name="ad_mix">声音AD混合度</string>
+    <string name="ad_list">声音AD列表</string>
     <string name="color_system">色彩制式</string>
     <string name="sound_system">声音制式</string>
     <string name="volume_compensate">音量补偿</string>

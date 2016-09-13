@@ -16,6 +16,10 @@
         android:title="@string/audio_track" >
     </Preference>
 -->
+    <Preference
+        android:key="ad_list"
+        android:title="@string/ad_list" >
+    </Preference>
 
     <Preference
         android:key="sound_channel"

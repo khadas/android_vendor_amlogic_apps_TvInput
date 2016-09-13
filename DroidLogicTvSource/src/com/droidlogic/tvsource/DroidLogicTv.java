@@ -204,8 +204,17 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     }
                 }
             } else if (action.equals(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH)) {
-                int switchVal = intent.getIntExtra(DroidLogicTvUtils.EXTRA_SUBTITLE_SWITCH_VALUE, 0);
+                int switchVal = intent.getIntExtra(DroidLogicTvUtils.EXTRA_SWITCH_VALUE, 0);
                 resetSubtitleTrack((switchVal == 1));
+            } else if (action.equals(DroidLogicTvUtils.ACTION_AD_SWITCH)) {
+                int switchVal = intent.getIntExtra(DroidLogicTvUtils.EXTRA_SWITCH_VALUE, 0);
+                resetAudioADTrack((switchVal == 1));
+            } else if (action.equals(DroidLogicTvUtils.ACTION_AD_MIXING_LEVEL)) {
+                int val = intent.getIntExtra(DroidLogicTvUtils.PARA_VALUE1, 50);
+                resetAudioADMix(val);
+            }else if (action.equals(DroidLogicTvUtils.ACTION_AD_TRACK)) {
+                int track = intent.getIntExtra(DroidLogicTvUtils.PARA_VALUE1, -1);
+                resetAudioADTrack(true, track);
             }
         }
     };
@@ -384,6 +393,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             intentFilter.addAction(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH);
             intentFilter.addAction(DroidLogicTvUtils.ACTION_DELETE_CHANNEL);
             intentFilter.addAction(DroidLogicTvUtils.ACTION_SWITCH_CHANNEL);
+            intentFilter.addAction(DroidLogicTvUtils.ACTION_AD_SWITCH);
+            intentFilter.addAction(DroidLogicTvUtils.ACTION_AD_MIXING_LEVEL);
+            intentFilter.addAction(DroidLogicTvUtils.ACTION_AD_TRACK);
             registerReceiver(mReceiver, intentFilter);
         }
         super.onStart();
@@ -458,6 +470,10 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 DroidLogicTvUtils.TV_KEY_DTV_MODE, TvControlManager.dtv_mode_std_e.DTV_MODE_STD_DTMB.toInt());
             data.putInt(DroidLogicTvUtils.PARA_MODE, mode);
             mSourceView.sendAppPrivateCommand(DroidLogicTvUtils.ACTION_DTV_SET_MODE, data);
+
+            int mix = Settings.System.getInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_AD_MIX, 50);
+            data.putInt(DroidLogicTvUtils.PARA_VALUE1, mix);
+            mSourceView.sendAppPrivateCommand(DroidLogicTvUtils.ACTION_AD_MIXING_LEVEL, data);
         }
     }
 
@@ -1395,6 +1411,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 return;
             int switchVal = Settings.System.getInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_SUBTITLE_SWITCH, 0);
             resetSubtitleTrack((switchVal == 1));
+            switchVal = Settings.System.getInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_AD_SWITCH, 0);
+            resetAudioADTrack((switchVal == 1));
         }
 
         @Override
@@ -1575,5 +1593,22 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         } else {
             mSourceView.selectTrack(TvTrackInfo.TYPE_SUBTITLE, null);
         }
+    }
+
+    private void resetAudioADTrack(boolean on) {
+        resetAudioADTrack(on, -1);
+    }
+
+    private void resetAudioADTrack(boolean on, int trackIndex) {
+        Bundle data = new Bundle();
+        data.putInt(DroidLogicTvUtils.PARA_ENABLE, (on) ? 1 : 0);
+        data.putInt(DroidLogicTvUtils.PARA_VALUE1, trackIndex);
+        mSourceView.sendAppPrivateCommand(DroidLogicTvUtils.ACTION_DTV_ENABLE_AUDIO_AD, data);
+    }
+
+    private void resetAudioADMix(int val) {
+        Bundle data = new Bundle();
+        data.putInt(DroidLogicTvUtils.PARA_VALUE1, val);
+        mSourceView.sendAppPrivateCommand(DroidLogicTvUtils.ACTION_AD_MIXING_LEVEL, data);
     }
 }

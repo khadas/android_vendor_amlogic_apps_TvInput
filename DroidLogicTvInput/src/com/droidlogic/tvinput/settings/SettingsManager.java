@@ -17,6 +17,7 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.HashMap;
+import java.lang.System;
 
 import android.media.tv.TvInputInfo;
 import com.droidlogic.app.SystemControlManager;
@@ -79,6 +80,9 @@ public class SettingsManager {
     public static final String KEY_RESTORE_FACTORY                  = "restore_factory";
     public static final String KEY_DEFAULT_LANGUAGE                 = "default_language";
     public static final String KEY_SUBTITLE_SWITCH                  = "sub_switch";
+    public static final String KEY_AD_SWITCH                        = "ad_switch";
+    public static final String KEY_AD_MIX                         = "ad_mix_level";
+    public static final String KEY_AD_LIST                        = "ad_list";
     public static final String KEY_HDMI20                           = "hdmi20";
     public static final String KEY_FBC_UPGRADE                      ="fbc_upgrade";
 
@@ -125,6 +129,7 @@ public class SettingsManager {
     public static final String STRING_ICON               = "icon";
     public static final String STRING_NAME               = "name";
     public static final String STRING_STATUS              = "status";
+    public static final String STRING_PRIVATE          = "private";
     public static String currentTag = null;
 
     private Context mContext;
@@ -293,6 +298,10 @@ public class SettingsManager {
             return getDefaultLanStatus();
         } else if (key.equals(KEY_SUBTITLE_SWITCH)) {
             return getSubtitleSwitchStatus();
+        } else if (key.equals(KEY_AD_SWITCH)) {
+            return getADSwitchStatus();
+        } else if (key.equals(KEY_AD_MIX)) {
+            return getADMixStatus();
         } else if (key.equals(KEY_COLOR_SYSTEM)) {
             return getColorSystemStatus();
         } else if (key.equals(KEY_SOUND_SYSTEM)) {
@@ -571,6 +580,27 @@ public class SettingsManager {
         return list;
     }
 
+    public ArrayList<HashMap<String, Object>> getAudioADList () {
+        ArrayList<HashMap<String, Object>> list =  new ArrayList<HashMap<String, Object>>();
+
+        if (currentChannel != null && currentChannel.getAudioLangs() != null && DroidLogicTvUtils.hasAudioADTracks(currentChannel)) {
+            int mainTrackIndex = mSystemControlManager.getPropertyInt("tv.dtv.audio_track_idx", -1);
+            Log.d(TAG, "mainTrackIndex["+mainTrackIndex+"]");
+            if (mainTrackIndex < 0)
+                return list;
+
+            int[] adAudioIdx = DroidLogicTvUtils.getAudioADTracks(currentChannel, mainTrackIndex);
+            for (int i = 0; i < adAudioIdx.length; i++) {
+                HashMap<String, Object> item = new HashMap<String, Object>();
+                item.put(STRING_NAME, currentChannel.getAudioLangs()[adAudioIdx[i]]);
+                item.put(STRING_PRIVATE, String.valueOf(adAudioIdx[i]));
+                list.add(item);
+            }
+        }
+
+        return list;
+    }
+
     public ArrayList<HashMap<String, Object>> getSoundChannelList () {
         ArrayList<HashMap<String, Object>> list =  new ArrayList<HashMap<String, Object>>();
 
@@ -637,6 +667,18 @@ public class SettingsManager {
         }
     }
 
+    public String getADSwitchStatus () {
+        int switchVal = Settings.System.getInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_AD_SWITCH, 0);
+        switch (switchVal) {
+            case 0:
+                return mResources.getString(R.string.off);
+            case 1:
+                return mResources.getString(R.string.on);
+            default:
+                return mResources.getString(R.string.off);
+        }
+    }
+
     public String getColorSystemStatus () {
         if (currentChannel != null) {
             switch (currentChannel.getVideoStd()) {
@@ -679,6 +721,15 @@ public class SettingsManager {
             return currentChannel.getAudioCompensation();
         else
             return 0;
+    }
+
+    private String getADMixStatus () {
+        return getADMix() + "%";
+    }
+
+    public int getADMix() {
+        int val = Settings.System.getInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_AD_MIX, 50);
+        return val;
     }
 
 
@@ -1387,6 +1438,30 @@ public class SettingsManager {
         Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_SUBTITLE_SWITCH, switchVal);
     }
 
+    public void setAudioADSwitch (int switchVal) {
+        Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_AD_SWITCH, switchVal);
+        Intent intent = new Intent(DroidLogicTvUtils.ACTION_AD_SWITCH);
+        intent.putExtra(DroidLogicTvUtils.EXTRA_SWITCH_VALUE, switchVal);
+        mContext.sendBroadcast(intent);
+    }
+
+    public void setADMix (int step) {
+        int level = getADMix() + step;
+        if (level <= 100 && level >= 0) {
+            Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_AD_MIX, level);
+            Intent intent = new Intent(DroidLogicTvUtils.ACTION_AD_MIXING_LEVEL);
+            intent.putExtra(DroidLogicTvUtils.PARA_VALUE1, level);
+            mContext.sendBroadcast(intent);
+        }
+    }
+
+    public void setAudioADTrack (int track) {
+        //Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_AD_TRACK, track);
+        Intent intent = new Intent(DroidLogicTvUtils.ACTION_AD_TRACK);
+        intent.putExtra(DroidLogicTvUtils.PARA_VALUE1, track);
+        mContext.sendBroadcast(intent);
+    }
+
     public void doFactoryReset() {
         mTvControlManager.StopTv();
         setSleepTimer(DEFAULT_SLEEP_TIMER);
@@ -1394,6 +1469,7 @@ public class SettingsManager {
         setStartupSetting(0);
         setDefLanguage(0);
         setSubtitleSwitch(0);
+        setAudioADSwitch(0);
         // SystemControlManager mSystemControlManager = new SystemControlManager(mContext);
         // mSystemControlManager.setBootenv("ubootenv.var.upgrade_step", "1");
 

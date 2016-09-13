@@ -42,6 +42,16 @@
     </Preference>
 
     <Preference
+        android:key="ad_switch"
+        android:title="@string/ad_switch" >
+    </Preference>
+
+    <Preference
+        android:key="ad_mix"
+        android:title="@string/ad_mix" >
+    </Preference>
+
+    <Preference
         android:key="restore_factory"
         android:title="@string/restore_factory" >
     </Preference>

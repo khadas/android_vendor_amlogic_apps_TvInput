@@ -61,13 +61,6 @@ public class OptionListLayout implements OnItemClickListener,UpgradeFBCListener 
                                                   new String[] {SettingsManager.STRING_NAME, SettingsManager.STRING_STATUS},
                                                   new int[] {R.id.text_name, R.id.text_status});
                 break;
-            case OptionUiManager.OPTION_AUDIO_TRACK:
-                title.setText(mContext.getResources().getString(R.string.audio_track));
-                optionListData = ((TvSettingsActivity)mContext).getSettingsManager().getAudioTrackList();
-                optionAdapter = new SimpleAdapter(mContext, optionListData,
-                                                  R.layout.layout_option_single_text,
-                                                  new String[] {SettingsManager.STRING_NAME}, new int[] {R.id.text_name});
-                break;
             case OptionUiManager.OPTION_DEFAULT_LANGUAGE:
                 title.setText(mContext.getResources().getString(R.string.defalut_lan));
                 optionListData = ((TvSettingsActivity)mContext).getSettingsManager().getDefaultLanguageList();
@@ -81,6 +74,13 @@ public class OptionListLayout implements OnItemClickListener,UpgradeFBCListener 
                 optionAdapter = new SimpleAdapter(mContext, optionListData,
                                                   R.layout.layout_option_single_text,
                                                   new String[] { SettingsManager.STRING_NAME }, new int[] { R.id.text_name });
+                break;
+            case OptionUiManager.OPTION_AD_LIST:
+                title.setText(mContext.getResources().getString(R.string.ad_list));
+                optionListData = ((TvSettingsActivity)mContext).getSettingsManager().getAudioADList();
+                optionAdapter = new SimpleAdapter(mContext, optionListData,
+                                                  R.layout.layout_option_single_text,
+                                                  new String[] {SettingsManager.STRING_NAME}, new int[] {R.id.text_name});
                 break;
         }
         if (optionAdapter != null) {
@@ -143,6 +143,9 @@ public class OptionListLayout implements OnItemClickListener,UpgradeFBCListener 
                 WindowManager.LayoutParams lp = window.getAttributes();
                 lp.alpha = 0.8f;
                 window.setAttributes(lp);
+                break;
+            case OptionUiManager.OPTION_AD_LIST:
+                getSettingsManager().setAudioADTrack(Integer.parseInt(optionListData.get(position).get(SettingsManager.STRING_PRIVATE).toString()));
                 break;
         }
         ((TvSettingsActivity) mContext).getCurrentFragment().refreshList();
