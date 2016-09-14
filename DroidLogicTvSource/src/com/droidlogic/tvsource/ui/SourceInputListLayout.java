@@ -137,14 +137,6 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
         return ACTION_SUCCESS;
     }
 
-    public SourceButton getSourceInput(TvInputInfo info) {
-        int id = getDeviceId(info);
-        if (id > 0) {
-            return mSourceInputs.get(id);
-        }
-        return null;
-    }
-
     public int refresh() {
         int device_id = -1;
 
@@ -197,6 +189,18 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
         return INPUT_NEED_RESET;
     }
 
+    public SourceButton getSourceInput(TvInputInfo info) {
+        int id = getDeviceId(info);
+        if (id > 0) {
+            return mSourceInputs.get(id);
+        }
+        return null;
+    }
+
+    public SourceButton getSourceInput(int deviceId) {
+        return deviceId > 0 ? mSourceInputs.get(deviceId) : null;
+    }
+
     private int getDeviceId(TvInputInfo info) {
         String[] temp = info.getId().split(Utils.DELIMITER_INFO_IN_ID);
         if (temp.length == 3) {
@@ -239,7 +243,10 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
     }
 
     public void setCurSourceInput(SourceButton sb) {
+        if (curSourceInput != null)
+            curSourceInput.setSelected(false);
         curSourceInput = sb;
+        curSourceInput.setSelected(true);
     }
 
     public SourceButton getCurSourceInput() {

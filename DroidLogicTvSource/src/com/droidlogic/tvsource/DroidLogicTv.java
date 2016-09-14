@@ -99,6 +99,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private static final int MSG_UI_TIMEOUT              = 0;
     private static final int MSG_CHANNEL_NUM_SWITCH     = 1;
     private static final int MSG_TUNE                     = 2;
+    private static final int MSG_INPUT_CHANGE            = 3;
 
     private static final int DEFAULT_TIMEOUT             = 5000;
 
@@ -224,21 +225,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         mInputListener = new InputChangeListener() {
             @Override
             public void onChanged(HdmiDeviceInfo info) {
-                if (mTvInputManager == null || info == null) return ;
-                List<TvInputInfo> inputList = mTvInputManager.getTvInputList();
-                // TODO: process hdmiId for repeat connections
-                // TODO: add configurations for One Touch Play features of CEC
-                int hdmiId = info.getPhysicalAddress() >> 12;
-                hdmiId += (DroidLogicTvUtils.DEVICE_ID_HDMI1 - 1);
-                for (TvInputInfo tvInfo : inputList) {
-                    int tvDeviceId = getDeviceId(tvInfo);
-                    if (tvDeviceId == hdmiId && !tvInfo.equals(mSourceInput.getTvInputInfo())) {
-                        preSwitchSourceInput();
-                        mSourceInput = mSourceMenuLayout.getSourceInput(tvInfo);
-                        mSourceMenuLayout.setCurSourceInput(mSourceInput);
-                        sendTuneMessage();
-                    }
-                }
+                if (mTvInputManager == null || info == null)
+                    return ;
+                mHandler.sendMessage(mHandler.obtainMessage(MSG_INPUT_CHANGE, info));
             }
         };
         if (mHdmiTvClient == null) {
@@ -250,15 +239,18 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         mHdmiCecManager = new DroidLogicHdmiCecManager(this);
     }
 
-    private int getDeviceId(TvInputInfo info) {
-        String[] temp = info.getId().split(Utils.DELIMITER_INFO_IN_ID);
-        if (temp.length == 3) {
-            /*  ignore for HDMI CEC device */
-            if (temp[2].contains(Utils.PREFIX_HDMI_DEVICE))
-                return -1;
-            return Integer.parseInt(temp[2].substring(2));
-        } else {
-            return -1;
+    private void processInputChange(HdmiDeviceInfo info) {
+        int hdmiId = info.getPhysicalAddress() >> 12;
+        hdmiId += (DroidLogicTvUtils.DEVICE_ID_HDMI1 - 1);
+
+        Log.d(TAG, "==== processInputChange, hdmiId = " + hdmiId);
+
+        SourceButton tmp = mSourceMenuLayout.getSourceInput(hdmiId);
+        if (tmp != null && !tmp.equals(mSourceInput)) {
+            preSwitchSourceInput();
+            mSourceInput = tmp;
+            mSourceMenuLayout.setCurSourceInput(mSourceInput);
+            sendTuneMessage();
         }
     }
 
@@ -1195,7 +1187,6 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
 
     @Override
     public boolean handleMessage(Message msg) {
-        int max_counter;
         switch (msg.what) {
             case MSG_UI_TIMEOUT:
                 switch (mUiType) {
@@ -1235,6 +1226,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     Utils.logd(TAG, "======== bootvideo is not stopped, wait it");
                     mHandler.sendEmptyMessageDelayed(MSG_TUNE, 200);
                 }
+                break;
+            case MSG_INPUT_CHANGE:
+                processInputChange((HdmiDeviceInfo)msg.obj);
                 break;
             default:
                 break;

@@ -341,12 +341,10 @@ public class SourceButton extends LinearLayout {
     }
 
     private void stateChanged(int state) {
-        if (hasFocus()) {
-            textName.setTextColor(getResources().getColor(R.color.source_focus));
-        } else if (state != TvInputManager.INPUT_STATE_CONNECTED) {
+        if (state != TvInputManager.INPUT_STATE_CONNECTED) {
             textName.setTextColor(getResources().getColor(R.color.source_undisconnect));
         } else {
-            textName.setTextColor(getResources().getColor(R.color.source_unfocus));
+            textName.setTextColor(getResources().getColor(R.color.source_focus));
         }
     }
 
