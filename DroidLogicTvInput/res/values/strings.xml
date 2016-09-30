@@ -71,6 +71,7 @@
 
     <!-- Settings -->
     <string name="settings">Settings</string>
+    <string name="dtv_mode">DTV Mode</string>
     <string name="sleep_timer">Sleep Timer</string>
     <string name="menu_time">Menu Time</string>
     <string name="startup_setting">Startup Setting</string>
@@ -153,6 +154,8 @@
     <string name="error_atv_error_3">start frequency must big than end frequency 1MHz</string>
     <string name="error_atv_startSearch">failed to start search channels</string>
     <string name="searched">Searched</string>
+    <string name="dtmb">DTMB</string>
+    <string name="dvbc">DVB-C</string>
 
     <!-- for time suspend ui -->
     <string name="suspend_dialog_title">Suspend Countdown</string>

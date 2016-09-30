@@ -148,6 +148,7 @@ public class DTVInputService extends DroidLogicTvInputService {
     private static Handler mHandler = null;
     private static DTVSessionImpl.DTVMonitor monitor = null;
     private final Object mLock = new Object();
+    private static int dtvMode = TVChannelParams.MODE_DTMB;
 
     public class DTVSessionImpl extends TvInputBaseSession implements TvControlManager.AVPlaybackListener {
         private final Context mContext;
@@ -214,6 +215,9 @@ public class DTVInputService extends DroidLogicTvInputService {
                 stopSubtitle();
                 setMonitor(null);
                 releasePlayer();
+            }  else if (TextUtils.equals(DroidLogicTvUtils.ACTION_DTV_SET_MODE, action)) {
+                dtvMode = bundle.getInt(DroidLogicTvUtils.PARA_MODE);
+                Log.d(TAG, "do private cmd: DTV_SET_MODE ["+dtvMode+"]");
             }
         }
 
@@ -230,7 +234,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             mUnblockedRatingSet.clear();
             Log.d(TAG, "switchToSourceInput  uri=" + uri);
             if (Utils.getChannelId(uri) < 0) {
-                mTvControlManager.PlayDTVProgram(TVChannelParams.MODE_DTMB, 470000000, 0, 0, 0, 0, -1, -1, 0, 0);
+                mTvControlManager.PlayDTVProgram((dtvMode & 0xFF), 470000000, 0, 0, 0, 0, -1, -1, 0, 0);
                 mCurrentChannel = null;
                 return;
             }
@@ -247,23 +251,35 @@ public class DTVInputService extends DroidLogicTvInputService {
         private boolean playProgram(ChannelInfo info) {
             info.print();
             int mode = Utils.type2mode(info.getType());
+            int audioTrackAuto = getAudioTrackAuto(info);
+            int para1 = 0;
+            int para2 = 0;
+
             if (mode == TVChannelParams.MODE_DTMB) {
-                int audioTrackAuto = getAudioTrackAuto(info);
-                mTvControlManager.PlayDTVProgram(
-                        mode,
-                        info.getFrequency(),
-                        info.getBandwidth(),
-                        0,
-                        info.getVideoPid(),
-                        info.getVfmt(),
-                        (audioTrackAuto >= 0) ? info.getAudioPids()[audioTrackAuto] : -1,
-                        (audioTrackAuto >= 0) ? info.getAudioFormats()[audioTrackAuto] : -1,
-                        info.getPcrPid(),
-                        info.getAudioCompensation());
+                para1 = info.getBandwidth();
+            } else if (mode == TVChannelParams.MODE_QAM) {
+                para1 = info.getSymbolRate();
+                para2 = info.getModulation();
+            } else if (mode == TVChannelParams.MODE_QPSK) {
+                para1 = info.getSymbolRate();
+            } else {
+                    Log.d(TAG, "channel type[" + info.getType() + "] not supported yet.");
+                    return false;
+            }
+
+            mTvControlManager.PlayDTVProgram(
+                    mode,
+                    info.getFrequency(),
+                    para1,
+                    para2,
+                    info.getVideoPid(),
+                    info.getVfmt(),
+                    (audioTrackAuto >= 0) ? info.getAudioPids()[audioTrackAuto] : -1,
+                    (audioTrackAuto >= 0) ? info.getAudioFormats()[audioTrackAuto] : -1,
+                    info.getPcrPid(),
+                    info.getAudioCompensation());
                 mTvControlManager.DtvSetAudioChannleMod(info.getAudioChannel());
                 mTvControlManager.SetAVPlaybackListener(this);
-            } else
-                Log.d(TAG, "channel type[" + info.getType() + "] not supported yet.");
 
             stopSubtitle();
 
@@ -687,6 +703,8 @@ public class DTVInputService extends DroidLogicTvInputService {
 
             if (mode == TVChannelParams.MODE_DTMB)
                 params = TVChannelParams.dtmbParams(channel.getFrequency(), channel.getBandwidth());
+            else if (mode == TVChannelParams.MODE_QAM)
+                params = TVChannelParams.dvbcParams(channel.getFrequency(), channel.getModulation(), channel.getSymbolRate());
 
             return params;
         }

@@ -7,6 +7,11 @@
     </Preference>
 
     <Preference
+        android:key="dtv_mode"
+        android:title="@string/dtv_mode" >
+    </Preference>
+
+    <Preference
         android:key="sleep_timer"
         android:title="@string/sleep_timer" >
     </Preference>

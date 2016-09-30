@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import com.droidlogic.app.tv.TvControlManager;
 import com.droidlogic.app.tv.TvControlManager.FreqList;
@@ -79,15 +80,16 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     public static final int OPTION_CHANNEL_EDIT = 39;
     public static final int OPTION_SWITCH_CHANNEL = 310;
 
-    public static final int OPTION_SLEEP_TIMER = 400;
-    public static final int OPTION_MENU_TIME = 401;
-    public static final int OPTION_STARTUP_SETTING = 402;
-    public static final int OPTION_DYNAMIC_BACKLIGHT = 403;
-    public static final int OPTION_RESTORE_FACTORY = 404;
-    public static final int OPTION_DEFAULT_LANGUAGE = 405;
-    public static final int OPTION_SUBTITLE_SWITCH = 406;
-    public static final int OPTION_HDMI20 = 407;
-    public static final int OPTION_FBC_UPGRADE = 408;
+    public static final int OPTION_DTV_MODE = 400;
+    public static final int OPTION_SLEEP_TIMER = 401;
+    public static final int OPTION_MENU_TIME = 402;
+    public static final int OPTION_STARTUP_SETTING = 403;
+    public static final int OPTION_DYNAMIC_BACKLIGHT = 404;
+    public static final int OPTION_RESTORE_FACTORY = 405;
+    public static final int OPTION_DEFAULT_LANGUAGE = 406;
+    public static final int OPTION_SUBTITLE_SWITCH = 407;
+    public static final int OPTION_HDMI20 = 408;
+    public static final int OPTION_FBC_UPGRADE = 409;
 
     public static final int ALPHA_NO_FOCUS = 230;
     public static final int ALPHA_FOCUSED = 255;
@@ -235,7 +237,10 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             optionKey = SettingsManager.KEY_SWITCH_CHANNEL;
         }
         // Settings
-        else if (item_name.equals(mResources.getString(R.string.sleep_timer))) {
+        else if (item_name.equals(mResources.getString(R.string.dtv_mode))) {
+            optionTag = OPTION_DTV_MODE;
+            optionKey = SettingsManager.KEY_DTV_MODE;
+        } else if (item_name.equals(mResources.getString(R.string.sleep_timer))) {
             optionTag = OPTION_SLEEP_TIMER;
             optionKey = SettingsManager.KEY_SLEEP_TIMER;
         } else if (item_name.equals(mResources.getString(R.string.menu_time))) {
@@ -337,6 +342,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             case OPTION_CHANNEL_EDIT:
                 return R.layout.layout_channel_channel_edit;
             // settings
+            case OPTION_DTV_MODE:
+                return R.layout.layout_settings_dtv_mode;
             case OPTION_SLEEP_TIMER:
                 return R.layout.layout_settings_sleep_timer;
             case OPTION_MENU_TIME:
@@ -613,6 +620,13 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 startAutosearch();
                 break;
             // ====Settings====
+            // DTV Mode
+            case R.id.dtmb:
+                mSettingsManager.setDtvMode(TvControlManager.dtv_mode_std_e.DTV_MODE_STD_DTMB.toInt());
+                break;
+            case R.id.dvbc:
+                mSettingsManager.setDtvMode(TvControlManager.dtv_mode_std_e.DTV_MODE_STD_DVBC.toInt());
+                break;
             // Sleep Timer
             case R.id.sleep_timer_off:
                 mSettingsManager.setSleepTimer(0);
@@ -833,6 +847,13 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 }
                 break;
             // settings
+            case OPTION_DTV_MODE:
+                if (TextUtils.equals(mSettingsManager.getDtvModeString(mSettingsManager.getDtvMode()), mResources.getString(R.string.dtmb))) {
+                    setIcon(parent, R.id.dtmb);
+                } else if (TextUtils.equals(mSettingsManager.getDtvModeString(mSettingsManager.getDtvMode()), mResources.getString(R.string.dvbc))) {
+                    setIcon(parent, R.id.dvbc);
+                }
+                break;
             case OPTION_SLEEP_TIMER:
                 if (TextUtils.equals(mSettingsManager.getSleepTimerStatus(), mResources.getString(R.string.off))) {
                     setIcon(parent, R.id.sleep_timer_off);
@@ -1140,6 +1161,17 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         }
     }
 
+    private static final Map<Integer, Integer> DTV_MODE_TO_LOWER_MODE_MAP = new HashMap<Integer, Integer>();
+
+    static {
+        DTV_MODE_TO_LOWER_MODE_MAP.put(TvControlManager.dtv_mode_std_e.DTV_MODE_STD_DTMB.toInt(), TVChannelParams.MODE_DTMB);
+        DTV_MODE_TO_LOWER_MODE_MAP.put(TvControlManager.dtv_mode_std_e.DTV_MODE_STD_DVBC.toInt(), TVChannelParams.MODE_QAM);
+    }
+
+    private int getDtvLowerMode(int dtvMode) {
+        return DTV_MODE_TO_LOWER_MODE_MAP.get(dtvMode);
+    }
+
     private void startManualSearch() {
         ViewGroup parent = (ViewGroup) ((TvSettingsActivity) mContext).mOptionLayout.getChildAt(0);
         if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV) {
@@ -1184,7 +1216,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             if (channel == null || channel.length() == 0)
                 channel = (String)edit.getHint();
             mTvControlManager.DtvSetTextCoding("GB2312");
-            mTvControlManager.DtvManualScan(getDvbFrequencyByPd(Integer.valueOf(channel)));
+            int mode = mSettingsManager.getDtvMode();
+            mTvControlManager.DtvManualScan(getDtvLowerMode(mode), getDvbFrequencyByPd(Integer.valueOf(channel)));
             isSearching = true;
             mSettingsManager.setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
             Intent intent = new Intent(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH);
@@ -1267,7 +1300,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
 
     private int getDvbFrequencyByPd(int pd_number) { // KHz
         int the_freq = 706000000;
-        ArrayList<FreqList> m_fList = mTvControlManager.DTVGetScanFreqList();
+        int mode = mSettingsManager.getDtvMode();
+        ArrayList<FreqList> m_fList = mTvControlManager.DTVGetScanFreqList(getDtvLowerMode(mode));
         int size = m_fList.size();
         for (int i = 0; i < size; i++) {
             if (pd_number == m_fList.get(i).ID) {
@@ -1355,9 +1389,11 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             mTvControlManager.AtvAutoScan(TvControlManager.ATV_VIDEO_STD_PAL, TvControlManager.ATV_AUDIO_STD_I, 0, 0);
             Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_ATV_CHANNEL_INDEX, -1);
         } else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
-            mTvControlManager.PlayDTVProgram(TVChannelParams.MODE_DTMB, 470000000, 0, 0, 0, 0, -1, -1, 0, 0);
+            int mode = mSettingsManager.getDtvMode();
+            int lowerMode = getDtvLowerMode(mode);
+            mTvControlManager.PlayDTVProgram(lowerMode, 470000000, 0, 0, 0, 0, -1, -1, 0, 0);
             mTvControlManager.DtvSetTextCoding("GB2312");
-            mTvControlManager.DtvAutoScan();
+            mTvControlManager.DtvAutoScan(lowerMode);
             Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_DTV_CHANNEL_INDEX, -1);
             Intent intent = new Intent(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH);
             intent.putExtra(DroidLogicTvUtils.EXTRA_SUBTITLE_SWITCH_VALUE, 0);
@@ -1476,6 +1512,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                .setPcrPid(event.pcr)
                .setFrequency(event.freq)
                .setBandwidth(event.bandwidth)
+               .setSymbolRate(event.sr)
+               .setModulation(event.mod)
                .setFineTune(0)
                .setBrowsable(true)
                .setIsFavourite(false)
@@ -1521,6 +1559,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                .setPcrPid(0)
                .setFrequency(event.freq)
                .setBandwidth(0)
+               .setSymbolRate(0)
+               .setModulation(0)
                .setFineTune(0)
                .setBrowsable(true)
                .setIsFavourite(false)

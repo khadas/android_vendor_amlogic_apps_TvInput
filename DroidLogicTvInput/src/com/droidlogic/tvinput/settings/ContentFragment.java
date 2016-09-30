@@ -163,6 +163,9 @@ public class ContentFragment extends Fragment {
                 if (getSettingsManager().getCurentTvSource() != TvControlManager.SourceInput_Type.SOURCE_TYPE_HDMI &&
                         key.equals(SettingsManager.KEY_HDMI20))
                     return;
+                if (key.equals(SettingsManager.KEY_DTV_MODE) &&
+                        getSettingsManager().getCurentTvSource() != TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV)
+                    return;
 
                 HashMap<String, Object> map = new HashMap<String, Object>();
                 map.put(ITEM_KEY, key);

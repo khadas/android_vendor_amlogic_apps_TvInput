@@ -451,6 +451,16 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         mHandler.sendEmptyMessage(MSG_TUNE);
     }
 
+    private void preTuneCmd() {//not-time-related cmds only
+        if (mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_DTV) {
+            Bundle data = new Bundle();
+            int mode = Settings.System.getInt(mContext.getContentResolver(),
+                DroidLogicTvUtils.TV_KEY_DTV_MODE, TvControlManager.dtv_mode_std_e.DTV_MODE_STD_DTMB.toInt());
+            data.putInt(DroidLogicTvUtils.PARA_MODE, mode);
+            mSourceView.sendAppPrivateCommand(DroidLogicTvUtils.ACTION_DTV_SET_MODE, data);
+        }
+    }
+
     /**
      * must be invoked after {@link SourceButton.moveToChannel}.
      * if there is nothing about channel switching in the tv.db, the {@code channel_uri}
@@ -472,7 +482,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             mThreadHandler.obtainMessage(MSG_SAVE_CHANNEL_INFO).sendToTarget();
             Uri channel_uri = mSourceInput.getUri();
             Utils.logd(TAG, "channelUri switching to is " + channel_uri);
+            preTuneCmd();
             mSourceView.tune(mSourceInput.getInputId(), channel_uri);
+            preTuneCmd();/*cmds before tune will be lost if 1st-session-create, re-send*/
             if (mSourceInput.isRadioChannel() || mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_SPDIF) {
                 mMainView.setBackgroundDrawable(getResources().getDrawable(R.drawable.bg_radio));
             } else {

@@ -71,6 +71,7 @@ public class SettingsManager {
     public static final String KEY_SWITCH_CHANNEL                   = "switch_channel";
 
     public static final String KEY_SETTINGS                         = "settings";
+    public static final String KEY_DTV_MODE                         = "dtv_mode";
     public static final String KEY_SLEEP_TIMER                      = "sleep_timer";
     public static final String KEY_MENU_TIME                        = "menu_time";
     public static final String KEY_STARTUP_SETTING                  = "startup_setting";
@@ -304,7 +305,9 @@ public class SettingsManager {
             return getFineTuneStatus();
         }
         //settings
-        else if (key.equals(KEY_SLEEP_TIMER)) {
+        else if (key.equals(KEY_DTV_MODE)) {
+            return getDtvModeString(getDtvMode());
+        } else if (key.equals(KEY_SLEEP_TIMER)) {
             return getSleepTimerStatus();
         } else if (key.equals(KEY_MENU_TIME)) {
             return getMenuTimeStatus();
@@ -846,6 +849,28 @@ public class SettingsManager {
             return mResources.getString(R.string.black_frame);
     }
 
+    public int getDtvMode() {
+        return Settings.System.getInt(mContext.getContentResolver(),
+            DroidLogicTvUtils.TV_KEY_DTV_MODE, TvControlManager.dtv_mode_std_e.DTV_MODE_STD_DTMB.toInt());
+    }
+
+    public String getDtvModeString(int mode) {
+        String ret = "";
+        switch (mode) {
+            case 0://
+                break;
+            case 1://TvControlManager.dtv_mode_std_e.DTV_MODE_STD_DTMB
+                ret = mResources.getString(R.string.dtmb);
+                break;
+            case 2://TvControlManager.dtv_mode_std_e.DTV_MODE_STD_DVBC
+                ret = mResources.getString(R.string.dvbc);
+                break;
+            default:
+                break;
+        }
+        return ret;
+    }
+
     public String getSleepTimerStatus () {
         String ret = "";
         int time = mSystemControlManager.getPropertyInt("tv.sleep_timer", 0);
@@ -1336,6 +1361,10 @@ public class SettingsManager {
     public void setFavouriteChannel (int type, int channelNumber) {
         ChannelInfo channel = getChannelByIndex(type, channelNumber);
         mTvDataBaseManager.setFavouriteChannel(channel);
+    }
+
+    public void setDtvMode(int mode) {
+        Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DTV_MODE, mode);
     }
 
     public void setSleepTimer (int mins) {
