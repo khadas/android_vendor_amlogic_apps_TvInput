@@ -24,6 +24,7 @@ import android.view.KeyEvent;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.provider.Settings;
 
 public class SourceButton extends LinearLayout {
     private static final String TAG = "SourceButton";
@@ -40,7 +41,8 @@ public class SourceButton extends LinearLayout {
     private TextView textName;
     private boolean mIsHardware = false;
     private String mAvType = "";
-    private int recentChannelIndex = -1;
+    private String RECENT_CHANNEL_INDEX = null;
+    private boolean mIsFirstTimeInit;
     private int mState = -1;
 
     private OnSourceClickListener mListener;
@@ -94,6 +96,9 @@ public class SourceButton extends LinearLayout {
         initTextColor();
         initSourceType();
         initChannelTuner();
+
+        RECENT_CHANNEL_INDEX = "resent_" + mSourceLabel + "_channel_index";
+        mIsFirstTimeInit = true;
     }
 
     public void switchSource () {
@@ -168,7 +173,7 @@ public class SourceButton extends LinearLayout {
     }
 
     public int getChannelIndex() {
-        return mChannelTuner == null ? 0 : mChannelTuner.getCurrentChannelIndex();
+        return mChannelTuner == null ? -1 : mChannelTuner.getCurrentChannelIndex();
     }
 
     public int getChannelIndex(int channelNumber, boolean isRadio){
@@ -351,7 +356,10 @@ public class SourceButton extends LinearLayout {
     public boolean moveToChannel(int channelNum, boolean isRadio) {
         if (mChannelTuner == null)
             return false;
-        setRecentChannelIndex(getChannelIndex());
+        if (mIsFirstTimeInit)
+            mIsFirstTimeInit = false;
+        else
+            setRecentChannelIndex(getChannelIndex());
         return mChannelTuner.moveToChannel(getChannelIndex(channelNum, isRadio), isRadio);
     }
 
@@ -375,6 +383,7 @@ public class SourceButton extends LinearLayout {
     }
 
     public boolean moveToRecentChannel() {
+        int recentChannelIndex = Settings.System.getInt(mContext.getContentResolver(), RECENT_CHANNEL_INDEX, -1);
         if (recentChannelIndex != getChannelIndex())
             return moveToIndex(recentChannelIndex);
         else
@@ -382,8 +391,10 @@ public class SourceButton extends LinearLayout {
     }
 
     private void setRecentChannelIndex(int index) {
-        if (recentChannelIndex != index)
-            recentChannelIndex = index;
+        int recentChannelIndex = Settings.System.getInt(mContext.getContentResolver(), RECENT_CHANNEL_INDEX, -1);
+        if (recentChannelIndex != index) {
+            Settings.System.putInt(mContext.getContentResolver(), RECENT_CHANNEL_INDEX, index);
+        }
     }
 
     public boolean dispatchKeyEvent (KeyEvent event) {
