@@ -163,7 +163,7 @@ public class ContentFragment extends Fragment {
                 if (getSettingsManager().getCurentTvSource() != TvControlManager.SourceInput_Type.SOURCE_TYPE_HDMI &&
                         key.equals(SettingsManager.KEY_HDMI20))
                     return;
-                if (key.equals(SettingsManager.KEY_DTV_MODE) &&
+                if (key.equals(SettingsManager.KEY_DTV_TYPE) &&
                         getSettingsManager().getCurentTvSource() != TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV)
                     return;
 

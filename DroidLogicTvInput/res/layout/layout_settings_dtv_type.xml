@@ -10,7 +10,7 @@
         android:layout_marginTop="43dp"
         android:layout_marginLeft="31dp"
         android:paddingLeft="15dp"
-        android:text="@string/dtv_mode"
+        android:text="@string/dtv_type"
         android:textSize="27sp"
         android:textColor="@color/color_text_item"
         />
@@ -37,6 +37,19 @@
         android:background="@drawable/item_background"
         android:focusable="true"
         android:text="@string/dvbc"
+        android:textSize="26sp"
+        android:textColor="@color/color_text_item"
+        />
+    <TextView
+        android:id="@+id/dvbt"
+        android:layout_width="262dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="31dp"
+        android:paddingLeft="50dp"
+        android:background="@drawable/item_background"
+        android:focusable="true"
+        android:text="@string/dvbt"
         android:textSize="26sp"
         android:textColor="@color/color_text_item"
         />

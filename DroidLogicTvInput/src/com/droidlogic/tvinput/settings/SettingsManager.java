@@ -72,7 +72,7 @@ public class SettingsManager {
     public static final String KEY_SWITCH_CHANNEL                   = "switch_channel";
 
     public static final String KEY_SETTINGS                         = "settings";
-    public static final String KEY_DTV_MODE                         = "dtv_mode";
+    public static final String KEY_DTV_TYPE                         = "dtv_type";
     public static final String KEY_SLEEP_TIMER                      = "sleep_timer";
     public static final String KEY_MENU_TIME                        = "menu_time";
     public static final String KEY_STARTUP_SETTING                  = "startup_setting";
@@ -314,8 +314,8 @@ public class SettingsManager {
             return getFineTuneStatus();
         }
         //settings
-        else if (key.equals(KEY_DTV_MODE)) {
-            return getDtvModeString(getDtvMode());
+        else if (key.equals(KEY_DTV_TYPE)) {
+            return getDtvTypeStatus(getDtvType());
         } else if (key.equals(KEY_SLEEP_TIMER)) {
             return getSleepTimerStatus();
         } else if (key.equals(KEY_MENU_TIME)) {
@@ -590,11 +590,13 @@ public class SettingsManager {
                 return list;
 
             int[] adAudioIdx = DroidLogicTvUtils.getAudioADTracks(currentChannel, mainTrackIndex);
-            for (int i = 0; i < adAudioIdx.length; i++) {
-                HashMap<String, Object> item = new HashMap<String, Object>();
-                item.put(STRING_NAME, currentChannel.getAudioLangs()[adAudioIdx[i]]);
-                item.put(STRING_PRIVATE, String.valueOf(adAudioIdx[i]));
-                list.add(item);
+            if (adAudioIdx != null) {
+                for (int i = 0; i < adAudioIdx.length; i++) {
+                    HashMap<String, Object> item = new HashMap<String, Object>();
+                    item.put(STRING_NAME, currentChannel.getAudioLangs()[adAudioIdx[i]]);
+                    item.put(STRING_PRIVATE, String.valueOf(adAudioIdx[i]));
+                    list.add(item);
+                }
             }
         }
 
@@ -900,24 +902,34 @@ public class SettingsManager {
             return mResources.getString(R.string.black_frame);
     }
 
-    public int getDtvMode() {
-        return Settings.System.getInt(mContext.getContentResolver(),
-            DroidLogicTvUtils.TV_KEY_DTV_MODE, TvControlManager.dtv_mode_std_e.DTV_MODE_STD_DTMB.toInt());
+    public String getDtvType() {
+        String type = Settings.System.getString(mContext.getContentResolver(),
+            DroidLogicTvUtils.TV_KEY_DTV_TYPE);
+        return (type != null)? type : TvContract.Channels.TYPE_DTMB;
     }
 
-    public String getDtvModeString(int mode) {
+    public String getDtvTypeStatus(String type) {
         String ret = "";
-        switch (mode) {
-            case 0://
-                break;
-            case 1://TvControlManager.dtv_mode_std_e.DTV_MODE_STD_DTMB
+        if (TextUtils.equals(type, TvContract.Channels.TYPE_DTMB)) {
                 ret = mResources.getString(R.string.dtmb);
-                break;
-            case 2://TvControlManager.dtv_mode_std_e.DTV_MODE_STD_DVBC
+        } else if (TextUtils.equals(type, TvContract.Channels.TYPE_DVB_C)) {
                 ret = mResources.getString(R.string.dvbc);
-                break;
-            default:
-                break;
+        } else if (TextUtils.equals(type, TvContract.Channels.TYPE_DVB_T)) {
+                ret = mResources.getString(R.string.dvbt);
+        } else if (TextUtils.equals(type, TvContract.Channels.TYPE_DVB_S)) {
+                ret = mResources.getString(R.string.dvbs);
+        } else if (TextUtils.equals(type, TvContract.Channels.TYPE_DVB_C2)) {
+                ret = mResources.getString(R.string.dvbc2);
+        } else if (TextUtils.equals(type, TvContract.Channels.TYPE_DVB_T2)) {
+                ret = mResources.getString(R.string.dvbt2);
+        } else if (TextUtils.equals(type, TvContract.Channels.TYPE_DVB_S2)) {
+                ret = mResources.getString(R.string.dvbs2);
+        } else if (TextUtils.equals(type, TvContract.Channels.TYPE_ATSC_T)) {
+                ret = mResources.getString(R.string.atsc_t);
+        } else if (TextUtils.equals(type, TvContract.Channels.TYPE_ATSC_C)) {
+                ret = mResources.getString(R.string.atsc_c);
+        } else if (TextUtils.equals(type, TvContract.Channels.TYPE_ISDB_T)) {
+                ret = mResources.getString(R.string.isdbt);
         }
         return ret;
     }
@@ -1414,8 +1426,8 @@ public class SettingsManager {
         mTvDataBaseManager.setFavouriteChannel(channel);
     }
 
-    public void setDtvMode(int mode) {
-        Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DTV_MODE, mode);
+    public void setDtvType(String type) {
+        Settings.System.putString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DTV_TYPE, type);
     }
 
     public void setSleepTimer (int mins) {

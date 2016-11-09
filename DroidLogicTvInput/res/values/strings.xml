@@ -74,7 +74,7 @@
 
     <!-- Settings -->
     <string name="settings">Settings</string>
-    <string name="dtv_mode">DTV Mode</string>
+    <string name="dtv_type">DTV Type</string>
     <string name="sleep_timer">Sleep Timer</string>
     <string name="menu_time">Menu Time</string>
     <string name="startup_setting">Startup Setting</string>
@@ -159,6 +159,14 @@
     <string name="searched">Searched</string>
     <string name="dtmb">DTMB</string>
     <string name="dvbc">DVB-C</string>
+    <string name="dvbt">DVB-T</string>
+    <string name="dvbs">DVB-S</string>
+    <string name="dvbc2">DVB-C2</string>
+    <string name="dvbt2">DVB-T2</string>
+    <string name="dvbs2">DVB-S2</string>
+    <string name="atsc_t">ATSC-T</string>
+    <string name="atsc_c">ATSC-C</string>
+    <string name="isdbt">ISDB-T</string>
 
     <!-- for time suspend ui -->
     <string name="suspend_dialog_title">Suspend Countdown</string>

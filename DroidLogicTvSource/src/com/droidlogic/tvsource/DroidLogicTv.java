@@ -35,6 +35,7 @@ import android.media.AudioSystem;
 import android.media.tv.TvInputInfo;
 import android.media.tv.TvInputManager;
 import android.media.tv.TvTrackInfo;
+import android.media.tv.TvContract;
 import android.media.tv.TvView;
 import android.net.Uri;
 import android.os.Bundle;
@@ -466,10 +467,12 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private void preTuneCmd() {//not-time-related cmds only
         if (mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_DTV) {
             Bundle data = new Bundle();
-            int mode = Settings.System.getInt(mContext.getContentResolver(),
-                DroidLogicTvUtils.TV_KEY_DTV_MODE, TvControlManager.dtv_mode_std_e.DTV_MODE_STD_DTMB.toInt());
-            data.putInt(DroidLogicTvUtils.PARA_MODE, mode);
-            mSourceView.sendAppPrivateCommand(DroidLogicTvUtils.ACTION_DTV_SET_MODE, data);
+            String type = Settings.System.getString(mContext.getContentResolver(),
+                DroidLogicTvUtils.TV_KEY_DTV_TYPE);
+            if (type == null)
+                type = TvContract.Channels.TYPE_DTMB;
+            data.putString(DroidLogicTvUtils.PARA_TYPE, type);
+            mSourceView.sendAppPrivateCommand(DroidLogicTvUtils.ACTION_DTV_SET_TYPE, data);
 
             int mix = Settings.System.getInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_AD_MIX, 50);
             data.putInt(DroidLogicTvUtils.PARA_VALUE1, mix);

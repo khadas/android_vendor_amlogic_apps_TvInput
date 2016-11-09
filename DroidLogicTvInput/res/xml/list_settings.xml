@@ -7,8 +7,8 @@
     </Preference>
 
     <Preference
-        android:key="dtv_mode"
-        android:title="@string/dtv_mode" >
+        android:key="dtv_type"
+        android:title="@string/dtv_type" >
     </Preference>
 
     <Preference
