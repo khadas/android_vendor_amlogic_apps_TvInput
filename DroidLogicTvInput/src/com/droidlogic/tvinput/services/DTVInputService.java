@@ -385,6 +385,10 @@ public class DTVInputService extends DroidLogicTvInputService {
                 }
             } else if (msgType == TvControlManager.EVENT_AV_VIDEO_AVAILABLE) {
                 notifyVideoAvailable();
+                // TODO: audioinfo only for test here, should be used by app
+                TvControlManager.AudioFormatInfo audioInfo = mTvControlManager.DtvGetAudioFormatInfo();
+                mSystemControlManager.setProperty("tv.dtv.audio.channels",
+                    String.valueOf(audioInfo.ChannelsOriginal)+"."+String.valueOf(audioInfo.LFEPresentOriginal));
             }
         }
 
