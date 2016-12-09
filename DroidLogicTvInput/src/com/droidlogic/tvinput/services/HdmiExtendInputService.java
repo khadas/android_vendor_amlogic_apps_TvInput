@@ -26,6 +26,7 @@ import android.util.SparseArray;
 import android.media.tv.TvInputManager.Hardware;
 import android.media.tv.TvInputManager.HardwareCallback;
 import android.media.tv.TvInputHardwareInfo;
+import com.droidlogic.app.SystemControlManager;
 
 public class HdmiExtendInputService extends TvInputService {
     private static final String TAG = "HdmiExtendInputService";
@@ -38,6 +39,7 @@ public class HdmiExtendInputService extends TvInputService {
     public Hardware mHardware;
     public TvStreamConfig[] mConfigs;
     private TvInputManager mTvInputManager;
+    private SystemControlManager mSystemControlManager = new SystemControlManager(this);
     private int mDeviceId = -1;
     private SparseArray<TvInputInfo> mInfoList = new SparseArray<TvInputInfo>();
 
@@ -111,6 +113,11 @@ public class HdmiExtendInputService extends TvInputService {
         @Override
         public void onSetStreamVolume(float volume) {
             Log.d(TAG, "onSetStreamVolume");
+           if ( 1.0 == volume ) {
+                mSystemControlManager.openAmAudio(48000, 1, 2);
+            } else {
+                mSystemControlManager.closeAmAudio();
+            }
         }
         @Override
         public void onSetCaptionEnabled(boolean enabled) {
