@@ -713,8 +713,8 @@ public class DTVInputService extends DroidLogicTvInputService {
             Log.d(TAG, "stop Subtitle");
 
             if (mSubtitleView != null) {
-                setOverlayViewEnabled(false);
                 mSubtitleView.stop();
+                setOverlayViewEnabled(false);
             }
 
             mSystemControlManager.setProperty(DTV_SUBTITLE_TRACK_IDX, "-1");
