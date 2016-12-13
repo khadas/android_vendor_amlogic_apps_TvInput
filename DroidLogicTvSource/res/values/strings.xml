@@ -35,4 +35,6 @@
     <string name="cancel">cancel</string>
     <string name="watch_program">Watch appointed program: </string>
     <string name="switch_program_propmt">seconds later auto switch</string>
+    <string name="Simplified_Chinese">chi</string>
+    <string name="Traditional_Chinese">chs</string>
 </resources>

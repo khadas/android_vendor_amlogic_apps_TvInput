@@ -3,6 +3,7 @@ package com.droidlogic.tvsource;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import com.droidlogic.app.SystemControlManager;
 import com.droidlogic.app.DroidLogicKeyEvent;
@@ -1515,8 +1516,13 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         TextView status = (TextView)layout.findViewById(R.id.toast_status);
 
         title.setText(titleStr);
-        status.setText(statusStr);
-
+        if (isZh(mContext) && statusStr.equals("chi")) {
+            status.setText(getResources().getString(R.string.Simplified_Chinese));
+        } else if (isZh(mContext) && statusStr.equals("chs")) {
+            status.setText(getResources().getString(R.string.Traditional_Chinese));
+        } else {
+            status.setText(statusStr);
+        }
         if (toast == null) {
             toast = new Toast(this);
             toast.setDuration(3000);
@@ -1538,6 +1544,14 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             }
         });
         toast.show();
+    }
+    private boolean isZh(Context context) {
+        Locale locale = context.getResources().getConfiguration().locale;
+        String language = locale.getLanguage();
+        if (language.endsWith("zh"))
+            return true;
+        else
+            return false;
     }
 
     private void showTvView(View tvView) {
