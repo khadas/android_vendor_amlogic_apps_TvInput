@@ -76,7 +76,6 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private TvControlManager mTvControlManager = TvControlManager.getInstance();
     private HdmiTvClient mHdmiTvClient = null;
     private InputChangeListener mInputListener = null;
-    private DroidLogicHdmiCecManager mHdmiCecManager;
 
     private FrameLayout mRootView;
     private TvViewInputCallback mTvViewCallback = new TvViewInputCallback();
@@ -247,7 +246,6 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             mHdmiTvClient = hdmiManager.getTvClient();
             mHdmiTvClient.setInputChangeListener(mInputListener);
         }
-        mHdmiCecManager = new DroidLogicHdmiCecManager(this);
     }
 
     private void processInputChange(HdmiDeviceInfo info) {
@@ -648,11 +646,14 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         }
         preSwitchSourceInput();
         mSourceInput = mSourceMenuLayout.getCurSourceInput();
-        if (mHdmiCecManager.hasHdmiCecDevice(mSourceInput.getDeviceId())) {
-            mHdmiCecManager.selectHdmiDevice(mSourceInput.getDeviceId());
-        } else {
-            mHdmiCecManager.disconnectHdmiCec();
+
+        /* when switching to hdmi input source whose cec is connected but on standby, select it.*/
+        DroidLogicHdmiCecManager cecManager = new DroidLogicHdmiCecManager(mContext);
+        if (!DroidLogicTvUtils.isHardwareExisted(mContext, mSourceInput.getDeviceId())
+                && cecManager.hasHdmiCecDevice(mSourceInput.getDeviceId())) {
+            cecManager.selectHdmiDevice(mSourceInput.getDeviceId());
         }
+
         sendTuneMessage();
     }
 

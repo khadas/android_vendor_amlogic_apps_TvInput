@@ -36,6 +36,12 @@ public class Hdmi2InputService extends DroidLogicTvInputService {
    private Map<Integer, Hdmi2InputSession> sessionMap = new HashMap<>();
 
     @Override
+    public void onCreate() {
+        super.onCreate();
+        initInputService(DroidLogicTvUtils.DEVICE_ID_HDMI2, Hdmi2InputService.class.getName());
+    }
+
+    @Override
     public Session onCreateSession(String inputId) {
         super.onCreateSession(inputId);
 
@@ -126,7 +132,7 @@ public class Hdmi2InputService extends DroidLogicTvInputService {
             }
         }
         updateInfoListIfNeededLocked(hardwareInfo, info, false);
-
+        acquireHardware(info);
         return info;
     }
 
@@ -140,79 +146,8 @@ public class Hdmi2InputService extends DroidLogicTvInputService {
         if (info != null)
             id = info.getId();
         updateInfoListIfNeededLocked(hardwareInfo, info, true);
-
+        releaseHardware();
         Utils.logd(TAG, "=====onHardwareRemoved=====" + id);
-        return id;
-    }
-
-    int getPortIndex(int phyAddr) {
-        /* TODO: consider of tuner */
-        return ((phyAddr & 0xf000) >> 12) - 1;
-    }
-
-    @Override
-    public TvInputInfo onHdmiDeviceAdded(HdmiDeviceInfo deviceInfo) {
-        if (deviceInfo == null) {
-            return null;
-        }
-        int phyaddr = deviceInfo.getPhysicalAddress();
-        if (getTvInputInfo(phyaddr) != null) {
-            Utils.logd(TAG, "onHdmiDeviceAdded, phyaddr:" + phyaddr + " already add");
-            return null;
-        }
-        int sourceType = getPortIndex(phyaddr) + DroidLogicTvUtils.DEVICE_ID_HDMI1;
-
-        String parentId = null;
-        TvInputInfo info = null;
-        TvInputInfo parent = getTvInputInfo(sourceType);
-        if (parent != null) {
-            parentId = parent.getId();
-        } else {
-            Utils.logd(TAG, "onHdmiDeviceAdded, can't found parent");
-            return null;
-        }
-        Utils.logd(TAG, "onHdmiDeviceAdded, phyaddr:" + phyaddr +
-                    ", port:" + sourceType + ", parentID:" + parentId);
-        ResolveInfo rInfo = getResolveInfo(Hdmi2InputService.class.getName());
-        if (rInfo != null) {
-            try {
-                info = TvInputInfo.createTvInputInfo(
-                        getApplicationContext(),
-                        rInfo,
-                        deviceInfo,
-                        parentId,
-                        deviceInfo.getDisplayName(),
-                        null);
-            } catch (XmlPullParserException e) {
-                // TODO: handle exception
-            }catch (IOException e) {
-                // TODO: handle exception
-            }
-        } else {
-            return null;
-        }
-        Utils.logd(TAG, "createTvInputInfo, id:" + info.getId());
-        updateInfoListIfNeededLocked(phyaddr, info, false);
-        selectHdmiDevice(DroidLogicTvUtils.DEVICE_ID_HDMI2);
-
-        return info;
-    }
-
-    @Override
-    public String onHdmiDeviceRemoved(HdmiDeviceInfo deviceInfo) {
-        if (deviceInfo == null) {
-            return null;
-        }
-        int phyaddr = deviceInfo.getPhysicalAddress();
-        TvInputInfo info = getTvInputInfo(phyaddr);
-        if (info == null) {
-            return null;
-        }
-        String id = info.getId();
-        Utils.logd(TAG, "onHdmiDeviceRemoved, id:" + id);
-        updateInfoListIfNeededLocked(phyaddr, info, true);
-        disconnectHdmiCec();
-
         return id;
     }
 }
