@@ -297,6 +297,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         mContext = getApplicationContext();
         mHandler = new Handler(this);
 
+        // start WallpaperManagerService when boot up.
+        mContext.sendBroadcast(new Intent("com.droidlogic.tv.action.start.wallpaper"));
+
         mTvInputManager = (TvInputManager)getSystemService(Context.TV_INPUT_SERVICE);
         mTvInputChangeCallback = new TvInputChangeCallback();
         mTvDataBaseManager = new TvDataBaseManager(mContext);
