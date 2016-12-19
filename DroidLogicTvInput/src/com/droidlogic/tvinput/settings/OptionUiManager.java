@@ -7,6 +7,7 @@ import android.graphics.drawable.Drawable;
 import android.content.Intent;
 import android.media.tv.TvContract.Channels;
 import android.os.PowerManager;
+import android.os.Bundle;
 import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextUtils;
@@ -1208,6 +1209,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     }
 
     private void startManualSearch() {
+        Log.d(TAG, "startManualSearch");
         ViewGroup parent = (ViewGroup) ((TvSettingsActivity) mContext).mOptionLayout.getChildAt(0);
         if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV) {
             OptionEditText edit_from = (OptionEditText) parent.findViewById(R.id.manual_search_edit_from);
@@ -1231,33 +1233,43 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             else if (to - from < 1000)
                 showToast(mResources.getString(R.string.error_atv_error_3));
             else {
-                mSettingsManager.sendBroadcastToTvapp("search_channel");
+                //mSettingsManager.sendBroadcastToTvapp("search_channel");
                 mSettingsManager.setManualSearchProgress(0);
                 mSettingsManager.setManualSearchSearchedNumber(0);
-                int ret = mTvControlManager.AtvManualScan(from * 1000, to * 1000,
-                                                TvControlManager.ATV_VIDEO_STD_PAL, TvControlManager.ATV_AUDIO_STD_DK);
-                Log.d(TAG, "mTvControlManager.AtvManualScan return " + ret);
-                if (ret < 0) {
-                    showToast(mResources.getString(R.string.error_atv_startSearch));
-                    return;
-                }
+                //int ret = mTvControlManager.AtvManualScan(from * 1000, to * 1000,
+                //                                TvControlManager.ATV_VIDEO_STD_PAL, TvControlManager.ATV_AUDIO_STD_DK);
+                //Log.d(TAG, "mTvControlManager.AtvManualScan return " + ret);
+                //if (ret < 0) {
+                //    showToast(mResources.getString(R.string.error_atv_startSearch));
+                //    return;
+                //}
+                Bundle bundle = new Bundle();
+                bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA1, from * 1000);
+                bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA2, to * 1000);
+                bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA3, TvControlManager.ATV_VIDEO_STD_PAL);
+                bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA4, TvControlManager.ATV_AUDIO_STD_DK);
+                mSettingsManager.sendBroadcastToTvapp(DroidLogicTvUtils.ACTION_ATV_MANUAL_SCAN, bundle);
                 isSearching = true;
                 mSettingsManager.setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
             }
         } else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
-            mSettingsManager.sendBroadcastToTvapp("search_channel");
+            //mSettingsManager.sendBroadcastToTvapp("search_channel");
             OptionEditText edit = (OptionEditText) parent.findViewById(R.id.manual_search_dtv_channel);
             String channel = edit.getText().toString();
             if (channel == null || channel.length() == 0)
                 channel = (String)edit.getHint();
-            mTvControlManager.DtvSetTextCoding("GB2312");
-            String type = mSettingsManager.getDtvType();
-            mTvControlManager.DtvManualScan(new TvControlManager.TvMode(type).getMode(), getDvbFrequencyByPd(Integer.valueOf(channel)));
+            //mTvControlManager.DtvSetTextCoding("GB2312");
+            //mTvControlManager.DtvManualScan(new TvControlManager.TvMode(mSettingsManager.getDtvType()).getMode(),
+            //    getDvbFrequencyByPd(Integer.valueOf(channel)));
+            //Intent intent = new Intent(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH);
+            //intent.putExtra(DroidLogicTvUtils.EXTRA_SWITCH_VALUE, 0);
+            //mContext.sendBroadcast(intent);
+            Bundle bundle = new Bundle();
+            bundle.putInt(DroidLogicTvUtils.PARA_SCAN_MODE, new TvControlManager.TvMode(mSettingsManager.getDtvType()).getMode());
+            bundle.putInt(DroidLogicTvUtils.PARA_MANUAL_SCAN, getDvbFrequencyByPd(Integer.valueOf(channel)));
+            mSettingsManager.sendBroadcastToTvapp(DroidLogicTvUtils.ACTION_DTV_MANUAL_SCAN, bundle);
             isSearching = true;
             mSettingsManager.setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
-            Intent intent = new Intent(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH);
-            intent.putExtra(DroidLogicTvUtils.EXTRA_SWITCH_VALUE, 0);
-            mContext.sendBroadcast(intent);
         }
     }
 
@@ -1413,7 +1425,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     }
 
     private void startAutosearch() {
-        mSettingsManager.sendBroadcastToTvapp("search_channel");
+        Log.d(TAG, "startAutoSearch");
+        //mSettingsManager.sendBroadcastToTvapp("search_channel");
         mTvDataBaseManager.deleteChannels(mSettingsManager.getInputId());
         if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV) {
             /*mTvControlManager.SetFrontendParms(TvControlManager.tv_fe_type_e.TV_FE_ANALOG,
@@ -1421,17 +1434,26 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                     TvControlManager.tvin_color_system_e.COLOR_SYSTEM_AUTO.toInt(),
                     TvControlManager.ATV_AUDIO_STD_AUTO,
                     0, 0);*/
-            mTvControlManager.AtvAutoScan(TvControlManager.ATV_VIDEO_STD_PAL, TvControlManager.ATV_AUDIO_STD_I, 0, 0);
+            //mTvControlManager.AtvAutoScan(TvControlManager.ATV_VIDEO_STD_PAL, TvControlManager.ATV_AUDIO_STD_I, 0, 0);
+            Bundle bundle = new Bundle();
+            bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA1, TvControlManager.ATV_VIDEO_STD_PAL);
+            bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA2, TvControlManager.ATV_AUDIO_STD_I);
+            bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA3, 0);
+            bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA4, 0);
+            mSettingsManager.sendBroadcastToTvapp(DroidLogicTvUtils.ACTION_ATV_AUTO_SCAN, bundle);
             Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_ATV_CHANNEL_INDEX, -1);
         } else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
             int mode = new TvControlManager.TvMode(mSettingsManager.getDtvType()).getMode();
-            mTvControlManager.PlayDTVProgram(mode, 470000000, 0, 0, 0, 0, -1, -1, 0, 0, false);
-            mTvControlManager.DtvSetTextCoding("GB2312");
-            mTvControlManager.DtvAutoScan(mode);
+            //mTvControlManager.PlayDTVProgram(mode, 470000000, 0, 0, 0, 0, -1, -1, 0, 0, false);
+            //mTvControlManager.DtvSetTextCoding("GB2312");
+            //mTvControlManager.DtvAutoScan(mode);
+            //Intent intent = new Intent(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH);
+            //intent.putExtra(DroidLogicTvUtils.EXTRA_SWITCH_VALUE, 0);
+            //mContext.sendBroadcast(intent);
+            Bundle bundle = new Bundle();
+            bundle.putInt(DroidLogicTvUtils.PARA_SCAN_MODE, mode);
+            mSettingsManager.sendBroadcastToTvapp(DroidLogicTvUtils.ACTION_DTV_AUTO_SCAN, bundle);
             Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_DTV_CHANNEL_INDEX, -1);
-            Intent intent = new Intent(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH);
-            intent.putExtra(DroidLogicTvUtils.EXTRA_SWITCH_VALUE, 0);
-            mContext.sendBroadcast(intent);
         }
         isSearching = true;
         mSettingsManager.setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);

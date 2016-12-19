@@ -13,6 +13,7 @@ import android.content.res.Resources;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
+import android.os.Bundle;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -1528,4 +1529,10 @@ public class SettingsManager {
         intent.putExtra("tv_play_extra", extra);
         mContext.sendBroadcast(intent);
     }
+    public void sendBroadcastToTvapp(String action, Bundle bundle) {
+        Intent intent = new Intent(action);
+        intent.putExtra(DroidLogicTvUtils.EXTRA_MORE, bundle);
+        mContext.sendBroadcast(intent);
+    }
+
 }

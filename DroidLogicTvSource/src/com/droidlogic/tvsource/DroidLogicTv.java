@@ -216,9 +216,32 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             }else if (action.equals(DroidLogicTvUtils.ACTION_AD_TRACK)) {
                 int track = intent.getIntExtra(DroidLogicTvUtils.PARA_VALUE1, -1);
                 resetAudioADTrack(true, track);
+            } else if (DroidLogicTvUtils.ACTION_ATV_AUTO_SCAN.equals(action)
+                    || DroidLogicTvUtils.ACTION_ATV_MANUAL_SCAN.equals(action)
+                    || DroidLogicTvUtils.ACTION_DTV_AUTO_SCAN.equals(action)
+                    || DroidLogicTvUtils.ACTION_DTV_MANUAL_SCAN.equals(action)){
+                mMainView.setBackgroundDrawable(null);
+                mSourceView.sendAppPrivateCommand(action, intent.getBundleExtra(DroidLogicTvUtils.EXTRA_MORE));
+                isSearchingChannel = true;
             }
         }
     };
+
+    private void listenBroadcasts() {
+        IntentFilter intentFilter = new IntentFilter(DroidLogicTvUtils.ACTION_TIMEOUT_SUSPEND);
+        intentFilter.addAction(DroidLogicTvUtils.ACTION_UPDATE_TV_PLAY);
+        intentFilter.addAction(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH);
+        intentFilter.addAction(DroidLogicTvUtils.ACTION_DELETE_CHANNEL);
+        intentFilter.addAction(DroidLogicTvUtils.ACTION_SWITCH_CHANNEL);
+        intentFilter.addAction(DroidLogicTvUtils.ACTION_AD_SWITCH);
+        intentFilter.addAction(DroidLogicTvUtils.ACTION_AD_MIXING_LEVEL);
+        intentFilter.addAction(DroidLogicTvUtils.ACTION_AD_TRACK);
+        intentFilter.addAction(DroidLogicTvUtils.ACTION_ATV_AUTO_SCAN);
+        intentFilter.addAction(DroidLogicTvUtils.ACTION_ATV_MANUAL_SCAN);
+        intentFilter.addAction(DroidLogicTvUtils.ACTION_DTV_AUTO_SCAN);
+        intentFilter.addAction(DroidLogicTvUtils.ACTION_DTV_MANUAL_SCAN);
+        registerReceiver(mReceiver, intentFilter);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -388,15 +411,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
 
         if (!mReceiverRegisted) {
             mReceiverRegisted = true;
-            IntentFilter intentFilter = new IntentFilter(DroidLogicTvUtils.ACTION_TIMEOUT_SUSPEND);
-            intentFilter.addAction(DroidLogicTvUtils.ACTION_UPDATE_TV_PLAY);
-            intentFilter.addAction(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH);
-            intentFilter.addAction(DroidLogicTvUtils.ACTION_DELETE_CHANNEL);
-            intentFilter.addAction(DroidLogicTvUtils.ACTION_SWITCH_CHANNEL);
-            intentFilter.addAction(DroidLogicTvUtils.ACTION_AD_SWITCH);
-            intentFilter.addAction(DroidLogicTvUtils.ACTION_AD_MIXING_LEVEL);
-            intentFilter.addAction(DroidLogicTvUtils.ACTION_AD_TRACK);
-            registerReceiver(mReceiver, intentFilter);
+            listenBroadcasts();
         }
         super.onStart();
     }
