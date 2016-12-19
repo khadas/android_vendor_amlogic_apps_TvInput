@@ -2,6 +2,8 @@
 #include <jni.h>
 #include <android/log.h>
 
+#include <cutils/properties.h>
+
 #define LOG_TAG "jnidtvepg"
 #define log_info(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
 #define log_error(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
@@ -90,6 +92,15 @@ struct sdt_service{
 };
 
 EPGChannelData gChannelMonitored = {.valid = 0};
+
+static int epg_conf_get(char *prop, int def) {
+    char v[128];
+    int val = 0;
+    property_get(prop, v, "0");
+    if (sscanf(v, "%d", &val) != 1)
+        val = def;
+    return val;
+}
 
 static void epg_on_event(jobject obj, EPGEventData *evt_data)
 {
@@ -880,11 +891,35 @@ static int epg_sdt_update(AM_EPG_Handle_t handle, int type, void *tables, void *
     return 0;
 }
 
+static int epg_pat_update(AM_EPG_Handle_t handle, int type, void *tables, void *user_data)
+{
+    dvbpsi_pat_t *pats = (dvbpsi_pat_t*)tables;
+    EPGChannelData *pch_cur = &gChannelMonitored;
+    dvbpsi_pat_t *pat;
+
+    UNUSED(type);
+    UNUSED(user_data);
+
+    if (!pch_cur->valid)
+        return 1;
+
+    if (pats->i_ts_id != pch_cur->mTransportStreamId) {
+        log_info("pat tsid now[%d] != tsid[%d]", pats->i_ts_id, pch_cur->mTransportStreamId);
+        pch_cur->mTransportStreamId = pats->i_ts_id;
+        epg_evt_callback((long)handle, AM_EPG_EVT_UPDATE_TS, 0, NULL);
+        return 0;
+    }
+    return 0;
+}
+
 static void epg_table_callback(AM_EPG_Handle_t handle, int type, void *tables, void *user_data)
 {
     switch (type) {
         case AM_EPG_TAB_SDT:
             epg_sdt_update(handle, type, tables, user_data);
+        break;
+        case AM_EPG_TAB_PAT:
+            epg_pat_update(handle, type, tables, user_data);
         break;
         default:
         break;
@@ -949,6 +984,8 @@ static void epg_create(JNIEnv* env, jobject obj, jint fend_id, jint dmx_id, jint
 
     /*handle tables directly by user*/
     AM_EPG_SetTablesCallback(data->handle, AM_EPG_TAB_SDT, epg_table_callback, NULL);
+    if (!epg_conf_get("tv.dtv.tsupdate.pat.disable", 0))
+        AM_EPG_SetTablesCallback(data->handle, AM_EPG_TAB_PAT, epg_table_callback, NULL);
 }
 
 static void epg_destroy(JNIEnv* env, jobject obj)

@@ -44,7 +44,7 @@ LOCAL_C_INCLUDES := external/libzvbi/src \
 	$(DVB_PATH)/include/am_adp \
 	$(DVB_PATH)/android/ndk/include
 
-LOCAL_SHARED_LIBRARIES += libzvbi libam_mw libam_adp libskia liblog
+LOCAL_SHARED_LIBRARIES += libzvbi libam_mw libam_adp libskia liblog libcutils
 
 LOCAL_PRELINK_MODULE := false
 

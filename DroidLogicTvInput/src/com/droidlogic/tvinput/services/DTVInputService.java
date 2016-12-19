@@ -1286,10 +1286,10 @@ public class DTVInputService extends DroidLogicTvInputService {
                     }
                     break;
                     case DTVEpgScanner.Event.EVENT_CHANNEL_UPDATE:
-                        Log.d(TAG, "[TS Update]: Freq:" + tvservice.getFrequency());
-                        Log.d(TAG, "TS changed, need autoscan.");
+                        Log.d(TAG, "[TS Update]: TS changed, need autoscan.");
                         synchronized (this) {
                             if (tvservice != null) {
+                                Log.d(TAG, "[TS Update] Freq:" + tvservice.getFrequency());
                                 int mode = new TvControlManager.TvMode(tvservice.getType()).getMode();
                                 int frequency = tvservice.getFrequency();
 
