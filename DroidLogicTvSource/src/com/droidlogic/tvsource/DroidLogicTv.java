@@ -1536,7 +1536,10 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             status.setText(getResources().getString(R.string.Simplified_Chinese));
         } else if (isZh(mContext) && statusStr.equals("chi")) {
             status.setText(getResources().getString(R.string.Traditional_Chinese));
-        } else {
+        } else if (isZh(mContext) && statusStr.startsWith("Audio")) {
+            String mTrackArray[] = statusStr.split("o");
+            status.setText(getResources().getString(R.string.Audio)+mTrackArray[1]);
+        }else {
             status.setText(statusStr);
         }
         if (toast == null) {

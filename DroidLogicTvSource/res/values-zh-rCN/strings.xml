@@ -23,4 +23,5 @@
     <string name="switch_program_propmt">秒后自动切换</string>
     <string name="Simplified_Chinese">简体中文</string>
     <string name="Traditional_Chinese">繁体中文</string>
+    <string name="Audio">音轨</string>
 </resources>

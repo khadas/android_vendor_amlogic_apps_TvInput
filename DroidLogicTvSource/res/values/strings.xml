@@ -37,4 +37,5 @@
     <string name="switch_program_propmt">seconds later auto switch</string>
     <string name="Simplified_Chinese">chi</string>
     <string name="Traditional_Chinese">chs</string>
+    <string name="Audio">Audio</string>
 </resources>
