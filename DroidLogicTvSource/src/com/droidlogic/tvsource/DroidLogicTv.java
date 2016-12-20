@@ -1532,9 +1532,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         TextView status = (TextView)layout.findViewById(R.id.toast_status);
 
         title.setText(titleStr);
-        if (isZh(mContext) && statusStr.equals("chi")) {
+        if (isZh(mContext) && statusStr.equals("chs")) {
             status.setText(getResources().getString(R.string.Simplified_Chinese));
-        } else if (isZh(mContext) && statusStr.equals("chs")) {
+        } else if (isZh(mContext) && statusStr.equals("chi")) {
             status.setText(getResources().getString(R.string.Traditional_Chinese));
         } else {
             status.setText(statusStr);
