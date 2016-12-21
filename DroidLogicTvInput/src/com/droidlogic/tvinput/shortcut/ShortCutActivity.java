@@ -63,6 +63,8 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
     private static final int MSG_UPDATE_PROGRAM = 2;
     private static final int MSG_LOAD_DATE = 3;
     private static final int MSG_LOAD_PROGRAM = 4;
+    private static final int MSG_UPDATE_CHANNELS = 5;
+    private static final int MSG_LOAD_CHANNELS = 6;
 
     private static final int TOAST_SHOW_TIME = 3000;
 
@@ -87,6 +89,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
     private ArrayList<ArrayMap<String, Object>> list_program = new ArrayList<ArrayMap<String, Object>>();
     private SimpleAdapter channelsAdapter;
     private ProgramObserver mProgramObserver;
+    private ChannelObserver mChannelObserver;
     private int currentChannelIndex = -1;
     private int currentDateIndex = -1;
     private int currentProgramIndex = -1;
@@ -112,6 +115,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_TIME_TICK);
         filter.addAction(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
+        filter.addAction(Intent.ACTION_TIME_CHANGED);
         registerReceiver(mReceiver, filter);
         super.onStart();
     }
@@ -123,6 +127,10 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
         if (mProgramObserver != null) {
             getContentResolver().unregisterContentObserver(mProgramObserver);
             mProgramObserver = null;
+        }
+        if (mChannelObserver != null) {
+            getContentResolver().unregisterContentObserver(mChannelObserver);
+            mChannelObserver = null;
         }
         super.onStop();
     }
@@ -296,11 +304,17 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
                 case MSG_FINISH:
                     finish();
                     break;
+                case MSG_UPDATE_CHANNELS:
+                    showChannelList();
+                    break;
                 case MSG_UPDATE_DATE:
                     showDateList();
                     break;
                 case MSG_UPDATE_PROGRAM:
                     showProgramList();
+                    break;
+                case MSG_LOAD_CHANNELS:
+                    new Thread(getChannelRunnable).start();
                     break;
                 case MSG_LOAD_DATE:
                     new Thread(getDateRunnable).start();
@@ -328,7 +342,21 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
                     if (TextUtils.equals(reason, "homekey")) {
                         finish();
                     }
+                } else if (action.equals(Intent.ACTION_TIME_CHANGED)) {
+                    Log.d(TAG, "SysTime changed.");
+                    loadDateTime();
                 }
+            }
+        }
+    };
+
+    private Runnable getChannelRunnable = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                loadChannelList();
+            } catch (RuntimeException e) {
+                e.printStackTrace();
             }
         }
     };
@@ -358,9 +386,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
     private void setGuideView() {
         mTvTime = new TVTime(this);
 
-        tx_date = (TextView)findViewById(R.id.guide_date);
-        String[] dateAndTime = getDateAndTime(mTvTime.getTime());
-        tx_date.setText(dateAndTime[0] + "." + dateAndTime[1] + "." + dateAndTime[2] + "   " + dateAndTime[3] + ":" + dateAndTime[4]);
+        loadDateTime();
 
         tx_program_description = (TextView)findViewById(R.id.guide_details_content);
 
@@ -368,29 +394,33 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
         lv_date = (GuideListView)findViewById(R.id.list_guide_week);
         lv_program = (GuideListView)findViewById(R.id.list_guide_programs);
 
-        channelInfoList = mTvDataBaseManager.getChannelList(mSettingsManager.getInputId(), Channels.SERVICE_TYPE_AUDIO_VIDEO, true);
-        channelInfoList.addAll(mTvDataBaseManager.getChannelList(mSettingsManager.getInputId(), Channels.SERVICE_TYPE_AUDIO, true));
-
-        list_channels = getChannelList(channelInfoList);
-        channelsAdapter = new SimpleAdapter(this, list_channels,
-                                            R.layout.layout_guide_single_text,
-                                            new String[] {GuideListView.ITEM_1}, new int[] {R.id.text_name});
-        lv_channel.setAdapter(channelsAdapter);
-
         lv_channel.setListItemSelectedListener(this);
         lv_channel.setOnItemClickListener(this);
+
         lv_date.setListItemSelectedListener(this);
+
         lv_program.setListItemSelectedListener(this);
         lv_program.setOnItemClickListener(this);
 
         if (mProgramObserver == null)
             mProgramObserver = new ProgramObserver();
-        getContentResolver().registerContentObserver(Programs.CONTENT_URI, true, mProgramObserver);
+        if (mChannelObserver == null)
+            mChannelObserver = new ChannelObserver();
+
+        getContentResolver().registerContentObserver(TvContract.Programs.CONTENT_URI, true, mProgramObserver);
+        getContentResolver().registerContentObserver(TvContract.Channels.CONTENT_URI, true, mChannelObserver);
+
+        handler.sendEmptyMessage(MSG_LOAD_CHANNELS);
+    }
+
+    private void loadDateTime() {
+        tx_date = (TextView)findViewById(R.id.guide_date);
+        String[] dateAndTime = getDateAndTime(mTvTime.getTime());
+        tx_date.setText(dateAndTime[0] + "." + dateAndTime[1] + "." + dateAndTime[2] + "   " + dateAndTime[3] + ":" + dateAndTime[4]);
     }
 
     public ArrayList<ArrayMap<String, Object>> getChannelList (ArrayList<ChannelInfo> channelInfoList) {
         ArrayList<ArrayMap<String, Object>> list =  new ArrayList<ArrayMap<String, Object>>();
-
         if (channelInfoList.size() > 0) {
             for (int i = 0 ; i < channelInfoList.size(); i++) {
                 ChannelInfo info = channelInfoList.get(i);
@@ -405,14 +435,45 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
                         item.put(GuideListView.ITEM_3, false);
                     }
                     list.add(item);
+                    if (mSettingsManager.getCurrentChannelNumber() == info.getNumber())
+                        currentChannelIndex = i;
                 }
             }
         }
-
         return list;
     }
 
+    private void loadChannelList() {
+        Log.d(TAG, "load Channels");
+
+        list_channels.clear();
+
+        channelInfoList = mTvDataBaseManager.getChannelList(mSettingsManager.getInputId(), Channels.SERVICE_TYPE_AUDIO_VIDEO, true);
+        channelInfoList.addAll(mTvDataBaseManager.getChannelList(mSettingsManager.getInputId(), Channels.SERVICE_TYPE_AUDIO, true));
+
+        list_channels = getChannelList(channelInfoList);
+
+        handler.sendEmptyMessage(MSG_UPDATE_CHANNELS);
+    }
+
+    private void showChannelList() {
+        Log.d(TAG, "show Channels");
+
+        ArrayList<ArrayMap<String, Object>> list = new ArrayList<ArrayMap<String, Object>>();
+        list.addAll(list_channels);
+
+        channelsAdapter = new SimpleAdapter(this, list,
+                                            R.layout.layout_guide_single_text,
+                                            new String[] {GuideListView.ITEM_1}, new int[] {R.id.text_name});
+        lv_channel.setAdapter(channelsAdapter);
+
+        currentChannelIndex = (currentChannelIndex != -1 ? currentChannelIndex : 0);
+        lv_channel.setSelection(currentChannelIndex);
+    }
+
     private void loadDateList() {
+        Log.d(TAG, "load Date");
+
         list_date.clear();
         currentDateIndex = -1;
 
@@ -456,6 +517,8 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
     }
 
     private void showDateList() {
+        Log.d(TAG, "show Date");
+
         ArrayList<ArrayMap<String, Object>> list = new ArrayList<ArrayMap<String, Object>>();
         list.addAll(list_date);
 
@@ -469,6 +532,8 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
     }
 
     private void loadProgramList() {
+        Log.d(TAG, "load Program");
+
         list_program.clear();
         currentProgramIndex = -1;
 
@@ -477,8 +542,11 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
             long dayStartTime = Long.valueOf(list_date.get(currentDateIndex).get(GuideListView.ITEM_2).toString());
             long dayEndTime = Long.valueOf(list_date.get(currentDateIndex).get(GuideListView.ITEM_3).toString());
             ChannelInfo currentChannel = channelInfoList.get(saveChannelIndex);
-            List<Program> programs = mTvDataBaseManager.getPrograms(TvContract.buildProgramsUriForChannel(currentChannel.getId(),
-                                     dayStartTime, dayEndTime));
+            long now = mTvTime.getTime();
+            if (now >= dayStartTime && now <= dayEndTime)
+                dayStartTime = now;
+            List<Program> programs = mTvDataBaseManager.getPrograms(
+                        TvContract.buildProgramsUriForChannel(currentChannel.getId(), dayStartTime, dayEndTime));
 
             for (int i = 0; i < programs.size(); i++) {
                 Program program = programs.get(i);
@@ -524,6 +592,8 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
     }
 
     private void showProgramList() {
+        Log.d(TAG, "show Program");
+
         ArrayList<ArrayMap<String, Object>> list = new ArrayList<ArrayMap<String, Object>>();
         list.addAll(list_program);
 
@@ -678,11 +748,11 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
 
         @Override
         public void onChange(boolean selfChange, Uri uri) {
-            Log.d(TAG, "program changed =" + uri);
             if (currentChannelIndex != -1) {
                 ChannelInfo currentChannel = channelInfoList.get(currentChannelIndex);
                 Program program = mTvDataBaseManager.getProgram(uri);
-                if (program.getChannelId() == currentChannel.getId()) {
+                if (program != null &&
+                        program.getChannelId() == currentChannel.getId()) {
                     Log.d(TAG, "current channel update");
                     handler.removeMessages(MSG_LOAD_DATE);
                     handler.removeMessages(MSG_LOAD_PROGRAM);
@@ -698,4 +768,28 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
             return super.releaseContentObserver();
         }
     }
+
+    private final class ChannelObserver extends ContentObserver {
+        public ChannelObserver() {
+            super(new Handler());
+        }
+
+        @Override
+        public void onChange(boolean selfChange, Uri uri) {
+            if (DroidLogicTvUtils.matchsWhich(uri) == DroidLogicTvUtils.MATCH_CHANNEL) {
+                Log.d(TAG, "channel changed =" + uri);
+                handler.removeMessages(MSG_LOAD_CHANNELS);
+                handler.removeMessages(MSG_LOAD_DATE);
+                handler.removeMessages(MSG_LOAD_PROGRAM);
+                handler.sendEmptyMessageDelayed(MSG_LOAD_CHANNELS, 500);
+            }
+        }
+
+        @Override
+        public IContentObserver releaseContentObserver() {
+            // TODO Auto-generated method stub
+            return super.releaseContentObserver();
+        }
+    }
+
 }
