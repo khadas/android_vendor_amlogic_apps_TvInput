@@ -251,7 +251,7 @@ public class ATVInputService extends DroidLogicTvInputService {
             }
         }
         updateInfoListIfNeededLocked(hardwareInfo, info, false);
-
+        acquireHardware(info);
         return info;
     }
 
@@ -265,7 +265,7 @@ public class ATVInputService extends DroidLogicTvInputService {
             id = info.getId();
 
         updateInfoListIfNeededLocked(hardwareInfo, info, true);
-
+        releaseHardware();
         Log.d(TAG, "=====onHardwareRemoved===== " + id);
         return id;
     }
