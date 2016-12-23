@@ -386,8 +386,13 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             String[] strings = si.sigFmt.toString().split("_");
             if (strings != null && strings.length <= 4)
                 mSourceInput.setChannelVideoFormat(" ");
-            else
+            else {
+                if (strings[4].equals("1440X480I") || strings[4].equals("2880X480I"))
+                     strings[4] = "480I";
+                else if (strings[4].equals("1440X576I"))
+                     strings[4] = "576I";
                 mSourceInput.setChannelVideoFormat(strings[4] + "_" + si.reserved + "HZ");
+            }
         }
     }
 
