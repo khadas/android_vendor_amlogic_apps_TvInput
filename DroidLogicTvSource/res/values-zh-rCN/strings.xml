@@ -24,4 +24,17 @@
     <string name="Simplified_Chinese">简体中文</string>
     <string name="Traditional_Chinese">繁体中文</string>
     <string name="Audio">音轨</string>
+    <string name="dtv_channel">频道:</string>
+    <string name="dtv_channel_name">频道名:</string>
+    <string name="dtv_video_format">视频格式:</string>
+    <string name="dtv_audio_format">音频格式:</string>
+    <string name="dtv_time">时间:</string>
+    <string name="dtv_program_type">节目类型:</string>
+    <string name="dtv_frequency">分辨率:</string>
+    <string name="dtv_subtitle">字幕:</string>
+    <string name="dtv_track">音轨:</string>
+    <string name="dtv_age">年龄:</string>
+    <string name="dtv_program_segment">节目段:</string>
+    <string name="dtv_describe">描述:</string>
+    <string name="minute">分</string>
 </resources>
