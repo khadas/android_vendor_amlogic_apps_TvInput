@@ -25,6 +25,12 @@ public class GuideAdapter extends BaseAdapter {
         mlistItem = list;
     }
 
+    public void refill(ArrayList<ArrayMap<String, Object>> list) {
+        mlistItem.clear();
+        mlistItem.addAll(list);
+        notifyDataSetChanged();
+    }
+
     @Override
     public int getCount() {
         return mlistItem.size();

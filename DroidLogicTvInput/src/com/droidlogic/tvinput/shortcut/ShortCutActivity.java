@@ -317,9 +317,15 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
                     new Thread(getChannelRunnable).start();
                     break;
                 case MSG_LOAD_DATE:
+                    if (msg.arg1 != -1) {
+                        currentDateIndex = -1;
+                        currentProgramIndex = -1;
+                    }
+                    Log.d(TAG, "current Date:" + currentDateIndex);
                     new Thread(getDateRunnable).start();
                     break;
                 case MSG_LOAD_PROGRAM:
+                    Log.d(TAG, "current Program:" + currentProgramIndex);
                     new Thread(getProgramRunnable).start();
                     break;
                 default:
@@ -475,7 +481,6 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
         Log.d(TAG, "load Date");
 
         list_date.clear();
-        currentDateIndex = -1;
 
         int saveChannelIndex = currentChannelIndex;
         ChannelInfo currentChannel = channelInfoList.get(saveChannelIndex);
@@ -489,9 +494,10 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
             int count = 0;
             while ((tmp_time <= lastProgramTime) && count < 12) {
                 count++;
-                if (mTvTime.getTime() >= tmp_time && mTvTime.getTime() < tmp_time + DAY_TO_MS)
-                    currentDateIndex = count - 1;
-
+                if (currentDateIndex == -1) {
+                    if (mTvTime.getTime() >= tmp_time && mTvTime.getTime() < tmp_time + DAY_TO_MS)
+                        currentDateIndex = count - 1;
+                }
                 ArrayMap<String, Object> item = new ArrayMap<String, Object>();
                 String[] dateAndTime = getDateAndTime(tmp_time);
                 item.put(GuideListView.ITEM_1, dateAndTime[1] + "." + dateAndTime[2]);
@@ -501,6 +507,11 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
                 if (saveChannelIndex != currentChannelIndex) {
                     return;
                 }
+
+                /*ignore the days before today*/
+                if (tmp_time < mTvTime.getTime())
+                    continue;
+
                 list_date.add(item);
             }
         } else {
@@ -535,7 +546,6 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
         Log.d(TAG, "load Program");
 
         list_program.clear();
-        currentProgramIndex = -1;
 
         int saveChannelIndex = currentChannelIndex;
         if (list_date.get(currentDateIndex).get(GuideListView.ITEM_2) != null) {
@@ -564,7 +574,8 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
                 item_program.put(GuideListView.ITEM_4, Long.toString(program.getProgramId()));
 
                 if (mTvTime.getTime() >= program.getStartTimeUtcMillis() && mTvTime.getTime() <= program.getEndTimeUtcMillis()) {
-                    currentProgramIndex = i;
+                    if (currentProgramIndex == -1)
+                        currentProgramIndex = i;
                     status = GuideListView.STATUS_PLAYING;
                 } else if (program.isAppointed()) {
                     status = GuideListView.STATUS_APPOINTED;
@@ -597,10 +608,14 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
         ArrayList<ArrayMap<String, Object>> list = new ArrayList<ArrayMap<String, Object>>();
         list.addAll(list_program);
 
-        GuideAdapter programAdapter = new GuideAdapter(this, list);
-        lv_program.setAdapter(programAdapter);
-        currentProgramIndex = (currentProgramIndex != -1 ? currentProgramIndex : 0);
-        lv_program.setSelection(currentProgramIndex);
+        if (lv_program.getAdapter() == null) {
+            GuideAdapter programAdapter = new GuideAdapter(this, list);
+            lv_program.setAdapter(programAdapter);
+            currentProgramIndex = (currentProgramIndex != -1 ? currentProgramIndex : 0);
+            lv_program.setSelection(currentProgramIndex);
+        } else {
+            ((GuideAdapter)lv_program.getAdapter()).refill(list);
+        }
     }
 
 
@@ -655,6 +670,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
                 break;
             case R.id.list_guide_programs:
                 if (position < list_program.size()) {
+                    currentProgramIndex = position;
                     Object description = list_program.get(position).get(GuideListView.ITEM_3);
                     if (description != null) {
                         tx_program_description.setText(description.toString());
@@ -756,8 +772,8 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
                     Log.d(TAG, "current channel update");
                     handler.removeMessages(MSG_LOAD_DATE);
                     handler.removeMessages(MSG_LOAD_PROGRAM);
-                    handler.sendEmptyMessageDelayed(MSG_LOAD_DATE, 500);
-                    handler.sendEmptyMessageDelayed(MSG_LOAD_PROGRAM, 500);
+                    Message msg = handler.obtainMessage(MSG_LOAD_DATE, -1, 0);
+                    handler.sendMessageDelayed(msg, 500);
                 }
             }
         }
