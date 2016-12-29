@@ -1208,18 +1208,40 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 mDtvInfoVideoFormat.setText("");
             }
         }
-
-        Map<Integer, String> mAudioFormatMap = Utils.getAudioMap();
         if (mSourceInput.getChannelInfo() != null) {
-        int mAudioFormats[] = mSourceInput.getChannelInfo().getAudioFormats();
-        String mAudioFormatString = null;
-        for (Integer indexNumber : mAudioFormatMap.keySet()) {
-            if (indexNumber == mAudioFormats[0]) {
-                mAudioFormatString = mAudioFormatMap.get(indexNumber);
+            int mAudioPids[] = mSourceInput.getChannelInfo().getAudioPids();
+            Map<Integer, String> mAudioFormatMap = Utils.getAudioMap();
+            if (mSourceInput.getChannelInfo() != null && mAudioPids != null) {
+                int mAudioFormats[] = mSourceInput.getChannelInfo().getAudioFormats();
+                String audioTrackId = mSourceView.getSelectedTrack(TvTrackInfo.TYPE_AUDIO);
+                Log.d(TAG, "audioTrackId" + audioTrackId);
+                int index = 0;
+                if (audioTrackId != null) {
+                    String[] audioTrack = audioTrackId.split("=");
+                    int audioTrackPid = Integer.parseInt(audioTrack[4]);
+                    for (int i = 0; i < mAudioPids.length; i++) {
+                        if (audioTrackPid == (mAudioPids[i])) {
+                            index = i;
+                        }
+                    }
+                }
+                String mAudioFormatString = null;
+                for (Integer indexNumber : mAudioFormatMap.keySet()) {
+                    if (mAudioFormats != null) {
+                       if (indexNumber == mAudioFormats[index]) {
+                            mAudioFormatString = mAudioFormatMap.get(indexNumber);
+                            if (mAudioFormatString.equals("AC3") || mAudioFormatString.equals("EAC3")) {
+                                mDtvInfoAudioFormat.setBackground(getResources().getDrawable(R.drawable.certifi_dobly_white));
+                                mDtvInfoAudioFormat.setText("");
+                            } else {
+                                mDtvInfoAudioFormat.setText(mAudioFormatString);
+                            }
+                       }
+                    } else
+                       mDtvInfoAudioFormat.setText("");
+                }
             }
-        }
-        mDtvInfoAudioFormat.setText(mAudioFormatString);
-        }else {
+        } else {
             mDtvInfoAudioFormat.setText("");
         }
 
@@ -1740,18 +1762,41 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private void showCustomToast(String titleStr, String statusStr) {
         LayoutInflater inflater = getLayoutInflater();
         View layout = inflater.inflate(R.layout.layout_hotkey, null);
+        int audioIndex = 0;
+        String mAudioTrackFormat = null;
+        String AudioLangs[] = mSourceInput.getChannelInfo().getAudioLangs();
+        int mAudioFormats[] = mSourceInput.getChannelInfo().getAudioFormats();
+        Map<Integer, String> mAudioTrackFormatMap = Utils.getAudioMap();
 
         TextView title = (TextView)layout.findViewById(R.id.toast_title);
         TextView status = (TextView)layout.findViewById(R.id.toast_status);
 
         title.setText(titleStr);
-        if (isZh(mContext) && statusStr.equals("chs")) {
-            status.setText(getResources().getString(R.string.Simplified_Chinese));
-        } else if (isZh(mContext) && statusStr.equals("chi")) {
-            status.setText(getResources().getString(R.string.Traditional_Chinese));
-        } else if (isZh(mContext) && statusStr.startsWith("Audio")) {
-            String mTrackArray[] = statusStr.split("o");
-            status.setText(getResources().getString(R.string.Audio)+mTrackArray[1]);
+        if (mAudioFormats != null && AudioLangs != null) {
+            for (int i = 0; i < AudioLangs.length; i++) {
+                if (statusStr.equals(AudioLangs[i]))
+                        audioIndex = i;
+            }
+            for (Integer indexNumber : mAudioTrackFormatMap.keySet()) {
+                if (indexNumber == mAudioFormats[audioIndex]) {
+                    mAudioTrackFormat = mAudioTrackFormatMap.get(indexNumber);
+                    if (mAudioTrackFormat.equals("AC3") || mAudioTrackFormat.equals("EAC3")) {
+                        status.setText("");
+                        status.setBackground(getResources().getDrawable(R.drawable.certifi_dobly_white));
+                    } else {
+                        if (isZh(mContext) && statusStr.equals("chs")) {
+                            status.setText(getResources().getString(R.string.Simplified_Chinese));
+                        } else if (isZh(mContext) && statusStr.equals("chi")) {
+                            status.setText(getResources().getString(R.string.Traditional_Chinese));
+                        } else if (isZh(mContext) && statusStr.startsWith("Audio")) {
+                            String mTrackArray[] = statusStr.split("o");
+                            status.setText(getResources().getString(R.string.Audio) + mTrackArray[1]);
+                        } else {
+                            status.setText(statusStr);
+                        }
+                    }
+                }
+            }
         }else {
             status.setText(statusStr);
         }
