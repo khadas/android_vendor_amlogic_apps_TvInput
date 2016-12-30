@@ -59,6 +59,8 @@
     <string name="manual_search">Manual Search</string>
     <string name="auto_search">Auto Search</string>
     <string name="start_search">start searching</string>
+    <string name="pause_search">pause searching</string>
+    <string name="resume_search">resume searching</string>
     <string name="start_frequency">start frequency: </string>
     <string name="start_frequency_default">start frequency: 706MHz</string>
     <string name="khz">KHz</string>

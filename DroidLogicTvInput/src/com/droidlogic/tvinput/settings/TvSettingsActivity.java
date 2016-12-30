@@ -121,10 +121,14 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
                 case KeyEvent.KEYCODE_DPAD_DOWN:
                 case KeyEvent.KEYCODE_DPAD_LEFT:
                 case KeyEvent.KEYCODE_DPAD_RIGHT:
-                case KeyEvent.KEYCODE_DPAD_CENTER:
-                case KeyEvent.KEYCODE_ENTER:
                     if (mOptionUiManager.isSearching())
                         return true;
+                    startShowActivityTimer();
+                    break;
+                case KeyEvent.KEYCODE_ENTER:
+                case KeyEvent.KEYCODE_DPAD_CENTER:
+                    if (mOptionUiManager.isSearching())
+                        break;
                     startShowActivityTimer();
                     break;
                 case KeyEvent.KEYCODE_0:

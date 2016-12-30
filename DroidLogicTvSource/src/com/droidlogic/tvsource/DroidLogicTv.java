@@ -239,10 +239,14 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             } else if (DroidLogicTvUtils.ACTION_ATV_AUTO_SCAN.equals(action)
                     || DroidLogicTvUtils.ACTION_ATV_MANUAL_SCAN.equals(action)
                     || DroidLogicTvUtils.ACTION_DTV_AUTO_SCAN.equals(action)
-                    || DroidLogicTvUtils.ACTION_DTV_MANUAL_SCAN.equals(action)){
+                    || DroidLogicTvUtils.ACTION_DTV_MANUAL_SCAN.equals(action)) {
                 mMainView.setBackgroundDrawable(null);
                 mSourceView.sendAppPrivateCommand(action, intent.getBundleExtra(DroidLogicTvUtils.EXTRA_MORE));
                 isSearchingChannel = true;
+            } else if (DroidLogicTvUtils.ACTION_ATV_PAUSE_SCAN.equals(action)
+                    || DroidLogicTvUtils.ACTION_ATV_RESUME_SCAN.equals(action)
+                    || DroidLogicTvUtils.ACTION_STOP_SCAN.equals(action)) {
+                mSourceView.sendAppPrivateCommand(action, intent.getBundleExtra(DroidLogicTvUtils.EXTRA_MORE));
             }
         }
     };
@@ -260,6 +264,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         intentFilter.addAction(DroidLogicTvUtils.ACTION_ATV_MANUAL_SCAN);
         intentFilter.addAction(DroidLogicTvUtils.ACTION_DTV_AUTO_SCAN);
         intentFilter.addAction(DroidLogicTvUtils.ACTION_DTV_MANUAL_SCAN);
+        intentFilter.addAction(DroidLogicTvUtils.ACTION_STOP_SCAN);
+        intentFilter.addAction(DroidLogicTvUtils.ACTION_ATV_PAUSE_SCAN);
+        intentFilter.addAction(DroidLogicTvUtils.ACTION_ATV_RESUME_SCAN);
         registerReceiver(mReceiver, intentFilter);
     }
 
