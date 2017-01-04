@@ -735,7 +735,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
         long pendingTime = currentProgram.getStartTimeUtcMillis() - mTvTime.getTime();
         if (pendingTime > 0) {
             Log.d(TAG, "" + pendingTime / 60000 + " min later show program prompt");
-            alarm.setExact(AlarmManager.RTC, System.currentTimeMillis() + pendingTime, buildPendingIntent(currentProgram));
+            alarm.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + pendingTime, buildPendingIntent(currentProgram));
         }
 
         if (cancelProgram.length() == 0) {

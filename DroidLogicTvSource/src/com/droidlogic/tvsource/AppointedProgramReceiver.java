@@ -10,6 +10,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.PowerManager;
+import android.os.SystemClock;
 import android.provider.Settings;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -47,10 +49,20 @@ public class AppointedProgramReceiver extends BroadcastReceiver implements OnCli
     private int channelIndex = -1;
     private boolean isRadio = false;
     private AlertDialog mAlertDialog = null;
+    private PowerManager mPowerManager;
 
     @Override
     public void onReceive(Context context, Intent intent) {
         mContext = context;
+        mPowerManager = (PowerManager) mContext.getSystemService(Context.POWER_SERVICE);
+        boolean isScreenOpen = mPowerManager.isScreenOn();
+        Log.d(TAG, "isScreenOpen = " + isScreenOpen);
+        //Resume if the system is suspending
+        if (!isScreenOpen) {
+            Log.d(TAG, "wakeUp the android." );
+            long time = SystemClock.uptimeMillis();
+            mPowerManager.wakeUp(time);
+        }
         long programId = intent.getLongExtra(DroidLogicTvUtils.EXTRA_PROGRAM_ID, -1L);
         TvDataBaseManager tbm = new TvDataBaseManager(mContext);
         List<Program> programList = tbm.getPrograms(TvContract.buildProgramUri(programId));
