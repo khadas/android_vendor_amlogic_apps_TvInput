@@ -2,9 +2,12 @@ package com.droidlogic.tvsource;
 
 
 import android.annotation.SuppressLint;
+import android.net.Uri;
 import android.util.Log;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.droidlogic.app.tv.DroidLogicTvUtils;
 
 public class Utils {
     private static final boolean DEBUG = true;
@@ -95,6 +98,10 @@ public class Utils {
     public static void loge(String tag, String msg) {
         if (DEBUG)
             Log.e(tag, msg);
+    }
+
+    public static int getChannelId(Uri uri) {
+        return DroidLogicTvUtils.getChannelId(uri);
     }
 
 }

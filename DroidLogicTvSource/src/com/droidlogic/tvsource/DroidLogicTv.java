@@ -1273,21 +1273,24 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         else
             mDtvInfoTrack.setText(String.valueOf(aTrackList.size()));
 
-        Uri channel_uri = mSourceInput.getUri();
-        Log.d(TAG, "program segment : " + mTvDataBaseManager.getProgram(channel_uri, mTvTime.getTime()));
-        if (mTvDataBaseManager.getProgram(channel_uri, mTvTime.getTime()) != null) {
-            String mDtvTitle = mTvDataBaseManager.getProgram(channel_uri, mTvTime.getTime()).getTitle();
-            String mDtvDescription = mTvDataBaseManager.getProgram(channel_uri, mTvTime.getTime()).getDescription();
-
-            long mIntervalTime = mTvDataBaseManager.getProgram(channel_uri, mTvTime.getTime()).getEndTimeUtcMillis()-
-                    mTvDataBaseManager.getProgram(channel_uri, mTvTime.getTime()).getStartTimeUtcMillis();
-            mDtvInfoProgramSegment.setText(String.valueOf(mIntervalTime/60/1000)
-                    +getResources().getString(R.string.minute)+"  "+mDtvTitle);
-            mDtvInfoDescribe.setText(mDtvDescription);
-
+        Uri channelUri = mSourceInput.getUri();
+        if (Utils.getChannelId(channelUri) < 0) {
+             mDtvInfoProgramSegment.setText("");
+             mDtvInfoDescribe.setText("");
         } else {
-            mDtvInfoProgramSegment.setText("");
-            mDtvInfoDescribe.setText("");
+            if (mTvDataBaseManager.getProgram(channelUri, mTvTime.getTime()) != null) {
+                String mDtvTitle = mTvDataBaseManager.getProgram(channelUri, mTvTime.getTime()).getTitle();
+                String mDtvDescription = mTvDataBaseManager.getProgram(channelUri, mTvTime.getTime()).getDescription();
+
+                long mIntervalTime = mTvDataBaseManager.getProgram(channelUri, mTvTime.getTime()).getEndTimeUtcMillis()
+                        - mTvDataBaseManager.getProgram(channelUri, mTvTime.getTime()).getStartTimeUtcMillis();
+                mDtvInfoProgramSegment.setText(String.valueOf(mIntervalTime / 60 / 1000)
+                        + getResources().getString(R.string.minute) + "  " + mDtvTitle);
+                mDtvInfoDescribe.setText(mDtvDescription);
+            } else {
+                mDtvInfoProgramSegment.setText("");
+                mDtvInfoDescribe.setText("");
+            }
         }
     }
 
