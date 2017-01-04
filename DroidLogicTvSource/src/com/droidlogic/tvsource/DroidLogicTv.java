@@ -1404,7 +1404,10 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 case DroidLogicTvUtils.SIG_INFO_TYPE_HDMI:
                     args = eventArgs.getString(DroidLogicTvUtils.SIG_INFO_ARGS);
                     String[] temp = args.split("_");
-                    mSourceInput.setChannelVideoFormat(temp[0] + "_" + temp[1]);
+                    if (temp.length >= 2)
+                        mSourceInput.setChannelVideoFormat(temp[0] + "_" + temp[1]);
+                    else
+                        mSourceInput.setChannelVideoFormat(" ");
                     break;
                 case DroidLogicTvUtils.SIG_INFO_TYPE_AV:
                     args = eventArgs.getString(DroidLogicTvUtils.SIG_INFO_ARGS);
