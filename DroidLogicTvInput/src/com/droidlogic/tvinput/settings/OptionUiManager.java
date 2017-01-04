@@ -116,11 +116,23 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     private int tvDisplayNumber = 0;//for db store TV channel's channel displayNumber
     private int radioDisplayNumber = 0;//for db store Radio channel's channel displayNumber
     List<ChannelInfo> mChannels = new ArrayList<ChannelInfo>();
-    private int isSearching = 0;
+
+    public static final int SEARCH_STOPPED = 0;
+    public static final int SEARCH_RUNNING = 1;
+    public static final int SEARCH_PAUSED = 2;
+    private int isSearching = SEARCH_STOPPED;
+
+    public static final int AUTO_SEARCH = 0;
+    public static final int MANUAL_SEARCH = 1;
+    private int searchType = AUTO_SEARCH;
+
     private Toast toast = null;
 
     public boolean isSearching() {
-        return (isSearching != 0);
+        return (isSearching != SEARCH_STOPPED);
+    }
+    public boolean isManualSearching() {
+        return (isSearching() && (searchType == MANUAL_SEARCH));
     }
 
     public OptionUiManager(Context context) {
@@ -652,10 +664,10 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             // auto search
             case R.id.auto_search_start_atv:
             case R.id.auto_search_start_dtv:
-                if (isSearching == 0) {
+                if (isSearching == SEARCH_STOPPED) {
                     startAutosearch();
                     ((TextView)view).setText(mContext.getResources().getString(R.string.pause_search));
-                } else if (isSearching == 1) {//searching running
+                } else if (isSearching == SEARCH_RUNNING) {//searching running
                     pauseSearch();
                     ((TextView)view).setText(mContext.getResources().getString(R.string.resume_search));
                     return ;
@@ -1010,7 +1022,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             switch (event.getKeyCode()) {
                 case KeyEvent.KEYCODE_DPAD_CENTER:
                 case KeyEvent.KEYCODE_ENTER:
-                    onClick(v);
+                    if (!isManualSearching())
+                        onClick(v);
                     break;
             }
         } else if (event.getAction() == KeyEvent.ACTION_UP) {
@@ -1227,13 +1240,13 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     private void pauseSearch() {
         Log.d(TAG, "pauseSearch");
         mSettingsManager.sendBroadcastToTvapp(DroidLogicTvUtils.ACTION_ATV_PAUSE_SCAN, null);
-        isSearching = 2;
+        isSearching = SEARCH_PAUSED;
     }
 
     private void resumeSearch() {
         Log.d(TAG, "resumeSearch");
         mSettingsManager.sendBroadcastToTvapp(DroidLogicTvUtils.ACTION_ATV_RESUME_SCAN, null);
-        isSearching = 1;
+        isSearching = SEARCH_RUNNING;
     }
 
     private void startManualSearch() {
@@ -1277,7 +1290,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA3, TvControlManager.ATV_VIDEO_STD_PAL);
                 bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA4, TvControlManager.ATV_AUDIO_STD_DK);
                 mSettingsManager.sendBroadcastToTvapp(DroidLogicTvUtils.ACTION_ATV_MANUAL_SCAN, bundle);
-                isSearching = 1;
+                isSearching = SEARCH_RUNNING;
                 mSettingsManager.setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
             }
         } else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
@@ -1296,9 +1309,10 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_MODE, new TvControlManager.TvMode(mSettingsManager.getDtvType()).getMode());
             bundle.putInt(DroidLogicTvUtils.PARA_MANUAL_SCAN, getDvbFrequencyByPd(Integer.valueOf(channel)));
             mSettingsManager.sendBroadcastToTvapp(DroidLogicTvUtils.ACTION_DTV_MANUAL_SCAN, bundle);
-            isSearching = 1;
+            isSearching = SEARCH_RUNNING;
             mSettingsManager.setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
         }
+        searchType = MANUAL_SEARCH;
     }
 
     public void setManualSearchEditStyle(View view) {
@@ -1483,7 +1497,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             mSettingsManager.sendBroadcastToTvapp(DroidLogicTvUtils.ACTION_DTV_AUTO_SCAN, bundle);
             Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_DTV_CHANNEL_INDEX, -1);
         }
-        isSearching = 1;
+        isSearching = SEARCH_RUNNING;
+        searchType = AUTO_SEARCH;
         mSettingsManager.setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
     }
 
@@ -1608,7 +1623,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 Log.d(TAG, "Scan exit.");
                 SystemControlManager scm = new SystemControlManager(mContext);
                 scm.setProperty("tv.channels.count", ""+(channelNumber+radioNumber));
-                isSearching = 0;
+                isSearching = SEARCH_STOPPED;
                 ((TvSettingsActivity) mContext).finish();
                 if (channelNumber == 0 && radioNumber == 0) {
                     showToast(mResources.getString(R.string.searched) + " 0 " + mResources.getString(R.string.channel));
