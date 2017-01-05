@@ -545,6 +545,9 @@ static void PMT_Update(AM_EPG_Handle_t handle, dvbpsi_pmt_t *pmts)
     EPGChannelData *pch_cur = &gChannelMonitored,
             ch;
 
+    if (!pmts)
+        return;
+
     if (!pch_cur->valid)
         return;
 
@@ -914,6 +917,9 @@ static int epg_pat_update(AM_EPG_Handle_t handle, int type, void *tables, void *
 
 static void epg_table_callback(AM_EPG_Handle_t handle, int type, void *tables, void *user_data)
 {
+    if (!tables)
+        return;
+
     switch (type) {
         case AM_EPG_TAB_SDT:
             epg_sdt_update(handle, type, tables, user_data);
