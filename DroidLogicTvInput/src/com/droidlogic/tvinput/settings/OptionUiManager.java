@@ -1267,11 +1267,11 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             int from = Integer.valueOf(str_begin);
             int to =  Integer.valueOf(str_end);
 
-            if (from < ATV_MIN_KHZ || to > ATV_MAX_KHZ)
+            if (from < ATV_MIN_KHZ || from > ATV_MAX_KHZ || to < ATV_MIN_KHZ || to > ATV_MAX_KHZ)
                 showToast(mResources.getString(R.string.error_atv_error_1));
-            else if (from > to)
-                showToast(mResources.getString(R.string.error_atv_error_2));
-            else if (to - from < 1000)
+            //else if (from > to)
+            //    showToast(mResources.getString(R.string.error_atv_error_2));
+            else if (Math.abs(to - from) < 1000)
                 showToast(mResources.getString(R.string.error_atv_error_3));
             else {
                 //mSettingsManager.sendBroadcastToTvapp("search_channel");
