@@ -201,6 +201,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                         showMuteIcon(true);
                     } else if (operation.equals("unmute")) {
                         showMuteIcon(false);
+                    } else if (operation.equals("audio.replay")) {
+                        resetAudioTrack();
                     }
                 }
             } else if (action.equals(DroidLogicTvUtils.ACTION_SWITCH_CHANNEL)) {
@@ -1931,5 +1933,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         Bundle data = new Bundle();
         data.putInt(DroidLogicTvUtils.PARA_VALUE1, val);
         mSourceView.sendAppPrivateCommand(DroidLogicTvUtils.ACTION_AD_MIXING_LEVEL, data);
+    }
+
+    private void resetAudioTrack() {
+        mSourceView.selectTrack(TvTrackInfo.TYPE_AUDIO, mSourceView.getSelectedTrack(TvTrackInfo.TYPE_AUDIO));
     }
 }

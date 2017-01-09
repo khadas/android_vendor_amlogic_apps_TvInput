@@ -1266,11 +1266,13 @@ public class SettingsManager {
             mTvControlManager.SaveCurAudioSPDIFSwitch(1);
             mTvControlManager.SetAudioSPDIFMode(0);
             mTvControlManager.SaveCurAudioSPDIFMode(0);
+            sendBroadcastToTvapp("audio.replay");
         } else if (mode.equals(STATUS_RAW)) {
             mTvControlManager.SetAudioSPDIFSwitch(1);
             mTvControlManager.SaveCurAudioSPDIFSwitch(1);
             mTvControlManager.SetAudioSPDIFMode(1);
             mTvControlManager.SaveCurAudioSPDIFMode(1);
+            sendBroadcastToTvapp("audio.replay");
         }
     }
 

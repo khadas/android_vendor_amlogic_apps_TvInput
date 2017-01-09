@@ -430,24 +430,32 @@ public class DTVInputService extends DroidLogicTvInputService {
 
             if (type == TvTrackInfo.TYPE_AUDIO) {
                 int index = -1;
-                Map<String, String> parsedMap = ChannelInfo.stringToMap(trackId);
-                index = Integer.parseInt(parsedMap.get("id"));
+                if (trackId == null) {
+                    //TODO
+                    //close audio track
+                    index = -2;
+                } else {
+                    Map<String, String> parsedMap = ChannelInfo.stringToMap(trackId);
+                    index = Integer.parseInt(parsedMap.get("id"));
 
-                stopAudioAD();
+                    stopAudioAD();
 
-                mTvControlManager.DtvSwitchAudioTrack(Integer.parseInt(parsedMap.get("pid")),
-                                        Integer.parseInt(parsedMap.get("fmt")),
-                                        0);
-                mSystemControlManager.setProperty(DTV_AUDIO_TRACK_IDX, String.valueOf(index));
+                    mTvControlManager.DtvSwitchAudioTrack(Integer.parseInt(parsedMap.get("pid")),
+                                            Integer.parseInt(parsedMap.get("fmt")),
+                                            0);
+                    mSystemControlManager.setProperty(DTV_AUDIO_TRACK_IDX, String.valueOf(index));
 
-                startAudioADByMain(mCurrentChannel, index);
+                    startAudioADByMain(mCurrentChannel, index);
+                }
 
                 notifyTrackSelected(type, trackId);
 
                 if (audioAutoSave) {
-                    Log.d(TAG, "audioAutoSave: idx=" + index);
-                    mCurrentChannel.setAudioTrackIndex(index);
-                    mTvDataBaseManager.updateChannelInfo(mCurrentChannel);
+                    if (mCurrentChannel != null) {
+                        Log.d(TAG, "audioAutoSave: idx=" + index);
+                        mCurrentChannel.setAudioTrackIndex(index);
+                        mTvDataBaseManager.updateChannelInfo(mCurrentChannel);
+                    }
                 }
 
                 return true;
@@ -467,12 +475,15 @@ public class DTVInputService extends DroidLogicTvInputService {
                                   Integer.parseInt(parsedMap.get("uid2")));
                     mSystemControlManager.setProperty(DTV_SUBTITLE_TRACK_IDX, String.valueOf(index));
                 }
+
                 notifyTrackSelected(type, trackId);
 
                 if (subtitleAutoSave) {
-                    Log.d(TAG, "subtitleAutoSave: idx=" + index);
-                    mCurrentChannel.setSubtitleTrackIndex(index);
-                    mTvDataBaseManager.updateChannelInfo(mCurrentChannel);
+                    if (mCurrentChannel != null) {
+                        Log.d(TAG, "subtitleAutoSave: idx=" + index);
+                        mCurrentChannel.setSubtitleTrackIndex(index);
+                        mTvDataBaseManager.updateChannelInfo(mCurrentChannel);
+                    }
                 }
 
                 return true;
