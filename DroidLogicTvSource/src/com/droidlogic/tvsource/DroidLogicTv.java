@@ -930,7 +930,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             if (sTrackList != null && sTrackList.size() != 0) {
                 String subtitleTrackId = mSourceView.getSelectedTrack(TvTrackInfo.TYPE_SUBTITLE);
                 if (!isToastShow && subtitleTrackId == null) {
-                    showCustomToast(getResources().getString(R.string.subtitle), getResources().getString(R.string.off));
+                    showCustomToast(getResources().getString(R.string.subtitle), getResources().getString(R.string.off),type);
                     return;
                 }
 
@@ -946,7 +946,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     if (sTrackIndex == sTrackList.size()) {
                         mSourceView.selectTrack(TvTrackInfo.TYPE_SUBTITLE, null);
                         updateTracksInfo(-1, -2);
-                        showCustomToast(getResources().getString(R.string.subtitle), getResources().getString(R.string.off));
+                        showCustomToast(getResources().getString(R.string.subtitle), getResources().getString(R.string.off),type);
                         return;
                     }
                     if (subtitleTrackId == null) {
@@ -954,13 +954,13 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     }
                     mSourceView.selectTrack(TvTrackInfo.TYPE_SUBTITLE, sTrackList.get(sTrackIndex).getId());
                     updateTracksInfo(-1, sTrackIndex);
-                    showCustomToast(getResources().getString(R.string.subtitle), sTrackList.get(sTrackIndex).getLanguage());
+                    showCustomToast(getResources().getString(R.string.subtitle), sTrackList.get(sTrackIndex).getLanguage(),type);
                     Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_SUBTITLE_SWITCH, 1);
                 } else {
-                    showCustomToast(getResources().getString(R.string.subtitle), sTrackList.get(sTrackIndex).getLanguage());
+                    showCustomToast(getResources().getString(R.string.subtitle), sTrackList.get(sTrackIndex).getLanguage(),type);
                 }
             } else
-                showCustomToast(getResources().getString(R.string.subtitle), getResources().getString(R.string.no));
+                showCustomToast(getResources().getString(R.string.subtitle), getResources().getString(R.string.no),type);
         } else if (type == TvTrackInfo.TYPE_AUDIO) {
             String audioTrackId = mSourceView.getSelectedTrack(TvTrackInfo.TYPE_AUDIO);
             if (audioTrackId != null) {
@@ -976,9 +976,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     mSourceView.selectTrack(TvTrackInfo.TYPE_AUDIO, aTrackList.get(aTrackIndex).getId());
                     updateTracksInfo(aTrackIndex, -1);
                 }
-                showCustomToast(getResources().getString(R.string.audio_track), aTrackList.get(aTrackIndex).getLanguage());
+                showCustomToast(getResources().getString(R.string.audio_track), aTrackList.get(aTrackIndex).getLanguage(),type);
             } else
-                showCustomToast(getResources().getString(R.string.audio_track), getResources().getString(R.string.no));
+                showCustomToast(getResources().getString(R.string.audio_track), getResources().getString(R.string.no),type);
         }
     }
 
@@ -1772,7 +1772,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         }
     }
 
-    private void showCustomToast(String titleStr, String statusStr) {
+    private void showCustomToast(String titleStr, String statusStr ,int type) {
         LayoutInflater inflater = getLayoutInflater();
         View layout = inflater.inflate(R.layout.layout_hotkey, null);
         int audioIndex = 0;
@@ -1785,33 +1785,39 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         TextView status = (TextView)layout.findViewById(R.id.toast_status);
 
         title.setText(titleStr);
-        if (mAudioFormats != null && AudioLangs != null) {
-            for (int i = 0; i < AudioLangs.length; i++) {
-                if (statusStr.equals(AudioLangs[i]))
+        if (type == TvTrackInfo.TYPE_AUDIO) {
+            if (mAudioFormats != null && AudioLangs != null) {
+                for (int i = 0; i < AudioLangs.length; i++) {
+                    if (statusStr.equals(AudioLangs[i]))
                         audioIndex = i;
-            }
-            for (Integer indexNumber : mAudioTrackFormatMap.keySet()) {
-                if (indexNumber == mAudioFormats[audioIndex]) {
-                    mAudioTrackFormat = mAudioTrackFormatMap.get(indexNumber);
-                    if (mAudioTrackFormat.equals("AC3") || mAudioTrackFormat.equals("EAC3")) {
-                        status.setText("");
-                        status.setBackground(getResources().getDrawable(R.drawable.certifi_dobly_white));
-                    } else {
-                        if (isZh(mContext) && statusStr.equals("chs")) {
-                            status.setText(getResources().getString(R.string.Simplified_Chinese));
-                        } else if (isZh(mContext) && statusStr.equals("chi")) {
-                            status.setText(getResources().getString(R.string.Traditional_Chinese));
-                        } else if (isZh(mContext) && statusStr.startsWith("Audio")) {
-                            String mTrackArray[] = statusStr.split("o");
-                            status.setText(getResources().getString(R.string.Audio) + mTrackArray[1]);
+                }
+                for (Integer indexNumber : mAudioTrackFormatMap.keySet()) {
+                    if (indexNumber == mAudioFormats[audioIndex]) {
+                        mAudioTrackFormat = mAudioTrackFormatMap.get(indexNumber);
+                        if (mAudioTrackFormat.equals("AC3") || mAudioTrackFormat.equals("EAC3")) {
+                            status.setText("");
+                            status.setBackground(getResources().getDrawable(R.drawable.certifi_dobly_white));
                         } else {
-                            status.setText(statusStr);
+                            if (isZh(mContext) && statusStr.startsWith("Audio")) {
+                                String mTrackArray[] = statusStr.split("o");
+                                status.setText(getResources().getString(R.string.Audio) + mTrackArray[1]);
+                            } else {
+                                status.setText(statusStr);
+                            }
                         }
                     }
                 }
+            } else {
+                status.setText(statusStr);
             }
-        }else {
-            status.setText(statusStr);
+        } else if (type == TvTrackInfo.TYPE_SUBTITLE) {
+            if (isZh(mContext) && statusStr.equals("chs")) {
+                status.setText(getResources().getString(R.string.Simplified_Chinese));
+            } else if (isZh(mContext) && statusStr.equals("chi")) {
+                status.setText(getResources().getString(R.string.Traditional_Chinese));
+            } else {
+                status.setText(statusStr);
+            }
         }
         if (toast == null) {
             toast = new Toast(this);
