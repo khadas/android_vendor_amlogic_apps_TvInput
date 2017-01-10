@@ -819,16 +819,18 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             case KeyEvent.KEYCODE_INFO:
                 if (!down)
                     return true;
-                if (mSourceInfoLayout.getVisibility() == View.VISIBLE)
-                    hideTvView(mSourceInfoLayout);
-                else if (mDtvInfoLayout.getVisibility() == View.VISIBLE)
-                    hideTvView(mDtvInfoLayout);
-                else if (mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_DTV){
-                    Log.d(TAG, "showui_DTV");
-                    showUi(Utils.UI_TYPE_DTV_INFO,false);
+                if (mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_DTV) {
+                    if (mDtvInfoLayout.getVisibility() == View.VISIBLE)
+                        hideTvView(mDtvInfoLayout);
+                    else if (mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_DTV){
+                        showUi(Utils.UI_TYPE_DTV_INFO,false);
+                    }
+                } else {
+                    if (mSourceInfoLayout.getVisibility() == View.VISIBLE)
+                        hideTvView(mSourceInfoLayout);
+                    else
+                        showUi(Utils.UI_TYPE_SOURCE_INFO, false);
                 }
-                else
-                    showUi(Utils.UI_TYPE_SOURCE_INFO, false);
                 return true;
             case KeyEvent.KEYCODE_BACK:
                 if (!down)
@@ -1881,7 +1883,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
 
     private void hideTvView(View tvView) {
         if (tvView.getVisibility() == View.VISIBLE)
-            tvView.setVisibility(View.INVISIBLE);
+            tvView.setVisibility(View.GONE);
     }
 
     private boolean isBootvideoStopped() {
