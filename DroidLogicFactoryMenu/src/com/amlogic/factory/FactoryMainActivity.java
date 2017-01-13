@@ -274,11 +274,11 @@ public class FactoryMainActivity extends Activity implements TvControlManager.Up
                 // Intent intent = new Intent();
                 // intent.setAction("android.intent.action.FavoriteChannelActivity");
                 // this.startActivity(intent);
-                if (tv.TvMiscChannelImport(FileUtil.getUdiskPath() + "tv.db") == 0) {
+               /* if (tv.TvMiscChannelImport(FileUtil.getUdiskPath() + "tv.db") == 0) {
                     Toast.makeText(getApplicationContext(), "set success", Toast.LENGTH_LONG).show();
                 } else {
                     Toast.makeText(getApplicationContext(), "set fail", Toast.LENGTH_LONG).show();
-                }
+                }*/
                 break;
             case Constant.PAGE_UPGRADE:
                 Intent upgradeintent = new Intent();

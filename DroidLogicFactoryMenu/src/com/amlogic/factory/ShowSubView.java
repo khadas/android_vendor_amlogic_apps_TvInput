@@ -329,7 +329,8 @@ public class ShowSubView {
     /*HDMI HDCP DemoKey*/
     public void show_hdcp_submenu() {
         Map<String, String> map = new HashMap<String, String>();
-        int i = tv.SSMReadUsingDefaultHDCPKeyFlag();
+       // int i = tv.SSMReadUsingDefaultHDCPKeyFlag();
+        int i = 0;
         if (i == 0)
             map.put("sub_value", context.getString(Constant.FACUI_HDCP_DEMOKEY_OFF));
         else

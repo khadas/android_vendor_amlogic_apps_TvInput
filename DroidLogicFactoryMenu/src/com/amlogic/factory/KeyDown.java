@@ -587,10 +587,10 @@ public class KeyDown {
                 value_str = map.get("sub_value");
                 if (value_str.equalsIgnoreCase(context.getString(Constant.FACUI_HDCP_DEMOKEY_ON))) {
                     map.put("sub_value", context.getString(Constant.FACUI_HDCP_DEMOKEY_OFF));
-                    tv.SSMSaveUsingDefaultHDCPKeyFlag(0);
+                    //tv.SSMSaveUsingDefaultHDCPKeyFlag(0);
                 } else if (value_str.equalsIgnoreCase(context.getString(Constant.FACUI_HDCP_DEMOKEY_OFF))) {
                     map.put("sub_value", context.getString(Constant.FACUI_HDCP_DEMOKEY_ON));
-                    tv.SSMSaveUsingDefaultHDCPKeyFlag(1);
+                    //tv.SSMSaveUsingDefaultHDCPKeyFlag(1);
                 }
                 FactoryMainActivity.sAdapter.notifyDataSetChanged();
                 break;
