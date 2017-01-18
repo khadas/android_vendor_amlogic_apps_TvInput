@@ -137,6 +137,7 @@ public class SettingsManager {
     private Resources mResources;
     private String mInputId;
     private TvControlManager.SourceInput_Type mTvSource;
+    private TvControlManager.SourceInput mTvSourceInput;
     private ChannelInfo currentChannel;
     private TvControlManager mTvControlManager;
     private TvDataBaseManager mTvDataBaseManager;
@@ -161,7 +162,7 @@ public class SettingsManager {
         mInputId = intent.getStringExtra(TvInputInfo.EXTRA_INPUT_ID);
         isRadioChannel = intent.getBooleanExtra(DroidLogicTvUtils.EXTRA_IS_RADIO_CHANNEL, false);
         mTvSource = parseTvSourceType(intent.getIntExtra(DroidLogicTvUtils.EXTRA_CHANNEL_DEVICE_ID, -1));
-
+        mTvSourceInput = parseTvSourceInput(intent.getIntExtra(DroidLogicTvUtils.EXTRA_CHANNEL_DEVICE_ID, -1));
         Log.d(TAG, "init SettingsManager curSource=" + mTvSource + " isRadio=" + isRadioChannel);
 
         if (mTvSource == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV
@@ -196,6 +197,37 @@ public class SettingsManager {
 
     public TvDataBaseManager getTvDataBaseManager () {
         return mTvDataBaseManager;
+    }
+
+    private TvControlManager.SourceInput parseTvSourceInput (int deviceId) {
+        TvControlManager.SourceInput sourceInput;
+        switch (deviceId) {
+            case DroidLogicTvUtils.DEVICE_ID_ATV:
+                sourceInput = TvControlManager.SourceInput.TV;
+                break;
+            case DroidLogicTvUtils.DEVICE_ID_AV1:
+                sourceInput = TvControlManager.SourceInput.AV1;
+                break;
+            case DroidLogicTvUtils.DEVICE_ID_AV2:
+                sourceInput = TvControlManager.SourceInput.AV2;
+                break;
+            case DroidLogicTvUtils.DEVICE_ID_HDMI1:
+                sourceInput = TvControlManager.SourceInput.HDMI1;
+                break;
+            case DroidLogicTvUtils.DEVICE_ID_HDMI2:
+                sourceInput = TvControlManager.SourceInput.HDMI2;
+                break;
+            case DroidLogicTvUtils.DEVICE_ID_HDMI3:
+                sourceInput = TvControlManager.SourceInput.HDMI3;
+                break;
+            case DroidLogicTvUtils.DEVICE_ID_DTV:
+                sourceInput = TvControlManager.SourceInput.DTV;
+                break;
+            default:
+                sourceInput = TvControlManager.SourceInput.TV;
+                break;
+        }
+        return sourceInput;
     }
 
     private TvControlManager.SourceInput_Type parseTvSourceType (int deviceId) {
@@ -332,7 +364,7 @@ public class SettingsManager {
     }
 
     public  String getPictureModeStatus () {
-        int pictureModeIndex = mTvControlManager.GetPQMode(mTvSource);
+        int pictureModeIndex = mTvControlManager.GetPQMode(mTvSourceInput);
         switch (pictureModeIndex) {
             case 0:
                 return mResources.getString(R.string.standard);
@@ -348,23 +380,23 @@ public class SettingsManager {
     }
 
     private String getBrightnessStatus () {
-        return mTvControlManager.GetBrightness(mTvSource) + "%";
+        return mTvControlManager.GetBrightness(mTvSourceInput) + "%";
     }
 
     private String getContrastStatus () {
-        return mTvControlManager.GetContrast(mTvSource) + "%";
+        return mTvControlManager.GetContrast(mTvSourceInput) + "%";
     }
 
     private String getColorStatus () {
-        return mTvControlManager.GetSaturation(mTvSource) + "%";
+        return mTvControlManager.GetSaturation(mTvSourceInput) + "%";
     }
 
     private String getSharpnessStatus () {
-        return mTvControlManager.GetSharpness(mTvSource) + "%";
+        return mTvControlManager.GetSharpness(mTvSourceInput) + "%";
     }
 
     private String getBacklightStatus () {
-        return mTvControlManager.GetBacklight(mTvSource) + "%";
+        return mTvControlManager.GetBacklight(mTvSourceInput) + "%";
     }
 
     public boolean isShowTint() {
@@ -391,11 +423,11 @@ public class SettingsManager {
     }
 
     private String getTintStatus () {
-        return mTvControlManager.GetHue(mTvSource) + "%";
+        return mTvControlManager.GetHue(mTvSourceInput) + "%";
     }
 
     public String getColorTemperatureStatus () {
-        int itemPosition = mTvControlManager.GetColorTemperature(mTvSource);
+        int itemPosition = mTvControlManager.GetColorTemperature(mTvSourceInput);
         if (itemPosition == 0)
             return mResources.getString(R.string.standard);
         else if (itemPosition == 1)
@@ -405,7 +437,7 @@ public class SettingsManager {
     }
 
     public String getAspectRatioStatus () {
-        int itemPosition = mTvControlManager.GetDisplayMode(mTvSource);
+        int itemPosition = mTvControlManager.GetDisplayMode(mTvSourceInput);
         if (itemPosition == TvControlManager.Display_Mode.DISPLAY_MODE_169.toInt())
             return mResources.getString(R.string.full_screen);
         else if (itemPosition == TvControlManager.Display_Mode.DISPLAY_MODE_MODE43.toInt())
@@ -417,7 +449,7 @@ public class SettingsManager {
     }
 
     public String getDnrStatus () {
-        int itemPosition = mTvControlManager.GetNoiseReductionMode(mTvSource);
+        int itemPosition = mTvControlManager.GetNoiseReductionMode(mTvSourceInput);
         if (itemPosition == 0)
             return mResources.getString(R.string.off);
         else if (itemPosition == 1)
@@ -1049,27 +1081,27 @@ public class SettingsManager {
 
     public void setPictureMode (String mode) {
         if (mode.equals(STATUS_STANDARD)) {
-            mTvControlManager.SetPQMode(TvControlManager.PQMode.PQ_MODE_STANDARD, mTvSource, 1);
+            mTvControlManager.SetPQMode(TvControlManager.PQMode.PQ_MODE_STANDARD, mTvSourceInput, 1);
         } else if (mode.equals(STATUS_VIVID)) {
-            mTvControlManager.SetPQMode(TvControlManager.PQMode.PQ_MODE_BRIGHT, mTvSource, 1);
+            mTvControlManager.SetPQMode(TvControlManager.PQMode.PQ_MODE_BRIGHT, mTvSourceInput, 1);
         } else if (mode.equals(STATUS_SOFT)) {
-            mTvControlManager.SetPQMode(TvControlManager.PQMode.PQ_MODE_SOFTNESS, mTvSource, 1);
+            mTvControlManager.SetPQMode(TvControlManager.PQMode.PQ_MODE_SOFTNESS, mTvSourceInput, 1);
         } else if (mode.equals(STATUS_USER)) {
-            mTvControlManager.SetPQMode(TvControlManager.PQMode.PQ_MODE_USER, mTvSource, 1);
+            mTvControlManager.SetPQMode(TvControlManager.PQMode.PQ_MODE_USER, mTvSourceInput, 1);
         }
     }
 
     private int setPictureUserMode(String key) {
-        int brightness = mTvControlManager.GetBrightness(mTvSource);
-        int contrast = mTvControlManager.GetContrast(mTvSource);
-        int color = mTvControlManager.GetSaturation(mTvSource);
-        int sharpness = mTvControlManager.GetSharpness(mTvSource);
+        int brightness = mTvControlManager.GetBrightness(mTvSourceInput);
+        int contrast = mTvControlManager.GetContrast(mTvSourceInput);
+        int color = mTvControlManager.GetSaturation(mTvSourceInput);
+        int sharpness = mTvControlManager.GetSharpness(mTvSourceInput);
         int tint = -1;
         if (isShowTint())
-            tint = mTvControlManager.GetHue(mTvSource);
+            tint = mTvControlManager.GetHue(mTvSourceInput);
         int ret = -1;
 
-        switch (mTvControlManager.GetPQMode(mTvSource)) {
+        switch (mTvControlManager.GetPQMode(mTvSourceInput)) {
             case 0:
             case 1:
             case 2:
@@ -1079,28 +1111,28 @@ public class SettingsManager {
 
         //Log.d(TAG, " brightness=" + brightness + " contrast=" + contrast + " color=" + color + " sharp=" + sharpness);
         if (!key.equals(KEY_BRIGHTNESS))
-            mTvControlManager.SetBrightness(brightness, mTvSource, 1);
+            mTvControlManager.SetBrightness(brightness, mTvSourceInput, 1);
         else
             ret = brightness;
 
         if (!key.equals(KEY_CONTRAST))
-            mTvControlManager.SetContrast(contrast, mTvSource, 1);
+            mTvControlManager.SetContrast(contrast, mTvSourceInput, 1);
         else
             ret = contrast;
 
         if (!key.equals(KEY_COLOR))
-            mTvControlManager.SetSaturation(color, mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
+            mTvControlManager.SetSaturation(color, mTvSourceInput, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
         else
             ret = color;
 
         if (!key.equals(KEY_SHARPNESS))
-            mTvControlManager.SetSharpness(sharpness, mTvSource, 1, 1);
+            mTvControlManager.SetSharpness(sharpness, mTvSourceInput, 1, 1);
         else
             ret = sharpness;
 
         if (isShowTint()) {
             if (!key.equals(KEY_TINT))
-                mTvControlManager.SetHue(tint, mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
+                mTvControlManager.SetHue(tint, mTvSourceInput, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
             else
                 ret = tint;
         }
@@ -1109,89 +1141,89 @@ public class SettingsManager {
     }
 
     public void setBrightness (int step) {
-        if (mTvControlManager.GetPQMode(mTvSource) == 3)
-            mTvControlManager.SetBrightness(mTvControlManager.GetBrightness(mTvSource) + step, mTvSource, 1);
+        if (mTvControlManager.GetPQMode(mTvSourceInput) == 3)
+            mTvControlManager.SetBrightness(mTvControlManager.GetBrightness(mTvSourceInput) + step, mTvSourceInput, 1);
         else
-            mTvControlManager.SetBrightness(setPictureUserMode(KEY_BRIGHTNESS) + step, mTvSource, 1);
+            mTvControlManager.SetBrightness(setPictureUserMode(KEY_BRIGHTNESS) + step, mTvSourceInput, 1);
     }
 
     public void setContrast (int step) {
-        if (mTvControlManager.GetPQMode(mTvSource) == 3)
-            mTvControlManager.SetContrast(mTvControlManager.GetContrast(mTvSource) + step, mTvSource, 1);
+        if (mTvControlManager.GetPQMode(mTvSourceInput) == 3)
+            mTvControlManager.SetContrast(mTvControlManager.GetContrast(mTvSourceInput) + step, mTvSourceInput, 1);
         else
-            mTvControlManager.SetContrast(setPictureUserMode(KEY_CONTRAST) + step, mTvSource, 1);
+            mTvControlManager.SetContrast(setPictureUserMode(KEY_CONTRAST) + step, mTvSourceInput, 1);
     }
 
     public void setColor (int step) {
-        if (mTvControlManager.GetPQMode(mTvSource) == 3)
-            mTvControlManager.SetSaturation(mTvControlManager.GetSaturation(mTvSource) + step,
-                                            mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
+        if (mTvControlManager.GetPQMode(mTvSourceInput) == 3)
+            mTvControlManager.SetSaturation(mTvControlManager.GetSaturation(mTvSourceInput) + step,
+                                            mTvSourceInput, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
         else
             mTvControlManager.SetSaturation(setPictureUserMode(KEY_COLOR) + step,
-                                            mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
+                                            mTvSourceInput, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
     }
 
     public void setSharpness (int step) {
-        if (mTvControlManager.GetPQMode(mTvSource) == 3)
-            mTvControlManager.SetSharpness(mTvControlManager.GetSharpness(mTvSource) + step, mTvSource, 1, 1);
+        if (mTvControlManager.GetPQMode(mTvSourceInput) == 3)
+            mTvControlManager.SetSharpness(mTvControlManager.GetSharpness(mTvSourceInput) + step, mTvSourceInput, 1, 1);
         else
-            mTvControlManager.SetSharpness(setPictureUserMode(KEY_SHARPNESS) + step, mTvSource, 1, 1);
+            mTvControlManager.SetSharpness(setPictureUserMode(KEY_SHARPNESS) + step, mTvSourceInput, 1, 1);
     }
 
     public void setTint (int step) {
         if (isShowTint()) {
-            if (mTvControlManager.GetPQMode(mTvSource) == 3)
-                mTvControlManager.SetHue(mTvControlManager.GetHue(mTvSource) + step, mTvSource,
+            if (mTvControlManager.GetPQMode(mTvSourceInput) == 3)
+                mTvControlManager.SetHue(mTvControlManager.GetHue(mTvSourceInput) + step, mTvSourceInput,
                                          mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
             else
-                mTvControlManager.SetHue(setPictureUserMode(KEY_TINT) + step, mTvSource,
+                mTvControlManager.SetHue(setPictureUserMode(KEY_TINT) + step, mTvSourceInput,
                                          mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
         }
     }
 
     public void setBacklight (int step) {
-        int value = mTvControlManager.GetBacklight(mTvSource) + step;
+        int value = mTvControlManager.GetBacklight(mTvSourceInput) + step;
         if (value >= 0 && value <= 100) {
-            mTvControlManager.SetBacklight(value, mTvSource, 1);
+            mTvControlManager.SetBacklight(value, mTvSourceInput, 1);
         }
     }
 
     public void setColorTemperature(String mode) {
         if (mode.equals(STATUS_STANDARD))
-            mTvControlManager.SetColorTemperature(TvControlManager.color_temperature.COLOR_TEMP_STANDARD, mTvSource, 1);
+            mTvControlManager.SetColorTemperature(TvControlManager.color_temperature.COLOR_TEMP_STANDARD, mTvSourceInput, 1);
         else if (mode.equals(STATUS_WARM))
-            mTvControlManager.SetColorTemperature(TvControlManager.color_temperature.COLOR_TEMP_WARM, mTvSource, 1);
+            mTvControlManager.SetColorTemperature(TvControlManager.color_temperature.COLOR_TEMP_WARM, mTvSourceInput, 1);
         else if (mode.equals(STATUS_COOL))
-            mTvControlManager.SetColorTemperature(TvControlManager.color_temperature.COLOR_TEMP_COLD, mTvSource, 1);
+            mTvControlManager.SetColorTemperature(TvControlManager.color_temperature.COLOR_TEMP_COLD, mTvSourceInput, 1);
     }
 
     public void setAspectRatio(String mode) {
         if (mode.equals(STATUS_AUTO)) {
             mTvControlManager.SetDisplayMode(TvControlManager.Display_Mode.DISPLAY_MODE_NORMAL,
-                                             mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
+                                             mTvSourceInput, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
         } else if (mode.equals(STATUS_4_TO_3)) {
             mTvControlManager.SetDisplayMode(TvControlManager.Display_Mode.DISPLAY_MODE_MODE43,
-                                             mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
+                                             mTvSourceInput, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
         } else if (mode.equals(STATUS_PANORAMA)) {
             mTvControlManager.SetDisplayMode(TvControlManager.Display_Mode.DISPLAY_MODE_FULL,
-                                             mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
+                                             mTvSourceInput, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
         } else if (mode.equals(STATUS_FULL_SCREEN)) {
             mTvControlManager.SetDisplayMode(TvControlManager.Display_Mode.DISPLAY_MODE_169,
-                                             mTvSource, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
+                                             mTvSourceInput, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
         }
     }
 
     public void setDnr (String mode) {
         if (mode.equals(STATUS_OFF))
-            mTvControlManager.SetNoiseReductionMode(TvControlManager.Noise_Reduction_Mode.REDUCE_NOISE_CLOSE, mTvSource, 1);
+            mTvControlManager.SetNoiseReductionMode(TvControlManager.Noise_Reduction_Mode.REDUCE_NOISE_CLOSE, mTvSourceInput, 1);
         else if (mode.equals(STATUS_AUTO))
-            mTvControlManager.SetNoiseReductionMode(TvControlManager.Noise_Reduction_Mode.REDUCTION_MODE_AUTO, mTvSource, 1);
+            mTvControlManager.SetNoiseReductionMode(TvControlManager.Noise_Reduction_Mode.REDUCTION_MODE_AUTO, mTvSourceInput, 1);
         else if (mode.equals(STATUS_MEDIUM))
-            mTvControlManager.SetNoiseReductionMode(TvControlManager.Noise_Reduction_Mode.REDUCE_NOISE_MID, mTvSource, 1);
+            mTvControlManager.SetNoiseReductionMode(TvControlManager.Noise_Reduction_Mode.REDUCE_NOISE_MID, mTvSourceInput, 1);
         else if (mode.equals(STATUS_HIGH))
-            mTvControlManager.SetNoiseReductionMode(TvControlManager.Noise_Reduction_Mode.REDUCE_NOISE_STRONG, mTvSource, 1);
+            mTvControlManager.SetNoiseReductionMode(TvControlManager.Noise_Reduction_Mode.REDUCE_NOISE_STRONG, mTvSourceInput, 1);
         else if (mode.equals(STATUS_LOW))
-            mTvControlManager.SetNoiseReductionMode(TvControlManager.Noise_Reduction_Mode.REDUCE_NOISE_WEAK, mTvSource, 1);
+            mTvControlManager.SetNoiseReductionMode(TvControlManager.Noise_Reduction_Mode.REDUCE_NOISE_WEAK, mTvSourceInput, 1);
     }
 
     public void setSoundMode (String mode) {
