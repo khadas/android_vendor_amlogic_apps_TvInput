@@ -345,7 +345,7 @@ public class FactoryMainActivity extends Activity implements TvControlManager.Up
     /* cursor's position in noLiner's son dialog */
     int j = 0;
 
-    protected int showAddDialog(final TvControlManager.SourceInput_Type source, final TvControlManager.noline_params_t noline_params) {
+    protected int showAddDialog(final TvControlManager.SourceInput source, final TvControlManager.noline_params_t noline_params) {
         LayoutInflater factory = LayoutInflater.from(this);
         View textEntryView = factory.inflate(R.layout.mdialog, null);
         /* EditText backspace's listener */

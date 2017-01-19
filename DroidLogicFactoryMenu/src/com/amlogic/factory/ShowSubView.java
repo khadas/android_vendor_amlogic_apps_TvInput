@@ -11,6 +11,7 @@ import java.util.Map;
 import com.droidlogic.app.tv.TvControlManager;
 import com.droidlogic.app.tv.TvControlManager.NOLINE_PARAMS_TYPE;
 import com.droidlogic.app.tv.TvControlManager.SourceInput_Type;
+import com.droidlogic.app.tv.TvControlManager.SourceInput;
 import com.droidlogic.app.tv.TvControlManager.noline_params_t;
 import com.droidlogic.app.tv.TvControlManager.tvin_cutwin_t;
 import com.droidlogic.app.tv.TVInSignalInfo;
@@ -51,12 +52,12 @@ public class ShowSubView {
         map.put("sub_name", context.getString(Constant.FACUI_PICMODE_PORT));
         map.put("sub_value", context.getString(Constant.FACUI_PICMODE_PORT_TV));
         mListSubMenuData.add(map);
-        setPicture(SourceInput_Type.SOURCE_TYPE_TV);
+        setPicture(SourceInput.TV);
         FactoryMainActivity.mPage = Constant.PAGE_PICTUREMODE;
     }
 
     /* set picture mode's parameter at one source */
-    public void setPicture(SourceInput_Type source) {
+    public void setPicture(SourceInput source) {
         Map<String, String> map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_PICMODE_MODE));
         int itemPosition = tv.GetPQMode(source);
@@ -164,7 +165,7 @@ public class ShowSubView {
     // }
 
     /* set NOliner's parameter like brightness ect.*/
-    public void setNoLine(SourceInput_Type source) {
+    public void setNoLine(SourceInput source) {
         noline_params_t noline_params;
         Map<String, String> map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_NOLINEAR_BRIGHTNESS));
@@ -210,13 +211,13 @@ public class ShowSubView {
         map.put("sub_name", context.getString(Constant.FACUI_CHONGXIAN_PORT));
         map.put("sub_value", context.getString(Constant.FACUI_PICMODE_PORT_TV));
         mListSubMenuData.add(map);
-        setTiming(SourceInput_Type.SOURCE_TYPE_TV, TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_CVBS_NTSC_M,
+        setTiming(SourceInput.TV, TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_CVBS_NTSC_M,
                   TVInSignalInfo.TransFmt.TVIN_TFMT_2D);
         FactoryMainActivity.mPage = Constant.PAGE_OVERSCAN;
     }
 
     /* set reShow rate's all parameter */
-    public void setTiming(SourceInput_Type source, TVInSignalInfo.SignalFmt fmt, TVInSignalInfo.TransFmt trans_fmt) {
+    public void setTiming(SourceInput source, TVInSignalInfo.SignalFmt fmt, TVInSignalInfo.TransFmt trans_fmt) {
         Map<String, String> map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_CHONGXIAN_TIMING));
         map.put("sub_value", fmt + "");
@@ -233,7 +234,7 @@ public class ShowSubView {
     }
 
     /* set reShow rate's parameter except Timing,TVIN_3D_STATUS,TVIN_TRANS_FMT */
-    public void setElse(SourceInput_Type source, TVInSignalInfo.SignalFmt fmt, TVInSignalInfo.TransFmt trans_fmt) {
+    public void setElse(SourceInput source, TVInSignalInfo.SignalFmt fmt, TVInSignalInfo.TransFmt trans_fmt) {
         tvin_cutwin_t cutwin_t;
         cutwin_t = tv.FactoryGetOverscanParams(source, fmt, trans_fmt);
         Map<String, String> map = new HashMap<String, String>();

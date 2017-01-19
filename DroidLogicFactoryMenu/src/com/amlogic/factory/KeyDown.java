@@ -47,7 +47,7 @@ public class KeyDown {
         }
     }
 
-    private void setpicparam(Map<String, String> map1, TvControlManager.SourceInput_Type source, int is_save) {
+    private void setpicparam(Map<String, String> map1, TvControlManager.SourceInput source, int is_save) {
         if (FactoryMainActivity.mCurShowModePos != 3) {
             int brightness = tv.GetBrightness(source);
             int contrast = tv.GetContrast(source);
@@ -73,7 +73,7 @@ public class KeyDown {
         int value_int = 0;
         Map<String, String> map = mListSubMenuData.get(FactoryMainActivity.mSubMenuPos);
         Map<String, String> map1 = mListSubMenuData.get(1);
-        TvControlManager.SourceInput_Type source = TvControlManager.SourceInput_Type.values()[FactoryMainActivity.mCurInputPortPos];
+        TvControlManager.SourceInput source = TvControlManager.SourceInput.values()[FactoryMainActivity.mCurInputPortPos];
         int is_save = 1;// if is_save is 1,auto save when setting,if is 0,call set function first,then save
         ShowSubView ssv = new ShowSubView(mListSubMenuData, context);
         switch (FactoryMainActivity.mSubMenuPos) {
@@ -84,7 +84,7 @@ public class KeyDown {
                     else
                         FactoryMainActivity.mCurInputPortPos = Math.abs(FactoryMainActivity.mCurInputPortPos + step) % iInputPortCount;
                     map.put("sub_value", context.getString(Constant.mInputPortList[FactoryMainActivity.mCurInputPortPos]));
-                    source = TvControlManager.SourceInput_Type.values()[FactoryMainActivity.mCurInputPortPos];
+                    source = TvControlManager.SourceInput.values()[FactoryMainActivity.mCurInputPortPos];
                     for (int i = mListSubMenuData.size() - 1; i > 0; i--)
                         mListSubMenuData.remove(i);
                     ssv.setPicture(source);
@@ -177,7 +177,7 @@ public class KeyDown {
         String value_str = "";
         int value_int = 0;
         Map<String, String> map = mListSubMenuData.get(FactoryMainActivity.mSubMenuPos);
-        TvControlManager.SourceInput_Type source = null;
+        TvControlManager.SourceInput source = null;
         ShowSubView ssv = new ShowSubView(mListSubMenuData, context);
         switch (FactoryMainActivity.mSubMenuPos) {
             case 0: {
@@ -309,7 +309,7 @@ public class KeyDown {
 
     public void adjustNolinear(boolean left, int step) {
         Map<String, String> map = mListSubMenuData.get(FactoryMainActivity.mSubMenuPos);
-        TvControlManager.SourceInput_Type source = TvControlManager.SourceInput_Type.values()[FactoryMainActivity.mCurInputPortPos];
+        TvControlManager.SourceInput source = TvControlManager.SourceInput.values()[FactoryMainActivity.mCurInputPortPos];
         switch (FactoryMainActivity.mSubMenuPos) {
             case 0:
                 int iInputPortCount = Constant.mInputPortList.length;
@@ -318,7 +318,7 @@ public class KeyDown {
                 else
                     FactoryMainActivity.mCurInputPortPos = Math.abs(FactoryMainActivity.mCurInputPortPos + step) % iInputPortCount;
                 map.put("sub_value", context.getString(Constant.mInputPortList[FactoryMainActivity.mCurInputPortPos]));
-                source = TvControlManager.SourceInput_Type.values()[FactoryMainActivity.mCurInputPortPos];
+                source = TvControlManager.SourceInput.values()[FactoryMainActivity.mCurInputPortPos];
                 for (int i = mListSubMenuData.size() - 1; i > 0; i--)
                     mListSubMenuData.remove(i);
                 ShowSubView ssv = new ShowSubView(mListSubMenuData, context);
@@ -331,7 +331,7 @@ public class KeyDown {
     }
 
     /*set reShow*/
-    private static TvControlManager.SourceInput_Type source = TvControlManager.SourceInput_Type.values()[0];
+    private static TvControlManager.SourceInput source = TvControlManager.SourceInput.values()[0];
     private static TVInSignalInfo.SignalFmt fmt = TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_CVBS_NTSC_M;
     private static TVInSignalInfo.TransFmt trans_fmt = TVInSignalInfo.TransFmt.values()[0];
 
@@ -346,16 +346,18 @@ public class KeyDown {
                 int iInputPortCount = Constant.mInputPortList.length;
                 FactoryMainActivity.mCurInputPortPos = (FactoryMainActivity.mCurInputPortPos + step + iInputPortCount) % iInputPortCount;
                 map.put("sub_value", context.getString(Constant.mInputPortList[FactoryMainActivity.mCurInputPortPos]));
-                source = TvControlManager.SourceInput_Type.values()[FactoryMainActivity.mCurInputPortPos];
-                if (source == TvControlManager.SourceInput_Type.SOURCE_TYPE_AV || source == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV)
+                source = TvControlManager.SourceInput.values()[FactoryMainActivity.mCurInputPortPos];
+                if (source == TvControlManager.SourceInput.AV1 || source == TvControlManager.SourceInput.TV ||source == TvControlManager.SourceInput.AV2)
                     fmt = TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_CVBS_NTSC_M;
-                else if (source == TvControlManager.SourceInput_Type.SOURCE_TYPE_MPEG || source == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV
-                         || source == TvControlManager.SourceInput_Type.SOURCE_TYPE_HDMI)
+                else if (source == TvControlManager.SourceInput.HDMI1|| source == TvControlManager.SourceInput.DTV
+                         || source == TvControlManager.SourceInput.HDMI2 ||source == TvControlManager.SourceInput.HDMI3 )
                     fmt = TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_HDMI_640X480P_60HZ;
-                else if (source == TvControlManager.SourceInput_Type.SOURCE_TYPE_COMPONENT)
+                else if (source == TvControlManager.SourceInput.YPBPR1 ||source == TvControlManager.SourceInput.YPBPR2 )
                     fmt = TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_COMP_480P_60HZ_D000;
-                else if (source == TvControlManager.SourceInput_Type.SOURCE_TYPE_VGA)
+                else if (source == TvControlManager.SourceInput.VGA)
                     fmt = TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_VGA_512X384P_60HZ_D147;
+                else
+                    fmt = TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_HDMI_640X480P_60HZ;
                 for (int i = mListSubMenuData.size() - 1; i > 0; i--)
                     mListSubMenuData.remove(i);
                 // get new value according new mode
@@ -364,37 +366,47 @@ public class KeyDown {
                 break;
             case 1:
                 value_int = fmt.toInt() + step;
-                if (source == TvControlManager.SourceInput_Type.values()[0] ||
-                    source == TvControlManager.SourceInput_Type.values()[1]) {
+                if (source == TvControlManager.SourceInput.values()[0] ||
+                    source == TvControlManager.SourceInput.values()[1] ||
+                    source == TvControlManager.SourceInput.values()[2]) {
                     if (1 == step && value_int > TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_CVBS_MAX.toInt())
                         fmt = TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_CVBS_NTSC_M;
                     else if (-1 == step && value_int < TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_CVBS_NTSC_M.toInt())
                         fmt = TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_CVBS_MAX;
                     else
                         fmt = TVInSignalInfo.SignalFmt.valueOf(value_int);
-                } else if (source == TvControlManager.SourceInput_Type.values()[5] ||
-                           source == TvControlManager.SourceInput_Type.values()[6] ||
-                           source == TvControlManager.SourceInput_Type.values()[3]) {
+                } else if (source == TvControlManager.SourceInput.values()[5] ||
+                           source == TvControlManager.SourceInput.values()[6] ||
+                           source == TvControlManager.SourceInput.values()[7] ||
+                           source == TvControlManager.SourceInput.values()[10]) {
                     if (1 == step && value_int > TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_HDMI_MAX.toInt())
                         fmt = TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_HDMI_640X480P_60HZ;
                     else if (-1 == step && value_int < TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_HDMI_640X480P_60HZ.toInt())
                         fmt = TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_HDMI_MAX;
                     else
                         fmt = TVInSignalInfo.SignalFmt.valueOf(value_int);
-                } else if (source == TvControlManager.SourceInput_Type.values()[2]) {
+                } else if (source == TvControlManager.SourceInput.values()[3] ||
+                           source == TvControlManager.SourceInput.values()[4]) {
                     if (1 == step && value_int > TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_COMP_MAX.toInt())
                         fmt = TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_COMP_480P_60HZ_D000;
                     else if (-1 == step && value_int < TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_COMP_480P_60HZ_D000.toInt())
                         fmt = TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_COMP_MAX;
                     else
                         fmt = TVInSignalInfo.SignalFmt.valueOf(value_int);
-                } else if (source == TvControlManager.SourceInput_Type.values()[4]) {
+                } else if (source == TvControlManager.SourceInput.values()[8]) {
                     if (1 == step && value_int > TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_VGA_MAX.toInt())
                         fmt = TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_VGA_512X384P_60HZ_D147;
                     else if (-1 == step && value_int < TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_VGA_512X384P_60HZ_D147.toInt())
                         fmt = TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_VGA_MAX;
                     else
                         fmt = TVInSignalInfo.SignalFmt.valueOf(value_int);
+                } else {
+                 if (1 == step && value_int > TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_HDMI_MAX.toInt())
+                     fmt = TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_HDMI_640X480P_60HZ;
+                 else if (-1 == step && value_int < TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_HDMI_640X480P_60HZ.toInt())
+                     fmt = TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_HDMI_MAX;
+                 else
+                     fmt = TVInSignalInfo.SignalFmt.valueOf(value_int);
                 }
                 map.put("sub_value", fmt + "");
                 FactoryMainActivity.sAdapter.notifyDataSetChanged();
