@@ -1256,7 +1256,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             mDtvInfoAudioFormat.setText("");
         }
 
-        if (mSourceInput.getChannelInfo() != null) {
+        if (mSourceInput.getChannelInfo() != null && mSourceInput.getChannelInfo().getVideoFormat() != null) {
             String[] mDtvVideoFrequency = mSourceInput.getChannelInfo().getVideoFormat().split("_");
             if (mDtvVideoFrequency.length == 3)
                 mDtvInfodFrequency.setText(mDtvVideoFrequency[2]);
