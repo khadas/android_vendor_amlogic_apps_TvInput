@@ -46,7 +46,7 @@
     <string name="frequency_band">frequency band</string>
     <string name="audio_track">Audio Track</string>
     <string name="sound_channel">Sound Channel</string>
-    <string name="channel_info">Channel Information</string>
+    <string name="channel_info">Channel Info</string>
     <string name="defalut_lan">Default Language</string>
     <string name="sub_switch">Subtitle Switch</string>
     <string name="ad_switch">Audio AD Switch</string>
@@ -81,7 +81,7 @@
     <string name="menu_time">Menu Time</string>
     <string name="startup_setting">Startup Setting</string>
     <string name="dynamic_backlight">Dynamic Backlight</string>
-    <string name="restore_factory">Restore Factory Settings</string>
+    <string name="restore_factory">Restore Factory</string>
     <string name="standard">standard</string>
     <string name="vivid">vivid</string>
     <string name="soft">soft</string>
