@@ -1466,6 +1466,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         releaseThread();
         mChannelDataManager.release();
         super.onDestroy();
+        System.exit(0);
     }
 
     @Override
