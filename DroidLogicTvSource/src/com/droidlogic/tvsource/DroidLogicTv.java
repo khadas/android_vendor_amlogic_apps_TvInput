@@ -423,6 +423,14 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                      strings[4] = "576I";
                 mSourceInput.setChannelVideoFormat(strings[4] + "_" + si.reserved + "HZ");
             }
+        }else if (mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_AV1 ||
+            mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_AV2) {
+            TVInSignalInfo si = mTvControlManager.GetCurrentSignalInfo();
+            String[] strings = si.sigFmt.toString().split("_");
+            if (strings != null && strings.length <= 4)
+                mSourceInput.setAVType("");
+            else
+                mSourceInput.setAVType(strings[4]);
         }
     }
 
