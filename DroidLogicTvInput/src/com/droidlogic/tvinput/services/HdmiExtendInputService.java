@@ -113,11 +113,11 @@ public class HdmiExtendInputService extends TvInputService {
         @Override
         public void onSetStreamVolume(float volume) {
             Log.d(TAG, "onSetStreamVolume");
-           if ( 1.0 == volume ) {
+          /* if ( 1.0 == volume ) {
                 mSystemControlManager.openAmAudio(48000, 1, 2);
             } else {
                 mSystemControlManager.closeAmAudio();
-            }
+            }*/
         }
         @Override
         public void onSetCaptionEnabled(boolean enabled) {
