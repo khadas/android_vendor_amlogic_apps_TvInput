@@ -123,6 +123,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     //if activity has been stopped, source input must be switched again.
     private boolean hasStopped = true;
     private boolean isSearchingChannel = false;
+    private boolean shouldStop = false;
 
     //info
     private TextView mInfoLabel;
@@ -465,6 +466,11 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     @Override
     protected void onResume() {
         Utils.logd(TAG, "== onResume ====");
+        // prevent launcher-tvapp fast switch onStop not called
+        if (shouldStop) {
+            onStop();
+            onStart();
+        }
         if (needUpdateSource)
             startPlay();
         if (mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_DTV)
@@ -667,7 +673,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         Utils.logd(TAG, "====onActivityResult, requestCode=" + requestCode + ", resultCode=" + resultCode);
-
+        shouldStop = false;
         if (requestCode == START_SETTING) {
             needUpdateSource = false;
             return;
@@ -1445,6 +1451,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     protected void onPause() {
         Utils.logd(TAG, "==== onPause ====");
         isRunning = false;
+        shouldStop = true;
         // search is longer then 5min
         remove_nosignal_time();
         super.onPause();
@@ -1465,6 +1472,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             unregisterReceiver(mReceiver);
             mReceiverRegisted = false;
         }
+        shouldStop = false;
         super.onStop();
     }
 
