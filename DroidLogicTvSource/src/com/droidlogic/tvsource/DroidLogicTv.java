@@ -925,9 +925,21 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     }
 
     private void sendKeyEventToHdmi(int keyCode, boolean isPressed) {
-        if (mHdmiTvClient != null && mUiType != Utils.UI_TYPE_SOURCE_LIST) {
+        if (mHdmiTvClient != null && mUiType != Utils.UI_TYPE_SOURCE_LIST && !isInvalidKey(keyCode)) {
             mHdmiTvClient.sendKeyEvent(keyCode, isPressed);
         }
+    }
+
+    private boolean isInvalidKey(int keyCode) {
+        boolean ret = false;
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_TV_INPUT:
+                ret = true;
+                break;
+            default:
+                break;
+        }
+        return ret;
     }
 
     private void updateTracksInfo(int audioTrack, int subtitleTrack) {
