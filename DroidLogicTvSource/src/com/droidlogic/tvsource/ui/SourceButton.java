@@ -201,7 +201,7 @@ public class SourceButton extends LinearLayout {
     }
 
     public ChannelInfo getChannelInfo() {
-        return mChannelTuner.getChannelInfo();
+        return mChannelTuner == null ? null :  mChannelTuner.getChannelInfo();
     }
 
     public void setAVType(String type) {

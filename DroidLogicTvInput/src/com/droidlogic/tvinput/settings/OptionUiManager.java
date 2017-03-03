@@ -149,144 +149,149 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     }
 
     public void setOptionTag(int position) {
-        String item_name = ((TvSettingsActivity) mContext).getCurrentFragment().getContentList().get(position).get(ContentFragment.ITEM_NAME)
-                .toString();
+        String item_name = null;
+        if (((TvSettingsActivity) mContext).getCurrentFragment().getContentList().size() > 0) {
+            item_name = ((TvSettingsActivity) mContext).getCurrentFragment().getContentList().get(position).get(ContentFragment.ITEM_NAME)
+                    .toString();
+        }
+        if (!TextUtils.isEmpty(item_name)) {
         // Picture
-        if (item_name.equals(mResources.getString(R.string.picture_mode))) {
-            optionTag = OPTION_PICTURE_MODE;
-            optionKey = SettingsManager.KEY_PICTURE_MODE;
-        } else if (item_name.equals(mResources.getString(R.string.brightness))) {
-            optionTag = OPTION_BRIGHTNESS;
-            optionKey = SettingsManager.KEY_BRIGHTNESS;
-        } else if (item_name.equals(mResources.getString(R.string.contrast))) {
-            optionTag = OPTION_CONTRAST;
-            optionKey = SettingsManager.KEY_CONTRAST;
-        } else if (item_name.equals(mResources.getString(R.string.color))) {
-            optionTag = OPTION_COLOR;
-            optionKey = SettingsManager.KEY_COLOR;
-        } else if (item_name.equals(mResources.getString(R.string.sharpness))) {
-            optionTag = OPTION_SHARPNESS;
-            optionKey = SettingsManager.KEY_SHARPNESS;
-        } else if (item_name.equals(mResources.getString(R.string.backlight))) {
-            optionTag = OPTION_BACKLIGHT;
-            optionKey = SettingsManager.KEY_BACKLIGHT;
-        } else if (item_name.equals(mResources.getString(R.string.tint))) {
-            optionTag = OPTION_TINT;
-            optionKey = SettingsManager.KEY_TINT;
-        } else if (item_name.equals(mResources.getString(R.string.color_temperature))) {
-            optionTag = OPTION_COLOR_TEMPERATURE;
-            optionKey = SettingsManager.KEY_COLOR_TEMPERATURE;
-        } else if (item_name.equals(mResources.getString(R.string.aspect_ratio))) {
-            optionTag = OPTION_ASPECT_RATIO;
-            optionKey = SettingsManager.KEY_ASPECT_RATIO;
-        } else if (item_name.equals(mResources.getString(R.string.dnr))) {
-            optionTag = OPTION_DNR;
-            optionKey = SettingsManager.KEY_DNR;
-        } else if (item_name.equals(mResources.getString(R.string.settings_3d))) {
-            optionTag = OPTION_3D_SETTINGS;
-            optionKey = SettingsManager.KEY_3D_SETTINGS;
-        }
-        // Sound
-        else if (item_name.equals(mResources.getString(R.string.sound_mode))) {
-            optionTag = OPTION_SOUND_MODE;
-            optionKey = SettingsManager.KEY_SOUND_MODE;
-        } else if (item_name.equals(mResources.getString(R.string.treble))) {
-            optionTag = OPTION_TREBLE;
-            optionKey = SettingsManager.KEY_TREBLE;
-        } else if (item_name.equals(mResources.getString(R.string.bass))) {
-            optionTag = OPTION_BASS;
-            optionKey = SettingsManager.KEY_BASS;
-        } else if (item_name.equals(mResources.getString(R.string.balance))) {
-            optionTag = OPTION_BALANCE;
-            optionKey = SettingsManager.KEY_BALANCE;
-        } else if (item_name.equals(mResources.getString(R.string.spdif))) {
-            optionTag = OPTION_SPDIF;
-            optionKey = SettingsManager.KEY_SPDIF;
-        } else if (item_name.equals(mResources.getString(R.string.dialog_clarity))) {
-            optionTag = OPTION_DIALOG_CLARITY;
-            optionKey = SettingsManager.KEY_DIALOG_CLARITY;
-        } else if (item_name.equals(mResources.getString(R.string.bass_boost))) {
-            optionTag = OPTION_BASS_BOOST;
-            optionKey = SettingsManager.KEY_BASS_BOOST;
-        } else if (item_name.equals(mResources.getString(R.string.surround))) {
-            optionTag = OPTION_SURROUND;
-            optionKey = SettingsManager.KEY_SURROUND;
-        }
+            if (item_name.equals(mResources.getString(R.string.picture_mode))) {
+                optionTag = OPTION_PICTURE_MODE;
+                optionKey = SettingsManager.KEY_PICTURE_MODE;
+            } else if (item_name.equals(mResources.getString(R.string.brightness))) {
+                optionTag = OPTION_BRIGHTNESS;
+                optionKey = SettingsManager.KEY_BRIGHTNESS;
+            } else if (item_name.equals(mResources.getString(R.string.contrast))) {
+                optionTag = OPTION_CONTRAST;
+                optionKey = SettingsManager.KEY_CONTRAST;
+            } else if (item_name.equals(mResources.getString(R.string.color))) {
+                optionTag = OPTION_COLOR;
+                optionKey = SettingsManager.KEY_COLOR;
+            } else if (item_name.equals(mResources.getString(R.string.sharpness))) {
+                optionTag = OPTION_SHARPNESS;
+                optionKey = SettingsManager.KEY_SHARPNESS;
+            } else if (item_name.equals(mResources.getString(R.string.backlight))) {
+                optionTag = OPTION_BACKLIGHT;
+                optionKey = SettingsManager.KEY_BACKLIGHT;
+            } else if (item_name.equals(mResources.getString(R.string.tint))) {
+                optionTag = OPTION_TINT;
+                optionKey = SettingsManager.KEY_TINT;
+            } else if (item_name.equals(mResources.getString(R.string.color_temperature))) {
+                optionTag = OPTION_COLOR_TEMPERATURE;
+                optionKey = SettingsManager.KEY_COLOR_TEMPERATURE;
+            } else if (item_name.equals(mResources.getString(R.string.aspect_ratio))) {
+                optionTag = OPTION_ASPECT_RATIO;
+                optionKey = SettingsManager.KEY_ASPECT_RATIO;
+            } else if (item_name.equals(mResources.getString(R.string.dnr))) {
+                optionTag = OPTION_DNR;
+                optionKey = SettingsManager.KEY_DNR;
+            } else if (item_name.equals(mResources.getString(R.string.settings_3d))) {
+                optionTag = OPTION_3D_SETTINGS;
+                optionKey = SettingsManager.KEY_3D_SETTINGS;
+            }
+           // Sound
+            else if (item_name.equals(mResources.getString(R.string.sound_mode))) {
+                optionTag = OPTION_SOUND_MODE;
+                optionKey = SettingsManager.KEY_SOUND_MODE;
+            } else if (item_name.equals(mResources.getString(R.string.treble))) {
+                optionTag = OPTION_TREBLE;
+                optionKey = SettingsManager.KEY_TREBLE;
+            } else if (item_name.equals(mResources.getString(R.string.bass))) {
+                optionTag = OPTION_BASS;
+                optionKey = SettingsManager.KEY_BASS;
+            } else if (item_name.equals(mResources.getString(R.string.balance))) {
+                optionTag = OPTION_BALANCE;
+                optionKey = SettingsManager.KEY_BALANCE;
+            } else if (item_name.equals(mResources.getString(R.string.spdif))) {
+                optionTag = OPTION_SPDIF;
+                optionKey = SettingsManager.KEY_SPDIF;
+            } else if (item_name.equals(mResources.getString(R.string.dialog_clarity))) {
+                optionTag = OPTION_DIALOG_CLARITY;
+                optionKey = SettingsManager.KEY_DIALOG_CLARITY;
+            } else if (item_name.equals(mResources.getString(R.string.bass_boost))) {
+                optionTag = OPTION_BASS_BOOST;
+                optionKey = SettingsManager.KEY_BASS_BOOST;
+            } else if (item_name.equals(mResources.getString(R.string.surround))) {
+                optionTag = OPTION_SURROUND;
+                optionKey = SettingsManager.KEY_SURROUND;
+            }
         // Channel
-        else if (item_name.equals(mResources.getString(R.string.audio_track))) {
-            optionTag = OPTION_AUDIO_TRACK;
-            optionKey = SettingsManager.KEY_AUIDO_TRACK;
-        } else if (item_name.equals(mResources.getString(R.string.sound_channel))) {
-            optionTag = OPTION_SOUND_CHANNEL;
-            optionKey = SettingsManager.KEY_SOUND_CHANNEL;
-        } else if (item_name.equals(mResources.getString(R.string.channel_info))) {
-            optionTag = OPTION_CHANNEL_INFO;
-            optionKey = SettingsManager.KEY_CHANNEL_INFO;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.defalut_lan))) {
-            optionTag = OPTION_DEFAULT_LANGUAGE;
-            optionKey = SettingsManager.KEY_DEFAULT_LANGUAGE;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.sub_switch))) {
-            optionTag = OPTION_SUBTITLE_SWITCH;
-            optionKey = SettingsManager.KEY_SUBTITLE_SWITCH;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.ad_switch))) {
-            optionTag = OPTION_AD_SWITCH;
-            optionKey = SettingsManager.KEY_AD_SWITCH;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.ad_mix))) {
-            optionTag = OPTION_AD_MIX;
-            optionKey = SettingsManager.KEY_AD_MIX;
-        } else if (item_name.equals(mContext.getResources().getString(R.string.color_system))) {
-            optionTag = OPTION_COLOR_SYSTEM;
-            optionKey = SettingsManager.KEY_COLOR_SYSTEM;
-        } else if (item_name.equals(mResources.getString(R.string.sound_system))) {
-            optionTag = OPTION_SOUND_SYSTEM;
-            optionKey = SettingsManager.KEY_SOUND_SYSTEM;
-        } else if (item_name.equals(mResources.getString(R.string.volume_compensate))) {
-            optionTag = OPTION_VOLUME_COMPENSATE;
-            optionKey = SettingsManager.KEY_VOLUME_COMPENSATE;
-        } else if (item_name.equals(mResources.getString(R.string.fine_tune))) {
-            optionTag = OPTION_FINE_TUNE;
-            optionKey = SettingsManager.KEY_FINE_TUNE;
-        } else if (item_name.equals(mResources.getString(R.string.manual_search))) {
-            optionTag = OPTION_MANUAL_SEARCH;
-            optionKey = SettingsManager.KEY_MANUAL_SEARCH;
-        } else if (item_name.equals(mResources.getString(R.string.auto_search))) {
-            optionTag = OPTION_AUTO_SEARCH;
-            optionKey = SettingsManager.KEY_AUTO_SEARCH;
-        } else if (item_name.equals(mResources.getString(R.string.channel_edit))) {
-            optionTag = OPTION_CHANNEL_EDIT;
-            optionKey = SettingsManager.KEY_CHANNEL_EDIT;
-        } else if (item_name.equals(mResources.getString(R.string.switch_channel))) {
-            optionTag = OPTION_SWITCH_CHANNEL;
-            optionKey = SettingsManager.KEY_SWITCH_CHANNEL;
-        }
+            else if (item_name.equals(mResources.getString(R.string.audio_track))) {
+                optionTag = OPTION_AUDIO_TRACK;
+                optionKey = SettingsManager.KEY_AUIDO_TRACK;
+            } else if (item_name.equals(mResources.getString(R.string.sound_channel))) {
+                optionTag = OPTION_SOUND_CHANNEL;
+                optionKey = SettingsManager.KEY_SOUND_CHANNEL;
+            } else if (item_name.equals(mResources.getString(R.string.channel_info))) {
+                optionTag = OPTION_CHANNEL_INFO;
+                optionKey = SettingsManager.KEY_CHANNEL_INFO;
+            } else if (item_name.equals(mContext.getResources().getString(R.string.defalut_lan))) {
+                optionTag = OPTION_DEFAULT_LANGUAGE;
+                optionKey = SettingsManager.KEY_DEFAULT_LANGUAGE;
+            } else if (item_name.equals(mContext.getResources().getString(R.string.sub_switch))) {
+                optionTag = OPTION_SUBTITLE_SWITCH;
+                optionKey = SettingsManager.KEY_SUBTITLE_SWITCH;
+            } else if (item_name.equals(mContext.getResources().getString(R.string.ad_switch))) {
+                optionTag = OPTION_AD_SWITCH;
+                optionKey = SettingsManager.KEY_AD_SWITCH;
+            } else if (item_name.equals(mContext.getResources().getString(R.string.ad_mix))) {
+                optionTag = OPTION_AD_MIX;
+                optionKey = SettingsManager.KEY_AD_MIX;
+            } else if (item_name.equals(mContext.getResources().getString(R.string.color_system))) {
+                optionTag = OPTION_COLOR_SYSTEM;
+                optionKey = SettingsManager.KEY_COLOR_SYSTEM;
+            } else if (item_name.equals(mResources.getString(R.string.sound_system))) {
+                optionTag = OPTION_SOUND_SYSTEM;
+                optionKey = SettingsManager.KEY_SOUND_SYSTEM;
+            } else if (item_name.equals(mResources.getString(R.string.volume_compensate))) {
+                optionTag = OPTION_VOLUME_COMPENSATE;
+                optionKey = SettingsManager.KEY_VOLUME_COMPENSATE;
+            } else if (item_name.equals(mResources.getString(R.string.fine_tune))) {
+                optionTag = OPTION_FINE_TUNE;
+                optionKey = SettingsManager.KEY_FINE_TUNE;
+            } else if (item_name.equals(mResources.getString(R.string.manual_search))) {
+                optionTag = OPTION_MANUAL_SEARCH;
+                optionKey = SettingsManager.KEY_MANUAL_SEARCH;
+            } else if (item_name.equals(mResources.getString(R.string.auto_search))) {
+                optionTag = OPTION_AUTO_SEARCH;
+                optionKey = SettingsManager.KEY_AUTO_SEARCH;
+            } else if (item_name.equals(mResources.getString(R.string.channel_edit))) {
+                optionTag = OPTION_CHANNEL_EDIT;
+                optionKey = SettingsManager.KEY_CHANNEL_EDIT;
+            } else if (item_name.equals(mResources.getString(R.string.switch_channel))) {
+                optionTag = OPTION_SWITCH_CHANNEL;
+                optionKey = SettingsManager.KEY_SWITCH_CHANNEL;
+            }
         // Settings
-        else if (item_name.equals(mResources.getString(R.string.dtv_type))) {
-            optionTag = OPTION_DTV_TYPE;
-            optionKey = SettingsManager.KEY_DTV_TYPE;
-        } else if (item_name.equals(mResources.getString(R.string.sleep_timer))) {
-            optionTag = OPTION_SLEEP_TIMER;
-            optionKey = SettingsManager.KEY_SLEEP_TIMER;
-        } else if (item_name.equals(mResources.getString(R.string.menu_time))) {
-            optionTag = OPTION_MENU_TIME;
-            optionKey = SettingsManager.KEY_MENU_TIME;
-        } else if (item_name.equals(mResources.getString(R.string.startup_setting))) {
-            optionTag = OPTION_STARTUP_SETTING;
-            optionKey = SettingsManager.KEY_STARTUP_SETTING;
-        } else if (item_name.equals(mResources.getString(R.string.dynamic_backlight))) {
-            optionTag = OPTION_DYNAMIC_BACKLIGHT;
-            optionKey = SettingsManager.KEY_DYNAMIC_BACKLIGHT;
-        } else if (item_name.equals(mResources.getString(R.string.restore_factory))) {
-            optionTag = OPTION_RESTORE_FACTORY;
-            optionKey = SettingsManager.KEY_RESTORE_FACTORY;
-        } else if (item_name.equals(mResources.getString(R.string.hdmi20))) {
-            optionTag = OPTION_HDMI20;
-            optionKey = SettingsManager.KEY_HDMI20;
-        } else if (item_name.equals(mResources.getString(R.string.fbc_upgrade))){
-            optionTag = OPTION_FBC_UPGRADE;
-            optionKey = SettingsManager.KEY_FBC_UPGRADE;
-        } else if (item_name.equals(mResources.getString(R.string.ad_list))){
-            optionTag = OPTION_AD_LIST;
-            optionKey = SettingsManager.KEY_AD_LIST;
+            else if (item_name.equals(mResources.getString(R.string.dtv_type))) {
+                optionTag = OPTION_DTV_TYPE;
+                optionKey = SettingsManager.KEY_DTV_TYPE;
+            } else if (item_name.equals(mResources.getString(R.string.sleep_timer))) {
+                optionTag = OPTION_SLEEP_TIMER;
+                optionKey = SettingsManager.KEY_SLEEP_TIMER;
+            } else if (item_name.equals(mResources.getString(R.string.menu_time))) {
+                optionTag = OPTION_MENU_TIME;
+                optionKey = SettingsManager.KEY_MENU_TIME;
+            } else if (item_name.equals(mResources.getString(R.string.startup_setting))) {
+                optionTag = OPTION_STARTUP_SETTING;
+                optionKey = SettingsManager.KEY_STARTUP_SETTING;
+            } else if (item_name.equals(mResources.getString(R.string.dynamic_backlight))) {
+                optionTag = OPTION_DYNAMIC_BACKLIGHT;
+                optionKey = SettingsManager.KEY_DYNAMIC_BACKLIGHT;
+            } else if (item_name.equals(mResources.getString(R.string.restore_factory))) {
+                optionTag = OPTION_RESTORE_FACTORY;
+                optionKey = SettingsManager.KEY_RESTORE_FACTORY;
+            } else if (item_name.equals(mResources.getString(R.string.hdmi20))) {
+                optionTag = OPTION_HDMI20;
+                optionKey = SettingsManager.KEY_HDMI20;
+            } else if (item_name.equals(mResources.getString(R.string.fbc_upgrade))){
+                optionTag = OPTION_FBC_UPGRADE;
+                optionKey = SettingsManager.KEY_FBC_UPGRADE;
+            } else if (item_name.equals(mResources.getString(R.string.ad_list))){
+                optionTag = OPTION_AD_LIST;
+                optionKey = SettingsManager.KEY_AD_LIST;
+            }
         }
     }
 
