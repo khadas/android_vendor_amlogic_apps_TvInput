@@ -212,21 +212,13 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
 
                 int channelIndex = intent.getIntExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, -1);
                 boolean isRadioChannel = intent.getBooleanExtra(DroidLogicTvUtils.EXTRA_IS_RADIO_CHANNEL, false);
-                boolean force_dtv = intent.getBooleanExtra("force_dtv", false);
-
+                int deviceId = intent.getIntExtra(DroidLogicTvUtils.EXTRA_CHANNEL_DEVICE_ID, -1);
                 Utils.logd(TAG, "recevie intent :switch channel to index=" + channelIndex + " isRadio=" + isRadioChannel
-                           + " force dtv=" + force_dtv);
-                if (!force_dtv) {
-                    onSelect(channelIndex, isRadioChannel);
-                } else {
-                    SourceButton dtvSourceButton = mSourceMenuLayout.getDtvSourceButton();
-                    if (mSourceInput.getSourceType() != DroidLogicTvUtils.SOURCE_TYPE_DTV) {
-                        dtvSourceButton.moveToChannel(channelIndex, isRadioChannel);
-                        dtvSourceButton.switchSource();
-                    } else {
-                        onSelect(channelIndex, isRadioChannel);
-                    }
+                           + " deviceId=" + deviceId);
+                if (mSourceMenuLayout.getCurSourceInput().getDeviceId() != deviceId) {
+                    mSourceMenuLayout.getSourceInput(deviceId).switchSource();
                 }
+                mSourceMenuLayout.getSourceInput(deviceId).moveToChannel(channelIndex, isRadioChannel);
             } else if (action.equals(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH)) {
                 int switchVal = intent.getIntExtra(DroidLogicTvUtils.EXTRA_SWITCH_VALUE, 0);
                 resetSubtitleTrack((switchVal == 1));
@@ -473,7 +465,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         }
         if (needUpdateSource)
             startPlay();
-        if (mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_DTV)
+        if (mSourceInput.getSigType() == DroidLogicTvUtils.SIG_INFO_TYPE_DTV)
             showUi(Utils.UI_TYPE_DTV_INFO,false);
         else
             showUi(Utils.UI_TYPE_SOURCE_INFO, false);
@@ -522,7 +514,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         if (type == DroidLogicTvUtils.SOURCE_TYPE_ATV) {
             Settings.System.putInt(getContentResolver(), DroidLogicTvUtils.TV_ATV_CHANNEL_INDEX, index);
             Settings.System.putInt(getContentResolver(), DroidLogicTvUtils.TV_CURRENT_CHANNEL_IS_RADIO, 0);
-        } else if (type == DroidLogicTvUtils.SOURCE_TYPE_DTV) {
+        } else if (type == DroidLogicTvUtils.SOURCE_TYPE_DTV
+                    || type == DroidLogicTvUtils.SOURCE_TYPE_ADTV) {
             Settings.System.putInt(getContentResolver(), DroidLogicTvUtils.TV_DTV_CHANNEL_INDEX, index);
             Settings.System.putInt(getContentResolver(), DroidLogicTvUtils.TV_CURRENT_CHANNEL_IS_RADIO, is_radio ? 1 : 0);
         }
@@ -534,7 +527,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     }
 
     private void preTuneCmd() {//not-time-related cmds only
-        if (mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_DTV) {
+        if (mSourceInput.getSigType() == DroidLogicTvUtils.SIG_INFO_TYPE_DTV) {
             Bundle data = new Bundle();
             String type = Settings.System.getString(mContext.getContentResolver(),
                 DroidLogicTvUtils.TV_KEY_DTV_TYPE);
@@ -560,7 +553,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         if (mThreadHandler == null) {
             return;
         }
-        Log.d(TAG, "==== switchToSourceInput");
+        Log.d(TAG, "==== switchToSourceInput " + mSourceInput.getInputId());
         mThreadHandler.obtainMessage(MSG_SAVE_CHANNEL_INFO).sendToTarget();
         mPreSigType = mSigType;
         mSigType = mSourceInput.getSigType();
@@ -589,40 +582,6 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         }
         else{
             showUi(Utils.UI_TYPE_SOURCE_INFO, false);
-        }
-    }
-
-    private void switchToDtvChannel(int channelId) {
-        SourceButton dtvSourceButton = mSourceMenuLayout.getDtvSourceButton();
-        if (dtvSourceButton == null) {
-            return;
-        }
-        int index = -1;
-        boolean isRadio = false;
-        for (int i = 0; i < dtvSourceButton.getChannelVideoList().size(); i++) {
-            if (channelId == dtvSourceButton.getChannelVideoList().get(i).getId()) {
-                index = i;
-                isRadio = false;
-                break;
-            }
-        }
-        if (index == -1) {
-            for (int i = 0; i < dtvSourceButton.getChannelRadioList().size(); i++) {
-                if (channelId == dtvSourceButton.getChannelRadioList().get(i).getId()) {
-                    index = i;
-                    isRadio = true;
-                    break;
-                }
-            }
-        }
-        if (index != -1) {
-            showUi(Utils.UI_TYPE_ALL_HIDE, true);
-            if (mSourceInput.getSourceType() != DroidLogicTvUtils.SOURCE_TYPE_DTV) {
-                dtvSourceButton.moveToChannel(index, isRadio);
-                dtvSourceButton.switchSource();
-            } else {
-                onSelect(index, isRadio);
-            }
         }
     }
 
@@ -715,12 +674,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     public void onSourceInputClick() {
         Utils.logd(TAG, "==== onSourceInputClick ====");
         hideTvView(mSourceMenuLayout);
-       /* if (mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_DTV) {
-            showUi(Utils.UI_TYPE_DTV_INFO,false);
-        } else
-            showUi(Utils.UI_TYPE_SOURCE_INFO, false);*/
+
         if (mSourceInput.getSourceType() == mSourceMenuLayout.getCurSourceInput().getSourceType()) {
-            if (mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_DTV) {
+            if (mSourceInput.getSigType() == DroidLogicTvUtils.SIG_INFO_TYPE_DTV) {
                 showUi(Utils.UI_TYPE_DTV_INFO,false);
             } else
                 showUi(Utils.UI_TYPE_SOURCE_INFO, false);
@@ -836,7 +792,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 hideTvView(mSourceMenuLayout);
                 hideTvView(prompt_no_signal);
                 hideTvView(mChannelListLayout);
-                if (mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_DTV) {
+                if (mSourceInput.getSigType() == DroidLogicTvUtils.SIG_INFO_TYPE_DTV) {
                     if (mDtvInfoLayout.getVisibility() == View.VISIBLE)
                         hideTvView(mDtvInfoLayout);
                     else
@@ -1045,13 +1001,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             keyInputNumber = Integer.toString(mSourceInput.getChannelVideoList().valueAt((index + offset) % size).getNumber());
         else
             keyInputNumber = Integer.toString(mSourceInput.getChannelVideoList().valueAt((size + (index + offset) % size) % size).getNumber());
-        if (mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_DTV) {
-            showUi(Utils.UI_TYPE_DTV_INFO,false);
-            mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_CHANNEL_NUM_SWITCH), 300);
-        } else {
-            showUi(Utils.UI_TYPE_SOURCE_INFO, false);
-            mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_CHANNEL_NUM_SWITCH), 300);
-        }
+
+        mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_CHANNEL_NUM_SWITCH), 300);
     }
 
     private void processNumberInputChannel(int keyCode) {
@@ -1063,13 +1014,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         int val = keyCode - DroidLogicKeyEvent.KEYCODE_0;
         if (keyInputNumber.length() <= 8)
             keyInputNumber = keyInputNumber + val;
-        if (mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_DTV) {
-            showUi(Utils.UI_TYPE_DTV_INFO, false);
-            mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_CHANNEL_NUM_SWITCH), 2000);
-        } else {
-            showUi(Utils.UI_TYPE_SOURCE_INFO, false);
-            mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_CHANNEL_NUM_SWITCH), 2000);
-        }
+
+        mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_CHANNEL_NUM_SWITCH), 2000);
     }
 
     public void processKeyLookBack() {
@@ -1452,7 +1398,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 default:
                     break;
             }
-            if (mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_DTV )
+            if (mSourceInput.getSigType() == DroidLogicTvUtils.SIG_INFO_TYPE_DTV )
                 showUi(Utils.UI_TYPE_DTV_INFO,false);
             else
                 showUi(Utils.UI_TYPE_SOURCE_INFO, false);
@@ -1506,12 +1452,15 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             case MSG_UI_TIMEOUT:
                 switch (mUiType) {
                     case Utils.UI_TYPE_SOURCE_INFO:
-                        hideTvView(mSourceInfoLayout);
+                        if (mSourceInput.getSigType() == DroidLogicTvUtils.SIG_INFO_TYPE_DTV )
+                            hideTvView(mDtvInfoLayout);
+                        else
+                            hideTvView(mSourceInfoLayout);
                         showUi(Utils.UI_TYPE_NO_SINAL, false);
                         break;
                     case Utils.UI_TYPE_SOURCE_LIST:
                         hideTvView(mSourceMenuLayout);
-                        if (mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_DTV )
+                        if (mSourceInput.getSigType() == DroidLogicTvUtils.SIG_INFO_TYPE_DTV )
                             showUi(Utils.UI_TYPE_DTV_INFO,false);
                         else
                             showUi(Utils.UI_TYPE_SOURCE_INFO, false);
@@ -1520,7 +1469,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     case Utils.UI_TYPE_DTV_CHANNEL_LIST:
                     case Utils.UI_TYPE_ATV_FAV_LIST:
                     case Utils.UI_TYPE_DTV_FAV_LIST:
-                        if (mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_DTV )
+                        if (mSourceInput.getSigType() == DroidLogicTvUtils.SIG_INFO_TYPE_DTV )
                             showUi(Utils.UI_TYPE_DTV_INFO,false);
                         else
                             showUi(Utils.UI_TYPE_SOURCE_INFO, false);
@@ -1541,7 +1490,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 }
                 isNumberSwitching = false;
                 keyInputNumber = "";
-                if (mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_DTV) {
+                if (mSourceInput.getSigType() == DroidLogicTvUtils.SIG_INFO_TYPE_DTV) {
                     showUi(Utils.UI_TYPE_DTV_INFO,false);
                 }
                 else

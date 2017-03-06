@@ -47,6 +47,7 @@ public class AppointedProgramReceiver extends BroadcastReceiver implements OnCli
     private TextView tx_title;
     private Timer timer;
     private int channelIndex = -1;
+    private int deviceId = -1;
     private boolean isRadio = false;
     private AlertDialog mAlertDialog = null;
     private PowerManager mPowerManager;
@@ -88,6 +89,7 @@ public class AppointedProgramReceiver extends BroadcastReceiver implements OnCli
                     break;
                 }
             }
+            deviceId = DroidLogicTvUtils.getHardwareDeviceId(channel.getInputId());
             Log.d(TAG, "receive appointed channel:" + channel.getDisplayName() + " program: " + program.getTitle());
 
             LayoutInflater inflater = (LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -150,7 +152,7 @@ public class AppointedProgramReceiver extends BroadcastReceiver implements OnCli
     }
 
     public void startTvApp() {
-        Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_CURRENT_DEVICE_ID, DroidLogicTvUtils.DEVICE_ID_DTV);
+        Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_CURRENT_DEVICE_ID, deviceId);
         Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_DTV_CHANNEL_INDEX, channelIndex);
         Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_CURRENT_CHANNEL_IS_RADIO, isRadio ? 1 : 0);
 
@@ -169,7 +171,7 @@ public class AppointedProgramReceiver extends BroadcastReceiver implements OnCli
         intent.setAction(DroidLogicTvUtils.ACTION_SWITCH_CHANNEL);
         intent.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, channelIndex);
         intent.putExtra(DroidLogicTvUtils.EXTRA_IS_RADIO_CHANNEL, isRadio);
-        intent.putExtra("force_dtv", true);
+        intent.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_DEVICE_ID, deviceId);
         mContext.sendBroadcast(intent);
     }
 

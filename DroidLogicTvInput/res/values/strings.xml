@@ -169,7 +169,7 @@
     <string name="dvbs2">DVB-S2</string>
     <string name="atsc_t">ATSC-T</string>
     <string name="atsc_c">ATSC-C</string>
-    <string name="isdbt">ISDB-T</string>
+    <string name="isdb_t">ISDB-T</string>
 
     <!-- for time suspend ui -->
     <string name="suspend_dialog_title">Suspend Countdown</string>

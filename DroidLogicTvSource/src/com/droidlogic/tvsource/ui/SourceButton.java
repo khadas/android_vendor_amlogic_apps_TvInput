@@ -165,11 +165,11 @@ public class SourceButton extends LinearLayout {
     }
 
     public Uri getUri() {
-        return  mInputInfo == null ? null : mChannelTuner.getUri();
+        return  mChannelTuner == null ? null : mChannelTuner.getUri();
     }
 
     public long getChannelId() {
-        return  mInputInfo == null ? -1 : mChannelTuner.getChannelId();
+        return  mChannelTuner == null ? -1 : mChannelTuner.getChannelId();
     }
 
     public int getChannelIndex() {
@@ -201,7 +201,7 @@ public class SourceButton extends LinearLayout {
     }
 
     public ChannelInfo getChannelInfo() {
-        return mChannelTuner == null ? null :  mChannelTuner.getChannelInfo();
+        return mChannelTuner == null ? null : mChannelTuner.getChannelInfo();
     }
 
     public void setAVType(String type) {
@@ -298,6 +298,11 @@ public class SourceButton extends LinearLayout {
                 case DroidLogicTvUtils.DEVICE_ID_SPDIF:
                     mSourceLabel = mResources.getString(R.string.source_bt_spdif);
                     icon = mResources.getDrawable(R.drawable.icon_spdif);
+                    break;
+                case DroidLogicTvUtils.DEVICE_ID_ADTV:
+                    mSourceLabel = mResources.getString(R.string.source_bt_atsc);
+                    icon = mResources.getDrawable(R.drawable.icon_atsc);
+                    break;
                 default:
                     break;
             }
@@ -309,7 +314,19 @@ public class SourceButton extends LinearLayout {
         mSourceType = DroidLogicTvUtils.getSourceType(mHardwareDeviceId);
     }
 
+    public boolean isVirtualSource() {
+        return (mSourceType == DroidLogicTvUtils.SOURCE_TYPE_ADTV);
+    }
+
     public int getSigType() {
+        if (isVirtualSource()) {
+            if (mChannelTuner == null)
+                return DroidLogicTvUtils.SIG_INFO_TYPE_DTV;
+            ChannelInfo info = mChannelTuner.getChannelInfo();
+            if (info == null)
+                return DroidLogicTvUtils.SIG_INFO_TYPE_DTV;
+            return DroidLogicTvUtils.getSigType(info);
+        }
         return DroidLogicTvUtils.getSigType(mSourceType);
     }
 

@@ -141,6 +141,7 @@ public class SettingsManager {
     private Context mContext;
     private Resources mResources;
     private String mInputId;
+    private TvControlManager.SourceInput_Type mVirtualTvSource;
     private TvControlManager.SourceInput_Type mTvSource;
     private TvControlManager.SourceInput mTvSourceInput;
     private ChannelInfo currentChannel;
@@ -166,9 +167,29 @@ public class SettingsManager {
     public void setCurrentChannelData(Intent intent) {
         mInputId = intent.getStringExtra(TvInputInfo.EXTRA_INPUT_ID);
         isRadioChannel = intent.getBooleanExtra(DroidLogicTvUtils.EXTRA_IS_RADIO_CHANNEL, false);
-        mTvSource = parseTvSourceType(intent.getIntExtra(DroidLogicTvUtils.EXTRA_CHANNEL_DEVICE_ID, -1));
-        mTvSourceInput = parseTvSourceInput(intent.getIntExtra(DroidLogicTvUtils.EXTRA_CHANNEL_DEVICE_ID, -1));
+
+        int deviceId = intent.getIntExtra(DroidLogicTvUtils.EXTRA_CHANNEL_DEVICE_ID, -1);
+        if (deviceId == -1)//for TIF compatible
+            deviceId = DroidLogicTvUtils.getHardwareDeviceId(mInputId);
+
+        mTvSource = DroidLogicTvUtils.parseTvSourceTypeFromDeviceId(deviceId);
+        mTvSourceInput = DroidLogicTvUtils.parseTvSourceInputFromDeviceId(deviceId);
+        mVirtualTvSource = mTvSource;
+
+        if (mTvSource == TvControlManager.SourceInput_Type.SOURCE_TYPE_ADTV) {
+            long channelId = intent.getIntExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, -1);
+            currentChannel = mTvDataBaseManager.getChannelInfo(TvContract.buildChannelUri(channelId));
+            if (currentChannel != null) {
+                mTvSource = DroidLogicTvUtils.parseTvSourceTypeFromSigType(DroidLogicTvUtils.getSigType(currentChannel));
+                mTvSourceInput = DroidLogicTvUtils.parseTvSourceInputFromSigType(DroidLogicTvUtils.getSigType(currentChannel));
+            }
+            if (mVirtualTvSource == mTvSource) {//no channels in adtv input, DTV for default.
+                mTvSource = TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV;
+                mTvSourceInput = TvControlManager.SourceInput.DTV;
+            }
+        }
         Log.d(TAG, "init SettingsManager curSource=" + mTvSource + " isRadio=" + isRadioChannel);
+        Log.d(TAG, "curVirtualSource=" + mVirtualTvSource);
 
         if (mTvSource == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV
             || mTvSource == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
@@ -196,69 +217,16 @@ public class SettingsManager {
         return mTvSource;
     }
 
+    public TvControlManager.SourceInput_Type getCurentVirtualTvSource () {
+        return mVirtualTvSource;
+    }
+
     public TvControlManager getTvControlManager () {
         return mTvControlManager;
     }
 
     public TvDataBaseManager getTvDataBaseManager () {
         return mTvDataBaseManager;
-    }
-
-    private TvControlManager.SourceInput parseTvSourceInput (int deviceId) {
-        TvControlManager.SourceInput sourceInput;
-        switch (deviceId) {
-            case DroidLogicTvUtils.DEVICE_ID_ATV:
-                sourceInput = TvControlManager.SourceInput.TV;
-                break;
-            case DroidLogicTvUtils.DEVICE_ID_AV1:
-                sourceInput = TvControlManager.SourceInput.AV1;
-                break;
-            case DroidLogicTvUtils.DEVICE_ID_AV2:
-                sourceInput = TvControlManager.SourceInput.AV2;
-                break;
-            case DroidLogicTvUtils.DEVICE_ID_HDMI1:
-                sourceInput = TvControlManager.SourceInput.HDMI1;
-                break;
-            case DroidLogicTvUtils.DEVICE_ID_HDMI2:
-                sourceInput = TvControlManager.SourceInput.HDMI2;
-                break;
-            case DroidLogicTvUtils.DEVICE_ID_HDMI3:
-                sourceInput = TvControlManager.SourceInput.HDMI3;
-                break;
-            case DroidLogicTvUtils.DEVICE_ID_DTV:
-                sourceInput = TvControlManager.SourceInput.DTV;
-                break;
-            default:
-                sourceInput = TvControlManager.SourceInput.TV;
-                break;
-        }
-        return sourceInput;
-    }
-
-    private TvControlManager.SourceInput_Type parseTvSourceType (int deviceId) {
-        TvControlManager.SourceInput_Type source;
-
-        switch (deviceId) {
-            case DroidLogicTvUtils.DEVICE_ID_ATV:
-                source = TvControlManager.SourceInput_Type.SOURCE_TYPE_TV;
-                break;
-            case DroidLogicTvUtils.DEVICE_ID_AV1:
-            case DroidLogicTvUtils.DEVICE_ID_AV2:
-                source = TvControlManager.SourceInput_Type.SOURCE_TYPE_AV;
-                break;
-            case DroidLogicTvUtils.DEVICE_ID_HDMI1:
-            case DroidLogicTvUtils.DEVICE_ID_HDMI2:
-            case DroidLogicTvUtils.DEVICE_ID_HDMI3:
-                source = TvControlManager.SourceInput_Type.SOURCE_TYPE_HDMI;
-                break;
-            case DroidLogicTvUtils.DEVICE_ID_DTV:
-                source = TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV;
-                break;
-            default:
-                source = TvControlManager.SourceInput_Type.SOURCE_TYPE_TV;
-                break;
-        }
-        return source;
     }
 
     private int parseChannelEditType () {
@@ -985,7 +953,7 @@ public class SettingsManager {
         } else if (TextUtils.equals(type, TvContract.Channels.TYPE_ATSC_C)) {
                 ret = mResources.getString(R.string.atsc_c);
         } else if (TextUtils.equals(type, TvContract.Channels.TYPE_ISDB_T)) {
-                ret = mResources.getString(R.string.isdbt);
+                ret = mResources.getString(R.string.isdb_t);
         }
         return ret;
     }

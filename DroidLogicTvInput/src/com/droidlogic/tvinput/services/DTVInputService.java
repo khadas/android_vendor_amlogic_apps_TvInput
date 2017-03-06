@@ -59,22 +59,22 @@ public class DTVInputService extends DroidLogicTvInputService {
 
     private static final String TAG = "DTVInputService";
 
-    private static final String DTV_AUTO_RESCAN_SERVICE = "tv.dtv.auto_rescan_service";
-    private static final String DTV_AUTO_RESCAN_TIME = "tv.dtv.auto_rescan_time";
-    private static final String DTV_AUDIO_AD_DISABLE = "tv.dtv.ad.disable";
-    private static final String DTV_CHANNEL_NUMBER_START = "tv.channel.number.start";
+    protected static final String DTV_AUTO_RESCAN_SERVICE = "tv.dtv.auto_rescan_service";
+    protected static final String DTV_AUTO_RESCAN_TIME = "tv.dtv.auto_rescan_time";
+    protected static final String DTV_AUDIO_AD_DISABLE = "tv.dtv.ad.disable";
+    protected static final String DTV_CHANNEL_NUMBER_START = "tv.channel.number.start";
 
-    private static final String DTV_AUDIO_TRACK_IDX = "tv.dtv.audio_track_idx";
-    private static final String DTV_AUDIO_AD_TRACK_IDX = "tv.dtv.audio_ad_track_idx";
-    private static final String DTV_SUBTITLE_TRACK_IDX = "tv.dtv.subtitle_track_idx";
+    protected static final String DTV_AUDIO_TRACK_IDX = "tv.dtv.audio_track_idx";
+    protected static final String DTV_AUDIO_AD_TRACK_IDX = "tv.dtv.audio_ad_track_idx";
+    protected static final String DTV_SUBTITLE_TRACK_IDX = "tv.dtv.subtitle_track_idx";
 
-    private static final String DTV_SUBTITLE_AUTO_START = "tv.dtv.subtitle.autostart";
+    protected static final String DTV_SUBTITLE_AUTO_START = "tv.dtv.subtitle.autostart";
 
-    private DTVSessionImpl mCurrentSession;
-    private int id = 0;
+    protected DTVSessionImpl mCurrentSession;
+    protected int id = 0;
 
-    private Map<Integer, DTVSessionImpl> sessionMap = new HashMap<>();
-    private final BroadcastReceiver mParentalControlsBroadcastReceiver = new BroadcastReceiver() {
+    protected Map<Integer, DTVSessionImpl> sessionMap = new HashMap<>();
+    protected final BroadcastReceiver mParentalControlsBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (mCurrentSession != null) {
@@ -150,34 +150,34 @@ public class DTVInputService extends DroidLogicTvInputService {
     }
 
     /*set below 3 vars true to enable tracks-auto-select in this service.*/
-    private static boolean subtitleAutoSave = false;
-    private static boolean audioAutoSave = false;
-    private static boolean subtitleAutoStart = false;
+    protected static boolean subtitleAutoSave = false;
+    protected static boolean audioAutoSave = false;
+    protected static boolean subtitleAutoStart = false;
 
     /*associate audio*/
-    private static boolean audioADAutoStart = false;
+    protected static boolean audioADAutoStart = false;
 
     /*only one monitor instance for all sessions*/
-    private static HandlerThread mHandlerThread = null;
-    private static Handler mHandler = null;
-    private static DTVSessionImpl.DTVMonitor monitor = null;
-    private final Object mLock = new Object();
-    private static String mDtvType = TvContract.Channels.TYPE_DTMB;
-    private Uri  mCurrentUri;
+    protected static HandlerThread mHandlerThread = null;
+    protected static Handler mHandler = null;
+    protected static DTVSessionImpl.DTVMonitor monitor = null;
+    protected final Object mLock = new Object();
+    protected static String mDtvType = TvContract.Channels.TYPE_DTMB;
+    protected Uri  mCurrentUri;
 
     public class DTVSessionImpl extends TvInputBaseSession implements TvControlManager.AVPlaybackListener {
-        private final Context mContext;
-        private TvInputManager mTvInputManager;
-        private TvDataBaseManager mTvDataBaseManager;
-        private TvControlManager mTvControlManager;
-        private TvContentRating mLastBlockedRating;
-        private TvContentRating mCurrentContentRating;
-        private final Set<TvContentRating> mUnblockedRatingSet = new HashSet<>();
-        private ChannelInfo mCurrentChannel;
-        private SystemControlManager mSystemControlManager;
+        protected final Context mContext;
+        protected TvInputManager mTvInputManager;
+        protected TvDataBaseManager mTvDataBaseManager;
+        protected TvControlManager mTvControlManager;
+        protected TvContentRating mLastBlockedRating;
+        protected TvContentRating mCurrentContentRating;
+        protected final Set<TvContentRating> mUnblockedRatingSet = new HashSet<>();
+        protected ChannelInfo mCurrentChannel;
+        protected SystemControlManager mSystemControlManager;
 
-        private final static int AD_MIXING_LEVEL_DEF = 50;
-        private int mAudioADMixingLevel = -1;
+        protected final static int AD_MIXING_LEVEL_DEF = 50;
+        protected int mAudioADMixingLevel = -1;
 
         protected DTVSessionImpl(Context context, String inputId, int deviceId) {
             super(context, inputId, deviceId);
@@ -271,7 +271,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             }
         }
 
-        private void switchToSourceInput(Uri uri) {
+        protected void switchToSourceInput(Uri uri) {
             mCurrentUri = uri;
             mUnblockedRatingSet.clear();
 
@@ -295,39 +295,17 @@ public class DTVInputService extends DroidLogicTvInputService {
             }
         }
 
-        private boolean playProgram(ChannelInfo info) {
+        protected boolean playProgram(ChannelInfo info) {
             info.print();
-            TvControlManager.TvMode mTvMode = new TvControlManager.TvMode(info.getType());
-            int baseMode = mTvMode.getBase();
+
+            TvControlManager.FEParas fe = new TvControlManager.FEParas(info.getFEParas());
             int audioTrackAuto = getAudioTrackAuto(info);
-            int para1 = 0;
-            int para2 = 0;
-
-            if (baseMode == TVChannelParams.MODE_DTMB) {
-                para1 = info.getBandwidth();
-            } else if (baseMode == TVChannelParams.MODE_QAM) {
-                para1 = info.getSymbolRate();
-                para2 = info.getModulation();
-            } else if (baseMode == TVChannelParams.MODE_QPSK) {
-                para1 = info.getSymbolRate();
-            } else if (baseMode == TVChannelParams.MODE_ATSC) {
-                para1 = info.getModulation();
-            } else if (baseMode == TVChannelParams.MODE_OFDM) {
-                para1 = info.getBandwidth();
-            } else {
-                    Log.d(TAG, "channel type[" + info.getType() + "] not supported yet.");
-                    return false;
-            }
-
             int mixingLevel = mAudioADMixingLevel;
             if (mixingLevel < 0)
                 mixingLevel = Settings.System.getInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_AD_MIX, AD_MIXING_LEVEL_DEF);
 
             mTvControlManager.PlayDTVProgram(
-                    mTvMode.getMode(),
-                    info.getFrequency(),
-                    para1,
-                    para2,
+                    fe,
                     info.getVideoPid(),
                     info.getVfmt(),
                     (audioTrackAuto >= 0) ? info.getAudioPids()[audioTrackAuto] : -1,
@@ -355,7 +333,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             return true;
         }
 
-        private void checkContentBlockNeeded() {
+        protected void checkContentBlockNeeded() {
             if (mCurrentContentRating == null
                 || !mTvInputManager.isParentalControlsEnabled()
                 || !mTvInputManager.isRatingBlocked(mCurrentContentRating)
@@ -377,7 +355,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             notifyContentBlocked(mCurrentContentRating);
         }
 
-        private void unblockContent(TvContentRating rating) {
+        protected void unblockContent(TvContentRating rating) {
             // TIS should unblock content only if unblock request is legitimate.
             if (rating == null
                 || mLastBlockedRating == null
@@ -435,7 +413,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                     //close audio track
                     index = -2;
                 } else {
-                    Map<String, String> parsedMap = ChannelInfo.stringToMap(trackId);
+                    Map<String, String> parsedMap = DroidLogicTvUtils.stringToMap(trackId);
                     index = Integer.parseInt(parsedMap.get("id"));
 
                     stopAudioAD();
@@ -466,7 +444,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                     stopSubtitle();
                     index = -2;
                 } else {
-                    Map<String, String> parsedMap = ChannelInfo.stringToMap(trackId);
+                    Map<String, String> parsedMap = DroidLogicTvUtils.stringToMap(trackId);
                     index = Integer.parseInt(parsedMap.get("id"));
                     startSubtitle(Integer.parseInt(parsedMap.get("type")),
                                   Integer.parseInt(parsedMap.get("pid")),
@@ -502,7 +480,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             Log.d(TAG, "onOverlayViewSizeChanged[" + width + "," + height + "]");
         }
 
-        private void notifyTracks(ChannelInfo ch) {
+        protected void notifyTracks(ChannelInfo ch) {
             List < TvTrackInfo > tracks = null;
             String AudioSelectedId = null;
             String SubSelectedId = null;
@@ -531,7 +509,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                     map.put("ext", String.valueOf(audioExts[i]));
                     //if (isDefault)
                     //    map.put("default", String.valueOf(1));
-                    String Id = ChannelInfo.mapToString(map);
+                    String Id = DroidLogicTvUtils.mapToString(map);
                     TvTrackInfo AudioTrack =
                         new TvTrackInfo.Builder(TvTrackInfo.TYPE_AUDIO, Id)
                     .setLanguage(audioLanguages[i])
@@ -573,7 +551,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                     map.put("uid2", String.valueOf(subId2s[i]));
                     //if (isDefault)
                     //    map.put("default", String.valueOf(1));
-                    String Id = ChannelInfo.mapToString(map);
+                    String Id = DroidLogicTvUtils.mapToString(map);
                     TvTrackInfo SubtitleTrack =
                         new TvTrackInfo.Builder(TvTrackInfo.TYPE_SUBTITLE, Id)
                     .setLanguage(subLanguages[i])
@@ -600,7 +578,7 @@ public class DTVInputService extends DroidLogicTvInputService {
         /*
                 Auto rule: channel specified track > default language track > system language > the 1st track > -1
             */
-        private int getAudioTrackAuto(ChannelInfo info) {
+        protected int getAudioTrackAuto(ChannelInfo info) {
             String[] trackLangArray = info.getAudioLangs();
             /*no audio tracks, get fail.*/
             if (trackLangArray == null)
@@ -629,7 +607,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             return 0;
         }
 
-        private int getSubtitleTrackAuto(ChannelInfo info) {
+        protected int getSubtitleTrackAuto(ChannelInfo info) {
             String[] trackLangArray = info.getSubtitleLangs();
             if (trackLangArray == null)
                 return -1;
@@ -657,12 +635,12 @@ public class DTVInputService extends DroidLogicTvInputService {
         }
 
 
-        private DTVSubtitleView mSubtitleView = null;
-        private static final int TYPE_DVB_SUBTITLE = 1;
-        private static final int TYPE_DTV_TELETEXT = 2;
-        private static final int TYPE_ATV_TELETEXT = 3;
-        private static final int TYPE_DTV_CC = 4;
-        private static final int TYPE_ATV_CC = 5;
+        protected DTVSubtitleView mSubtitleView = null;
+        protected static final int TYPE_DVB_SUBTITLE = 1;
+        protected static final int TYPE_DTV_TELETEXT = 2;
+        protected static final int TYPE_ATV_TELETEXT = 3;
+        protected static final int TYPE_DTV_CC = 4;
+        protected static final int TYPE_ATV_CC = 5;
 
         private void startSubtitle(ChannelInfo channelInfo) {
 
@@ -705,7 +683,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             return regionIDMaps[i];
         }
 
-        private View initSubtitleView() {
+        protected View initSubtitleView() {
             if (mSubtitleView == null) {
                 mSubtitleView = new DTVSubtitleView(mContext);
             }
@@ -753,7 +731,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             mSystemControlManager.setProperty(DTV_SUBTITLE_TRACK_IDX, "-1");
         }
 
-        private void startAudioADByMain(ChannelInfo channelInfo, int mainAudioTrackIndex) {
+        protected void startAudioADByMain(ChannelInfo channelInfo, int mainAudioTrackIndex) {
 
             if (!audioADAutoStart)
                 return ;
@@ -764,7 +742,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             startAudioAD(channelInfo, ((idxs == null)? -1 : idxs[0]));
         }
 
-        private void startAudioAD(ChannelInfo channelInfo, int adAudioTrackIndex) {
+        protected void startAudioAD(ChannelInfo channelInfo, int adAudioTrackIndex) {
             Log.d(TAG, "startAudioAD idx["+adAudioTrackIndex+"]");
             if (adAudioTrackIndex >= 0 && adAudioTrackIndex < channelInfo.getAudioPids().length) {
                 mTvControlManager.DtvSetAudioAD(1,
@@ -776,12 +754,12 @@ public class DTVInputService extends DroidLogicTvInputService {
             }
         }
 
-        private void stopAudioAD() {
+        protected void stopAudioAD() {
             mTvControlManager.DtvSetAudioAD(0, 0, 0);
             mSystemControlManager.setProperty(DTV_AUDIO_AD_TRACK_IDX, "-1");
         }
 
-        private void initThread(String name) {
+        protected void initThread(String name) {
             if (mHandlerThread == null) {
                 mHandlerThread = new HandlerThread(name);
                 mHandlerThread.start();
@@ -789,7 +767,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             }
         }
 
-        private void releaseThread() {
+        protected void releaseThread() {
             if (mHandlerThread != null) {
                 mHandlerThread.quit();
                 mHandlerThread = null;
@@ -797,17 +775,17 @@ public class DTVInputService extends DroidLogicTvInputService {
             }
         }
 
-        private DTVMonitorCurrentProgramRunnable mMonitorCurrentProgramRunnable;
+        protected DTVMonitorCurrentProgramRunnable mMonitorCurrentProgramRunnable;
 
-        private static final int MONITOR_FEND = 0;
-        private static final int MONITOR_DMX = 0;
-        private static final int MONITOR_MODE = DTVMonitor.MODE_UPDATE_SERVICE
+        protected static final int MONITOR_FEND = 0;
+        protected static final int MONITOR_DMX = 0;
+        protected static final int MONITOR_MODE = DTVMonitor.MODE_UPDATE_SERVICE
                                                 | DTVMonitor.MODE_UPDATE_EPG
                                                 | DTVMonitor.MODE_UPDATE_TIME;
-        private static final String EPG_LANGUAGE = "local eng zho chi chs first";
-        private static final String DEF_CODING = "GB2312";//"standard";//force setting for auto-detect fail.
+        protected static final String EPG_LANGUAGE = "local eng zho chi chs first";
+        protected static final String DEF_CODING = "GB2312";//"standard";//force setting for auto-detect fail.
 
-        private class DTVMonitorCurrentProgramRunnable implements Runnable {
+        protected class DTVMonitorCurrentProgramRunnable implements Runnable {
             private final ChannelInfo mChannel;
 
             public DTVMonitorCurrentProgramRunnable(ChannelInfo channel) {
@@ -833,7 +811,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             }
         }
 
-        private TVChannelParams getTVChannelParams(ChannelInfo channel) {
+        protected TVChannelParams getTVChannelParams(ChannelInfo channel) {
             TVChannelParams params = null;
             String type = channel.getType();
             if (TextUtils.equals(type, TvContract.Channels.TYPE_DTMB))
@@ -858,7 +836,7 @@ public class DTVInputService extends DroidLogicTvInputService {
            return params;
         }
 
-        private void setMonitor(ChannelInfo channel) {
+        protected void setMonitor(ChannelInfo channel) {
             synchronized (mLock) {
                 if (channel != null) {
                     Log.d(TAG, "startMonitor");
@@ -879,7 +857,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             }
         }
 
-        private void restartMonitorTime() {
+        protected void restartMonitorTime() {
             synchronized (mLock) {
                 Log.d(TAG, "restartMonitorTime");
                 if (monitor != null)

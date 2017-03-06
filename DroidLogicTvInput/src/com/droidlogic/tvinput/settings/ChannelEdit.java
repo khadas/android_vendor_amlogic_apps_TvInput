@@ -35,6 +35,7 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener, OnIt
     public static final int TYPE_ATV                           = 0;
     public static final int TYPE_DTV_TV                        = 1;
     public static final int TYPE_DTV_RADIO                     = 2;
+    public static final int TYPE_DTV_MIX                       = 3;
 
     private static final int ACTION_INITIAL_STATE             = -1;
     private static final int ACTION_SHOW_LIST                 = 0;
