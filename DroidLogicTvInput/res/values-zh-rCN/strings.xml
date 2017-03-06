@@ -27,6 +27,7 @@
     <string name="dialog_clarity">清脆人声</string>
     <string name="bass_boost">低音增强</string>
     <string name="surround">环绕音</string>
+    <string name="virtual_surround">虚拟环绕音</string>
 
     <!-- Channel -->
     <string name="channel">频道</string>

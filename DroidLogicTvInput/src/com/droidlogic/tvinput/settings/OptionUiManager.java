@@ -69,6 +69,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     public static final int OPTION_DIALOG_CLARITY = 205;
     public static final int OPTION_BASS_BOOST = 206;
     public static final int OPTION_SURROUND = 207;
+    public static final int OPTION_VIRTUAL_SURROUND = 208;
 
     public static final int OPTION_AUDIO_TRACK = 300;
     public static final int OPTION_SOUND_CHANNEL = 301;
@@ -215,6 +216,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             } else if (item_name.equals(mResources.getString(R.string.surround))) {
                 optionTag = OPTION_SURROUND;
                 optionKey = SettingsManager.KEY_SURROUND;
+            } else if (item_name.equals(mResources.getString(R.string.virtual_surround))) {
+                optionTag = OPTION_VIRTUAL_SURROUND;
+                optionKey = SettingsManager.KEY_VIRTUAL_SURROUND;
             }
         // Channel
             else if (item_name.equals(mResources.getString(R.string.audio_track))) {
@@ -335,6 +339,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 return R.layout.layout_sound_balance;
             case OPTION_SPDIF:
                 return R.layout.layout_sound_spdif;
+            case OPTION_VIRTUAL_SURROUND:
+                return R.layout.layout_sound_virtual_surround;
             case OPTION_SURROUND:
                 return R.layout.layout_sound_surround;
             case OPTION_DIALOG_CLARITY:
@@ -414,6 +420,10 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
 
     @Override
     public void onClick(View view) {
+        ViewGroup parent = (ViewGroup) ((TvSettingsActivity) mContext).mOptionLayout.getChildAt(0);
+        TextView mVirtualSurroundIn = (TextView) parent.findViewById(R.id.virtual_surround_increase);
+        TextView mVirtualSurroundDe = (TextView) parent.findViewById(R.id.virtual_surround_decrease);
+        RelativeLayout mVirtualSurroundProcess = (RelativeLayout) parent.findViewById(R.id.virtual_surround_persent);
         switch (view.getId()) {
             // ====Picture====
             // picture mode
@@ -573,6 +583,28 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 break;
             case R.id.surround_off:
                 mSettingsManager.setSurround(SettingsManager.STATUS_OFF);
+                break;
+            //Virtual Surround
+            case R.id.virtual_surround_on:
+                mVirtualSurroundIn.setVisibility(view.VISIBLE);
+                mVirtualSurroundDe.setVisibility(view.VISIBLE);
+                mVirtualSurroundProcess.setVisibility(view.VISIBLE);
+                mVirtualSurroundIn.setFocusable(true);
+                mVirtualSurroundDe.setFocusable(true);
+                mSettingsManager.setVirtualSurround(SettingsManager.STATUS_ON);
+                break;
+            case R.id.virtual_surround_off:
+                mVirtualSurroundIn.setVisibility(view.INVISIBLE);
+                mVirtualSurroundDe.setVisibility(view.INVISIBLE);
+                mVirtualSurroundProcess.setVisibility(view.INVISIBLE);
+                mSettingsManager.setVirtualSurround(SettingsManager.STATUS_OFF);
+                break;
+            //virtual Surround increase and decrease
+            case R.id.virtual_surround_increase:
+                mSettingsManager.setVirtualSurroundLevel(1);
+                break;
+            case R.id.virtual_surround_decrease:
+                mSettingsManager.setVirtualSurroundLevel(-1);
                 break;
             // Dialog Clarity
             case R.id.dialog_clarity_on:
@@ -847,6 +879,13 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                     setIcon(parent, R.id.surround_on);
                 }
                 break;
+            case OPTION_VIRTUAL_SURROUND:
+                if (TextUtils.equals(mSettingsManager.getVirtualSurroundStatus(), mResources.getString(R.string.off))) {
+                    setIcon(parent, R.id.virtual_surround_off);
+                } else if (TextUtils.equals(mSettingsManager.getVirtualSurroundStatus(), mResources.getString(R.string.on))) {
+                    setIcon(parent, R.id.virtual_surround_on);
+                }
+                break;
             case OPTION_DIALOG_CLARITY:
                 if (TextUtils.equals(mSettingsManager.getDialogClarityStatus(), mResources.getString(R.string.off))) {
                     setIcon(parent, R.id.dialog_clarity_off);
@@ -988,12 +1027,30 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     private void setIcon(ViewGroup parent, int id) {
         TextView choosed = (TextView)parent.findViewById(id);
         setIconStyle(choosed);
-        for (int i = 1; i < parent.getChildCount(); i++) {
-            View child = parent.getChildAt(i);
-            if (child != null  && child instanceof TextView) {
-                if (child.getId() != id) {
-                    ((TextView)child).setCompoundDrawables(null, null , null , null );
-                    ((TextView)child).setPaddingRelative(ContentListView.dipToPx(mContext, (float)PADDING_LEFT), 0, 0, 0);
+        if (parent.findViewById(R.id.virtual_surround_increase) != null) {
+            TextView mVirtualSurroundIn = (TextView) parent.findViewById(R.id.virtual_surround_increase);
+            TextView mVirtualSurroundDe = (TextView) parent.findViewById(R.id.virtual_surround_decrease);
+            if (choosed != mVirtualSurroundIn && choosed != mVirtualSurroundDe) {
+               for (int i = 1; i < 3; i++) {
+                    View child = parent.getChildAt(i);
+                    if (child != null && child instanceof TextView) {
+                        if (child.getId() != id) {
+                            ((TextView) child).setCompoundDrawables(null, null, null, null);
+                            ((TextView) child).setPaddingRelative(
+                                    ContentListView.dipToPx(mContext, (float) PADDING_LEFT), 0, 0, 0);
+                        }
+                    }
+                }
+            }
+        }else {
+            for (int i = 1; i < parent.getChildCount(); i++) {
+                View child = parent.getChildAt(i);
+                if (child != null && child instanceof TextView) {
+                    if (child.getId() != id) {
+                        ((TextView) child).setCompoundDrawables(null, null, null, null);
+                        ((TextView) child).setPaddingRelative(
+                                ContentListView.dipToPx(mContext, (float) PADDING_LEFT), 0, 0, 0);
+                    }
                 }
             }
         }

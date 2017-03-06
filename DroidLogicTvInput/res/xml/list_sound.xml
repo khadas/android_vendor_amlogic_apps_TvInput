@@ -32,6 +32,11 @@
     </Preference>
 
     <Preference
+        android:key="virtual_surround"
+        android:title="@string/virtual_surround" >
+    </Preference>
+
+    <Preference
         android:key="surround"
         android:title="@string/surround" >
     </Preference>

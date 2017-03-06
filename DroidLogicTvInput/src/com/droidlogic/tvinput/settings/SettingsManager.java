@@ -59,6 +59,7 @@ public class SettingsManager {
     public static final String KEY_BASS                             = "bass";
     public static final String KEY_BALANCE                          = "balance";
     public static final String KEY_SPDIF                            = "spdif";
+    public static final String KEY_VIRTUAL_SURROUND                 = "virtual_surround";
     public static final String KEY_SURROUND                         = "surround";
     public static final String KEY_DIALOG_CLARITY                   = "dialog_clarity";
     public static final String KEY_BASS_BOOST                       = "bass_boost";
@@ -319,6 +320,8 @@ public class SettingsManager {
             return getSpdifStatus();
         } else if (key.equals(KEY_SURROUND)) {
             return getSurroundStatus();
+        } else if (key.equals(KEY_VIRTUAL_SURROUND)) {
+            return getVirtualSurroundLevel();
         } else if (key.equals(KEY_DIALOG_CLARITY)) {
             return getDialogClarityStatus();
         } else if (key.equals(KEY_BASS_BOOST)) {
@@ -512,6 +515,22 @@ public class SettingsManager {
             return mResources.getString(R.string.off);
         else
             return mResources.getString(R.string.on);
+    }
+
+    public String getVirtualSurroundStatus() {
+        int itemPosition = mTvControlManager.GetAudioVirtualizerEnable();
+        if (itemPosition == 0)
+            return mResources.getString(R.string.off);
+        else
+            return mResources.getString(R.string.on);
+    }
+
+    public String getVirtualSurroundLevel() {
+        if (mTvControlManager.GetAudioVirtualizerEnable() == 0) {
+            return mResources.getString(R.string.off);
+        } else {
+            return mTvControlManager.GetAudioVirtualizerLevel() + "%";
+        }
     }
 
     public String getDialogClarityStatus () {
@@ -1321,6 +1340,21 @@ public class SettingsManager {
             setBassBoost(STATUS_OFF);
             mTvControlManager.SetAudioSrsSurround(0);
             mTvControlManager.SaveCurAudioSrsSurround(0);
+        }
+    }
+
+    public void setVirtualSurround (String mode) {
+        if (mode.equals(STATUS_ON)) {
+            mTvControlManager.SetAudioVirtualizer(1,50);
+        } else if (mode.equals(STATUS_OFF)) {
+            mTvControlManager.SetAudioVirtualizer(0,50);
+        }
+    }
+
+    public void setVirtualSurroundLevel(int step){
+        int level = mTvControlManager.GetAudioVirtualizerLevel() + step;
+        if (level >= 0 && level <= 100) {
+            mTvControlManager.SetAudioVirtualizer(1, level);
         }
     }
 

@@ -175,6 +175,22 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
             }
 
             getOptionUiManager().setChoosedIcon();
+            if (layout_option_child == R.layout.layout_sound_virtual_surround) {
+                ViewGroup parent = (ViewGroup) ((TvSettingsActivity) mContext).mOptionLayout.getChildAt(0);
+                TextView mVirtualSurroundIn = (TextView) parent.findViewById(R.id.virtual_surround_increase);
+                TextView mVirtualSurroundDe = (TextView) parent.findViewById(R.id.virtual_surround_decrease);
+                RelativeLayout mVirtualSurroundProcess = (RelativeLayout) parent.findViewById(R.id.virtual_surround_persent);
+                TvControlManager mTvControlManager = TvControlManager.getInstance();
+                if (mTvControlManager.GetAudioVirtualizerEnable() == 0) {
+                    mVirtualSurroundIn.setVisibility(View.INVISIBLE);
+                    mVirtualSurroundDe.setVisibility(View.INVISIBLE);
+                    mVirtualSurroundProcess.setVisibility(View.INVISIBLE);
+                } else {
+                    mVirtualSurroundIn.setVisibility(View.VISIBLE);
+                    mVirtualSurroundDe.setVisibility(View.VISIBLE);
+                    mVirtualSurroundProcess.setVisibility(View.VISIBLE);
+                }
+            }
         }
     }
 

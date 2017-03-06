@@ -29,6 +29,7 @@
     <string name="dialog_clarity">Dialog Clarity</string>
     <string name="bass_boost">Bass Boost</string>
     <string name="surround">Surround</string>
+    <string name="virtual_surround">Virtual Surround</string>
 
     <!-- Channel -->
     <string name="channel">Channel</string>
