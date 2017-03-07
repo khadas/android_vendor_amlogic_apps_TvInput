@@ -14,6 +14,7 @@ import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
 import android.os.Bundle;
+import android.os.SystemProperties;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -22,6 +23,9 @@ import java.lang.System;
 
 import android.media.tv.TvInputInfo;
 import com.droidlogic.app.SystemControlManager;
+
+import android.media.AudioManager;
+import android.media.AudioSystem;
 import android.media.tv.TvContract;
 import android.media.tv.TvContract.Channels;
 import com.droidlogic.app.tv.ChannelInfo;
@@ -1359,6 +1363,14 @@ public class SettingsManager {
         }
     }
 
+    public void setDefAudioStreamVolume() {
+        AudioManager audioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
+        int maxVolume = SystemProperties.getInt("ro.config.media_vol_steps", 100);
+        int streamMaxVolume = audioManager.getStreamMaxVolume(AudioSystem.STREAM_MUSIC);
+        int defaultVolume = maxVolume == streamMaxVolume ? (maxVolume * 3) / 10 : (streamMaxVolume * 3) / 4;
+        audioManager.setStreamVolume(AudioSystem.STREAM_MUSIC, defaultVolume, 0);
+    }
+
     public void setDefLanguage (int position) {
         String[] def_lanArray = mResources.getStringArray(R.array.def_lan);
         Settings.System.putString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DEFAULT_LANGUAGE, def_lanArray[position]);
@@ -1517,6 +1529,7 @@ public class SettingsManager {
         setDefLanguage(0);
         setSubtitleSwitch(0);
         setAudioADSwitch(0);
+        setDefAudioStreamVolume();
         // SystemControlManager mSystemControlManager = new SystemControlManager(mContext);
         // mSystemControlManager.setBootenv("ubootenv.var.upgrade_step", "1");
 
