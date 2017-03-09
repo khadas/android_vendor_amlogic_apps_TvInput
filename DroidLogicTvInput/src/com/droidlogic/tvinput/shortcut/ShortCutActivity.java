@@ -41,6 +41,7 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
@@ -94,13 +95,19 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
     private int currentDateIndex = -1;
     private int currentProgramIndex = -1;
     private TVTime mTvTime = null;
+    private TextView toast_title;
+    private TextView toast_status;
+    private LinearLayout mToast;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // TODO Auto-generated method stub
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-
+        setContentView(R.layout.layout_shortcut_key);
+        mToast = (LinearLayout) findViewById(R.id.mToast);
+        toast_title = (TextView) findViewById(R.id.toast_title);
+        toast_status = (TextView) findViewById(R.id.toast_status);
         mSettingsManager = new SettingsManager(this, getIntent());
         mTvDataBaseManager = new TvDataBaseManager(this);
         mResources = getResources();
@@ -167,7 +174,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
                 if (display_mode.equals(mResources.getString(R.string.auto))) {
                     mSettingsManager.setAspectRatio(SettingsManager.STATUS_4_TO_3);
                 } else if (display_mode.equals(mResources.getString(R.string.four2three))) {
-                    //mSettingsManager.setAspectRatio(SettingsManager.STATUS_PANORAMA);
+                    mSettingsManager.setAspectRatio(SettingsManager.STATUS_PANORAMA);
                     mSettingsManager.setAspectRatio(SettingsManager.STATUS_FULL_SCREEN);
                 } else if (display_mode.equals(mResources.getString(R.string.panorama))) {
                     mSettingsManager.setAspectRatio(SettingsManager.STATUS_FULL_SCREEN);
@@ -238,34 +245,33 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
     }
 
     private void showCustomToast(int mode) {
-        if (viewToast == null) {
+       /* if (viewToast == null) {
             LayoutInflater inflater = getLayoutInflater();
             viewToast = inflater.inflate(R.layout.layout_shortcut_key, null);
-        }
+        }*/
 
-        Drawable bg = null;
         String str_title = null;
         String str_status = null;
         switch (mode) {
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_DISPAYMODE:
-                bg = mResources.getDrawable(R.drawable.shortcut_ratio);
+                mToast.setBackgroundResource(R.drawable.shortcut_ratio);
                 str_title = mResources.getString(R.string.aspect_ratio);
                 str_status = mSettingsManager.getAspectRatioStatus();
                 break;
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_3DMODE:
                 break;
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_VIEWMODE:
-                bg = mResources.getDrawable(R.drawable.shortcut_picture);
+                mToast.setBackgroundResource(R.drawable.shortcut_picture);
                 str_title = mResources.getString(R.string.picture_mode);
                 str_status = mSettingsManager.getPictureModeStatus();
                 break;
             case DroidLogicKeyEvent.KEYCODE_TV_SHORTCUTKEY_VOICEMODE:
-                bg = mResources.getDrawable(R.drawable.shortcut_sound);
+                mToast.setBackgroundResource(R.drawable.shortcut_sound);
                 str_title = mResources.getString(R.string.sound_mode);
                 str_status = mSettingsManager.getSoundModeStatus();
                 break;
             case DroidLogicKeyEvent.KEYCODE_TV_SLEEP:
-                bg = mResources.getDrawable(R.drawable.shortcut_sleep);
+                mToast.setBackgroundResource(R.drawable.shortcut_sleep);
                 str_title = mResources.getString(R.string.sleep_timer);
                 str_status = mSettingsManager.getSleepTimerStatus();
                 break;
@@ -276,21 +282,20 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
             default:
                 break;
         }
-        viewToast.setBackgroundDrawable(bg);
-        TextView title = (TextView)viewToast.findViewById(R.id.toast_title);
-        TextView status = (TextView)viewToast.findViewById(R.id.toast_status);
 
-        title.setText(str_title);
-        status.setText(str_status);
-
-        if (toast == null) {
+        toast_title.setText(str_title);
+        toast_status.setText(str_status);
+        mToast.setVisibility(View.VISIBLE);
+       /* if (toast == null) {
             toast = new Toast(this);
             toast.setDuration(TOAST_SHOW_TIME);
             toast.setGravity(Gravity.CENTER_VERTICAL, 400, 300);
             toast.setView(viewToast);
         }
         toast.show();
+        */
         startShowActivityTimer();
+
     }
 
     public void startShowActivityTimer () {
@@ -302,6 +307,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case MSG_FINISH:
+                    mToast.setVisibility(View.GONE);
                     finish();
                     break;
                 case MSG_UPDATE_CHANNELS:
