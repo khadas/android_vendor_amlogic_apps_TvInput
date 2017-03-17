@@ -833,12 +833,14 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             case KeyEvent.KEYCODE_INFO:
                 if (!down)
                     return true;
+                hideTvView(mSourceMenuLayout);
+                hideTvView(prompt_no_signal);
+                hideTvView(mChannelListLayout);
                 if (mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_DTV) {
                     if (mDtvInfoLayout.getVisibility() == View.VISIBLE)
                         hideTvView(mDtvInfoLayout);
-                    else if (mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_DTV){
+                    else
                         showUi(Utils.UI_TYPE_DTV_INFO,false);
-                    }
                 } else {
                     if (mSourceInfoLayout.getVisibility() == View.VISIBLE)
                         hideTvView(mSourceInfoLayout);
@@ -854,6 +856,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 hideTvView(prompt_no_signal);
                 hideTvView(mChannelListLayout);
                 showUi(Utils.UI_TYPE_NO_SINAL, false);
+
                 return true;
             case KeyEvent.KEYCODE_CHANNEL_UP:
                 if (!down)
@@ -1503,10 +1506,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             case MSG_UI_TIMEOUT:
                 switch (mUiType) {
                     case Utils.UI_TYPE_SOURCE_INFO:
-                        if (mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_DTV )
-                            hideTvView(mDtvInfoLayout);
-                        else
-                            hideTvView(mSourceInfoLayout);
+                        hideTvView(mSourceInfoLayout);
                         showUi(Utils.UI_TYPE_NO_SINAL, false);
                         break;
                     case Utils.UI_TYPE_SOURCE_LIST:
@@ -1912,7 +1912,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
 
     private void hideTvView(View tvView) {
         if (tvView.getVisibility() == View.VISIBLE)
-            tvView.setVisibility(View.GONE);
+            tvView.setVisibility(View.INVISIBLE);
     }
 
     private boolean isBootvideoStopped() {
