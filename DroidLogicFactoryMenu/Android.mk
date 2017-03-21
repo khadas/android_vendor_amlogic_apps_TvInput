@@ -11,6 +11,6 @@ LOCAL_PACKAGE_NAME := DroidLogicFactoryMenu
 
 LOCAL_PROGUARD_ENABLED := disabled
 
-LOCAL_JAVA_LIBRARIES := droidlogic
+LOCAL_JAVA_LIBRARIES := droidlogic droidlogic-tv
 
 include $(BUILD_PACKAGE)
