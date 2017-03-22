@@ -327,6 +327,9 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
         isExiting = true;
         unregisterReceiver(mReceiver);
         mOptionUiManager.release();
+        if (mOptionUiManager.isSearching()) {
+            mTvControlManager.DtvStopScan();
+        }
     }
 
     public void onStop() {
