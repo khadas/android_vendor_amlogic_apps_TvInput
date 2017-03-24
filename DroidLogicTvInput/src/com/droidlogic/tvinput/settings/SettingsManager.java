@@ -285,87 +285,89 @@ public class SettingsManager {
     public String getStatus (String key) {
         Log.d(TAG, " current screen is :" + currentTag + ", item is :" + key);
         //picture
-        if (key.equals(KEY_PICTURE_MODE)) {
-            return getPictureModeStatus();
-        } else if (key.equals(KEY_BRIGHTNESS)) {
-            return getBrightnessStatus();
-        } else if (key.equals(KEY_CONTRAST)) {
-            return getContrastStatus();
-        } else if (key.equals(KEY_COLOR)) {
-            return getColorStatus();
-        } else if (key.equals(KEY_SHARPNESS)) {
-            return getSharpnessStatus();
-        } else if (key.equals(KEY_BACKLIGHT)) {
-            return getBacklightStatus();
-        } else if (key.equals(KEY_TINT)) {
-            return getTintStatus();
-        } else if (key.equals(KEY_COLOR_TEMPERATURE)) {
-            return getColorTemperatureStatus();
-        } else if (key.equals(KEY_ASPECT_RATIO)) {
-            return getAspectRatioStatus();
-        } else if (key.equals(KEY_DNR)) {
-            return getDnrStatus();
-        } else if (key.equals(KEY_3D_SETTINGS)) {
-        }
-        //sound
-        else if (key.equals(KEY_SOUND_MODE)) {
-            return getSoundModeStatus();
-        } else if (key.equals(KEY_TREBLE)) {
-            return getTrebleStatus();
-        } else if (key.equals(KEY_BASS)) {
-            return getBassStatus();
-        } else if (key.equals(KEY_BALANCE)) {
-            return getBalanceStatus();
-        } else if (key.equals(KEY_SPDIF)) {
-            return getSpdifStatus();
-        } else if (key.equals(KEY_SURROUND)) {
-            return getSurroundStatus();
-        } else if (key.equals(KEY_VIRTUAL_SURROUND)) {
-            return getVirtualSurroundLevel();
-        } else if (key.equals(KEY_DIALOG_CLARITY)) {
-            return getDialogClarityStatus();
-        } else if (key.equals(KEY_BASS_BOOST)) {
-            return getBassBoostStatus();
-        }
-        //channel
-        else if (key.equals(KEY_CHANNEL_INFO)) {
-            return getCurrentChannelStatus();
-        } else if (key.equals(KEY_AUIDO_TRACK)) {
-            return getAudioTrackStatus();
-        } else if (key.equals(KEY_SOUND_CHANNEL)) {
-            return getSoundChannelStatus();
-        } else if (key.equals(KEY_DEFAULT_LANGUAGE)) {
-            return getDefaultLanStatus();
-        } else if (key.equals(KEY_SUBTITLE_SWITCH)) {
-            return getSubtitleSwitchStatus();
-        } else if (key.equals(KEY_AD_SWITCH)) {
-            return getADSwitchStatus();
-        } else if (key.equals(KEY_AD_MIX)) {
-            return getADMixStatus();
-        } else if (key.equals(KEY_COLOR_SYSTEM)) {
-            return getColorSystemStatus();
-        } else if (key.equals(KEY_SOUND_SYSTEM)) {
-            return getSoundSystemStatus();
-        } else if (key.equals(KEY_VOLUME_COMPENSATE)) {
-            return getVolumeCompensateStatus();
-        } else if (key.equals(KEY_SWITCH_CHANNEL)) {
-            return getSwitchChannelStatus();
-        } else if (key.equals(KEY_FINE_TUNE)) {
-            return getFineTuneStatus();
-        }
-        //settings
-        else if (key.equals(KEY_DTV_TYPE)) {
-            return getDtvTypeStatus(getDtvType());
-        } else if (key.equals(KEY_SLEEP_TIMER)) {
-            return getSleepTimerStatus();
-        } else if (key.equals(KEY_MENU_TIME)) {
-            return getMenuTimeStatus();
-        } else if (key.equals(KEY_STARTUP_SETTING)) {
-            return getStartupSettingStatus();
-        } else if (key.equals(KEY_DYNAMIC_BACKLIGHT)) {
-            return getDynamicBacklightStatus();
-        } else if (key.equals(KEY_HDMI20)) {
-            return getHdmi20Status();
+        if (!TextUtils.isEmpty(key)) {
+            if (key.equals(KEY_PICTURE_MODE)) {
+                return getPictureModeStatus();
+            } else if (key.equals(KEY_BRIGHTNESS)) {
+                return getBrightnessStatus();
+            } else if (key.equals(KEY_CONTRAST)) {
+                return getContrastStatus();
+            } else if (key.equals(KEY_COLOR)) {
+                return getColorStatus();
+            } else if (key.equals(KEY_SHARPNESS)) {
+                return getSharpnessStatus();
+            } else if (key.equals(KEY_BACKLIGHT)) {
+                return getBacklightStatus();
+            } else if (key.equals(KEY_TINT)) {
+                return getTintStatus();
+            } else if (key.equals(KEY_COLOR_TEMPERATURE)) {
+                return getColorTemperatureStatus();
+            } else if (key.equals(KEY_ASPECT_RATIO)) {
+                return getAspectRatioStatus();
+            } else if (key.equals(KEY_DNR)) {
+                return getDnrStatus();
+            } else if (key.equals(KEY_3D_SETTINGS)) {
+            }
+            //sound
+            else if (key.equals(KEY_SOUND_MODE)) {
+                return getSoundModeStatus();
+            } else if (key.equals(KEY_TREBLE)) {
+                return getTrebleStatus();
+            } else if (key.equals(KEY_BASS)) {
+                return getBassStatus();
+            } else if (key.equals(KEY_BALANCE)) {
+                return getBalanceStatus();
+            } else if (key.equals(KEY_SPDIF)) {
+                return getSpdifStatus();
+            } else if (key.equals(KEY_SURROUND)) {
+                return getSurroundStatus();
+            } else if (key.equals(KEY_VIRTUAL_SURROUND)) {
+                return getVirtualSurroundLevel();
+            } else if (key.equals(KEY_DIALOG_CLARITY)) {
+                return getDialogClarityStatus();
+            } else if (key.equals(KEY_BASS_BOOST)) {
+                return getBassBoostStatus();
+            }
+            //channel
+            else if (key.equals(KEY_CHANNEL_INFO)) {
+                return getCurrentChannelStatus();
+            } else if (key.equals(KEY_AUIDO_TRACK)) {
+                return getAudioTrackStatus();
+            } else if (key.equals(KEY_SOUND_CHANNEL)) {
+                return getSoundChannelStatus();
+            } else if (key.equals(KEY_DEFAULT_LANGUAGE)) {
+                return getDefaultLanStatus();
+            } else if (key.equals(KEY_SUBTITLE_SWITCH)) {
+                return getSubtitleSwitchStatus();
+            } else if (key.equals(KEY_AD_SWITCH)) {
+                return getADSwitchStatus();
+            } else if (key.equals(KEY_AD_MIX)) {
+                return getADMixStatus();
+            } else if (key.equals(KEY_COLOR_SYSTEM)) {
+                return getColorSystemStatus();
+            } else if (key.equals(KEY_SOUND_SYSTEM)) {
+                return getSoundSystemStatus();
+            } else if (key.equals(KEY_VOLUME_COMPENSATE)) {
+                return getVolumeCompensateStatus();
+            } else if (key.equals(KEY_SWITCH_CHANNEL)) {
+                return getSwitchChannelStatus();
+            } else if (key.equals(KEY_FINE_TUNE)) {
+                return getFineTuneStatus();
+            }
+            //settings
+            else if (key.equals(KEY_DTV_TYPE)) {
+                return getDtvTypeStatus(getDtvType());
+            } else if (key.equals(KEY_SLEEP_TIMER)) {
+                return getSleepTimerStatus();
+            } else if (key.equals(KEY_MENU_TIME)) {
+                return getMenuTimeStatus();
+            } else if (key.equals(KEY_STARTUP_SETTING)) {
+                return getStartupSettingStatus();
+            } else if (key.equals(KEY_DYNAMIC_BACKLIGHT)) {
+                return getDynamicBacklightStatus();
+            } else if (key.equals(KEY_HDMI20)) {
+                return getHdmi20Status();
+            }
         }
         return null;
     }
