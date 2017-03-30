@@ -9,6 +9,7 @@ import com.droidlogic.tvsource.Utils;
 import com.droidlogic.tvsource.ui.SourceButton.OnSourceClickListener;
 import com.droidlogic.tvsource.ChannelDataManager;
 
+import android.R.string;
 import android.content.Context;
 import android.media.tv.TvInputInfo;
 import android.media.tv.TvInputManager;
@@ -24,6 +25,8 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
     private TvInputManager mTvInputManager;
     private SparseArray<SourceButton> mSourceInputs = new SparseArray<>();
     private int mAvaiableSourceCount = 0;
+
+    private String[] mSourceInputIds;
 
     private SourceButton defSourceInput;
     private SourceButton curSourceInput;
@@ -146,7 +149,8 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
         ChannelDataManager.clear();
         mSourceInputs.clear();
 
-        for (String id : getAllDeviceIds()) { //init all hardware devices
+        getAllDeviceIds();
+        for (String id : mSourceInputIds) { //init all hardware devices
             device_id = Integer.parseInt(id);
             SourceButton sb = new SourceButton(mContext, device_id);
             if (defaultDeviceId == sb.getDeviceId()) {
@@ -209,15 +213,26 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
         }
     }
 
-    private String[] getAllDeviceIds() {
+    private void getAllDeviceIds() {
+        if (mSourceInputIds != null)
+            return;
+
         TvControlManager tcm = TvControlManager.getInstance();
         String prop_ids = tcm.GetSourceInputList();
         if (TextUtils.equals(prop_ids, "null")) {
             throw new IllegalArgumentException("source input ids is not set.");
         }
-        String[] ids = prop_ids.split(",");
-        Utils.logd(TAG, "==== ids length is " + ids.length);
-        return ids;
+        mSourceInputIds = prop_ids.split(",");
+        if (mSourceInputIds == null || mSourceInputIds.length <= 0) {
+            throw new NullPointerException("source input ids is empth...");
+        }
+        Utils.logd(TAG, "==== mSourceInputIds length is " + mSourceInputIds.length);
+    }
+
+    public int getSourceInputId(int index) {
+        if (mSourceInputIds == null)
+            getAllDeviceIds();
+        return (mSourceInputIds.length > index && index >= 0) ? Integer.parseInt(mSourceInputIds[index]) : -1;
     }
 
     private void initSourceInput(SourceButton sb) {
