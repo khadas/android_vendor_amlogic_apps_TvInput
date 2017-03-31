@@ -372,12 +372,16 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             case OPTION_FINE_TUNE:
                 return R.layout.layout_channel_fine_tune;
             case OPTION_MANUAL_SEARCH:
-                if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV)
+                if (mSettingsManager.getCurentVirtualTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_ADTV)
+                    return R.layout.layout_channel_manual_search_dtv;
+                else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV)
                     return R.layout.layout_channel_manual_search_atv;
                 else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV)
                     return R.layout.layout_channel_manual_search_dtv;
             case OPTION_AUTO_SEARCH:
-                if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV)
+                if (mSettingsManager.getCurentVirtualTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_ADTV)
+                    return R.layout.layout_channel_auto_search_dtv;
+                else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV)
                     return R.layout.layout_channel_auto_search_atv;
                 else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV)
                     return R.layout.layout_channel_auto_search_dtv;
@@ -1421,36 +1425,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     }
 
     public void setManualSearchEditStyle(View view) {
-        if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV) {
-            OptionEditText edit_from = (OptionEditText) view.findViewById(R.id.manual_search_edit_from);
-            OptionEditText edit_to = (OptionEditText) view.findViewById(R.id.manual_search_edit_to);
-            edit_from.setNextFocusLeftId(R.id.content_list);
-            edit_from.setNextFocusRightId(edit_from.getId());
-            edit_from.setNextFocusUpId(edit_from.getId());
-            edit_to.setNextFocusLeftId(R.id.content_list);
-            edit_to.setNextFocusRightId(edit_to.getId());
-
-            TextWatcher textWatcher = new TextWatcher() {
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                }
-
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                }
-
-                public void afterTextChanged(Editable s) {
-                    if (s.length() > 0) {
-                        int pos = s.length() - 1;
-                        char c = s.charAt(pos);
-                        if (c < '0' || c > '9') {
-                            s.delete(pos, pos + 1);
-                            showToast(mResources.getString(R.string.error_not_number));
-                        }
-                    }
-                }
-            };
-            edit_from.addTextChangedListener(textWatcher);
-            edit_to.addTextChangedListener(textWatcher);
-        } else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
+        if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV
+            || mSettingsManager.getCurentVirtualTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_ADTV) {
             final OptionEditText edit = (OptionEditText) view.findViewById(R.id.manual_search_dtv_channel);
             edit.setNextFocusLeftId(R.id.content_list);
             edit.setNextFocusRightId(edit.getId());
@@ -1483,6 +1459,35 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 }
             };
             edit.addTextChangedListener(textWatcher);
+        } else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV) {
+            OptionEditText edit_from = (OptionEditText) view.findViewById(R.id.manual_search_edit_from);
+            OptionEditText edit_to = (OptionEditText) view.findViewById(R.id.manual_search_edit_to);
+            edit_from.setNextFocusLeftId(R.id.content_list);
+            edit_from.setNextFocusRightId(edit_from.getId());
+            edit_from.setNextFocusUpId(edit_from.getId());
+            edit_to.setNextFocusLeftId(R.id.content_list);
+            edit_to.setNextFocusRightId(edit_to.getId());
+
+            TextWatcher textWatcher = new TextWatcher() {
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                }
+
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                }
+
+                public void afterTextChanged(Editable s) {
+                    if (s.length() > 0) {
+                        int pos = s.length() - 1;
+                        char c = s.charAt(pos);
+                        if (c < '0' || c > '9') {
+                            s.delete(pos, pos + 1);
+                            showToast(mResources.getString(R.string.error_not_number));
+                        }
+                    }
+                }
+            };
+            edit_from.addTextChangedListener(textWatcher);
+            edit_to.addTextChangedListener(textWatcher);
         }
     }
 
@@ -1507,8 +1512,20 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     }
 
     private void setManualSearchInfo(TvControlManager.ScannerEvent event) {
+        Log.d(TAG, "mSettingsManager.getCurentVirtualTvSource()="+mSettingsManager.getCurentVirtualTvSource());
         ViewGroup optionView = (ViewGroup)((TvSettingsActivity) mContext).mOptionLayout.getChildAt(0);
-        if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV) {
+        if (event == null)
+            return;
+        if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV
+            || mSettingsManager.getCurentVirtualTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_ADTV) {
+            OptionListView listView = (OptionListView)optionView.findViewById(R.id.manual_search_dtv_info);
+            ArrayList<HashMap<String, Object>> dataList = getSearchedDtvInfo(event);
+            SimpleAdapter adapter = new SimpleAdapter(mContext, dataList,
+                    R.layout.layout_option_double_text,
+                    new String[] {SettingsManager.STRING_NAME, SettingsManager.STRING_STATUS},
+                    new int[] {R.id.text_name, R.id.text_status});
+            listView.setAdapter(adapter);
+        } else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV) {
             OptionEditText begin = (OptionEditText)optionView.findViewById(R.id.manual_search_edit_from);
             TextView frequency = (TextView)optionView.findViewById(R.id.manual_search_frequency);
             TextView frequency_band = (TextView)optionView.findViewById(R.id.manual_search_frequency_band);
@@ -1528,14 +1545,6 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 frequency_band.setText(parseFrequencyBand(freq));
                 searched_number.setText(mResources.getString(R.string.searched_number) + ": " + channelNumber);
             }
-        } else if (event != null && mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
-            OptionListView listView = (OptionListView)optionView.findViewById(R.id.manual_search_dtv_info);
-            ArrayList<HashMap<String, Object>> dataList = getSearchedDtvInfo(event);
-            SimpleAdapter adapter = new SimpleAdapter(mContext, dataList,
-                    R.layout.layout_option_double_text,
-                    new String[] {SettingsManager.STRING_NAME, SettingsManager.STRING_STATUS},
-                    new int[] {R.id.text_name, R.id.text_status});
-            listView.setAdapter(adapter);
         }
     }
 
@@ -1613,7 +1622,16 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
 
     private void setAutoSearchFrequency(TvControlManager.ScannerEvent event) {
         ViewGroup optionView = (ViewGroup) ((TvSettingsActivity) mContext).mOptionLayout.getChildAt(0);
-        if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV) {
+        if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV
+            || mSettingsManager.getCurentVirtualTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_ADTV) {
+            OptionListView listView = (OptionListView)optionView.findViewById(R.id.auto_search_dtv_info);
+            ArrayList<HashMap<String, Object>> dataList = getSearchedDtvInfo(event);
+            SimpleAdapter adapter = new SimpleAdapter(mContext, dataList,
+                    R.layout.layout_option_double_text,
+                    new String[] {SettingsManager.STRING_NAME, SettingsManager.STRING_STATUS},
+                    new int[] {R.id.text_name, R.id.text_status});
+            listView.setAdapter(adapter);
+        } else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV) {
             TextView frequency = (TextView) optionView.findViewById(R.id.auto_search_frequency_atv);
             TextView frequency_band = (TextView) optionView.findViewById(R.id.auto_search_frequency_band_atv);
             TextView searched_number = (TextView) optionView.findViewById(R.id.auto_search_searched_number_atv);
@@ -1624,14 +1642,6 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 frequency_band.setText(parseFrequencyBand(freq));
                 searched_number.setText(mResources.getString(R.string.searched_number) + ": " + channelNumber);
             }
-        } else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
-            OptionListView listView = (OptionListView)optionView.findViewById(R.id.auto_search_dtv_info);
-            ArrayList<HashMap<String, Object>> dataList = getSearchedDtvInfo(event);
-            SimpleAdapter adapter = new SimpleAdapter(mContext, dataList,
-                    R.layout.layout_option_double_text,
-                    new String[] {SettingsManager.STRING_NAME, SettingsManager.STRING_STATUS},
-                    new int[] {R.id.text_name, R.id.text_status});
-            listView.setAdapter(adapter);
         }
     }
 

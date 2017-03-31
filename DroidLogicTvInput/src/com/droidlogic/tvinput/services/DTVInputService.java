@@ -314,9 +314,9 @@ public class DTVInputService extends DroidLogicTvInputService {
                     info.getAudioCompensation(),
                     DroidLogicTvUtils.hasAudioADTracks(info),
                     mixingLevel);
-                    mTvControlManager.DtvSetAudioChannleMod(info.getAudioChannel());
-                    mTvControlManager.SetAVPlaybackListener(this);
-                    mSystemControlManager.setProperty(DTV_AUDIO_TRACK_IDX,
+            mTvControlManager.DtvSetAudioChannleMod(info.getAudioChannel());
+            mTvControlManager.SetAVPlaybackListener(this);
+            mSystemControlManager.setProperty(DTV_AUDIO_TRACK_IDX,
                         ((audioTrackAuto>=0)? String.valueOf(audioTrackAuto) : "-1"));
 
             stopSubtitle();

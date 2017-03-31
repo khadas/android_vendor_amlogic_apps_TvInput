@@ -268,10 +268,11 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
                     transaction.commit();
                     break;
                 case R.id.button_channel:
-                    if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV)
-                        currentFragment = new ContentFragment(R.xml.list_channel_atv, v);
-                    else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV)
+                    if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV
+                        || getSettingsManager().getCurentVirtualTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_ADTV)
                         currentFragment = new ContentFragment(R.xml.list_channel_dtv, v);
+                   else  if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV)
+                        currentFragment = new ContentFragment(R.xml.list_channel_atv, v);
                     transaction.replace(R.id.settings_list, currentFragment);
                     transaction.commit();
                     break;

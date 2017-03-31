@@ -181,37 +181,14 @@ public class ADTVInputService extends DTVInputService {
                 return true;
             }
 
-            TvControlManager.TvMode mTvMode = new TvControlManager.TvMode(info.getType());
-            int baseMode = mTvMode.getBase();
+            TvControlManager.FEParas fe = new TvControlManager.FEParas(info.getFEParas());
             int audioTrackAuto = getAudioTrackAuto(info);
-            int para1 = 0;
-            int para2 = 0;
-
-            if (baseMode == TVChannelParams.MODE_DTMB) {
-                para1 = info.getBandwidth();
-            } else if (baseMode == TVChannelParams.MODE_QAM) {
-                para1 = info.getSymbolRate();
-                para2 = info.getModulation();
-            } else if (baseMode == TVChannelParams.MODE_QPSK) {
-                para1 = info.getSymbolRate();
-            } else if (baseMode == TVChannelParams.MODE_ATSC) {
-                para1 = info.getModulation();
-            } else if (baseMode == TVChannelParams.MODE_OFDM) {
-                para1 = info.getBandwidth();
-            } else {
-                    Log.d(TAG, "channel type[" + info.getType() + "] not supported yet.");
-                    return false;
-            }
-
             int mixingLevel = mAudioADMixingLevel;
             if (mixingLevel < 0)
                 mixingLevel = Settings.System.getInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_AD_MIX, AD_MIXING_LEVEL_DEF);
 
             mTvControlManager.PlayDTVProgram(
-                    mTvMode.getMode(),
-                    info.getFrequency(),
-                    para1,
-                    para2,
+                    fe,
                     info.getVideoPid(),
                     info.getVfmt(),
                     (audioTrackAuto >= 0) ? info.getAudioPids()[audioTrackAuto] : -1,
@@ -220,9 +197,9 @@ public class ADTVInputService extends DTVInputService {
                     info.getAudioCompensation(),
                     DroidLogicTvUtils.hasAudioADTracks(info),
                     mixingLevel);
-                    mTvControlManager.DtvSetAudioChannleMod(info.getAudioChannel());
-                    mTvControlManager.SetAVPlaybackListener(this);
-                    mSystemControlManager.setProperty(DTV_AUDIO_TRACK_IDX,
+            mTvControlManager.DtvSetAudioChannleMod(info.getAudioChannel());
+            mTvControlManager.SetAVPlaybackListener(this);
+            mSystemControlManager.setProperty(DTV_AUDIO_TRACK_IDX,
                         ((audioTrackAuto>=0)? String.valueOf(audioTrackAuto) : "-1"));
 
             stopSubtitle();
