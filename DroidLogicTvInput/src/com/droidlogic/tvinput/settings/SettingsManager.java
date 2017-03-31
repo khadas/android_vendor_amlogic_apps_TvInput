@@ -307,10 +307,6 @@ public class SettingsManager {
                 return getDefaultLanStatus();
             } else if (key.equals(KEY_SUBTITLE_SWITCH)) {
                 return getSubtitleSwitchStatus();
-            } else if (key.equals(KEY_AD_SWITCH)) {
-                return getADSwitchStatus();
-            } else if (key.equals(KEY_AD_MIX)) {
-                return getADMixStatus();
             } else if (key.equals(KEY_COLOR_SYSTEM)) {
                 return getColorSystemStatus();
             } else if (key.equals(KEY_SOUND_SYSTEM)) {
@@ -335,6 +331,10 @@ public class SettingsManager {
                 return getDynamicBacklightStatus();
             } else if (key.equals(KEY_HDMI20)) {
                 return getHdmi20Status();
+            } else if (key.equals(KEY_AD_SWITCH)) {
+                return getADSwitchStatus();
+            } else if (key.equals(KEY_AD_MIX)) {
+                return getADMixStatus();
             }
         }
         return null;
@@ -752,7 +752,7 @@ public class SettingsManager {
     }
 
     private String getADMixStatus () {
-        return getADMix() + "%";
+        return "" + getADMix() + "%";
     }
 
     public int getADMix() {

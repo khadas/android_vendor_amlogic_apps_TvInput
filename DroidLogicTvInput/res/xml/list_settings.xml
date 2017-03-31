@@ -47,7 +47,7 @@
     </Preference>
 
     <Preference
-        android:key="ad_mix"
+        android:key="ad_mix_level"
         android:title="@string/ad_mix" >
     </Preference>
 

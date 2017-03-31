@@ -83,24 +83,25 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener, OnIt
         operationsView = (ViewGroup)channelEditView.findViewById(R.id.channel_edit_operations);
         operationsEditView = (ViewGroup)channelEditView.findViewById(R.id.channel_edit_editname);
 
-        if (getSettingsManager().getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV) {
+        if (getSettingsManager().getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV
+                || getSettingsManager().getCurentVirtualTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_ADTV) {
+            channelType = TYPE_DTV_TV;
+        } else if (getSettingsManager().getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV) {
             channelType = TYPE_ATV;
             ChannelListData = ((TvSettingsActivity)mContext).getSettingsManager().getChannelList(channelType);
-        } else if (getSettingsManager().getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
-            channelType = TYPE_DTV_TV;
         }
 
         ChannelAdapter = new MyAdapter(mContext, ChannelListData);
         channelListView.setAdapter(ChannelAdapter);
         channelListView.setOnItemClickListener(this);
 
-        if (getSettingsManager().getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV) {
-            button_tv.setVisibility(View.GONE);
-            button_radio.setVisibility(View.GONE);
+        if (channelType == TYPE_DTV_TV) {
+            channelListView.setVisibility(View.GONE);
             operationsView.setVisibility(View.GONE);
             operationsEditView.setVisibility(View.GONE);
-        } else if (getSettingsManager().getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
-            channelListView.setVisibility(View.GONE);
+        } else if (channelType == TYPE_ATV) {
+            button_tv.setVisibility(View.GONE);
+            button_radio.setVisibility(View.GONE);
             operationsView.setVisibility(View.GONE);
             operationsEditView.setVisibility(View.GONE);
         }
@@ -126,6 +127,12 @@ public class ChannelEdit implements OnClickListener, OnFocusChangeListener, OnIt
         delete.setOnFocusChangeListener(this);
         favourite.setOnClickListener(this);
         favourite.setOnFocusChangeListener(this);
+
+        if (getSettingsManager().getCurentVirtualTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_ADTV) {
+            //do not support this now. fix me.
+            swap.setVisibility(View.GONE);
+            move.setVisibility(View.GONE);
+        }
     }
 
     private void showDtvMainView () {

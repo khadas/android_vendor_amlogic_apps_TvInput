@@ -156,9 +156,13 @@ public class ContentFragment extends Fragment {
                 getSettingsManager().setTag(key);
                 content_title.setText(title);
             } else {
-                if ((key.equals(SettingsManager.KEY_TINT) && !getSettingsManager().isShowTint())
-                    || ((key.equals(SettingsManager.KEY_DEFAULT_LANGUAGE) || key.equals(SettingsManager.KEY_SUBTITLE_SWITCH) || key.equals(SettingsManager.KEY_AD_SWITCH))
-                            && getSettingsManager().getCurentTvSource() != TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV))
+                if (key.equals(SettingsManager.KEY_TINT) && !getSettingsManager().isShowTint())
+                    return;
+                if (getSettingsManager().getCurentTvSource() != TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV
+                        && (key.equals(SettingsManager.KEY_DEFAULT_LANGUAGE)
+                                || key.equals(SettingsManager.KEY_SUBTITLE_SWITCH)
+                                || key.equals(SettingsManager.KEY_AD_SWITCH)
+                                || key.equals(SettingsManager.KEY_AD_MIX)))
                     return;
                 if (getSettingsManager().getCurentTvSource() != TvControlManager.SourceInput_Type.SOURCE_TYPE_HDMI &&
                         key.equals(SettingsManager.KEY_HDMI20))
@@ -166,10 +170,6 @@ public class ContentFragment extends Fragment {
                 if (key.equals(SettingsManager.KEY_DTV_TYPE) &&
                         (getSettingsManager().getCurentTvSource() != TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV
                             && getSettingsManager().getCurentVirtualTvSource() != TvControlManager.SourceInput_Type.SOURCE_TYPE_ADTV))
-                    return;
-
-                if (getSettingsManager().getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV &&
-                        (key.equals(SettingsManager.KEY_AD_LIST) || key.equals(SettingsManager.KEY_AD_MIX)))
                     return;
 
                 HashMap<String, Object> map = new HashMap<String, Object>();
