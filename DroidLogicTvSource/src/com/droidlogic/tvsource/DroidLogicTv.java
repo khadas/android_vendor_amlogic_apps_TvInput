@@ -1423,6 +1423,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         Utils.logd(TAG, "==== onStop ====");
         // prevent twice resources release
         if (!hasStopped) {
+            if (isSearchingChannel)
+                mSourceView.sendAppPrivateCommand(DroidLogicTvUtils.ACTION_STOP_SCAN, null);
             if (toast != null)
                 toast.cancel();
             hasStopped = true;
