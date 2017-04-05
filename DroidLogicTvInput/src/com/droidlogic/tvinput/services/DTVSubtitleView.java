@@ -39,6 +39,54 @@ public class DTVSubtitleView extends View {
     public static final int COLOR_YELLOW = 2;
     public static final int COLOR_BLUE = 3;
 
+    public static final int CC_CAPTION_DEFAULT = 0;
+    /*NTSC CC channels*/
+    public static final int CC_CAPTION_CC1 = 1;
+    public static final int CC_CAPTION_CC2 = 2;
+    public static final int CC_CAPTION_CC3 = 3;
+    public static final int CC_CAPTION_CC4 = 4;
+    public static final int CC_CAPTION_TEXT1 =5;
+    public static final int CC_CAPTION_TEXT2 = 6;
+    public static final int CC_CAPTION_TEXT3 = 7;
+    public static final int CC_CAPTION_TEXT4 = 8;
+    /*DTVCC services*/
+    public static final int CC_CAPTION_SERVICE1 = 9;
+    public static final int CC_CAPTION_SERVICE2 = 10;
+    public static final int CC_CAPTION_SERVICE3 = 11;
+    public static final int CC_CAPTION_SERVICE4 = 12;
+    public static final int CC_CAPTION_SERVICE5 = 13;
+    public static final int CC_CAPTION_SERVICE6 = 14;
+
+    public static final int CC_FONTSIZE_DEFAULT = 0;
+    public static final int CC_FONTSIZE_SMALL = 1;
+    public static final int CC_FONTSIZE_STANDARD = 2;
+    public static final int CC_FONTSIZE_BIG = 3;
+
+    public static final int CC_FONTSTYLE_DEFAULT = 0;
+    public static final int CC_FONTSTYLE_MONO_SERIF = 1;
+    public static final int CC_FONTSTYLE_PROP_SERIF = 2;
+    public static final int CC_FONTSTYLE_MONO_NO_SERIF = 3;
+    public static final int CC_FONTSTYLE_PROP_NO_SERIF = 4;
+    public static final int CC_FONTSTYLE_CASUAL = 5;
+    public static final int CC_FONTSTYLE_CURSIVE = 6;
+    public static final int CC_FONTSTYLE_SMALL_CAPITALS = 7;
+
+    public static final int CC_OPACITY_DEFAULT = 0;
+    public static final int CC_OPACITY_TRANSPARET = 1;
+    public static final int CC_OPACITY_TRANSLUCENT= 2;
+    public static final int CC_OPACITY_SOLID = 3;
+    public static final int CC_OPACITY_FLASH = 4;
+
+    public static final int CC_COLOR_DEFAULT = 0;
+    public static final int CC_COLOR_WHITE = 1;
+    public static final int CC_COLOR_BLACK = 2;
+    public static final int CC_COLOR_RED = 3;
+    public static final int CC_COLOR_GREEN = 4;
+    public static final int CC_COLOR_BLUE = 5;
+    public static final int CC_COLOR_YELLOW = 6;
+    public static final int CC_COLOR_MAGENTA = 7;
+    public static final int CC_COLOR_CYAN = 8;
+
     private static int init_count = 0;
 
     private native int native_sub_init();

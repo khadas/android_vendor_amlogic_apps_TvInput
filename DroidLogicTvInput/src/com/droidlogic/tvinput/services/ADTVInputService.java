@@ -223,38 +223,6 @@ public class ADTVInputService extends DTVInputService {
         }
 
         @Override
-        public boolean onSelectTrack(int type, String trackId) {
-            Log.d(TAG, "onSelectTrack: [type:" + type + "] [id:" + trackId + "]");
-            return super.onSelectTrack(type, trackId);
-        }
-
-
-        //@Override
-        protected void startSubtitle(ChannelInfo channelInfo, boolean force, boolean mark) {
-            Log.d(TAG, "startSubtitle[force:"+force+", mark:"+mark+"]");
-        }
-
-        //@Override
-        protected void startSubtitle(ChannelInfo channelInfo) {
-            startSubtitle(channelInfo, false, true);
-        }
-
-        //@Override
-        protected void stopSubtitle(boolean mark) {
-            Log.d(TAG, "stop Subtitle [mark:"+mark+"]");
-        }
-
-        //@Override
-        protected void stopSubtitle() {
-            stopSubtitle(true);
-        }
-
-        //@Override
-        protected void hideSubtitle(boolean hide) {
-            Log.d(TAG, "hide Subtitle:"+hide);
-        }
-
-        @Override
         protected void setMonitor(ChannelInfo channel) {
         }
 

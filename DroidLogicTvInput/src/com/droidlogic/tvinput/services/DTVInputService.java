@@ -480,15 +480,12 @@ public class DTVInputService extends DroidLogicTvInputService {
             Log.d(TAG, "onOverlayViewSizeChanged[" + width + "," + height + "]");
         }
 
-        protected void notifyTracks(ChannelInfo ch) {
-            List < TvTrackInfo > tracks = null;
+        protected String addAudioTracks(List <TvTrackInfo> tracks, ChannelInfo ch) {
             String AudioSelectedId = null;
-            String SubSelectedId = null;
-
             int[] audioPids = ch.getAudioPids();
             int AudioTracksCount = (audioPids == null) ? 0 : audioPids.length;
             if (AudioTracksCount != 0) {
-                Log.d(TAG, "notify audio tracks["+AudioTracksCount+"]:");
+                Log.d(TAG, "add audio tracks["+AudioTracksCount+"]:");
                 String[] audioLanguages = ch.getAudioLangs();
                 int[] audioFormats = ch.getAudioFormats();
                 int[] audioExts = ch.getAudioExts();
@@ -522,11 +519,15 @@ public class DTVInputService extends DroidLogicTvInputService {
                         + " [ext:" + Integer.toHexString(audioExts[i]) + "]");
                 }
             }
+            return AudioSelectedId;
+        }
 
+        protected String addSubtitleTracks(List <TvTrackInfo> tracks, ChannelInfo ch) {
+            String SubSelectedId = null;
             int[] subPids = ch.getSubtitlePids();
             int SubTracksCount = (subPids == null) ? 0 : subPids.length;
             if (SubTracksCount != 0) {
-                Log.d(TAG, "notify subtitle tracks["+SubTracksCount+"]:");
+                Log.d(TAG, "add subtitle tracks["+SubTracksCount+"]:");
                 String[] subLanguages = ch.getSubtitleLangs();
                 int[] subTypes = ch.getSubtitleTypes();
                 int[] subStypes = ch.getSubtitleStypes();
@@ -564,9 +565,21 @@ public class DTVInputService extends DroidLogicTvInputService {
                 }
 
             }
+            return SubSelectedId;
+        }
 
-            if (tracks != null)
+        protected void notifyTracks(ChannelInfo ch) {
+            List < TvTrackInfo > tracks = new ArrayList<>();;
+            String AudioSelectedId = null;
+            String SubSelectedId = null;
+
+            AudioSelectedId = addAudioTracks(tracks, ch);
+            SubSelectedId = addSubtitleTracks(tracks, ch);
+
+            if (tracks != null) {
+                Log.d(TAG, "notify Tracks["+tracks.size()+"]");
                 notifyTracksChanged(tracks);
+            }
 
             Log.d(TAG, "\tAuto Aud: [" + AudioSelectedId + "]");
             notifyTrackSelected(TvTrackInfo.TYPE_AUDIO, AudioSelectedId);
@@ -642,7 +655,7 @@ public class DTVInputService extends DroidLogicTvInputService {
         protected static final int TYPE_DTV_CC = 4;
         protected static final int TYPE_ATV_CC = 5;
 
-        private void startSubtitle(ChannelInfo channelInfo) {
+        protected void startSubtitle(ChannelInfo channelInfo) {
 
             if (!subtitleAutoStart)
                 return ;
@@ -660,7 +673,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             }
         }
 
-        private int getTeletextRegionID(String ttxRegionName) {
+        protected int getTeletextRegionID(String ttxRegionName) {
             final String[] supportedRegions = {"English", "Deutsch", "Svenska/Suomi/Magyar",
                                                "Italiano", "Fran?ais", "Português/Espa?ol",
                                                "Cesky/Slovencina", "Türk?e", "Ellinika", "Alarabia / English"
@@ -690,21 +703,13 @@ public class DTVInputService extends DroidLogicTvInputService {
             return mSubtitleView;
         }
 
-        private void startSubtitle(int type, int pid, int stype, int id1, int id2) {
-            Log.d(TAG, "start Subtitle");
-
-            initSubtitleView();
-
-            mSubtitleView.stop();
-
+        protected void setSubtitleParam(int type, int pid, int stype, int id1, int id2) {
             if (type == TYPE_DVB_SUBTITLE) {
-
                 DTVSubtitleView.DVBSubParams params =
                     new DTVSubtitleView.DVBSubParams(0, pid, id1, id2);
                 mSubtitleView.setSubParams(params);
 
             } else if (type == TYPE_DTV_TELETEXT) {
-
                 int pgno;
                 pgno = (id1 == 0) ? 800 : id1 * 100;
                 pgno += (id2 & 15) + ((id2 >> 4) & 15) * 10 + ((id2 >> 8) & 15) * 100;
@@ -712,15 +717,80 @@ public class DTVInputService extends DroidLogicTvInputService {
                     new DTVSubtitleView.DTVTTParams(0, pid, pgno, 0x3F7F, getTeletextRegionID("English"));
                 mSubtitleView.setSubParams(params);
 
+            } else if (type == TYPE_DTV_CC  || type == TYPE_ATV_CC) {
+                int captionMode = DTVSubtitleView.CC_CAPTION_SERVICE1;
+                if (type == TYPE_DTV_CC) {
+                    switch (pid) {
+                    case 1:
+                        captionMode = DTVSubtitleView.CC_CAPTION_SERVICE1;
+                        break;
+                    case 2:
+                        captionMode = DTVSubtitleView.CC_CAPTION_SERVICE2;
+                        break;
+                    case 3:
+                        captionMode = DTVSubtitleView.CC_CAPTION_SERVICE3;
+                        break;
+                    case 4:
+                        captionMode = DTVSubtitleView.CC_CAPTION_SERVICE4;
+                        break;
+                    case 5:
+                        captionMode = DTVSubtitleView.CC_CAPTION_SERVICE5;
+                        break;
+                    case 6:
+                        captionMode = DTVSubtitleView.CC_CAPTION_SERVICE6;
+                        break;
+                    default:
+                        captionMode = DTVSubtitleView.CC_CAPTION_SERVICE1;
+                        break;
+                    }
+                } else {
+                    switch (pid) {
+                    case 1:
+                        captionMode = DTVSubtitleView.CC_CAPTION_CC1;
+                        break;
+                    case 2:
+                        captionMode = DTVSubtitleView.CC_CAPTION_CC2;
+                        break;
+                    case 3:
+                        captionMode = DTVSubtitleView.CC_CAPTION_CC3;
+                        break;
+                    case 4:
+                        captionMode = DTVSubtitleView.CC_CAPTION_CC4;
+                        break;
+                    default:
+                        captionMode = DTVSubtitleView.CC_CAPTION_CC1;
+                        break;
+                    }
+                }
+
+                DTVSubtitleView.DTVCCParams params =
+                    new DTVSubtitleView.DTVCCParams(captionMode,
+                        DTVSubtitleView.CC_COLOR_DEFAULT,
+                        DTVSubtitleView.CC_OPACITY_DEFAULT,
+                        DTVSubtitleView.CC_COLOR_DEFAULT,
+                        DTVSubtitleView.CC_OPACITY_TRANSLUCENT,
+                        DTVSubtitleView.CC_FONTSTYLE_DEFAULT,
+                        DTVSubtitleView.CC_FONTSIZE_DEFAULT);
+                mSubtitleView.setSubParams(params);
             }
-            mSubtitleView.setActive(true);
-            mSubtitleView.startSub(); //DVBSub/EBUSub/CC
-
-            setOverlayViewEnabled(true);
-
         }
 
-        private void stopSubtitle() {
+        protected void startSubtitle(int type, int pid, int stype, int id1, int id2) {
+            Log.d(TAG, "start Subtitle");
+
+            initSubtitleView();
+
+            mSubtitleView.stop();
+
+            setSubtitleParam(type, pid, stype, id1, id2);
+
+            mSubtitleView.setActive(true);
+            mSubtitleView.startSub();
+
+            setOverlayViewEnabled(true);
+        }
+
+        protected void stopSubtitle() {
             Log.d(TAG, "stop Subtitle");
 
             if (mSubtitleView != null) {

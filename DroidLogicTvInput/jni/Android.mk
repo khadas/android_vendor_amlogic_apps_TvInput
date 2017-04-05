@@ -21,7 +21,8 @@ LOCAL_C_INCLUDES := external/libzvbi/src \
 	$(DVB_PATH)/include/am_adp \
 	bionic/libc/include \
 	external/skia/include\
-	$(DVB_PATH)/android/ndk/include
+	$(DVB_PATH)/android/ndk/include \
+	vendor/amlogic/external/libzvbi/src
 
 LOCAL_SHARED_LIBRARIES += libjnigraphics libzvbi libam_mw libam_adp libskia liblog libcutils
 

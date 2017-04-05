@@ -1355,8 +1355,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_TYPE_ATV, TvControlManager.ScanType.SCAN_ATV_MANUAL);
             //bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA1, 0);
             //bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA2, 0);
-            bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA3, TvControlManager.ATV_VIDEO_STD_PAL);
-            bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA4, TvControlManager.ATV_AUDIO_STD_I);
+            bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA3, TvControlManager.ATV_VIDEO_STD_AUTO);
+            bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA4, TvControlManager.ATV_AUDIO_STD_AUTO);
             mSettingsManager.sendBroadcastToTvapp(DroidLogicTvUtils.ACTION_DTV_MANUAL_SCAN, bundle);
             isSearching = SEARCH_RUNNING;
             mSettingsManager.setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
@@ -1596,8 +1596,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_TYPE_ATV, TvControlManager.ScanType.SCAN_ATV_AUTO);
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA1, freqPair[0]);
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA2, freqPair[1]);
-            bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA3, TvControlManager.ATV_VIDEO_STD_PAL);
-            bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA4, TvControlManager.ATV_AUDIO_STD_I);
+            bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA3, TvControlManager.ATV_VIDEO_STD_AUTO);
+            bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA4, TvControlManager.ATV_AUDIO_STD_AUTO);
             mSettingsManager.sendBroadcastToTvapp(DroidLogicTvUtils.ACTION_DTV_AUTO_SCAN, bundle);
             Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_DTV_CHANNEL_INDEX, -1);
         } else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV) {

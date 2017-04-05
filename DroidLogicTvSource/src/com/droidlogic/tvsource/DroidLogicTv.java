@@ -764,7 +764,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 if (!down)
                     return true;
 
-                if (mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_DTV) {
+                if (mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_DTV
+                    || mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_ADTV) {
                     doTrackKey(TvTrackInfo.TYPE_SUBTITLE);
                 }
                 return true;

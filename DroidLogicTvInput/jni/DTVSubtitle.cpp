@@ -752,8 +752,12 @@ error:
         cc_para.draw_begin = cc_draw_begin_cb;
         cc_para.draw_end = cc_draw_end_cb;
         cc_para.user_data = (void *)data;
-
+        cc_para.input = AM_CC_INPUT_USERDATA;
         spara.caption                  = (AM_CC_CaptionMode_t)caption;
+        if (spara.caption >= AM_CC_CAPTION_DEFAULT && spara.caption <= AM_CC_CAPTION_CC4)
+            cc_para.input = AM_CC_INPUT_VBI;
+        else if (spara.caption >= AM_CC_CAPTION_SERVICE1 && spara.caption <= AM_CC_CAPTION_SERVICE6)
+            cc_para.input = AM_CC_INPUT_USERDATA;
         spara.user_options.bg_color    = (AM_CC_Color_t)bg_color;
         spara.user_options.fg_color    = (AM_CC_Color_t)fg_color;
         spara.user_options.bg_opacity  = (AM_CC_Opacity_t)bg_opacity;
