@@ -121,16 +121,16 @@
             android:textSize="20sp" />
 
         <TextView
-            android:id="@+id/dtv_frequency"
+            android:id="@+id/dtv_resolution"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_marginLeft="10dp"
-            android:text="@string/dtv_frequency"
+            android:text="@string/dtv_resolution"
             android:textColor="#FFFFFF"
             android:textSize="20sp" />
 
         <TextView
-            android:id="@+id/dtv_frequency_value"
+            android:id="@+id/dtv_resolution_value"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:text="@string/no"

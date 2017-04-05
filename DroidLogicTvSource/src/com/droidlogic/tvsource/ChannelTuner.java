@@ -379,6 +379,12 @@ public class ChannelTuner {
         return Integer.toString(mCurrentChannel.getNumber());
     }
 
+    public String getChannelDisplayNumber() {
+        if (mCurrentChannel == null)
+            return "";
+        return mCurrentChannel.getDisplayNumber();
+    }
+
     public String getChannelName() {
         if (mCurrentChannel == null)
             return "";

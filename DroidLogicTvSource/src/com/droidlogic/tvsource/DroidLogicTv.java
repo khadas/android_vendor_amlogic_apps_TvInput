@@ -140,7 +140,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private TextView mDtvInfoTime;
     private TextView mDtvInfoVideoFormat;
     private TextView mDtvInfoAudioFormat;
-    private TextView mDtvInfodFrequency;
+    private TextView mDtvInfodResolution;
     private TextView mDtvInfoSubtitle;
     private TextView mDtvInfoTrack;
     private TextView mDtvInfoAge;
@@ -1020,8 +1020,14 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         int val = keyCode - DroidLogicKeyEvent.KEYCODE_0;
         if (keyInputNumber.length() <= 8)
             keyInputNumber = keyInputNumber + val;
+        if (mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_DTV || mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_ADTV) {
+            showUi(Utils.UI_TYPE_DTV_INFO, false);
+            mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_CHANNEL_NUM_SWITCH), 2000);
+        } else {
+            showUi(Utils.UI_TYPE_SOURCE_INFO, false);
+            mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_CHANNEL_NUM_SWITCH), 2000);
+        }
 
-        mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_CHANNEL_NUM_SWITCH), 2000);
     }
 
     public void processKeyLookBack() {
@@ -1059,7 +1065,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     number = keyInputNumber;
                     name = "";
                 } else {
-                    number = mSourceInput.getChannelNumber();
+                    number = mSourceInput.getChannelDisplayNumber();
                     name = mSourceInput.getChannelName();
                 }
                 break;
@@ -1140,7 +1146,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     mDtvInfoTime =(TextView)findViewById(R.id.dtv_time_value);
                     mDtvInfoVideoFormat = (TextView)findViewById(R.id.dtv_video_format_value);
                     mDtvInfoAudioFormat = (TextView)findViewById(R.id.dtv_audio_format_value);
-                    mDtvInfodFrequency = (TextView)findViewById(R.id.dtv_frequency_value);
+                    mDtvInfodResolution = (TextView)findViewById(R.id.dtv_resolution_value);
                     mDtvInfoSubtitle = (TextView)findViewById(R.id.dtv_subtitle_value);
                     mDtvInfoTrack = (TextView)findViewById(R.id.dtv_track_value);
                     mDtvInfoAge = (TextView)findViewById(R.id.dtv_age_value);
@@ -1238,13 +1244,13 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         }
 
         if (mSourceInput.getChannelInfo() != null && mSourceInput.getChannelInfo().getVideoFormat() != null) {
-            String[] mDtvVideoFrequency = mSourceInput.getChannelInfo().getVideoFormat().split("_");
-            if (mDtvVideoFrequency.length == 3)
-                mDtvInfodFrequency.setText(mDtvVideoFrequency[2]);
+            String[] mDtvVideoResolution = mSourceInput.getChannelInfo().getVideoFormat().split("_");
+            if (mDtvVideoResolution.length == 3)
+                mDtvInfodResolution.setText(mDtvVideoResolution[2]);
             else
-                mDtvInfodFrequency.setText("");
+                mDtvInfodResolution.setText("");
         } else {
-            mDtvInfodFrequency.setText("");
+            mDtvInfodResolution.setText("");
         }
         List<TvTrackInfo> sTrackList = mSourceView.getTracks(TvTrackInfo.TYPE_SUBTITLE);
         if (sTrackList == null)

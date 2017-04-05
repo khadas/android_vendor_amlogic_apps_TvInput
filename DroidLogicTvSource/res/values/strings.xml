@@ -46,7 +46,7 @@
     <string name="dtv_audio_format">audio format:</string>
     <string name="dtv_time">time:</string>
     <string name="dtv_program_type">program type:</string>
-    <string name="dtv_frequency">frequency:</string>
+    <string name="dtv_resolution">resolution:</string>
     <string name="dtv_subtitle">subtitle:</string>
     <string name="dtv_track">track:</string>
     <string name="dtv_age">age:</string>

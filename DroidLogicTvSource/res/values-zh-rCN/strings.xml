@@ -30,7 +30,7 @@
     <string name="dtv_audio_format">音频格式:</string>
     <string name="dtv_time">时间:</string>
     <string name="dtv_program_type">节目类型:</string>
-    <string name="dtv_frequency">分辨率:</string>
+    <string name="dtv_resolution">分辨率:</string>
     <string name="dtv_subtitle">字幕:</string>
     <string name="dtv_track">音轨:</string>
     <string name="dtv_age">年龄:</string>

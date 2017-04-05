@@ -192,6 +192,10 @@ public class SourceButton extends LinearLayout {
         return mChannelTuner == null ? "" : mChannelTuner.getChannelNumber();
     }
 
+    public String getChannelDisplayNumber() {
+        return mChannelTuner == null ? "" : mChannelTuner.getChannelDisplayNumber();
+    }
+
     public String getChannelName() {
         return mChannelTuner == null ? "" : mChannelTuner.getChannelName();
     }
