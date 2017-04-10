@@ -299,6 +299,10 @@ public class SourceButton extends LinearLayout {
                     mSourceLabel = mResources.getString(R.string.source_bt_hdmi3);
                     icon = mResources.getDrawable(R.drawable.icon_hdmi);
                     break;
+                case DroidLogicTvUtils.DEVICE_ID_HDMI4:
+                    mSourceLabel = mResources.getString(R.string.source_bt_hdmi4);
+                    icon = mResources.getDrawable(R.drawable.icon_hdmi);
+                    break;
                 case DroidLogicTvUtils.DEVICE_ID_SPDIF:
                     mSourceLabel = mResources.getString(R.string.source_bt_spdif);
                     icon = mResources.getDrawable(R.drawable.icon_spdif);

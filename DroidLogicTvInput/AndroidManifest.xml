@@ -55,6 +55,15 @@
             <meta-data android:name="android.media.tv.input"
                 android:resource="@xml/hdmi_input_service"/>
         </service>
+		<service
+            android:name=".services.Hdmi4InputService"
+            android:permission="android.permission.BIND_TV_INPUT" >
+            <intent-filter >
+                <action android:name="android.media.tv.TvInputService" />
+            </intent-filter>
+            <meta-data android:name="android.media.tv.input"
+                android:resource="@xml/hdmi_input_service"/>
+        </service>
 
         <service
             android:name=".services.AV1InputService"

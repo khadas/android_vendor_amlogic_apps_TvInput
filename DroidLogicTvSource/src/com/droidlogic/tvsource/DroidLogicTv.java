@@ -403,7 +403,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         mSourceInput = mSourceMenuLayout.getCurSourceInput();
         if (mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_HDMI1 ||
             mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_HDMI2 ||
-            mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_HDMI3) {
+            mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_HDMI3 ||
+            mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_HDMI4 ) {
             TVInSignalInfo si = mTvControlManager.GetCurrentSignalInfo();
             String[] strings = si.sigFmt.toString().split("_");
             if (strings != null && strings.length <= 4)

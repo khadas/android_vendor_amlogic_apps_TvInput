@@ -31,7 +31,7 @@ import com.droidlogic.app.SystemControlManager;
 public class HdmiExtendInputService extends TvInputService {
     private static final String TAG = "HdmiExtendInputService";
     private static final boolean DEBUG = true;
-    private static final int DEVICE_ID_HDMIEXTEND = 8;
+    private static final int DEVICE_ID_HDMIEXTEND = 18;
     private HdmiExtendInputSession mSession;
     private String mInputId;
     private Surface mSurface;
