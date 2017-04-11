@@ -745,7 +745,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     return true;
 
                 if (keyCode == DroidLogicKeyEvent.KEYCODE_GUIDE
-                    && (mSourceInput.getSourceType() != DroidLogicTvUtils.SOURCE_TYPE_DTV
+                    && ((mSourceInput.getSourceType() != DroidLogicTvUtils.SOURCE_TYPE_DTV
+                        && mSourceInput.getSourceType() != DroidLogicTvUtils.SOURCE_TYPE_ADTV)
                         || mSignalState == SIGNAL_NOT_GOT)) {
                     return true;
                 }

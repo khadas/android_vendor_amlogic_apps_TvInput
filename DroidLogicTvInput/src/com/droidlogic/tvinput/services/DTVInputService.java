@@ -70,6 +70,9 @@ public class DTVInputService extends DroidLogicTvInputService {
 
     protected static final String DTV_SUBTITLE_AUTO_START = "tv.dtv.subtitle.autostart";
 
+    protected static final String DTV_TYPE_DEFAULT = "tv.dtv.type.default";
+    protected static final String DTV_STANDARD_FORCE = "tv.dtv.standard.force";
+
     protected DTVSessionImpl mCurrentSession;
     protected int id = 0;
 
@@ -866,8 +869,17 @@ public class DTVInputService extends DroidLogicTvInputService {
             public void run() {
                 synchronized (mLock) {
                     Log.d(TAG, "monitor ch: " + mChannel.getDisplayNumber() + "-" + mChannel.getDisplayName());
+                    String standard = (mChannel.isAtscChannnel() ? "atsc" : "dvb");
+                    String forceStandard = mSystemControlManager.getProperty(DTV_STANDARD_FORCE);
+                    Log.d(TAG, "std:"+standard + " forcestd:"+forceStandard);
+                    if (forceStandard != null && forceStandard.length() != 0)
+                        standard = forceStandard;
+                    if (monitor != null && !monitor.getStandard().equals(standard)) {
+                        monitor.destroy();
+                        monitor=null;
+                    }
                     if (monitor == null) {
-                        monitor = new DTVMonitor(mContext, getInputId(), DEF_CODING, MONITOR_MODE);
+                        monitor = new DTVMonitor(mContext, getInputId(), DEF_CODING, MONITOR_MODE, standard);
                         monitor.reset(MONITOR_FEND, MONITOR_DMX,
                                   new TvControlManager.TvMode(mChannel.getType()).getBase(),
                                   EPG_LANGUAGE.replaceAll("local", TVMultilingualText.getLocalLang()));
@@ -936,15 +948,19 @@ public class DTVInputService extends DroidLogicTvInputService {
         }
 
         public class DTVMonitor {
-            private static final String TAG = "DTVMonitor";
+            public static final String TAG = "DTVMonitor";
+
+            public static final String STD_DVB = "dvb";
+            public static final String STD_ATSC = "atsc";
+
+            public static final int MODE_UPDATE_EPG = 1;
+            public static final int MODE_UPDATE_SERVICE = 2;
+            public static final int MODE_UPDATE_TS = 4;
+            public static final int MODE_UPDATE_TIME = 8;
+
             private static final int MSG_MONITOR_EVENT = 1000;
             private static final int MSG_MONITOR_RESCAN_SERVICE = 2000;
             private static final int MSG_MONITOR_RESCAN_TIME = 3000;
-
-            private static final int MODE_UPDATE_EPG = DTVEpgScanner.SCAN_EIT_ALL;
-            private static final int MODE_UPDATE_SERVICE = DTVEpgScanner.SCAN_SDT;
-            private static final int MODE_UPDATE_TS = DTVEpgScanner.SCAN_NIT;
-            private static final int MODE_UPDATE_TIME = DTVEpgScanner.SCAN_TDT;
 
             private static final int AUTO_RESCAN_NONE = 0;
             private static final int AUTO_RESCAN_ONCE = 1;
@@ -969,6 +985,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             private Context mContext;
             private String mInputId;
             private int mMode;
+            private String mStandard;
             private DTVEpgScanner epgScanner;
             private TVChannelParams tvchan = null;
             private ChannelInfo tvservice = null;
@@ -986,10 +1003,16 @@ public class DTVInputService extends DroidLogicTvInputService {
 
             private MonitorStoreManager mMonitorStoreManager;
 
-            public DTVMonitor(Context context, String inputId, String coding, int mode) {
+            private int MODE_Epg = 0;
+            private int MODE_Service = 0;
+            private int MODE_Time = 0;
+            private int MODE_Ts = 0;
+
+            public DTVMonitor(Context context, String inputId, String coding, int mode, String standard) {
                 mContext = context;
                 mInputId = inputId;
                 mMode = mode;
+                mStandard = standard;
                 mTvDataBaseManager = new TvDataBaseManager(mContext);
                 mTvTime = new TVTime(mContext);
 
@@ -1011,7 +1034,31 @@ public class DTVInputService extends DroidLogicTvInputService {
                     }
                 };
 
-                epgScanner = new DTVEpgScanner(mode) {
+                int scannerMode = 0;
+                if (STD_DVB.equals(standard)) {
+                    MODE_Epg = DTVEpgScanner.SCAN_EIT_ALL;
+                    MODE_Service = DTVEpgScanner.SCAN_SDT | DTVEpgScanner.SCAN_PAT | DTVEpgScanner.SCAN_PMT;
+                    MODE_Time = DTVEpgScanner.SCAN_TDT;
+                    MODE_Ts = DTVEpgScanner.SCAN_NIT;
+                } else {// (std == ATSC) {
+                    MODE_Epg = DTVEpgScanner.SCAN_PSIP_EIT;
+                    MODE_Service = DTVEpgScanner.SCAN_MGT |DTVEpgScanner.SCAN_VCT;
+                    MODE_Time = DTVEpgScanner.SCAN_STT;
+                    MODE_Ts = DTVEpgScanner.SCAN_VCT;
+                }
+
+                if ((mode & MODE_UPDATE_EPG) == MODE_UPDATE_EPG)
+                    scannerMode |= MODE_Epg;
+                if ((mode & MODE_UPDATE_SERVICE) == MODE_UPDATE_SERVICE)
+                    scannerMode |= MODE_Service;
+                if ((mode & MODE_UPDATE_TS) == MODE_UPDATE_TS)
+                    scannerMode |= MODE_Ts;
+                if ((mode & MODE_UPDATE_TIME) == MODE_UPDATE_TIME)
+                    scannerMode |= MODE_Time;
+
+                Log.d(TAG, "DTVMonitor std["+standard+"] mode["+scannerMode+"]");
+
+                epgScanner = new DTVEpgScanner(scannerMode) {
                     public void onEvent(DTVEpgScanner.Event event) {
                         Log.d(TAG, "send event:" + event.type);
                         mHandler.obtainMessage(MSG_MONITOR_EVENT, event).sendToTarget();
@@ -1027,7 +1074,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             }
 
             private void refreshChannelMap() {
-                channelMap = mTvDataBaseManager.getChannelList(mInputId, ChannelInfo.SIMPLE_PROJECTION, null, null);
+                channelMap = mTvDataBaseManager.getChannelList(mInputId, ChannelInfo.COMMON_PROJECTION, null, null);
                 if (channelMap != null) {
                     for (ChannelInfo c : channelMap)
                         if (c.getId() > maxChannel_ID)
@@ -1163,9 +1210,9 @@ public class DTVInputService extends DroidLogicTvInputService {
                     }
                     if (on) {
                         if (tvservice != null) {
-                            Log.d(TAG, "rescanService");
-                            epgScanner.stopScan(DTVEpgScanner.SCAN_PAT|DTVEpgScanner.SCAN_PMT|DTVEpgScanner.SCAN_SDT);
-                            epgScanner.startScan(DTVEpgScanner.SCAN_PAT|DTVEpgScanner.SCAN_PMT|DTVEpgScanner.SCAN_SDT);
+                            Log.d(TAG, "rescanService["+MODE_Service+"]");
+                            epgScanner.stopScan(MODE_Service);
+                            epgScanner.startScan(MODE_Service);
                         }
                     }
                 }
@@ -1191,52 +1238,93 @@ public class DTVInputService extends DroidLogicTvInputService {
                             mHandler.sendEmptyMessageDelayed(MSG_MONITOR_RESCAN_TIME, AUTO_RESCAN_TIME_INTERVAL);
                         }
                     }
-                    if (on)
-                        epgScanner.rescanTDT();
+                    if (on) {
+                        Log.d(TAG, "rescanTime["+MODE_Time+"]");
+                        epgScanner.stopScan(MODE_Time);
+                        epgScanner.startScan(MODE_Time);
+                    }
                 }
             }
 
             public void restartMonitorTime(){
-                Log.d(TAG, "restartMonitorTime");
+                Log.d(TAG, "restartMonitorTime["+MODE_Time+"]");
                 synchronized (this) {
                     if (epgScanner == null) {
                         Log.d(TAG, "monitor may exit, ignore.");
                         return;
                     }
-                    epgScanner.rescanTDT();
+                    epgScanner.stopScan(MODE_Time);
+                    epgScanner.startScan(MODE_Time);
                 }
+            }
+
+            private boolean isAtscEvent(DTVEpgScanner.Event.Evt evt) {
+                return (evt.source_id != -1);
             }
 
             private List<Program> getChannelPrograms(Uri channelUri, ChannelInfo channel,
                     DTVEpgScanner.Event event) {
                 List<Program> programs = new ArrayList<>();
                 for (DTVEpgScanner.Event.Evt evt : event.evts) {
-                    if ((channel.getTransportStreamId() == evt.ts_id)
-                        && (channel.getServiceId() == evt.srv_id)
-                        && (channel.getOriginalNetworkId() == evt.net_id)) {
-                        try {
-                            long start = evt.start;
-                            long end = evt.end;
-                            Program p = new Program.Builder()
-                            .setChannelId(ContentUris.parseId(channelUri))
-                            .setTitle(TVMultilingualText.getText(new String(evt.name), languages))
-                            .setDescription(TVMultilingualText.getText(new String(evt.desc), languages))
-                            //.setContentRatings(programInfo.contentRatings)
-                            //.setCanonicalGenres(programInfo.genres)
-                            //.setPosterArtUri(programInfo.posterArtUri)
-                            //.setInternalProviderData(TvContractUtils.convertVideoInfoToInternalProviderData(
-                            //        programInfo.videoType, programInfo.videoUrl))
-                            .setStartTimeUtcMillis(start * 1000)
-                            .setEndTimeUtcMillis(end * 1000)
-                            .build();
-                            programs.add(p);
-                            Log.d(TAG, "epg: sid/net/ts[" + evt.srv_id + "/" + evt.net_id + "/" + evt.ts_id + "]"
-                                  + "{" + p.getTitle() + "}"
-                                  + "[" + p.getStartTimeUtcMillis() / 1000
-                                  + "-" + p.getEndTimeUtcMillis() / 1000
-                                  + "]");
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                    if (isAtscEvent(evt)) {//atsc
+                        if (channel.getSourceId() == evt.srv_id) {
+                            Log.d(TAG, "evt srv_id:"+evt.srv_id+" channel src_id:"+channel.getSourceId());
+                            try {
+                                long start = evt.start;
+                                long end = evt.end;
+                                Program p = new Program.Builder()
+                                    .setProgramId(evt.evt_id)
+                                    .setChannelId(ContentUris.parseId(channelUri))
+                                    .setTitle(TVMultilingualText.getText((evt.name == null ? null : new String(evt.name)), languages))
+                                    .setDescription(TVMultilingualText.getText((evt.ext_descr == null ? null : new String(evt.ext_descr)), languages))
+                                    //.setContentRatings(programInfo.contentRatings)
+                                    //.setCanonicalGenres(programInfo.genres)
+                                    //.setPosterArtUri(programInfo.posterArtUri)
+                                    //.setInternalProviderData(TvContractUtils.convertVideoInfoToInternalProviderData(
+                                    //        programInfo.videoType, programInfo.videoUrl))
+                                    .setStartTimeUtcMillis(start * 1000)
+                                    .setEndTimeUtcMillis(end * 1000)
+                                    .build();
+                                programs.add(p);
+                                Log.d(TAG, "epg: sid[" + evt.srv_id + "]"
+                                      + "eid[" + evt.evt_id + "]"
+                                      + "{" + p.getTitle() + "}"
+                                      + "[" + (p.getStartTimeUtcMillis() == 0 ? 0 : p.getStartTimeUtcMillis() / 1000)
+                                      + "-" + (p.getEndTimeUtcMillis() == 0 ? 0 : p.getEndTimeUtcMillis() / 1000)
+                                      + "]");
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    } else {
+                        if ((channel.getTransportStreamId() == evt.ts_id)
+                            && (channel.getServiceId() == evt.srv_id)
+                            && (channel.getOriginalNetworkId() == evt.net_id)) {
+                            try {
+                                long start = evt.start;
+                                long end = evt.end;
+                                Program p = new Program.Builder()
+                                    .setProgramId(evt.evt_id)
+                                    .setChannelId(ContentUris.parseId(channelUri))
+                                    .setTitle(TVMultilingualText.getText(new String(evt.name), languages))
+                                    .setDescription(TVMultilingualText.getText(new String(evt.desc), languages))
+                                    //.setContentRatings(programInfo.contentRatings)
+                                    //.setCanonicalGenres(programInfo.genres)
+                                    //.setPosterArtUri(programInfo.posterArtUri)
+                                    //.setInternalProviderData(TvContractUtils.convertVideoInfoToInternalProviderData(
+                                    //        programInfo.videoType, programInfo.videoUrl))
+                                    .setStartTimeUtcMillis(start * 1000)
+                                    .setEndTimeUtcMillis(end * 1000)
+                                    .build();
+                                programs.add(p);
+                                Log.d(TAG, "epg: sid/net/ts[" + evt.srv_id + "/" + evt.net_id + "/" + evt.ts_id + "]"
+                                      + "{" + p.getTitle() + "}"
+                                      + "[" + p.getStartTimeUtcMillis() / 1000
+                                      + "-" + p.getEndTimeUtcMillis() / 1000
+                                      + "]");
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
                 }
@@ -1257,7 +1345,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                         }
                         break;
                     case DTVEpgScanner.Event.EVENT_TDT_END:
-                        Log.d(TAG, "[TDT Update]:" + event.time);
+                        Log.d(TAG, "[Time Update]:" + event.time);
                         if (mTvTime != null)
                             mTvTime.setTime(event.time * 1000);
                         break;
@@ -1425,6 +1513,9 @@ public class DTVInputService extends DroidLogicTvInputService {
                 }
             }
 
+            public String getStandard() {
+                return mStandard;
+            }
         }
     }
 

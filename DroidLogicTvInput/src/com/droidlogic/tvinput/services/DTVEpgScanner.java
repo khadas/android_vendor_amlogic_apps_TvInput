@@ -217,7 +217,7 @@ abstract public class DTVEpgScanner {
         Log.d(TAG, "\tapid:["+Arrays.toString(channel.getAudioPids())+"] spid:["+Arrays.toString(channel.getSubtitlePids())+"]");
 
         native_epg_monitor_service(channel);
-        startScan(SCAN_PAT | SCAN_PMT);
+        //startScan(SCAN_PAT | SCAN_PMT);
 
         mChannel = channel;
     }

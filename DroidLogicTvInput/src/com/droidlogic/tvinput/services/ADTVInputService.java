@@ -142,32 +142,6 @@ public class ADTVInputService extends DTVInputService {
         }
 
         @Override
-        protected void switchToSourceInput(Uri uri) {
-            mCurrentUri = uri;
-            mUnblockedRatingSet.clear();
-
-            subtitleAutoStart = mSystemControlManager.getPropertyBoolean(DTV_SUBTITLE_AUTO_START, false);
-            subtitleAutoSave = subtitleAutoStart;
-
-            Log.d(TAG, "switchToSourceInput  uri=" + uri + " this:"+ this);
-            if (Utils.getChannelId(uri) < 0) {
-                mTvControlManager.PlayDTVProgram(
-                    new TvControlManager.TvMode(mDtvType).getMode(), 470000000, 0, 0, 0, 0, -1, -1, 0, 0, false);
-                mCurrentChannel = null;
-                return;
-            }
-
-            ChannelInfo ch = mTvDataBaseManager.getChannelInfo(uri);
-            if (ch != null) {
-                playProgram(ch);
-                mCurrentChannel = ch;
-            } else {
-                Log.w(TAG, "Failed to get channel info for " + uri);
-                mTvControlManager.SetAVPlaybackListener(null);
-            }
-        }
-
-        @Override
         protected boolean playProgram(ChannelInfo info) {
             info.print();
 
@@ -220,10 +194,6 @@ public class ADTVInputService extends DTVInputService {
         public void onEvent(int msgType, int programID) {
             Log.d(TAG, "AV evt:" + msgType);
             super.onEvent(msgType, programID);
-        }
-
-        @Override
-        protected void setMonitor(ChannelInfo channel) {
         }
 
     }
