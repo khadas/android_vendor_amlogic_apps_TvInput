@@ -12,9 +12,9 @@
         android:layout_height="fill_parent"
         android:id="@+id/main_view">
         <com.droidlogic.tvsource.ui.SourceInputListLayout
-	        android:id="@+id/menu_layout"
-	        android:layout_width="wrap_content"
-	        android:layout_height="fill_parent" />
+            android:id="@+id/menu_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent" />
         <TextView
             android:id="@+id/no_signal"
             android:layout_width="wrap_content"
@@ -25,7 +25,7 @@
             android:textSize="@dimen/text_size_no_signal"
             android:background="@drawable/bg_no_signal"
             android:layout_centerInParent="true"
-            android:visibility="invisible"/>
+            android:visibility="gone"/>
         <LinearLayout
             android:id="@+id/info_layout"
             android:layout_width="wrap_content"
@@ -51,30 +51,38 @@
             android:layout_width="wrap_content"
             android:layout_height="fill_parent"
             android:orientation="vertical"
-            android:visibility="invisible" />
+            android:visibility="gone" />
         <TextView
-	        android:id="@+id/textView_time_prompt"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:layout_centerHorizontal="true"
-	        android:layout_alignParentBottom="true"
-	        android:layout_marginBottom="60dp"
-	        android:background="@drawable/bg_countdown"
-	        android:gravity="center"
-	        android:focusable="false"
-	        android:textSize="50sp"
-	        android:textColor="@color/color_text_main"
-	        android:visibility="gone" />
-	    <ImageView
-	        android:id="@+id/image_mute"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:layout_alignParentTop="true"
-	        android:layout_alignParentRight="true"
-	        android:layout_marginTop="70dp"
-	        android:layout_marginRight="70dp"
-	        android:focusable="false"
-	        android:src="@drawable/mute"
-	        android:visibility="gone" />
+            android:id="@+id/textView_time_prompt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="60dp"
+            android:background="@drawable/bg_countdown"
+            android:gravity="center"
+            android:focusable="false"
+            android:textSize="50sp"
+            android:textColor="@color/color_text_main"
+            android:visibility="gone" />
+        <ImageView
+            android:id="@+id/image_mute"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="70dp"
+            android:layout_marginRight="70dp"
+            android:focusable="false"
+            android:src="@drawable/mute"
+            android:visibility="gone" />
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:focusable="false"
+            android:src="@drawable/touming"
+            android:visibility="visible" />
     </RelativeLayout>
 </FrameLayout>

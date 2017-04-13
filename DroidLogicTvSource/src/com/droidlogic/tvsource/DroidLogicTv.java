@@ -1869,7 +1869,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
 
     private void hideTvView(View tvView) {
         if (tvView.getVisibility() == View.VISIBLE)
-            tvView.setVisibility(View.INVISIBLE);
+            tvView.setVisibility(View.GONE);
     }
 
     private boolean isBootvideoStopped() {
