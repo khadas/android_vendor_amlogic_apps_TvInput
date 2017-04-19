@@ -236,12 +236,11 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     || DroidLogicTvUtils.ACTION_DTV_AUTO_SCAN.equals(action)
                     || DroidLogicTvUtils.ACTION_DTV_MANUAL_SCAN.equals(action)) {
                 mMainView.setBackgroundDrawable(null);
-                mSourceView.sendAppPrivateCommand(action, intent.getBundleExtra(DroidLogicTvUtils.EXTRA_MORE));
                 isSearchingChannel = true;
             } else if (DroidLogicTvUtils.ACTION_ATV_PAUSE_SCAN.equals(action)
                     || DroidLogicTvUtils.ACTION_ATV_RESUME_SCAN.equals(action)
                     || DroidLogicTvUtils.ACTION_STOP_SCAN.equals(action)) {
-                mSourceView.sendAppPrivateCommand(action, intent.getBundleExtra(DroidLogicTvUtils.EXTRA_MORE));
+                Utils.logd(TAG, "==== WW ACTION_ATV_PAUSE_SCAN/RESUME/STOP");
             }
         }
     };
@@ -1926,4 +1925,5 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private void resetAudioTrack() {
         mSourceView.selectTrack(TvTrackInfo.TYPE_AUDIO, mSourceView.getSelectedTrack(TvTrackInfo.TYPE_AUDIO));
     }
+
 }
