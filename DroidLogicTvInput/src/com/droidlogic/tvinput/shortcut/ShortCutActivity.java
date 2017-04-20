@@ -700,10 +700,26 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
     private void sendSwitchChannelBroadcast(int position) {
         int channelIndex = (int)list_channels.get(position).get(GuideListView.ITEM_2);
         boolean isRadio = (boolean)list_channels.get(position).get(GuideListView.ITEM_3);
+        ChannelInfo currentChannel = channelInfoList.get(currentChannelIndex);
+        String inputId = currentChannel.getInputId();
+        int deviceId = getDeviceId(inputId);
         Intent intent = new Intent(DroidLogicTvUtils.ACTION_SWITCH_CHANNEL);
         intent.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, channelIndex);
         intent.putExtra(DroidLogicTvUtils.EXTRA_IS_RADIO_CHANNEL, isRadio);
+        intent.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_DEVICE_ID,deviceId);
         sendBroadcast(intent);
+    }
+
+    private int getDeviceId(String inputId) {
+        String[] temp = inputId.split("/");
+        if (temp.length == 3) {
+            /*  ignore for HDMI CEC device */
+            if (temp[2].contains("HDMI"))
+                return -1;
+            return Integer.parseInt(temp[2].substring(2));
+        } else {
+            return -1;
+        }
     }
 
     private String getdate(long dateTime) {

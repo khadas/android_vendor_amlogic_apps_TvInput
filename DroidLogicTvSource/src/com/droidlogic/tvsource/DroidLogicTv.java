@@ -219,6 +219,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     mSourceMenuLayout.getSourceInput(deviceId).switchSource();
                 }
                 mSourceMenuLayout.getSourceInput(deviceId).moveToChannel(channelIndex, isRadioChannel);
+                onSelect(channelIndex, isRadioChannel);
             } else if (action.equals(DroidLogicTvUtils.ACTION_SUBTITLE_SWITCH)) {
                 int switchVal = intent.getIntExtra(DroidLogicTvUtils.EXTRA_SWITCH_VALUE, 0);
                 resetSubtitleTrack((switchVal == 1));
