@@ -145,34 +145,36 @@ public class ADTVInputService extends DTVInputService {
         protected boolean playProgram(ChannelInfo info) {
             info.print();
 
+            int audioTrackAuto = getAudioTrackAuto(info);
+
             if (info.isAnalogChannnel()) {
                 mTvControlManager.PlayATVProgram(info.getFrequency() + info.getFineTune(),
                     info.getVideoStd(),
                     info.getAudioStd(),
                     0,
                     info.getAudioCompensation());
-                checkContentBlockNeeded();
-                return true;
+
+            } else {
+
+                TvControlManager.FEParas fe = new TvControlManager.FEParas(info.getFEParas());
+                int mixingLevel = mAudioADMixingLevel;
+                if (mixingLevel < 0)
+                    mixingLevel = Settings.System.getInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_AD_MIX, AD_MIXING_LEVEL_DEF);
+
+                mTvControlManager.PlayDTVProgram(
+                        fe,
+                        info.getVideoPid(),
+                        info.getVfmt(),
+                        (audioTrackAuto >= 0) ? info.getAudioPids()[audioTrackAuto] : -1,
+                        (audioTrackAuto >= 0) ? info.getAudioFormats()[audioTrackAuto] : -1,
+                        info.getPcrPid(),
+                        info.getAudioCompensation(),
+                        DroidLogicTvUtils.hasAudioADTracks(info),
+                        mixingLevel);
+                mTvControlManager.DtvSetAudioChannleMod(info.getAudioChannel());
+                mTvControlManager.SetAVPlaybackListener(this);
             }
 
-            TvControlManager.FEParas fe = new TvControlManager.FEParas(info.getFEParas());
-            int audioTrackAuto = getAudioTrackAuto(info);
-            int mixingLevel = mAudioADMixingLevel;
-            if (mixingLevel < 0)
-                mixingLevel = Settings.System.getInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_AD_MIX, AD_MIXING_LEVEL_DEF);
-
-            mTvControlManager.PlayDTVProgram(
-                    fe,
-                    info.getVideoPid(),
-                    info.getVfmt(),
-                    (audioTrackAuto >= 0) ? info.getAudioPids()[audioTrackAuto] : -1,
-                    (audioTrackAuto >= 0) ? info.getAudioFormats()[audioTrackAuto] : -1,
-                    info.getPcrPid(),
-                    info.getAudioCompensation(),
-                    DroidLogicTvUtils.hasAudioADTracks(info),
-                    mixingLevel);
-            mTvControlManager.DtvSetAudioChannleMod(info.getAudioChannel());
-            mTvControlManager.SetAVPlaybackListener(this);
             mSystemControlManager.setProperty(DTV_AUDIO_TRACK_IDX,
                         ((audioTrackAuto>=0)? String.valueOf(audioTrackAuto) : "-1"));
 
@@ -182,11 +184,14 @@ public class ADTVInputService extends DTVInputService {
 
             startSubtitle(info);
 
-            startAudioADByMain(info, audioTrackAuto);
+            if (!info.isAnalogChannnel()) {
+                startAudioADByMain(info, audioTrackAuto);
 
-            setMonitor(info);
+                setMonitor(info);
+            }
 
             checkContentBlockNeeded();
+
             return true;
         }
 
