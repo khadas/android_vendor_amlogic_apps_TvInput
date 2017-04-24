@@ -577,7 +577,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
                                  + "~" + endTime[3] + ":" + endTime[4]);
                 item_program.put(GuideListView.ITEM_2, program.getTitle());
                 item_program.put(GuideListView.ITEM_3, program.getDescription());
-                item_program.put(GuideListView.ITEM_4, Long.toString(program.getProgramId()));
+                item_program.put(GuideListView.ITEM_4, Long.toString(program.getId()));
 
                 if (mTvTime.getTime() >= program.getStartTimeUtcMillis() && mTvTime.getTime() <= program.getEndTimeUtcMillis()) {
                     if (currentProgramIndex == -1)
