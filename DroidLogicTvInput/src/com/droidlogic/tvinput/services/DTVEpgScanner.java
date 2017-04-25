@@ -29,12 +29,14 @@ abstract public class DTVEpgScanner {
     public static final int SCAN_VCT = 0x800;
     public static final int SCAN_STT = 0x1000;
     public static final int SCAN_RRT = 0x2000;
-    public static final int SCAN_PSIP_EIT   = 0x4000;
+    public static final int SCAN_PSIP_EIT = 0x4000;
+    public static final int SCAN_PSIP_ETT = 0x8000;
     public static final int SCAN_EIT_PF_ALL = SCAN_EIT_PF_ACT | SCAN_EIT_PF_OTH;
     public static final int SCAN_EIT_SCHE_ALL = SCAN_EIT_SCHE_ACT | SCAN_EIT_SCHE_OTH;
     public static final int SCAN_EIT_ALL = SCAN_EIT_PF_ALL | SCAN_EIT_SCHE_ALL;
+    public static final int SCAN_PSIP_EIT_ALL = SCAN_PSIP_EIT | SCAN_PSIP_ETT;
     public static final int SCAN_ALL = SCAN_PAT | SCAN_PMT | SCAN_CAT | SCAN_SDT | SCAN_NIT | SCAN_TDT | SCAN_EIT_ALL |
-                                       SCAN_MGT | SCAN_VCT | SCAN_STT | SCAN_RRT | SCAN_PSIP_EIT;
+                                       SCAN_MGT | SCAN_VCT | SCAN_STT | SCAN_RRT | SCAN_PSIP_EIT_ALL;
 
     public class Event {
         public static final int EVENT_PF_EIT_END            = 1;

@@ -59,30 +59,6 @@ public class ADTVInputService extends DTVInputService {
 
     private static final String TAG = "ADTVInputService";
 
-    private ADTVSessionImpl mCurrentSession;
-
-    private Map<Integer, ADTVSessionImpl> sessionMap = new HashMap<>();
-
-    protected final BroadcastReceiver mChannelScanStartReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-                String action = intent.getAction();
-                  Log.d(TAG, "-----onReceive:"+action);
-                  if (mCurrentSession != null)
-                      mCurrentSession.stopSubtitle();
-            }
-    };
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-    }
-
     @Override
     public Session onCreateSession(String inputId) {
         registerInput(inputId);
@@ -100,38 +76,7 @@ public class ADTVInputService extends DTVInputService {
         return mCurrentSession;
     }
 
-    @Override
-    public void tvPlayStopped(int sessionId) {
-        ADTVSessionImpl session = sessionMap.get(sessionId);
-        if (session != null) {
-            session.stopSubtitle();
-            session.setMonitor(null);
-        }
-    }
-
-    @Override
-    public void setCurrentSessionById(int sessionId) {
-        Utils.logd(TAG, "setCurrentSessionById:"+sessionId);
-        ADTVSessionImpl session = sessionMap.get(sessionId);
-        if (session != null) {
-            mCurrentSession = session;
-        }
-    }
-
-    @Override
-    public void doTuneFinish(int result, Uri uri, int sessionId) {
-        Log.d(TAG, "doTuneFinish,result:"+result+"sessionId:"+sessionId);
-        if (result == ACTION_SUCCESS) {
-            ADTVSessionImpl session = sessionMap.get(sessionId);
-            if (session != null)
-                session.switchToSourceInput(uri);
-        }
-    }
-
     public class ADTVSessionImpl extends DTVInputService.DTVSessionImpl implements TvControlManager.AVPlaybackListener {
-        private TvContentRating mLastBlockedRating;
-        private TvContentRating mCurrentContentRating;
-        private final Set<TvContentRating> mUnblockedRatingSet = new HashSet<>();
 
         protected ADTVSessionImpl(Context context, String inputId, int deviceId) {
             super(context, inputId, deviceId);
@@ -149,15 +94,15 @@ public class ADTVInputService extends DTVInputService {
         }
 
         @Override
-        public void doUnblockContent(TvContentRating rating) {
-            super.doUnblockContent(rating);
-            if (rating != null) {
-                unblockContent(rating);
-            }
+        protected void checkContentBlockNeeded() {
+            doParentalControls();
         }
 
         @Override
         protected boolean playProgram(ChannelInfo info) {
+            if (info == null)
+                return false;
+
             info.print();
 
             int audioTrackAuto = getAudioTrackAuto(info);
@@ -199,15 +144,16 @@ public class ADTVInputService extends DTVInputService {
 
             startSubtitle(info);
 
-            if (!info.isAnalogChannnel()) {
+            if (!info.isAnalogChannnel())
                 startAudioADByMain(info, audioTrackAuto);
 
-                setMonitor(info);
-            }
-
-            checkContentBlockNeeded();
-
             return true;
+        }
+
+        @Override
+        protected void setMonitor(ChannelInfo channel) {
+            if (channel == null || !channel.isAnalogChannnel())
+                super.setMonitor(channel);
         }
 
         @Override
