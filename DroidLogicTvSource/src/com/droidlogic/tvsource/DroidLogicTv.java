@@ -1267,14 +1267,10 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             mDtvInfoTrack.setText(String.valueOf(aTrackList.size()));
 
         Uri channelUri = mSourceInput.getUri();
-        if (Utils.getChannelId(channelUri) < 0) {
-             mDtvInfoProgramSegment.setText("");
-             mDtvInfoDescribe.setText("");
-        } else {
+        if (channelUri != null && Utils.getChannelId(channelUri) >= 0) {
             if (mTvDataBaseManager.getProgram(channelUri, mTvTime.getTime()) != null) {
                 String mDtvTitle = mTvDataBaseManager.getProgram(channelUri, mTvTime.getTime()).getTitle();
                 String mDtvDescription = mTvDataBaseManager.getProgram(channelUri, mTvTime.getTime()).getDescription();
-
                 long mIntervalTime = mTvDataBaseManager.getProgram(channelUri, mTvTime.getTime()).getEndTimeUtcMillis()
                         - mTvDataBaseManager.getProgram(channelUri, mTvTime.getTime()).getStartTimeUtcMillis();
                 mDtvInfoProgramSegment.setText(String.valueOf(mIntervalTime / 60 / 1000)
@@ -1284,6 +1280,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 mDtvInfoProgramSegment.setText("");
                 mDtvInfoDescribe.setText("");
             }
+        } else {
+            mDtvInfoProgramSegment.setText("");
+            mDtvInfoDescribe.setText("");
         }
     }
 
