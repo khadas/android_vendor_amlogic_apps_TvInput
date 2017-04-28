@@ -286,6 +286,7 @@ public class DTVSubtitleView extends View {
 
                 if (native_sub_init() < 0) {
                 }
+                setLayerType(View.LAYER_TYPE_SOFTWARE, null);
             }
 
             init_count++;
