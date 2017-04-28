@@ -107,6 +107,7 @@ public class DTVSubtitleView extends View {
     protected native int native_get_subtitle_picture_width();
     protected native int native_get_subtitle_picture_height();
     private native int native_sub_start_atsc_cc(int caption, int fg_color, int fg_opacity, int bg_color, int bg_opacity, int font_style, int font_size);
+    private native int native_sub_start_atsc_atvcc(int caption, int fg_color, int fg_opacity, int bg_color, int bg_opacity, int font_style, int font_size);
     private native int native_sub_stop_atsc_cc();
     private native int native_sub_set_active(boolean active);
 
@@ -171,13 +172,13 @@ public class DTVSubtitleView extends View {
     }
 
     static public class DTVCCParams {
-        private int caption_mode;
-        private int fg_color;
-        private int fg_opacity;
-        private int bg_color;
-        private int bg_opacity;
-        private int font_style;
-        private int font_size;
+        protected int caption_mode;
+        protected int fg_color;
+        protected int fg_opacity;
+        protected int bg_color;
+        protected int bg_opacity;
+        protected int font_style;
+        protected int font_size;
 
         public DTVCCParams(int caption, int fg_color, int fg_opacity,
                            int bg_color, int bg_opacity, int font_style, int font_size) {
@@ -191,7 +192,12 @@ public class DTVSubtitleView extends View {
         }
     }
 
-    static public class ATVCCParams {
+    static public class ATVCCParams extends DTVCCParams {
+        public ATVCCParams(int caption, int fg_color, int fg_opacity,
+                           int bg_color, int bg_opacity, int font_style, int font_size) {
+            super(caption, fg_color, fg_opacity,
+                           bg_color, bg_opacity, font_style, font_size);
+        }
     }
 
     private class SubParams {
@@ -259,6 +265,7 @@ public class DTVSubtitleView extends View {
                             native_sub_stop_dvb_sub();
                             break;
                         case MODE_DTV_CC:
+                        case MODE_ATV_CC:
                             native_sub_stop_atsc_cc();
                             break;
                         default:
@@ -391,6 +398,20 @@ public class DTVSubtitleView extends View {
     }
 
     /**
+     * 设定close caption字幕参数
+     * @param params 字幕参数
+     */
+    public void setSubParams(ATVCCParams params) {
+        synchronized(lock) {
+            sub_params.mode = MODE_ATV_CC;
+            sub_params.atv_cc = params;
+
+            if (play_mode == PLAY_SUB)
+                startSub();
+        }
+    }
+
+    /**
      * 设定图文参数
      * @param params 字幕参数
      */
@@ -500,6 +521,16 @@ public class DTVSubtitleView extends View {
                               sub_params.dtv_cc.bg_opacity,
                               sub_params.dtv_cc.font_style,
                               sub_params.dtv_cc.font_size);
+                    break;
+                case MODE_ATV_CC:
+                    ret = native_sub_start_atsc_atvcc(
+                              sub_params.atv_cc.caption_mode,
+                              sub_params.atv_cc.fg_color,
+                              sub_params.atv_cc.fg_opacity,
+                              sub_params.atv_cc.bg_color,
+                              sub_params.atv_cc.bg_opacity,
+                              sub_params.atv_cc.font_style,
+                              sub_params.atv_cc.font_size);
                     break;
                 default:
                     break;

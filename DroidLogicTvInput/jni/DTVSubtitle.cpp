@@ -736,7 +736,7 @@ error:
         return 0;
     }
 
-    static jint sub_start_atsc_cc(JNIEnv *env, jobject obj, jint caption, jint fg_color,
+    static jint sub_start_atsc_cc(JNIEnv *env, jobject obj, jint source, jint caption, jint fg_color,
                                   jint fg_opacity, jint bg_color, jint bg_opacity, jint font_style, jint font_size)
     {
         TVSubtitleData *data = sub_get_data(env, obj);
@@ -755,12 +755,8 @@ error:
         cc_para.draw_begin = cc_draw_begin_cb;
         cc_para.draw_end = cc_draw_end_cb;
         cc_para.user_data = (void *)data;
-        cc_para.input = AM_CC_INPUT_USERDATA;
+        cc_para.input = (AM_CC_Input_t)source;
         spara.caption                  = (AM_CC_CaptionMode_t)caption;
-        if (spara.caption >= AM_CC_CAPTION_DEFAULT && spara.caption <= AM_CC_CAPTION_CC4)
-            cc_para.input = AM_CC_INPUT_VBI;
-        else if (spara.caption >= AM_CC_CAPTION_SERVICE1 && spara.caption <= AM_CC_CAPTION_SERVICE6)
-            cc_para.input = AM_CC_INPUT_USERDATA;
         spara.user_options.bg_color    = (AM_CC_Color_t)bg_color;
         spara.user_options.fg_color    = (AM_CC_Color_t)fg_color;
         spara.user_options.bg_opacity  = (AM_CC_Opacity_t)bg_opacity;
@@ -784,6 +780,20 @@ error:
         }
         LOGI("start cc failed!");
         return -1;
+    }
+
+    static jint sub_start_atsc_dtvcc(JNIEnv *env, jobject obj, jint caption, jint fg_color,
+                                  jint fg_opacity, jint bg_color, jint bg_opacity, jint font_style, jint font_size)
+    {
+        return sub_start_atsc_cc(env, obj, AM_CC_INPUT_USERDATA, caption, fg_color,
+                                  fg_opacity, bg_color, bg_opacity, font_style, font_size);
+    }
+
+    static jint sub_start_atsc_atvcc(JNIEnv *env, jobject obj, jint caption, jint fg_color,
+                                  jint fg_opacity, jint bg_color, jint bg_opacity, jint font_style, jint font_size)
+    {
+        return sub_start_atsc_cc(env, obj, AM_CC_INPUT_VBI, caption, fg_color,
+                                  fg_opacity, bg_color, bg_opacity, font_style, font_size);
     }
 
     static jint sub_stop_atsc_cc(JNIEnv *env, jobject obj)
@@ -846,7 +856,8 @@ error:
         {"native_sub_tt_search_next", "(I)I", (void *)sub_tt_search},
         {"native_get_subtitle_picture_width", "()I", (void *)get_subtitle_piture_width},
         {"native_get_subtitle_picture_height", "()I", (void *)get_subtitle_piture_height},
-        {"native_sub_start_atsc_cc", "(IIIIIII)I", (void *)sub_start_atsc_cc},
+        {"native_sub_start_atsc_cc", "(IIIIIII)I", (void *)sub_start_atsc_dtvcc},
+        {"native_sub_start_atsc_atvcc", "(IIIIIII)I", (void *)sub_start_atsc_atvcc},
         {"native_sub_stop_atsc_cc", "()I", (void *)sub_stop_atsc_cc},
         {"native_sub_set_active", "(Z)I", (void *)sub_set_active}
     };

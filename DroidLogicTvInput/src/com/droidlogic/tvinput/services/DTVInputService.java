@@ -735,54 +735,20 @@ public class DTVInputService extends DroidLogicTvInputService {
                     new DTVSubtitleView.DTVTTParams(0, pid, pgno, 0x3F7F, getTeletextRegionID("English"));
                 mSubtitleView.setSubParams(params);
 
-            } else if (type == TYPE_DTV_CC  || type == TYPE_ATV_CC) {
-                int captionMode = DTVSubtitleView.CC_CAPTION_SERVICE1;
-                if (type == TYPE_DTV_CC) {
-                    switch (pid) {
-                    case 1:
-                        captionMode = DTVSubtitleView.CC_CAPTION_SERVICE1;
-                        break;
-                    case 2:
-                        captionMode = DTVSubtitleView.CC_CAPTION_SERVICE2;
-                        break;
-                    case 3:
-                        captionMode = DTVSubtitleView.CC_CAPTION_SERVICE3;
-                        break;
-                    case 4:
-                        captionMode = DTVSubtitleView.CC_CAPTION_SERVICE4;
-                        break;
-                    case 5:
-                        captionMode = DTVSubtitleView.CC_CAPTION_SERVICE5;
-                        break;
-                    case 6:
-                        captionMode = DTVSubtitleView.CC_CAPTION_SERVICE6;
-                        break;
-                    default:
-                        captionMode = DTVSubtitleView.CC_CAPTION_SERVICE1;
-                        break;
-                    }
-                } else {
-                    switch (pid) {
-                    case 1:
-                        captionMode = DTVSubtitleView.CC_CAPTION_CC1;
-                        break;
-                    case 2:
-                        captionMode = DTVSubtitleView.CC_CAPTION_CC2;
-                        break;
-                    case 3:
-                        captionMode = DTVSubtitleView.CC_CAPTION_CC3;
-                        break;
-                    case 4:
-                        captionMode = DTVSubtitleView.CC_CAPTION_CC4;
-                        break;
-                    default:
-                        captionMode = DTVSubtitleView.CC_CAPTION_CC1;
-                        break;
-                    }
-                }
-
+            } else if (type == TYPE_DTV_CC) {
                 DTVSubtitleView.DTVCCParams params =
-                    new DTVSubtitleView.DTVCCParams(captionMode,
+                    new DTVSubtitleView.DTVCCParams(pid,
+                        DTVSubtitleView.CC_COLOR_DEFAULT,
+                        DTVSubtitleView.CC_OPACITY_DEFAULT,
+                        DTVSubtitleView.CC_COLOR_DEFAULT,
+                        DTVSubtitleView.CC_OPACITY_TRANSLUCENT,
+                        DTVSubtitleView.CC_FONTSTYLE_DEFAULT,
+                        DTVSubtitleView.CC_FONTSIZE_DEFAULT);
+                mSubtitleView.setSubParams(params);
+
+            } else if (type == TYPE_ATV_CC) {
+                DTVSubtitleView.ATVCCParams params =
+                    new DTVSubtitleView.ATVCCParams(pid,
                         DTVSubtitleView.CC_COLOR_DEFAULT,
                         DTVSubtitleView.CC_OPACITY_DEFAULT,
                         DTVSubtitleView.CC_COLOR_DEFAULT,
