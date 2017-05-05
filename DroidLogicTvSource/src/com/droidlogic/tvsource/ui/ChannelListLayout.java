@@ -249,6 +249,8 @@ public class ChannelListLayout extends LinearLayout implements OnItemClickListen
             ViewHolder holder = null;
             if (convertView == null) {
                 convertView = mInflater.inflate(R.layout.channel_list_item, null);
+                TextView channelText = (TextView)convertView.findViewById(R.id.tx_channel);
+                channelText.requestFocus();
                 holder = new ViewHolder(convertView);
                 convertView.setTag(holder);
             } else {
