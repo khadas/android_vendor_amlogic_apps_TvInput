@@ -137,10 +137,10 @@ public class ATVInputService extends DroidLogicTvInputService {
             super.doAppPrivateCmd(action, bundle);
             if (TextUtils.equals(DroidLogicTvUtils.ACTION_STOP_TV, action)) {
                 stopTv();
-            } else if (DroidLogicTvUtils.ACTION_ATV_AUTO_SCAN.equals(action)
+            } /*else if (DroidLogicTvUtils.ACTION_ATV_AUTO_SCAN.equals(action)
                 || DroidLogicTvUtils.ACTION_ATV_MANUAL_SCAN.equals(action)) {
                 resetScanStoreListener();
-            }
+            }*/
         }
 
         @Override

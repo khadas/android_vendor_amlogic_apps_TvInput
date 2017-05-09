@@ -63,6 +63,16 @@ public class ADTVInputService extends DTVInputService {
 
     private Map<Integer, ADTVSessionImpl> sessionMap = new HashMap<>();
 
+    protected final BroadcastReceiver mChannelScanStartReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
+                  Log.d(TAG, "-----onReceive:"+action);
+                  if (mCurrentSession != null)
+                      mCurrentSession.stopSubtitle();
+            }
+    };
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -81,6 +91,11 @@ public class ADTVInputService extends DTVInputService {
         mCurrentSession.setSessionId(id);
         sessionMap.put(id, mCurrentSession);
         id++;
+
+        IntentFilter filter= new IntentFilter();
+        filter.addAction(DroidLogicTvUtils.ACTION_DTV_AUTO_SCAN);
+        filter.addAction(DroidLogicTvUtils.ACTION_DTV_MANUAL_SCAN);
+        registerReceiver(mChannelScanStartReceiver, filter);
 
         return mCurrentSession;
     }
@@ -124,11 +139,11 @@ public class ADTVInputService extends DTVInputService {
 
         @Override
         public void doAppPrivateCmd(String action, Bundle bundle) {
-           if (DroidLogicTvUtils.ACTION_DTV_AUTO_SCAN.equals(action)
+           /*if (DroidLogicTvUtils.ACTION_DTV_AUTO_SCAN.equals(action)
                 || DroidLogicTvUtils.ACTION_DTV_MANUAL_SCAN.equals(action)) {
                 Log.d(TAG, "do private cmd: DTV_XXX_SCAN");
                 //TODO let scanner know adtv here?
-            }
+            }*/
 
             super.doAppPrivateCmd(action, bundle);
         }
