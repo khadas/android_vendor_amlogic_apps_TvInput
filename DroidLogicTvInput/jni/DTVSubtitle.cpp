@@ -816,6 +816,24 @@ error:
         return 0;
     }
 
+    static jint sub_set_atsc_cc_options(JNIEnv *env, jobject obj, jint fg_color,
+        jint fg_opacity, jint bg_color, jint bg_opacity, jint font_style, jint font_size)
+    {
+        TVSubtitleData *data = sub_get_data(env, obj);
+        AM_CC_UserOptions_t param;
+
+        memset(&param, 0, sizeof(AM_CC_UserOptions_t));
+        param.bg_color    = (AM_CC_Color_t)bg_color;
+        param.fg_color    = (AM_CC_Color_t)fg_color;
+        param.bg_opacity  = (AM_CC_Opacity_t)bg_opacity;
+        param.fg_opacity  = (AM_CC_Opacity_t)fg_opacity;
+        param.font_size   = (AM_CC_FontSize_t)font_size;
+        param.font_style  = (AM_CC_FontStyle_t)font_style;
+
+        AM_CC_SetUserOptions(data->cc_handle, &param);
+        return 0;
+    }
+
     static jint sub_set_active(JNIEnv *env, jobject obj, jboolean active)
     {
         TVSubtitleData *data = sub_get_data(env, obj);
@@ -859,6 +877,7 @@ error:
         {"native_sub_start_atsc_cc", "(IIIIIII)I", (void *)sub_start_atsc_dtvcc},
         {"native_sub_start_atsc_atvcc", "(IIIIIII)I", (void *)sub_start_atsc_atvcc},
         {"native_sub_stop_atsc_cc", "()I", (void *)sub_stop_atsc_cc},
+        {"native_sub_set_atsc_cc_options", "(IIIIII)I", (void *)sub_set_atsc_cc_options},
         {"native_sub_set_active", "(Z)I", (void *)sub_set_active}
     };
 

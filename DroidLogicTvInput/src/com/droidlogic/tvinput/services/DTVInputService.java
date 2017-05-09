@@ -25,6 +25,7 @@ import android.view.View;
 import android.database.ContentObserver;
 import android.database.IContentObserver;
 import android.provider.Settings;
+import android.graphics.Color;
 
 import com.droidlogic.tvinput.Utils;
 
@@ -72,6 +73,27 @@ public class DTVInputService extends DroidLogicTvInputService {
 
     protected static final String DTV_TYPE_DEFAULT = "tv.dtv.type.default";
     protected static final String DTV_STANDARD_FORCE = "tv.dtv.standard.force";
+
+    protected static final int DTV_COLOR_WHITE = 1;
+    protected static final int DTV_COLOR_BLACK = 2;
+    protected static final int DTV_COLOR_RED = 3;
+    protected static final int DTV_COLOR_GREEN = 4;
+    protected static final int DTV_COLOR_BLUE = 5;
+    protected static final int DTV_COLOR_YELLOW = 6;
+    protected static final int DTV_COLOR_MAGENTA = 7;
+    protected static final int DTV_COLOR_CYAN = 8;
+
+    protected static final int DTV_OPACITY_TRANSPARENT = 1;
+    protected static final int DTV_OPACITY_TRANSLUCENT = 2;
+    protected static final int DTV_OPACITY_SOLID = 3;
+
+    protected static final int DTV_CC_STYLE_WHITE_ON_BLACK = 0;
+    protected static final int DTV_CC_STYLE_BLACK_ON_WHITE = 1;
+    protected static final int DTV_CC_STYLE_YELLOW_ON_BLACK = 2;
+    protected static final int DTV_CC_STYLE_YELLOW_ON_BLUE = 3;
+    protected static final int DTV_CC_STYLE_USE_DEFAULT = 4;
+    protected static final int DTV_CC_STYLE_USE_CUSTOM = -1;
+
 
     protected DTVSessionImpl mCurrentSession;
     protected int id = 0;
@@ -755,9 +777,148 @@ public class DTVInputService extends DroidLogicTvInputService {
                         DTVSubtitleView.CC_OPACITY_TRANSLUCENT,
                         DTVSubtitleView.CC_FONTSTYLE_DEFAULT,
                         DTVSubtitleView.CC_FONTSIZE_DEFAULT);
-                mSubtitleView.setSubParams(params);
-                mSubtitleView.setMargin(60, 60, 60, 60);
+
+                DTVSubtitleView.DTVCCParams ccParams = getCaptionStyle(captionMode);
+                mSubtitleView.setSubParams(ccParams);
+                mSubtitleView.setMargin(225, 128, 225, 128);
             }
+        }
+
+        protected int getColor(int color)
+        {
+        switch (color)
+            {
+                case 0xFFFFFF:
+                    return DTV_COLOR_WHITE;
+                case 0x0:
+                    return DTV_COLOR_BLACK;
+                case 0xFF0000:
+                    return DTV_COLOR_RED;
+                case 0x00FF00:
+                    return DTV_COLOR_GREEN;
+                case 0x0000FF:
+                    return DTV_COLOR_BLUE;
+                case 0xFFFF00:
+                    return DTV_COLOR_YELLOW;
+                case 0xFF00FF:
+                    return DTV_COLOR_MAGENTA;
+                case 0x00FFFF:
+                    return DTV_COLOR_CYAN;
+            }
+            return DTV_COLOR_WHITE;
+        }
+        protected int getOpacity(int opacity)
+        {
+            Log.d(TAG, ">> opacity:"+Integer.toHexString(opacity));
+            switch (opacity)
+            {
+                case 0:
+                    return DTV_OPACITY_TRANSPARENT;
+                case 0x80000000:
+                    return DTV_OPACITY_TRANSLUCENT;
+                case 0xFF000000:
+                    return DTV_OPACITY_SOLID;
+            }
+            return DTV_OPACITY_TRANSPARENT;
+        }
+        protected DTVSubtitleView.DTVCCParams getCaptionStyle(int captionMode)
+        {
+
+            int fontSize;
+            DTVSubtitleView.DTVCCParams params;
+            int style;
+            float textSize = Settings.Secure.getFloat(mContext.getContentResolver(),
+                Settings.Secure.ACCESSIBILITY_CAPTIONING_FONT_SCALE, 1);
+            int fg_color = Settings.Secure.getInt(mContext.getContentResolver(),
+                Settings.Secure.ACCESSIBILITY_CAPTIONING_FOREGROUND_COLOR, 0) & 0x00ffffff;
+            int fg_opacity = Settings.Secure.getInt(mContext.getContentResolver(),
+                Settings.Secure.ACCESSIBILITY_CAPTIONING_FOREGROUND_COLOR, 0) & 0xff000000;
+            int bg_color = Settings.Secure.getInt(mContext.getContentResolver(),
+                Settings.Secure.ACCESSIBILITY_CAPTIONING_BACKGROUND_COLOR, 0) & 0x00ffffff;
+            int bg_opacity = Settings.Secure.getInt(mContext.getContentResolver(),
+                Settings.Secure.ACCESSIBILITY_CAPTIONING_BACKGROUND_COLOR, 0) & 0xff000000;
+            int fontStyle = DTVSubtitleView.CC_FONTSTYLE_DEFAULT;//not support
+
+            int fg = Settings.Secure.getInt(mContext.getContentResolver(),
+                Settings.Secure.ACCESSIBILITY_CAPTIONING_FOREGROUND_COLOR, 0);
+            int bg = Settings.Secure.getInt(mContext.getContentResolver(),
+                Settings.Secure.ACCESSIBILITY_CAPTIONING_BACKGROUND_COLOR, 0);
+
+            int convert_fg_color = getColor(fg_color);
+            int convert_fg_opacity = getOpacity(fg_opacity);
+            int convert_bg_color = getColor(bg_color);
+            int convert_bg_opacity = getOpacity(bg_opacity);
+
+            if (0 <= textSize && textSize < .375) {
+                fontSize = 1;//AM_CC_FONTSIZE_SMALL
+            } else if (textSize < .75) {
+                fontSize = 1;//AM_CC_FONTSIZE_SMALL
+            } else if (textSize < 1.25) {
+                fontSize = 2;//AM_CC_FONTSIZE_DEFAULT
+            } else if (textSize < 1.75) {
+                fontSize = 3;//AM_CC_FONTSIZE_BIG
+            } else if (textSize < 2.5) {
+                fontSize = 4;//AM_CC_FONTSIZE_MAX
+            }else {
+                fontSize = 2;//AM_CC_FONTSIZE_DEFAULT
+            }
+            Log.d(TAG, "Caption font size:"+fontSize+" ,fg_color:"+Integer.toHexString(fg)+
+                ", fg_opacity:"+Integer.toHexString(fg_opacity)+
+                " ,bg_color:"+Integer.toHexString(bg)+", @fg_color:"+convert_fg_color+", @bg_color:"+
+                convert_bg_color+", @fg_opacity:"+convert_fg_opacity+", @bg_opacity:"+convert_bg_opacity);
+
+            style = Settings.Secure.getInt(mContext.getContentResolver(),
+                Settings.Secure.ACCESSIBILITY_CAPTIONING_PRESET, 0);
+            Log.d(TAG, "get style:"+style);
+            switch (style)
+            {
+                case DTV_CC_STYLE_WHITE_ON_BLACK:
+                    convert_fg_color = DTV_COLOR_WHITE;
+                    convert_fg_opacity = DTV_OPACITY_SOLID;
+                    convert_bg_color = DTV_COLOR_BLACK;
+                    convert_bg_opacity = DTV_OPACITY_SOLID;
+                    break;
+
+                case DTV_CC_STYLE_BLACK_ON_WHITE:
+                    convert_fg_color = DTV_COLOR_BLACK;
+                    convert_fg_opacity = DTV_OPACITY_SOLID;
+                    convert_bg_color = DTV_COLOR_WHITE;
+                    convert_bg_opacity = DTV_OPACITY_SOLID;
+                    break;
+
+                case DTV_CC_STYLE_YELLOW_ON_BLACK:
+                    convert_fg_color = DTV_COLOR_YELLOW;
+                    convert_fg_opacity = DTV_OPACITY_SOLID;
+                    convert_bg_color = DTV_COLOR_BLACK;
+                    convert_bg_opacity = DTV_OPACITY_SOLID;
+                    break;
+
+                case DTV_CC_STYLE_YELLOW_ON_BLUE:
+                    convert_fg_color = DTV_COLOR_YELLOW;
+                    convert_fg_opacity = DTV_OPACITY_SOLID;
+                    convert_bg_color = DTV_COLOR_BLUE;
+                    convert_bg_opacity = DTV_OPACITY_SOLID;
+                    break;
+
+                case DTV_CC_STYLE_USE_DEFAULT:
+                    convert_fg_color = DTVSubtitleView.CC_COLOR_DEFAULT;
+                    convert_fg_opacity = DTVSubtitleView.CC_OPACITY_DEFAULT;
+                    convert_bg_color = DTVSubtitleView.CC_COLOR_DEFAULT;
+                    convert_bg_opacity = DTVSubtitleView.CC_OPACITY_DEFAULT;
+                    break;
+
+                case DTV_CC_STYLE_USE_CUSTOM:
+                    break;
+            }
+            params = new DTVSubtitleView.DTVCCParams(captionMode,
+                convert_fg_color,
+                convert_fg_opacity,
+                convert_bg_color,
+                convert_bg_opacity,
+                fontStyle,
+                fontSize);
+
+            return params;
         }
 
         protected void startSubtitle(int type, int pid, int stype, int id1, int id2) {
@@ -975,6 +1136,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             private TVTime mTvTime = null;
 
             private ChannelObserver mChannelObserver;
+            private CCStyleObserver mCCObserver;
             private ArrayList<ChannelInfo> channelMap;
             private long maxChannel_ID = 0;
 
@@ -1053,6 +1215,16 @@ public class DTVInputService extends DroidLogicTvInputService {
                         mChannelObserver = new ChannelObserver();
                     mContext.getContentResolver().registerContentObserver(TvContract.Channels.CONTENT_URI, true, mChannelObserver);
                 }
+                if (mCCObserver == null) {
+                    Log.d(TAG, "new cc style observer");
+                    Log.d(TAG, "CONTENT_URI: "+TvContract.Channels.CONTENT_URI);
+                    mCCObserver = new CCStyleObserver();
+                    mContext.getContentResolver().registerContentObserver(Settings.Secure.getUriFor(Settings.Secure.ACCESSIBILITY_CAPTIONING_TYPEFACE), true, mCCObserver);
+                    mContext.getContentResolver().registerContentObserver(Settings.Secure.getUriFor(Settings.Secure.ACCESSIBILITY_CAPTIONING_FONT_SCALE), true, mCCObserver);
+                    mContext.getContentResolver().registerContentObserver(Settings.Secure.getUriFor(Settings.Secure.ACCESSIBILITY_CAPTIONING_FOREGROUND_COLOR), true, mCCObserver);
+                    mContext.getContentResolver().registerContentObserver(Settings.Secure.getUriFor(Settings.Secure.ACCESSIBILITY_CAPTIONING_BACKGROUND_COLOR), true, mCCObserver);
+                }
+
             }
 
             private void refreshChannelMap() {
@@ -1103,6 +1275,11 @@ public class DTVInputService extends DroidLogicTvInputService {
                 if (mChannelObserver != null) {
                     mContext.getContentResolver().unregisterContentObserver(mChannelObserver);
                     mChannelObserver = null;
+                }
+
+                if (mCCObserver != null) {
+                    mContext.getContentResolver().unregisterContentObserver(mCCObserver);
+                    mCCObserver = null;
                 }
 
                 if (mHandler != null) {/*take care of rescan befor epgScanner=null*/
@@ -1472,6 +1649,26 @@ public class DTVInputService extends DroidLogicTvInputService {
                         if (epg_auto_reset)
                             reset();
                     }
+                }
+
+                @Override
+                public IContentObserver releaseContentObserver() {
+                    // TODO Auto-generated method stub
+                    return super.releaseContentObserver();
+                }
+            }
+
+            private final class CCStyleObserver extends ContentObserver {
+                public CCStyleObserver() {
+                    super(new Handler());
+                }
+
+                @Override
+                public void onChange(boolean selfChange, Uri uri) {
+                    Log.d(TAG, "CC style changed: selfchange:" + selfChange + " uri:" + uri);
+                    DTVSubtitleView.DTVCCParams params = getCaptionStyle(0);
+                    DTVSubtitleView.setCaptionParams(params);
+
                 }
 
                 @Override

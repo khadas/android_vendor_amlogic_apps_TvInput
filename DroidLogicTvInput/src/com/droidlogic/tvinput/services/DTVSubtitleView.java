@@ -109,6 +109,7 @@ public class DTVSubtitleView extends View {
     private native int native_sub_start_atsc_cc(int caption, int fg_color, int fg_opacity, int bg_color, int bg_opacity, int font_style, int font_size);
     private native int native_sub_start_atsc_atvcc(int caption, int fg_color, int fg_opacity, int bg_color, int bg_opacity, int font_style, int font_size);
     private native int native_sub_stop_atsc_cc();
+    private native static int native_sub_set_atsc_cc_options(int fg_color, int fg_opacity, int bg_color, int bg_opacity, int font_style, int font_size);
     private native int native_sub_set_active(boolean active);
 
     static {
@@ -422,6 +423,18 @@ public class DTVSubtitleView extends View {
 
             if (play_mode == PLAY_TT)
                 startTT();
+        }
+    }
+
+    public static void setCaptionParams(DTVCCParams params) {
+        synchronized(lock) {
+        native_sub_set_atsc_cc_options(
+              params.fg_color,
+              params.fg_opacity,
+              params.bg_color,
+              params.bg_opacity,
+              params.font_style,
+              params.font_size);
         }
     }
 
