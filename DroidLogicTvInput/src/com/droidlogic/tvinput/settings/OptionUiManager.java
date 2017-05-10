@@ -83,6 +83,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     public static final int OPTION_AUTO_SEARCH = 38;
     public static final int OPTION_CHANNEL_EDIT = 39;
     public static final int OPTION_SWITCH_CHANNEL = 310;
+    public static final int OPTION_MTS = 311;
 
     public static final int OPTION_DTV_TYPE = 400;
     public static final int OPTION_SLEEP_TIMER = 401;
@@ -267,6 +268,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             } else if (item_name.equals(mResources.getString(R.string.switch_channel))) {
                 optionTag = OPTION_SWITCH_CHANNEL;
                 optionKey = SettingsManager.KEY_SWITCH_CHANNEL;
+            }else if (item_name.equals(mResources.getString(R.string.mts))) {
+                optionTag = OPTION_MTS;
+                optionKey = SettingsManager.KEY_MTS;
             }
         // Settings
             else if (item_name.equals(mResources.getString(R.string.dtv_type))) {
@@ -367,6 +371,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 return R.layout.layout_channel_sound_system;
             case OPTION_SWITCH_CHANNEL:
                 return R.layout.layout_channel_switch_channel;
+            case OPTION_MTS:
+                return R.layout.layout_channel_mts;
             case OPTION_VOLUME_COMPENSATE:
                 return R.layout.layout_channel_volume_compensate;
             case OPTION_FINE_TUNE:
@@ -719,6 +725,15 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                     return;
                 }
                 break;
+            case R.id.audio_outmode_mono:
+                mSettingsManager.setAudioOutmode(TvControlManager.AUDIO_OUTMODE_MONO);
+                break;
+            case R.id.audio_outmode_stereo:
+                mSettingsManager.setAudioOutmode(TvControlManager.AUDIO_OUTMODE_STEREO);
+                break;
+            case R.id.audio_outmode_sap:
+                mSettingsManager.setAudioOutmode(TvControlManager.AUDIO_OUTMODE_SAP);
+                break;
             // ====Settings====
             // DTV Mode
             case R.id.dtmb:
@@ -973,6 +988,16 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                     setIcon(parent, R.id.switch_channel_static_frame);
                 } else if (TextUtils.equals(mSettingsManager.getSwitchChannelStatus(), mResources.getString(R.string.black_frame))) {
                     setIcon(parent, R.id.switch_channel_black_frame);
+                }
+                break;
+
+            case OPTION_MTS:
+                if (TextUtils.equals(mSettingsManager.getAudioOutmode(),mResources.getString(R.string.audio_outmode_mono))) {
+                    setIcon(parent, R.id.audio_outmode_mono);
+                } else if (TextUtils.equals(mSettingsManager.getAudioOutmode(),mResources.getString(R.string.audio_outmode_stereo))) {
+                    setIcon(parent, R.id.audio_outmode_stereo);
+                } else if (TextUtils.equals(mSettingsManager.getAudioOutmode(),mResources.getString(R.string.audio_outmode_sap))) {
+                    setIcon(parent, R.id.audio_outmode_sap);
                 }
                 break;
             // settings

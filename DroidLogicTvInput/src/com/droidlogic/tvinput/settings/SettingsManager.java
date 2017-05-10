@@ -76,6 +76,7 @@ public class SettingsManager {
     public static final String KEY_AUTO_SEARCH                      = "auto_search";
     public static final String KEY_CHANNEL_EDIT                     = "channel_edit";
     public static final String KEY_SWITCH_CHANNEL                   = "switch_channel";
+    public static final String KEY_MTS                              ="mts";
 
     public static final String KEY_SETTINGS                         = "settings";
     public static final String KEY_DTV_TYPE                         = "dtv_type";
@@ -317,6 +318,8 @@ public class SettingsManager {
                 return getSwitchChannelStatus();
             } else if (key.equals(KEY_FINE_TUNE)) {
                 return getFineTuneStatus();
+            }else if (key.equals(KEY_MTS)) {
+                return getAudioOutmode();
             }
             //settings
             else if (key.equals(KEY_DTV_TYPE)) {
@@ -1532,6 +1535,25 @@ public class SettingsManager {
         Intent intent = new Intent(DroidLogicTvUtils.ACTION_AD_TRACK);
         intent.putExtra(DroidLogicTvUtils.PARA_VALUE1, track);
         mContext.sendBroadcast(intent);
+    }
+
+    public void setAudioOutmode(int mode) {
+        mTvControlManager.SetAudioOutmode(mode);
+    }
+
+    public String getAudioOutmode(){
+        int mode = mTvControlManager.GetAudioOutmode();
+        Log.d(TAG, "getAudioOutmode"+" mode = " + mode);
+        switch (mode) {
+            case TvControlManager.AUDIO_OUTMODE_MONO:
+                return mResources.getString(R.string.audio_outmode_mono);
+            case TvControlManager.AUDIO_OUTMODE_STEREO:
+                return mResources.getString(R.string.audio_outmode_stereo);
+            case TvControlManager.AUDIO_OUTMODE_SAP:
+                return mResources.getString(R.string.audio_outmode_sap);
+            default:
+                return mResources.getString(R.string.audio_outmode_stereo);
+        }
     }
 
     public void doFactoryReset() {

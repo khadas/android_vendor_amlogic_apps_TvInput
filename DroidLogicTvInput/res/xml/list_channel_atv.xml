@@ -51,4 +51,9 @@
         android:title="@string/switch_channel" >
     </Preference>
 
+    <Preference
+        android:key="mts"
+        android:title="@string/mts" >
+    </Preference>
+
 </PreferenceScreen>
