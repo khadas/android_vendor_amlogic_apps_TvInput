@@ -138,7 +138,7 @@
             android:name=".settings.TvSettingsActivity"
             android:launchMode="singleInstance"
             android:label="@string/app_name"
-            android:theme="@style/Settings"
+            android:theme="@style/Settings_style"
             android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -149,7 +149,7 @@
             android:name=".shortcut.ShortCutActivity"
             android:launchMode="singleInstance"
             android:label="@string/app_name"
-            android:theme="@style/Settings">
+            android:theme="@style/shortcut_style">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
             </intent-filter>
