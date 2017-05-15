@@ -77,6 +77,16 @@ public class DTVInputService extends DroidLogicTvInputService {
     protected int id = 0;
 
     protected Map<Integer, DTVSessionImpl> sessionMap = new HashMap<>();
+    protected final BroadcastReceiver mChannelScanStartReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
+                  Log.d(TAG, "-----onReceive:"+action);
+                  if (mCurrentSession != null)
+                      mCurrentSession.stopSubtitle();
+            }
+    };
+
     protected final BroadcastReceiver mParentalControlsBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -103,6 +113,11 @@ public class DTVInputService extends DroidLogicTvInputService {
                 .addAction(TvInputManager.ACTION_PARENTAL_CONTROLS_ENABLED_CHANGED);
         intentFilter.addAction(Intent.ACTION_TIME_CHANGED);
         registerReceiver(mParentalControlsBroadcastReceiver, intentFilter);
+
+        IntentFilter filter= new IntentFilter();
+        filter.addAction(DroidLogicTvUtils.ACTION_DTV_AUTO_SCAN);
+        filter.addAction(DroidLogicTvUtils.ACTION_DTV_MANUAL_SCAN);
+        registerReceiver(mChannelScanStartReceiver, filter);
     }
 
     @Override
@@ -227,7 +242,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                 subtitleAutoStart = true;
                 if (mCurrentChannel != null)
                     startSubtitle(mCurrentChannel);
-            } else if (DroidLogicTvUtils.ACTION_DTV_AUTO_SCAN.equals(action)
+            } /*else if (DroidLogicTvUtils.ACTION_DTV_AUTO_SCAN.equals(action)
                 || DroidLogicTvUtils.ACTION_DTV_MANUAL_SCAN.equals(action)) {
                 Log.d(TAG, "do private cmd: DTV_XXX_SCAN, stop play...");
                 mCurrentUri = null;
@@ -237,7 +252,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                 mTvControlManager.PlayDTVProgram(
                     new TvControlManager.TvMode(mDtvType).getMode(), 470000000, 0, 0, 0, 0, -1, -1, 0, 0, false);
                 resetScanStoreListener();
-            }  else if (TextUtils.equals(DroidLogicTvUtils.ACTION_DTV_SET_TYPE, action)) {
+            }  */else if (TextUtils.equals(DroidLogicTvUtils.ACTION_DTV_SET_TYPE, action)) {
                 mDtvType = bundle.getString(DroidLogicTvUtils.PARA_TYPE);
                 Log.d(TAG, "do private cmd: DTV_SET_TYPE ["+mDtvType+"]");
             } else if (TextUtils.equals(DroidLogicTvUtils.ACTION_DTV_ENABLE_AUDIO_AD, action)) {
