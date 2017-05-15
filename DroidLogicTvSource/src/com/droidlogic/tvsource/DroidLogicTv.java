@@ -571,8 +571,10 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             preTuneCmd();
             mSourceView.tune(mSourceInput.getInputId(), channel_uri);
             preTuneCmd();/*cmds before tune will be lost if 1st-session-create, re-send*/
-            if (mSourceInput.isRadioChannel() || mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_SPDIF) {
+            if (mSourceInput.isRadioChannel()) {
                 mMainView.setBackgroundDrawable(getResources().getDrawable(R.drawable.bg_radio));
+            } else if (mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_SPDIF) {
+                mMainView.setBackgroundDrawable(getResources().getDrawable(R.drawable.spdifin));
             } else {
                 mMainView.setBackgroundDrawable(null);
             }

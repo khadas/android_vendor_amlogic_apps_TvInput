@@ -105,7 +105,7 @@ public class SPDIFInputService extends DroidLogicTvInputService {
             }
         }
         updateInfoListIfNeededLocked(hardwareInfo, info, false);
-
+        acquireHardware(info);
         return info;
     }
 
@@ -119,7 +119,7 @@ public class SPDIFInputService extends DroidLogicTvInputService {
         if (info != null)
             id = info.getId();
         updateInfoListIfNeededLocked(hardwareInfo, info, true);
-
+        releaseHardware();
         Utils.logd(TAG, "=====onHardwareRemoved=====" + id);
         return id;
     }
