@@ -57,6 +57,9 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
     private int factoryPasswordFourthKey = 3;
     private int mFactoryShow = 0;
 
+    public ScanEdit mScanEdit;
+    public ManualScanEdit mManualScanEdit;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

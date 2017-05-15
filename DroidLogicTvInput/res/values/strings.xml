@@ -64,6 +64,7 @@
     <string name="resume_search">resume searching</string>
     <string name="start_frequency">start frequency: </string>
     <string name="start_frequency_default">start frequency: 706MHz</string>
+    <string name="start_frequency_default_atsc">start frequency: 473MHz</string>
     <string name="khz">KHz</string>
     <string name="mhz">MHz</string>
     <string name="db">dB</string>
@@ -188,4 +189,9 @@
     <string name="appointed_success">Appointment success</string>
     <string name="appointed_cancel">Cancel appointment</string>
     <string name="appointed_expired">Program expired!</string>
+
+    <string name="dtv">DTV:</string>
+    <string name="atv">ATV:</string>
+    <string name="lrc">LRC</string>
+    <string name="hrc">HRC</string>
 </resources>

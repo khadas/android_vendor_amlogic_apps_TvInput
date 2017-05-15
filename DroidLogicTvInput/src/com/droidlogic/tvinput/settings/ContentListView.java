@@ -13,9 +13,11 @@ import android.view.LayoutInflater;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ListView;
+import android.widget.RadioButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.RelativeLayout.LayoutParams;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -190,6 +192,15 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
                     mVirtualSurroundDe.setVisibility(View.VISIBLE);
                     mVirtualSurroundProcess.setVisibility(View.VISIBLE);
                 }
+            }
+
+            if (layout_option_child == R.layout.layout_channel_auto_search_dtv_for_atsc) {
+                ViewGroup parent = (ViewGroup) ((TvSettingsActivity) mContext).mOptionLayout.getChildAt(0);
+                ((TvSettingsActivity)mContext).mScanEdit = new ScanEdit(mContext, parent);
+            }
+            if (layout_option_child == R.layout.layout_channel_manual_serch_dtv_for_atsc) {
+                ViewGroup parent = (ViewGroup) ((TvSettingsActivity) mContext).mOptionLayout.getChildAt(0);
+                ((TvSettingsActivity)mContext).mManualScanEdit = new ManualScanEdit(mContext, parent);
             }
         }
     }
