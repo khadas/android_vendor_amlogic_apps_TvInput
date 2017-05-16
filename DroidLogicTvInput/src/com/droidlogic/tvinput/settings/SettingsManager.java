@@ -1126,7 +1126,8 @@ public class SettingsManager {
             ret = contrast;
 
         if (!key.equals(KEY_COLOR))
-            mTvControlManager.SetSaturation(color, mTvSourceInput, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
+            mTvControlManager.SetSaturation(color, mTvSourceInput,
+                    TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_NULL/*mTvControlManager.GetCurrentSignalInfo().sigFmt*/, 1);
         else
             ret = color;
 
@@ -1137,7 +1138,8 @@ public class SettingsManager {
 
         if (isShowTint()) {
             if (!key.equals(KEY_TINT))
-                mTvControlManager.SetHue(tint, mTvSourceInput, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
+                mTvControlManager.SetHue(tint, mTvSourceInput,
+                        TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_NULL/*mTvControlManager.GetCurrentSignalInfo().sigFmt*/, 1);
             else
                 ret = tint;
         }
@@ -1162,10 +1164,10 @@ public class SettingsManager {
     public void setColor (int step) {
         if (mTvControlManager.GetPQMode(mTvSourceInput) == 3)
             mTvControlManager.SetSaturation(mTvControlManager.GetSaturation(mTvSourceInput) + step,
-                                            mTvSourceInput, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
+                   mTvSourceInput, TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_NULL/*mTvControlManager.GetCurrentSignalInfo().sigFmt*/, 1);
         else
             mTvControlManager.SetSaturation(setPictureUserMode(KEY_COLOR) + step,
-                                            mTvSourceInput, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
+                   mTvSourceInput, TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_NULL/*mTvControlManager.GetCurrentSignalInfo().sigFmt*/, 1);
     }
 
     public void setSharpness (int step) {
@@ -1179,10 +1181,10 @@ public class SettingsManager {
         if (isShowTint()) {
             if (mTvControlManager.GetPQMode(mTvSourceInput) == 3)
                 mTvControlManager.SetHue(mTvControlManager.GetHue(mTvSourceInput) + step, mTvSourceInput,
-                                         mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
+                        TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_NULL/*mTvControlManager.GetCurrentSignalInfo().sigFmt*/, 1);
             else
                 mTvControlManager.SetHue(setPictureUserMode(KEY_TINT) + step, mTvSourceInput,
-                                         mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
+                        TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_NULL/*mTvControlManager.GetCurrentSignalInfo().sigFmt*/, 1);
         }
     }
 
@@ -1205,16 +1207,16 @@ public class SettingsManager {
     public void setAspectRatio(String mode) {
         if (mode.equals(STATUS_AUTO)) {
             mTvControlManager.SetDisplayMode(TvControlManager.Display_Mode.DISPLAY_MODE_NORMAL,
-                                             mTvSourceInput, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
+                    mTvSourceInput, TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_NULL/*mTvControlManager.GetCurrentSignalInfo().sigFmt*/, 1);
         } else if (mode.equals(STATUS_4_TO_3)) {
             mTvControlManager.SetDisplayMode(TvControlManager.Display_Mode.DISPLAY_MODE_MODE43,
-                                             mTvSourceInput, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
+                    mTvSourceInput, TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_NULL/*mTvControlManager.GetCurrentSignalInfo().sigFmt*/, 1);
         } else if (mode.equals(STATUS_PANORAMA)) {
             mTvControlManager.SetDisplayMode(TvControlManager.Display_Mode.DISPLAY_MODE_FULL,
-                                             mTvSourceInput, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
+                    mTvSourceInput, TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_NULL/*mTvControlManager.GetCurrentSignalInfo().sigFmt*/, 1);
         } else if (mode.equals(STATUS_FULL_SCREEN)) {
             mTvControlManager.SetDisplayMode(TvControlManager.Display_Mode.DISPLAY_MODE_169,
-                                             mTvSourceInput, mTvControlManager.GetCurrentSignalInfo().sigFmt, 1);
+                    mTvSourceInput, TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_NULL/*mTvControlManager.GetCurrentSignalInfo().sigFmt*/, 1);
         }
     }
 
