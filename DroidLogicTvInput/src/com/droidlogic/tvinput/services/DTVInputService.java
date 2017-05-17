@@ -790,6 +790,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                         DTVSubtitleView.CC_FONTSTYLE_DEFAULT,
                         DTVSubtitleView.CC_FONTSIZE_DEFAULT);
                 mSubtitleView.setSubParams(params);
+                mSubtitleView.setMargin(60, 60, 60, 60);
             }
         }
 
