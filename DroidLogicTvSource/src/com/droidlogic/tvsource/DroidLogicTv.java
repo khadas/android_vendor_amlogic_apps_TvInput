@@ -1004,7 +1004,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             keyInputNumber = Integer.toString(mSourceInput.getChannelVideoList().valueAt((index + offset) % size).getNumber());
         else
             keyInputNumber = Integer.toString(mSourceInput.getChannelVideoList().valueAt((size + (index + offset) % size) % size).getNumber());
-        if (mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_DTV) {
+        if (mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_DTV ||
+            mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_ADTV) {
             showUi(Utils.UI_TYPE_DTV_INFO,false);
             mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_CHANNEL_NUM_SWITCH), 300);
         } else {
