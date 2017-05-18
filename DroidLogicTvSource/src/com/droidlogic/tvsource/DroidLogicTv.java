@@ -242,6 +242,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     || DroidLogicTvUtils.ACTION_ATV_RESUME_SCAN.equals(action)
                     || DroidLogicTvUtils.ACTION_STOP_SCAN.equals(action)) {
                 Utils.logd(TAG, "==== WW ACTION_ATV_PAUSE_SCAN/RESUME/STOP");
+            } else if (AudioManager.STREAM_MUTE_CHANGED_ACTION.equals(action)) {
+                boolean muteState = intent .getBooleanExtra(AudioManager.EXTRA_STREAM_VOLUME_MUTED, false);
+                showMuteIcon(muteState);
             }
         }
     };
@@ -262,6 +265,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         intentFilter.addAction(DroidLogicTvUtils.ACTION_STOP_SCAN);
         intentFilter.addAction(DroidLogicTvUtils.ACTION_ATV_PAUSE_SCAN);
         intentFilter.addAction(DroidLogicTvUtils.ACTION_ATV_RESUME_SCAN);
+        intentFilter.addAction(AudioManager.STREAM_MUTE_CHANGED_ACTION);
         registerReceiver(mReceiver, intentFilter);
     }
 
