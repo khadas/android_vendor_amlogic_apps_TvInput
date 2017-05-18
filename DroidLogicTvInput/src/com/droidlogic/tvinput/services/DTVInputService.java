@@ -743,6 +743,25 @@ public class DTVInputService extends DroidLogicTvInputService {
             return mSubtitleView;
         }
 
+        private class CCStyleParams {
+             protected int fg_color;
+             protected int fg_opacity;
+             protected int bg_color;
+             protected int bg_opacity;
+             protected int font_style;
+             protected int font_size;
+
+             public CCStyleParams(int fg_color, int fg_opacity,
+                                int bg_color, int bg_opacity, int font_style, int font_size) {
+                 this.fg_color = fg_color;
+                 this.fg_opacity = fg_opacity;
+                 this.bg_color = bg_color;
+                 this.bg_opacity = bg_opacity;
+                 this.font_style = font_style;
+                 this.font_size = font_size;
+             }
+         }
+
         protected void setSubtitleParam(int type, int pid, int stype, int id1, int id2) {
             if (type == TYPE_DVB_SUBTITLE) {
                 DTVSubtitleView.DVBSubParams params =
@@ -758,29 +777,33 @@ public class DTVInputService extends DroidLogicTvInputService {
                 mSubtitleView.setSubParams(params);
 
             } else if (type == TYPE_DTV_CC) {
+                CCStyleParams ccParam = getCaptionStyle();
                 DTVSubtitleView.DTVCCParams params =
                     new DTVSubtitleView.DTVCCParams(pid,
-                        DTVSubtitleView.CC_COLOR_DEFAULT,
-                        DTVSubtitleView.CC_OPACITY_DEFAULT,
-                        DTVSubtitleView.CC_COLOR_DEFAULT,
-                        DTVSubtitleView.CC_OPACITY_TRANSLUCENT,
-                        DTVSubtitleView.CC_FONTSTYLE_DEFAULT,
-                        DTVSubtitleView.CC_FONTSIZE_DEFAULT);
+                        ccParam.fg_color,
+                        ccParam.fg_opacity,
+                        ccParam.bg_color,
+                        ccParam.bg_opacity,
+                        ccParam.font_style,
+                        ccParam.font_size);
                 mSubtitleView.setSubParams(params);
+                mSubtitleView.setMargin(225, 128, 225, 128);
+                Log.d(TAG, "DTV CC pid="+pid+",fg_color="+ccParam.fg_color+", fg_op="+ccParam.fg_opacity+", bg_color="+ccParam.bg_color+", bg_op="+ccParam.bg_opacity);
 
             } else if (type == TYPE_ATV_CC) {
+                CCStyleParams ccParam = getCaptionStyle();
                 DTVSubtitleView.ATVCCParams params =
                     new DTVSubtitleView.ATVCCParams(pid,
-                        DTVSubtitleView.CC_COLOR_DEFAULT,
-                        DTVSubtitleView.CC_OPACITY_DEFAULT,
-                        DTVSubtitleView.CC_COLOR_DEFAULT,
-                        DTVSubtitleView.CC_OPACITY_TRANSLUCENT,
-                        DTVSubtitleView.CC_FONTSTYLE_DEFAULT,
-                        DTVSubtitleView.CC_FONTSIZE_DEFAULT);
+                        ccParam.fg_color,
+                        ccParam.fg_opacity,
+                        ccParam.bg_color,
+                        ccParam.bg_opacity,
+                        ccParam.font_style,
+                        ccParam.font_size);
 
-                DTVSubtitleView.DTVCCParams ccParams = getCaptionStyle(captionMode);
-                mSubtitleView.setSubParams(ccParams);
+                mSubtitleView.setSubParams(params);
                 mSubtitleView.setMargin(225, 128, 225, 128);
+                Log.d(TAG, "ATV CC pid="+pid+",fg_color="+ccParam.fg_color+", fg_op="+ccParam.fg_opacity+", bg_color="+ccParam.bg_color+", bg_op="+ccParam.bg_opacity);
             }
         }
 
@@ -821,11 +844,11 @@ public class DTVInputService extends DroidLogicTvInputService {
             }
             return DTV_OPACITY_TRANSPARENT;
         }
-        protected DTVSubtitleView.DTVCCParams getCaptionStyle(int captionMode)
+        protected CCStyleParams getCaptionStyle()
         {
 
             int fontSize;
-            DTVSubtitleView.DTVCCParams params;
+            CCStyleParams params;
             int style;
             float textSize = Settings.Secure.getFloat(mContext.getContentResolver(),
                 Settings.Secure.ACCESSIBILITY_CAPTIONING_FONT_SCALE, 1);
@@ -910,8 +933,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                 case DTV_CC_STYLE_USE_CUSTOM:
                     break;
             }
-            params = new DTVSubtitleView.DTVCCParams(captionMode,
-                convert_fg_color,
+            params = new CCStyleParams(convert_fg_color,
                 convert_fg_opacity,
                 convert_bg_color,
                 convert_bg_opacity,
@@ -1666,9 +1688,16 @@ public class DTVInputService extends DroidLogicTvInputService {
                 @Override
                 public void onChange(boolean selfChange, Uri uri) {
                     Log.d(TAG, "CC style changed: selfchange:" + selfChange + " uri:" + uri);
-                    DTVSubtitleView.DTVCCParams params = getCaptionStyle(0);
+                    CCStyleParams ccParam = getCaptionStyle();
+                    DTVSubtitleView.DTVCCParams params =
+                        new DTVSubtitleView.DTVCCParams(0,
+                            ccParam.fg_color,
+                            ccParam.fg_opacity,
+                            ccParam.bg_color,
+                            ccParam.bg_opacity,
+                            ccParam.font_style,
+                            ccParam.font_size);
                     DTVSubtitleView.setCaptionParams(params);
-
                 }
 
                 @Override
