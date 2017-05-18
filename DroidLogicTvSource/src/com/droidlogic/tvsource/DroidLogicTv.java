@@ -1779,46 +1779,52 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         View layout = inflater.inflate(R.layout.layout_hotkey, null);
         int audioIndex = 0;
         String mAudioTrackFormat = null;
-        String AudioLangs[] = mSourceInput.getChannelInfo().getAudioLangs();
-        int mAudioFormats[] = mSourceInput.getChannelInfo().getAudioFormats();
+        String AudioLangs[] = null;
+        int mAudioFormats[] = null;
         Map<Integer, String> mAudioTrackFormatMap = Utils.getAudioMap();
 
         TextView title = (TextView)layout.findViewById(R.id.toast_title);
         TextView status = (TextView)layout.findViewById(R.id.toast_status);
 
         title.setText(titleStr);
-        if (type == TvTrackInfo.TYPE_AUDIO) {
-            if (mAudioFormats != null && AudioLangs != null) {
-                for (int i = 0; i < AudioLangs.length; i++) {
-                    if (statusStr.equals(AudioLangs[i]))
-                        audioIndex = i;
-                }
-                for (Integer indexNumber : mAudioTrackFormatMap.keySet()) {
-                    if (indexNumber == mAudioFormats[audioIndex]) {
-                        mAudioTrackFormat = mAudioTrackFormatMap.get(indexNumber);
-                        if (mAudioTrackFormat.equals("AC3") || mAudioTrackFormat.equals("EAC3")) {
-                            status.setText("");
-                            status.setBackground(getResources().getDrawable(R.drawable.certifi_dobly_white));
-                        } else {
-                            if (isZh(mContext) && statusStr.startsWith("Audio")) {
-                                String mTrackArray[] = statusStr.split("o");
-                                status.setText(getResources().getString(R.string.Audio) + mTrackArray[1]);
+        if (mSourceInput.getChannelInfo() == null) {
+            status.setText(statusStr);
+        } else {
+            AudioLangs = mSourceInput.getChannelInfo().getAudioLangs();
+            mAudioFormats = mSourceInput.getChannelInfo().getAudioFormats();
+            if (type == TvTrackInfo.TYPE_AUDIO) {
+                if (mAudioFormats != null && AudioLangs != null) {
+                    for (int i = 0; i < AudioLangs.length; i++) {
+                        if (statusStr.equals(AudioLangs[i]))
+                             audioIndex = i;
+                    }
+                    for (Integer indexNumber : mAudioTrackFormatMap.keySet()) {
+                        if (indexNumber == mAudioFormats[audioIndex]) {
+                            mAudioTrackFormat = mAudioTrackFormatMap.get(indexNumber);
+                            if (mAudioTrackFormat.equals("AC3") || mAudioTrackFormat.equals("EAC3")) {
+                                 status.setText("");
+                                 status.setBackground(getResources().getDrawable(R.drawable.certifi_dobly_white));
                             } else {
-                                status.setText(statusStr);
+                                if (isZh(mContext) && statusStr.startsWith("Audio")) {
+                                     String mTrackArray[] = statusStr.split("o");
+                                     status.setText(getResources().getString(R.string.Audio) + mTrackArray[1]);
+                                } else {
+                                     status.setText(statusStr);
+                                }
                             }
                         }
                     }
+                } else {
+                    status.setText(statusStr);
                 }
-            } else {
-                status.setText(statusStr);
-            }
-        } else if (type == TvTrackInfo.TYPE_SUBTITLE) {
-            if (isZh(mContext) && statusStr.equals("chs")) {
-                status.setText(getResources().getString(R.string.Simplified_Chinese));
-            } else if (isZh(mContext) && statusStr.equals("chi")) {
-                status.setText(getResources().getString(R.string.Traditional_Chinese));
-            } else {
-                status.setText(statusStr);
+            } else if (type == TvTrackInfo.TYPE_SUBTITLE) {
+                if (isZh(mContext) && statusStr.equals("chs")) {
+                    status.setText(getResources().getString(R.string.Simplified_Chinese));
+                } else if (isZh(mContext) && statusStr.equals("chi")) {
+                    status.setText(getResources().getString(R.string.Traditional_Chinese));
+                } else {
+                    status.setText(statusStr);
+                }
             }
         }
         if (toast == null) {
