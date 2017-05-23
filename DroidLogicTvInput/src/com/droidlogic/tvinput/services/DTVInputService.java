@@ -1644,6 +1644,27 @@ public class DTVInputService extends DroidLogicTvInputService {
                                 RatingList.add(r);
                                 Log.d(TAG, "add rating:"+r.flattenToString());
                             }
+                        } else if (region == 2) {//Canadian ratings
+                            for (int j = 0; j < ratings.length(); j++) {
+                                JSONObject RatingValues = ratings.optJSONObject(j);
+                                int Dimension = RatingValues.optInt("d", -1);
+                                int Value = RatingValues.optInt("r", -1);
+                                if (Dimension == -1 || Value == -1)
+                                     continue;
+                                if (Dimension == 0) {
+                                    //canadian english language rating
+                                    TvContentRating r = TvContentRating.createRating(RatingDomain, "CA_TV_EN",
+                                            DroidLogicTvUtils.CA_EN_ContentRatingDimensions[Value]);
+                                    RatingList.add(r);
+                                    Log.d(TAG, "add rating:"+r.flattenToString());
+                                } else if (Dimension == 1) {
+                                    //canadian frech language rating
+                                    TvContentRating r = TvContentRating.createRating(RatingDomain, "CA_TV_FR",
+                                            DroidLogicTvUtils.CA_FR_ContentRatingDimensions[Value]);
+                                    RatingList.add(r);
+                                    Log.d(TAG, "add rating:"+r.flattenToString());
+                                }
+                            }
                         }
                     }
                 }
