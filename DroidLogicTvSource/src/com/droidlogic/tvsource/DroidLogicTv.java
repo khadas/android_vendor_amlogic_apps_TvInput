@@ -18,6 +18,7 @@ import com.droidlogic.app.tv.ChannelInfo;
 import com.droidlogic.app.tv.TVInSignalInfo;
 import com.droidlogic.app.tv.TvControlManager;
 import com.droidlogic.app.tv.TVTime;
+import com.droidlogic.app.tv.Program;
 
 import com.droidlogic.tvsource.ui.ChannelListLayout;
 import com.droidlogic.tvsource.ui.ChannelListLayout.OnChannelSelectListener;
@@ -1275,13 +1276,12 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
 
         Uri channelUri = mSourceInput.getUri();
         if (channelUri != null && Utils.getChannelId(channelUri) >= 0) {
-            if (mTvDataBaseManager.getProgram(channelUri, mTvTime.getTime()) != null) {
-                String mDtvTitle = mTvDataBaseManager.getProgram(channelUri, mTvTime.getTime()).getTitle();
-                String mDtvDescription = mTvDataBaseManager.getProgram(channelUri, mTvTime.getTime()).getDescription();
-                long mIntervalTime = mTvDataBaseManager.getProgram(channelUri, mTvTime.getTime()).getEndTimeUtcMillis()
-                        - mTvDataBaseManager.getProgram(channelUri, mTvTime.getTime()).getStartTimeUtcMillis();
-                mDtvInfoProgramSegment.setText(String.valueOf(mIntervalTime / 60 / 1000)
-                        + getResources().getString(R.string.minute) + "  " + mDtvTitle);
+            Program mProgram = mTvDataBaseManager.getProgram(channelUri, mTvTime.getTime());
+            if (mProgram != null) {
+                String mDtvTitle =mProgram.getTitle();
+                String mDtvDescription = mProgram.getDescription();
+                long mIntervalTime = mProgram.getEndTimeUtcMillis()- mProgram.getStartTimeUtcMillis();
+                mDtvInfoProgramSegment.setText(String.valueOf(mIntervalTime / 60 / 1000) + getResources().getString(R.string.minute) + " " + mDtvTitle);
                 mDtvInfoDescribe.setText(mDtvDescription);
             } else {
                 mDtvInfoProgramSegment.setText("");
