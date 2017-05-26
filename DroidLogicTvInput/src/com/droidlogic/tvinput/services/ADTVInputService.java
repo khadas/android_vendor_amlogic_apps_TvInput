@@ -94,8 +94,8 @@ public class ADTVInputService extends DTVInputService {
         }
 
         @Override
-        protected void checkContentBlockNeeded() {
-            doParentalControls();
+        protected void checkContentBlockNeeded(ChannelInfo channelInfo) {
+            doParentalControls(channelInfo);
         }
 
         @Override
@@ -107,7 +107,7 @@ public class ADTVInputService extends DTVInputService {
 
             int audioTrackAuto = getAudioTrackAuto(info);
 
-            if (info.isAnalogChannnel()) {
+            if (info.isAnalogChannel()) {
                 mTvControlManager.PlayATVProgram(info.getFrequency() + info.getFineTune(),
                     info.getVideoStd(),
                     info.getAudioStd(),
@@ -138,21 +138,73 @@ public class ADTVInputService extends DTVInputService {
             mSystemControlManager.setProperty(DTV_AUDIO_TRACK_IDX,
                         ((audioTrackAuto>=0)? String.valueOf(audioTrackAuto) : "-1"));
 
-            stopSubtitle();
-
             notifyTracks(info);
 
             startSubtitle(info);
 
-            if (!info.isAnalogChannnel())
+            if (!info.isAnalogChannel())
                 startAudioADByMain(info, audioTrackAuto);
 
             return true;
         }
 
         @Override
+        protected void startSubtitle(ChannelInfo channelInfo) {
+            if (!channelInfo.isAnalogChannel() && !subtitleAutoStart)
+                return ;
+
+            int idx = getSubtitleTrackAuto(channelInfo);
+            if (idx >= 0) {
+                startSubtitle(channelInfo.getSubtitleTypes()[idx],
+                              channelInfo.getSubtitlePids()[idx],
+                              channelInfo.getSubtitleStypes()[idx],
+                              channelInfo.getSubtitleId1s()[idx],
+                              channelInfo.getSubtitleId2s()[idx]);
+                mSystemControlManager.setProperty(DTV_SUBTITLE_TRACK_IDX, String.valueOf(idx));
+            } else if (channelInfo.isAnalogChannel()) {
+                startSubtitleAutoAnalog();
+            } else {
+                stopSubtitle();
+            }
+        }
+
+        protected void startSubtitleAutoAnalog() {
+            Log.d(TAG, "start Subtitle AutoAnalog");
+
+            initSubtitleView();
+
+            mSubtitleView.stop();
+
+            setSubtitleParam(TYPE_ATV_CC, DTVSubtitleView.CC_CAPTION_CC1, 0, 0, 0);//we need xds data
+
+            mSubtitleView.setActive(true);
+            mSubtitleView.startSub();
+        }
+
+        private TvContentRating[] mATVContentRatings = null;
+
+        @Override
+        protected boolean tryPlayProgram(ChannelInfo info) {
+            mATVContentRatings = null;
+            return super.tryPlayProgram(info);
+        }
+
+        @Override
+        protected TvContentRating[] getContentRatingsOfCurrentProgram(ChannelInfo channelInfo) {
+            if (channelInfo != null && channelInfo.isAnalogChannel())
+                return mATVContentRatings;
+            else
+                return super.getContentRatingsOfCurrentProgram(channelInfo);
+        }
+
+        @Override
+        protected void onSubtitleData(String json) {
+            mATVContentRatings = DroidLogicTvUtils.parseARatings(json);
+        }
+
+        @Override
         protected void setMonitor(ChannelInfo channel) {
-            if (channel == null || !channel.isAnalogChannnel())
+            if (channel == null || !channel.isAnalogChannel())
                 super.setMonitor(channel);
         }
 

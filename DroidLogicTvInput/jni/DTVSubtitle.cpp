@@ -48,9 +48,11 @@ extern "C" {
     static jmethodID gUpdateID;
     static jfieldID  gBitmapID;
     static TVSubtitleData gSubtitleData;
+    static jmethodID gUpdateDataID;
 
     static jint sub_clear(JNIEnv *env, jobject obj);
     static void sub_update(jobject obj);
+    static void data_update(jobject obj, char *json);
 
     static uint8_t *lock_bitmap(JNIEnv *env, jobject bitmap)
     {
@@ -187,6 +189,22 @@ extern "C" {
         pthread_mutex_unlock(&sub->lock);
 
         sub_update(sub->obj);
+    }
+
+    static void cc_rating_cb(AM_CC_Handle_t handle, vbi_rating *pr)
+    {
+        if (pr) {
+            char *tag = "Aratings";
+            TVSubtitleData *sub = (TVSubtitleData *)AM_CC_GetUserData(handle);
+            char json[64] = {0};
+            snprintf(json, 64, "{%s:{g:%d,i:%d,dlsv:%d}}",
+                tag,
+                pr->auth,
+                pr->id,
+                pr->dlsv
+            );
+            data_update(sub->obj, json);
+       }
     }
 
     static void pes_tt_cb(AM_PES_Handle_t handle, uint8_t *buf, int size)
@@ -422,6 +440,33 @@ error:
             gJavaVM->DetachCurrentThread();
         }
     }
+
+    static void data_update(jobject obj, char *json)
+    {
+        JNIEnv *env;
+        int ret;
+        int attached = 0;
+
+        if (!obj)
+            return;
+
+        ret = gJavaVM->GetEnv((void **) &env, JNI_VERSION_1_4);
+
+        if (ret < 0) {
+            ret = gJavaVM->AttachCurrentThread(&env, NULL);
+            if (ret < 0) {
+                LOGE("Can't attach thread");
+                return;
+            }
+            attached = 1;
+        }
+        jstring data = env->NewStringUTF(json);
+        env->CallVoidMethod(obj, gUpdateDataID, data);
+
+        if (attached) {
+            gJavaVM->DetachCurrentThread();
+        }
+   }
 
     static jint get_subtitle_piture_width(JNIEnv *env, jobject obj)
     {
@@ -756,6 +801,7 @@ error:
         cc_para.draw_end = cc_draw_end_cb;
         cc_para.user_data = (void *)data;
         cc_para.input = (AM_CC_Input_t)source;
+        cc_para.rating_cb = cc_rating_cb;
         spara.caption                  = (AM_CC_CaptionMode_t)caption;
         spara.user_options.bg_color    = (AM_CC_Color_t)bg_color;
         spara.user_options.fg_color    = (AM_CC_Color_t)fg_color;
@@ -909,6 +955,8 @@ error:
         gUpdateID = env->GetMethodID(clazz, "update", "()V");
 
         gBitmapID = env->GetStaticFieldID(clazz, "bitmap", "Landroid/graphics/Bitmap;");
+
+        gUpdateDataID = env->GetMethodID(clazz, "updateData", "(Ljava/lang/String;)V");
 
         LOGI("load jnitvsubtitle ok");
         return JNI_VERSION_1_4;

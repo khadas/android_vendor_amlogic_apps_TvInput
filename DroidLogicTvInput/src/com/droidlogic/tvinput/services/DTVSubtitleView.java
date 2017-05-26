@@ -744,5 +744,9 @@ public class DTVSubtitleView extends View {
         Log.d(TAG, "force set visible to:" + value);
         visible = value;
     }
+
+    public void updateData(String json) {
+
+    }
 }
 
