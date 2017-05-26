@@ -114,7 +114,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                 String action = intent.getAction();
                   Log.d(TAG, "-----onReceive:"+action);
                   if (mCurrentSession != null)
-                      mCurrentSession.stopSubtitle();
+                      mCurrentSession.doRelease();
             }
     };
 
@@ -126,7 +126,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                 if (action.equals(TvInputManager.ACTION_BLOCKED_RATINGS_CHANGED)
                     || action.equals(TvInputManager.ACTION_PARENTAL_CONTROLS_ENABLED_CHANGED)) {
                     Log.d(TAG, "BLOCKED_RATINGS_CHANGED");
-                    mCurrentSession.checkContentBlockNeeded();
+                    mCurrentSession.checkCurrentContentBlockNeeded();
                 } else if (action.equals(Intent.ACTION_TIME_CHANGED)) {
                     Log.d(TAG, "SysTime changed.");
                     mCurrentSession.restartMonitorTime();
@@ -341,7 +341,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                         if (mCurrentSession == msg.obj) {
                             switch (msg.what) {
                                 case MSG_PARENTAL_CONTROL:
-                                    checkContentBlockNeeded();
+                                    checkContentBlockNeeded(mCurrentChannel);
                                     break;
                                 default:
                                     break;
@@ -366,6 +366,8 @@ public class DTVInputService extends DroidLogicTvInputService {
 
             mUnblockedRatingSet.clear();
             mChannelBlocked = -1;
+
+            stopSubtitle();
 
             subtitleAutoStart = mSystemControlManager.getPropertyBoolean(DTV_SUBTITLE_AUTO_START, false);
             subtitleAutoSave = subtitleAutoStart;
@@ -394,7 +396,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             mTvControlManager.TvSetFrontEnd(new TvControlManager.FEParas(info.getFEParas()));
             setMonitor(info);
 
-            checkContentBlockNeeded();
+            checkContentBlockNeeded(info);
 
             return true;
         }
@@ -426,8 +428,6 @@ public class DTVInputService extends DroidLogicTvInputService {
             mSystemControlManager.setProperty(DTV_AUDIO_TRACK_IDX,
                         ((audioTrackAuto>=0)? String.valueOf(audioTrackAuto) : "-1"));
 
-            stopSubtitle();
-
             notifyTracks(info);
 
             startSubtitle(info);
@@ -438,11 +438,16 @@ public class DTVInputService extends DroidLogicTvInputService {
         }
 
         private void updateChannelBlockStatus(boolean channelBlocked,
-                TvContentRating contentRating) {
-            Log.d(TAG, "updateBlock:"+channelBlocked + " curBlock:"+mChannelBlocked);
-            if ((mChannelBlocked != -1) && (mChannelBlocked == 1) == channelBlocked) {
+                TvContentRating contentRating, ChannelInfo channelInfo) {
+            Log.d(TAG, "updateBlock:"+channelBlocked + " curBlock:"+mChannelBlocked + " channel:"+channelInfo.getId());
+
+            //maybe from the previous channel
+            if (TvContract.buildChannelUri(channelInfo.getId()).compareTo(mCurrentUri) != 0)
                 return;
-            }
+
+            if ((mChannelBlocked != -1) && (mChannelBlocked == 1) == channelBlocked)
+                return;
+
             mChannelBlocked = (channelBlocked ? 1 : 0);
             if (channelBlocked) {
                 stopSubtitle();
@@ -459,12 +464,15 @@ public class DTVInputService extends DroidLogicTvInputService {
             }
         }
 
-        private TvContentRating getContentRatingOfCurrentProgramBlocked() {
+        protected TvContentRating[] getContentRatingsOfCurrentProgram(ChannelInfo channelInfo) {
             TVTime tvTime = new TVTime(mContext);
-            Program mCurrentProgram = mTvDataBaseManager.getProgram(mCurrentUri, tvTime.getTime());
+            Program mCurrentProgram = mTvDataBaseManager.getProgram(TvContract.buildChannelUri(channelInfo.getId()), tvTime.getTime());
             Log.d(TAG, "Time:"+getDateAndTime(tvTime.getTime()));
-            TvContentRating[] ratings = mCurrentProgram == null ? null : mCurrentProgram.getContentRatings();
+            return mCurrentProgram == null ? null : mCurrentProgram.getContentRatings();
+        }
 
+        protected TvContentRating getContentRatingOfCurrentProgramBlocked(ChannelInfo channelInfo) {
+            TvContentRating ratings[] = getContentRatingsOfCurrentProgram(channelInfo);
             if (ratings == null)
                 return null;
 
@@ -484,35 +492,37 @@ public class DTVInputService extends DroidLogicTvInputService {
 
         public int mParentControlDelay = 2000;
 
-        protected void doParentalControls() {
+        protected void doParentalControls(ChannelInfo channelInfo) {
             if (mHandler != null)
                 mHandler.removeMessages(MSG_PARENTAL_CONTROL);
 
             if (mTvInputManager == null)
                 mTvInputManager = (TvInputManager)getSystemService(Context.TV_INPUT_SERVICE);
+
             Log.d(TAG, "doPC:"+this);
+
             boolean isParentalControlsEnabled = mTvInputManager.isParentalControlsEnabled();
             if (isParentalControlsEnabled) {
-                TvContentRating blockContentRating = getContentRatingOfCurrentProgramBlocked();
+                TvContentRating blockContentRating = getContentRatingOfCurrentProgramBlocked(channelInfo);
                 if (blockContentRating != null) {
                     Log.d(TAG, "Check parental controls: blocked by content rating - "
                             + blockContentRating.flattenToString());
                 } else {
                     Log.d(TAG, "Check parental controls: available");
                 }
-                updateChannelBlockStatus(blockContentRating != null, blockContentRating);
+                updateChannelBlockStatus(blockContentRating != null, blockContentRating, channelInfo);
             } else {
                 Log.d(TAG, "Check parental controls: disabled");
-                updateChannelBlockStatus(false, null);
+                updateChannelBlockStatus(false, null, channelInfo);
             }
 
-            TVTime tvTime = new TVTime(mContext);
-            Program mNextProgram = null;
-            Program mCurrentProgram = mTvDataBaseManager.getProgram(mCurrentUri, tvTime.getTime());
-            if (mCurrentProgram != null)
-                    mNextProgram = mTvDataBaseManager.getProgram(mCurrentUri, mCurrentProgram.getEndTimeUtcMillis() + 1);
             if (mHandler != null) {
                 if (false) {
+                    TVTime tvTime = new TVTime(mContext);
+                    Program mCurrentProgram = mTvDataBaseManager.getProgram(TvContract.buildChannelUri(channelInfo.getId()), tvTime.getTime());
+                    Program mNextProgram = null;
+                    if (mCurrentProgram != null)
+                        mNextProgram = mTvDataBaseManager.getProgram(TvContract.buildChannelUri(channelInfo.getId()), mCurrentProgram.getEndTimeUtcMillis() + 1);
                     mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_PARENTAL_CONTROL, this),
                         (mNextProgram == null ? mParentControlDelay : mNextProgram.getStartTimeUtcMillis() - tvTime.getTime()));
                     Log.d(TAG, "doPC next:"+(mNextProgram == null ? mParentControlDelay : mNextProgram.getStartTimeUtcMillis() - tvTime.getTime())+"ms");
@@ -523,9 +533,13 @@ public class DTVInputService extends DroidLogicTvInputService {
             }
         }
 
-        protected void checkContentBlockNeeded() {
-            //doParentalControls();
-            updateChannelBlockStatus(false, null);
+        protected void checkContentBlockNeeded(ChannelInfo channelInfo) {
+            //doParentalControls(channelInfo);
+            updateChannelBlockStatus(false, null, channelInfo);
+        }
+
+        protected void checkCurrentContentBlockNeeded() {
+            checkContentBlockNeeded(mCurrentChannel);
         }
 
         protected void unblockContent(TvContentRating rating) {
@@ -875,9 +889,17 @@ public class DTVInputService extends DroidLogicTvInputService {
 
         protected View initSubtitleView() {
             if (mSubtitleView == null) {
-                mSubtitleView = new DTVSubtitleView(mContext);
+                mSubtitleView = new DTVSubtitleView(mContext) {
+                    @Override
+                    public void updateData(String json) {
+                        onSubtitleData(json);
+                    }
+                };
             }
             return mSubtitleView;
+        }
+
+        protected void onSubtitleData(String json) {
         }
 
         private class CCStyleParams {
@@ -1574,105 +1596,6 @@ public class DTVInputService extends DroidLogicTvInputService {
                 return (evt.source_id != -1);
             }
 
-
-            private TvContentRating[] getRatings(String ratingString) {
-                String RatingDomain = "com.android.tv";
-
-                if (ratingString == null || ratingString.isEmpty())
-                    return null;
-
-                ArrayList<TvContentRating> RatingList = new ArrayList<TvContentRating>();
-
-                /*
-                {
-                    //g=region, rx=ratings, d=dimension, r=rating value, rs:rating string
-                    {g:0,rx:[{d:0,r:3},{d:2,r:1},{d:4,r:1}],rs:[{lng:"eng",txt:"TV-PG-L-V"}]},
-                    {g:1,rx:[{d:7,r:3},rs:[{lng:"eng",txt:"MPAA-PG"}]}
-                    ...
-                }
-                */
-                JSONArray regionArray;
-                try {
-                    regionArray = new JSONArray(ratingString);
-                } catch (JSONException e) {
-                    throw new RuntimeException("Json parse fail: ["+ratingString+"]", e);
-                }
-
-                Log.d(TAG, "rating:"+ratingString);
-
-                int ArraySize = regionArray.length();
-                for (int i = 0; i < regionArray.length(); i++) {
-                    JSONObject g = regionArray.optJSONObject(i);
-                    if (g == null)
-                        continue;
-
-                    String ratingDescription = TVMultilingualText.getTextJ(g.optString("rs"));
-                    int region = g.optInt("g", -1);
-
-                    JSONArray ratings = g.optJSONArray("rx");
-                    if (ratings != null) {
-                        JSONObject ratingValues = ratings.optJSONObject(0);
-                        int dimension = ratingValues.optInt("d", -1);
-                        int value = ratingValues.optInt("r", -1);
-                        if (dimension == -1 || value == -1)
-                            continue;
-                        if (region == 1) {//US ratings
-                            if (dimension == 7
-                                    /*&& ratingDescription != null
-                                    && ratingDescription.startsWith("MPAA-")*/
-                                    ) {
-                                TvContentRating r = TvContentRating.createRating(RatingDomain, "US_MV",
-                                        DroidLogicTvUtils.US_ContentRatingDimensions[dimension][value]);
-                                RatingList.add(r);
-                                Log.d(TAG, "add rating:"+r.flattenToString());
-                            } else /*if (ratingDescription != null
-                                        && ratingDescription.startsWith("TV-")
-                                    )*/ {
-                                ArrayList<String> subRatings = new ArrayList<String>();
-                                for (int j = 1; j < ratings.length(); j++) {
-                                    JSONObject subRatingValues = ratings.optJSONObject(j);
-                                    int subDimension = subRatingValues.optInt("d", -1);
-                                    int subValue = subRatingValues.optInt("r", -1);
-                                    if (subDimension == -1 || subValue == -1)
-                                        continue;
-                                    subRatings.add(DroidLogicTvUtils.US_ContentRatingDimensions[subDimension][subValue]);
-                                }
-                                if (dimension == 255)
-                                    dimension = 0;
-                                TvContentRating r = TvContentRating.createRating(RatingDomain, "US_TV",
-                                        DroidLogicTvUtils.US_ContentRatingDimensions[dimension][value],
-                                        subRatings.toArray(new String[subRatings.size()]));
-                                RatingList.add(r);
-                                Log.d(TAG, "add rating:"+r.flattenToString());
-                            }
-                        } else if (region == 2) {//Canadian ratings
-                            for (int j = 0; j < ratings.length(); j++) {
-                                JSONObject RatingValues = ratings.optJSONObject(j);
-                                int Dimension = RatingValues.optInt("d", -1);
-                                int Value = RatingValues.optInt("r", -1);
-                                if (Dimension == -1 || Value == -1)
-                                     continue;
-                                if (Dimension == 0) {
-                                    //canadian english language rating
-                                    TvContentRating r = TvContentRating.createRating(RatingDomain, "CA_TV_EN",
-                                            DroidLogicTvUtils.CA_EN_ContentRatingDimensions[Value]);
-                                    RatingList.add(r);
-                                    Log.d(TAG, "add rating:"+r.flattenToString());
-                                } else if (Dimension == 1) {
-                                    //canadian frech language rating
-                                    TvContentRating r = TvContentRating.createRating(RatingDomain, "CA_TV_FR",
-                                            DroidLogicTvUtils.CA_FR_ContentRatingDimensions[Value]);
-                                    RatingList.add(r);
-                                    Log.d(TAG, "add rating:"+r.flattenToString());
-                                }
-                            }
-                        }
-                    }
-                }
-
-                return (RatingList.size() == 0 ? null : RatingList.toArray(new TvContentRating[RatingList.size()]));
-            }
-
             private List<Program> getChannelPrograms(Uri channelUri, ChannelInfo channel,
                     DTVEpgScanner.Event event) {
                 List<Program> programs = new ArrayList<>();
@@ -1688,11 +1611,10 @@ public class DTVInputService extends DroidLogicTvInputService {
                                     .setChannelId(ContentUris.parseId(channelUri))
                                     .setTitle(TVMultilingualText.getText((evt.name == null ? null : new String(evt.name)), languages))
                                     .setDescription(TVMultilingualText.getText((evt.ext_descr == null ? null : new String(evt.ext_descr)), languages))
-                                    .setContentRatings(evt.rrt_ratings == null ? null : getRatings(new String(evt.rrt_ratings)))
+                                    .setContentRatings(evt.rrt_ratings == null ? null : DroidLogicTvUtils.parseDRatings(new String(evt.rrt_ratings)))
                                     //.setCanonicalGenres(programInfo.genres)
                                     //.setPosterArtUri(programInfo.posterArtUri)
-                                    //.setInternalProviderData(TvContractUtils.convertVideoInfoToInternalProviderData(
-                                    //        programInfo.videoType, programInfo.videoUrl))
+                                    .setInternalProviderData(new String(evt.rrt_ratings))
                                     .setStartTimeUtcMillis(start * 1000)
                                     .setEndTimeUtcMillis(end * 1000)
                                     .build();
