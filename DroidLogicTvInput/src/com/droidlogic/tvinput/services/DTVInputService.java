@@ -563,11 +563,12 @@ public class DTVInputService extends DroidLogicTvInputService {
                 String height = mSystemControlManager.readSysFs("/sys/class/video/frame_height");
                 String pi = mSystemControlManager.readSysFs("/sys/class/deinterlace/di0/frame_format");
                 String format = DroidLogicTvUtils.convertVideoFormat(height, pi);
-                if (!TextUtils.equals(format, mCurrentChannel.getVideoFormat())) {
-                    mCurrentChannel.setVideoFormat(format);
-                    mTvDataBaseManager.updateChannelInfo(mCurrentChannel);
+                if (mCurrentChannel != null) {
+                    if (!TextUtils.equals(format, mCurrentChannel.getVideoFormat())) {
+                        mCurrentChannel.setVideoFormat(format);
+                        mTvDataBaseManager.updateChannelInfo(mCurrentChannel);
+                    }
                 }
-
                 // TODO: audioinfo only for test here, should be used by app
                 TvControlManager.AudioFormatInfo audioInfo = mTvControlManager.DtvGetAudioFormatInfo();
                 mSystemControlManager.setProperty("tv.dtv.audio.channels",
