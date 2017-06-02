@@ -1442,8 +1442,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             fe.setAudioStd(atvAudioStd);
             TvControlManager.ScanParas scan = new TvControlManager.ScanParas();
             if (atvScanType != TvControlManager.ScanType.SCAN_ATV_NONE) {
-                atvFreq1 = dtvFreq - 9750000;
-                atvFreq2 = dtvFreq + 1250000;
+                atvFreq1 = dtvFreq - 5750000;
+                atvFreq2 = dtvFreq + 5250000;
                 scan.setAtvFrequency1(atvFreq1);
                 scan.setAtvFrequency2(atvFreq2);
             }
