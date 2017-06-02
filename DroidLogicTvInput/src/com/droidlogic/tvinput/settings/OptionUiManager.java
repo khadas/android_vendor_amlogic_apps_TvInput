@@ -1388,13 +1388,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         case ManualScanEdit.SCAN_ATV_DTV:
             Log.d(TAG, "MANUAL_SCAN_ATV_DTV");
             if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_C)) {
-                if (((TvSettingsActivity)mContext).mManualScanEdit.checkCableMode() == ScanEdit.CABLE_MODE_STANDARD) {
-                    mode.setList(1);
-                } else if (((TvSettingsActivity)mContext).mManualScanEdit.checkCableMode() == ScanEdit.CABLE_MODE_LRC) {
-                    mode.setList(2);
-                } else if (((TvSettingsActivity)mContext).mManualScanEdit.checkCableMode() == ScanEdit.CABLE_MODE_HRC) {
-                    mode.setList(3);
-                }
+                mode.setList(1);
             }
             mode.setExt(mode.getExt() | 1);//mixed adtv
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_MODE, mode.getMode());
@@ -1411,13 +1405,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         case ManualScanEdit.SCAN_ONLY_DTV:
             Log.d(TAG, "MANUAL_SCAN_ONLY_DTV");
             if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_C)) {
-                if (((TvSettingsActivity)mContext).mManualScanEdit.checkCableMode() == ScanEdit.CABLE_MODE_STANDARD) {
-                    mode.setList(1);
-                } else if (((TvSettingsActivity)mContext).mManualScanEdit.checkCableMode() == ScanEdit.CABLE_MODE_LRC) {
-                    mode.setList(2);
-                } else if (((TvSettingsActivity)mContext).mManualScanEdit.checkCableMode() == ScanEdit.CABLE_MODE_HRC) {
-                    mode.setList(3);
-                }
+                mode.setList(1);
             }
             mode.setExt(mode.getExt() | 1);//mixed adtv
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_MODE, mode.getMode());
@@ -1668,15 +1656,38 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     private int getDvbFrequencyByPd(int pd_number) { // KHz
         int the_freq = 706000000;
         String type = mSettingsManager.getDtvType();
-        if (type.equals(TvContract.Channels.TYPE_ATSC_T)) {
-            the_freq = 473028615;
-        }
         ArrayList<FreqList> m_fList = mTvControlManager.DTVGetScanFreqList(new TvControlManager.TvMode(type).getMode());
         int size = m_fList.size();
-        for (int i = 0; i < size; i++) {
-            if (pd_number == m_fList.get(i).ID) {
-                the_freq = m_fList.get(i).freq;
-                break;
+        if (type.equals(TvContract.Channels.TYPE_ATSC_T)) {
+            the_freq = 57028615;
+            if (pd_number == 1) {
+                return the_freq;
+            }
+            pd_number = pd_number - 1;
+            for (int i = 0; i < size; i++) {
+                if (pd_number == m_fList.get(i).ID) {
+                    the_freq = m_fList.get(i).freq;
+                    break;
+                }
+            }
+        } else if (type.equals(TvContract.Channels.TYPE_ATSC_C)) {
+            the_freq = 57000000;
+            if (pd_number == 1) {
+                return the_freq;
+            }
+            pd_number = pd_number - 1;
+            for (int i = 0; i < size; i++) {
+                if (pd_number == m_fList.get(i).ID) {
+                        the_freq = m_fList.get(i).freq;
+                    break;
+                }
+            }
+         } else {
+            for (int i = 0; i < size; i++) {
+                if (pd_number == m_fList.get(i).ID) {
+                    the_freq = m_fList.get(i).freq;
+                    break;
+                }
             }
         }
         return the_freq;

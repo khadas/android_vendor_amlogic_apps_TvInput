@@ -35,9 +35,9 @@ public class ManualScanEdit implements OnFocusChangeListener , OnClickListener, 
     private TextView atvText;
     private Switch dtvSwitch;
     private Switch atvSwitch;
-    private RadioButton standardRb;
-    private RadioButton lrcRb;
-    private RadioButton hrcRb;
+    //private RadioButton standardRb;
+   // private RadioButton lrcRb;
+   // private RadioButton hrcRb;
     private Context mContext;
     private RadioGroup dtv_radio_group;
     private String mInputId;
@@ -65,16 +65,16 @@ public class ManualScanEdit implements OnFocusChangeListener , OnClickListener, 
         atvSwitch.setOnFocusChangeListener(this);
         atvSwitch.setOnCheckedChangeListener(this);
 
-        dtv_radio_group = (RadioGroup) mParent.findViewById(R.id.dtv_radio_group_manual);
+       // dtv_radio_group = (RadioGroup) mParent.findViewById(R.id.dtv_radio_group_manual);
 
-        standardRb = (RadioButton) mParent.findViewById(R.id.rb_standard_manual);
-        standardRb.setOnFocusChangeListener(this);
+        //standardRb = (RadioButton) mParent.findViewById(R.id.rb_standard_manual);
+        //standardRb.setOnFocusChangeListener(this);
 
-        lrcRb = (RadioButton) mParent.findViewById(R.id.rb_lrc_manual);
-        lrcRb.setOnFocusChangeListener(this);
+        //lrcRb = (RadioButton) mParent.findViewById(R.id.rb_lrc_manual);
+        //lrcRb.setOnFocusChangeListener(this);
 
-        hrcRb = (RadioButton) mParent.findViewById(R.id.rb_hrc_manual);
-        hrcRb.setOnFocusChangeListener(this);
+        //hrcRb = (RadioButton) mParent.findViewById(R.id.rb_hrc_manual);
+        //hrcRb.setOnFocusChangeListener(this);
         mOptionEditText =(OptionEditText) mParent.findViewById(R.id.manual_search_dtv_channel_manual);
         initViewNextFocus();
     }
@@ -86,19 +86,19 @@ public class ManualScanEdit implements OnFocusChangeListener , OnClickListener, 
         dtvSwitch.setNextFocusLeftId(R.id.content_list);
         dtvSwitch.setNextFocusDownId(R.id.manual_search_dtv_channel_manual);
         atvSwitch.setNextFocusUpId(R.id.sw_atv_manual);
-        standardRb.setNextFocusLeftId(R.id.content_list);
-        standardRb.setNextFocusRightId(R.id.rb_standard_manual);
-        lrcRb.setNextFocusLeftId(R.id.content_list);
-        lrcRb.setNextFocusRightId(R.id.rb_lrc_manual);
-        hrcRb.setNextFocusLeftId(R.id.content_list);
-        hrcRb.setNextFocusRightId(R.id.rb_hrc_manual);
+        //standardRb.setNextFocusLeftId(R.id.content_list);
+        //standardRb.setNextFocusRightId(R.id.rb_standard_manual);
+        //lrcRb.setNextFocusLeftId(R.id.content_list);
+        //lrcRb.setNextFocusRightId(R.id.rb_lrc_manual);
+        //hrcRb.setNextFocusLeftId(R.id.content_list);
+        //hrcRb.setNextFocusRightId(R.id.rb_hrc_manual);
         mOptionEditText.setNextFocusUpId(R.id.sw_dtv_manual);
-        if (dtvSwitch.isChecked() && getTvType().equals(TvContract.Channels.TYPE_ATSC_C)) {
+        /*if (dtvSwitch.isChecked() && getTvType().equals(TvContract.Channels.TYPE_ATSC_C)) {
             dtv_radio_group.setVisibility(View.VISIBLE);
             atvSwitch.setNextFocusDownId(R.id.rb_standard_manual);
             dtvSwitch.setNextFocusDownId(R.id.rb_standard_manual);
-            mOptionEditText.setNextFocusUpId(R.id.rb_hrc_manual);
-        }
+            mOptionEditText.setNextFocusUpId(R.id.rb_lrc_manual);
+        }*/
     }
 
     private void initViewBackgroundColor() {
@@ -107,12 +107,12 @@ public class ManualScanEdit implements OnFocusChangeListener , OnClickListener, 
         dtvText.setTextColor(mContext.getResources().getColor(R.color.color_text_item));
         atvText.setBackgroundColor(android.R.color.transparent);
         atvText.setTextColor(mContext.getResources().getColor(R.color.color_text_item));
-        standardRb.setBackgroundColor(android.R.color.transparent);
-        standardRb.setTextColor(mContext.getResources().getColor(R.color.color_text_item));
-        lrcRb.setBackgroundColor(android.R.color.transparent);
-        lrcRb.setTextColor(mContext.getResources().getColor(R.color.color_text_item));
-        hrcRb.setBackgroundColor(android.R.color.transparent);
-        hrcRb.setTextColor(mContext.getResources().getColor(R.color.color_text_item));
+        //standardRb.setBackgroundColor(android.R.color.transparent);
+        //standardRb.setTextColor(mContext.getResources().getColor(R.color.color_text_item));
+        //lrcRb.setBackgroundColor(android.R.color.transparent);
+        //lrcRb.setTextColor(mContext.getResources().getColor(R.color.color_text_item));
+        //hrcRb.setBackgroundColor(android.R.color.transparent);
+        //hrcRb.setTextColor(mContext.getResources().getColor(R.color.color_text_item));
     }
     @Override
     public void onFocusChange(View v, boolean hasFocus) {
@@ -138,7 +138,7 @@ public class ManualScanEdit implements OnFocusChangeListener , OnClickListener, 
                     atvText.setBackgroundResource(R.color.selected);
                 }
                 break;
-            case R.id.rb_standard_manual:
+           /* case R.id.rb_standard_manual:
                 if (!hasFocus) {
                     standardRb.setBackgroundColor(android.R.color.transparent);
                     standardRb.setTextColor(mContext.getResources().getColor(R.color.color_text_item));
@@ -164,7 +164,7 @@ public class ManualScanEdit implements OnFocusChangeListener , OnClickListener, 
                     hrcRb.setTextColor(mContext.getResources().getColor(R.color.color_text_focused));
                     hrcRb.setBackgroundResource(R.color.selected);
                 }
-                break;
+                break;*/
             }
         }
     }
@@ -188,16 +188,16 @@ public class ManualScanEdit implements OnFocusChangeListener , OnClickListener, 
         case R.id.sw_dtv_manual:
             if (isChecked) {
                 if (getTvType().equals(TvContract.Channels.TYPE_ATSC_C)) {
-                    dtv_radio_group.setVisibility(View.VISIBLE);
-                    atvSwitch.setNextFocusDownId(R.id.rb_standard_manual);
-                    dtvSwitch.setNextFocusDownId(R.id.rb_standard_manual);
-                    mOptionEditText.setNextFocusUpId(R.id.rb_hrc_manual);
+                    //dtv_radio_group.setVisibility(View.VISIBLE);
+                    atvSwitch.setNextFocusDownId(R.id.manual_search_dtv_channel_manual);
+                    dtvSwitch.setNextFocusDownId(R.id.manual_search_dtv_channel_manual);
+                    mOptionEditText.setNextFocusUpId(R.id.sw_dtv_manual);
                 }
             } else {
                 if (!atvSwitch.isChecked()) {
                     atvSwitch.setChecked(true);
                 }
-                dtv_radio_group.setVisibility(View.GONE);
+                //dtv_radio_group.setVisibility(View.GONE);
                 atvSwitch.setNextFocusDownId(R.id.manual_search_dtv_channel_manual);
                 dtvSwitch.setNextFocusDownId(R.id.manual_search_dtv_channel_manual);
                 mOptionEditText.setNextFocusUpId(R.id.sw_dtv_manual);
@@ -219,18 +219,16 @@ public class ManualScanEdit implements OnFocusChangeListener , OnClickListener, 
         }
     }
 
-    public int checkCableMode() {
+    /*public int checkCableMode() {
         Log.d(TAG," checkCableMode ");
-        if (standardRb.isChecked() && !lrcRb.isChecked() && !hrcRb.isChecked()) {
+        if (standardRb.isChecked() && !lrcRb.isChecked() ) {
             return CABLE_MODE_STANDARD;
-        }else if(!standardRb.isChecked() && lrcRb.isChecked() && !hrcRb.isChecked()) {
+        }else if(!standardRb.isChecked() && lrcRb.isChecked() ) {
             return CABLE_MODE_LRC;
-        }else if(!standardRb.isChecked() && !lrcRb.isChecked() && hrcRb.isChecked()) {
-            return CABLE_MODE_HRC;
         }else {
             return 0;
         }
-    }
+    }*/
 
     private String getTvType() {
         int deviceId = DroidLogicTvUtils.getHardwareDeviceId(mInputId);
