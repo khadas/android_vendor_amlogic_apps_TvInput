@@ -60,6 +60,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
     public ScanEdit mScanEdit;
     public ManualScanEdit mManualScanEdit;
 
+    private TvInputInfo mTvInputInfo;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -107,6 +108,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
         mOptionUiManager = new OptionUiManager(this);
         startShowActivityTimer();
 
+        mSettingsManager.startTvPlayAndSetSourceInput();
     }
 
     private void setDefaultFragment() {
