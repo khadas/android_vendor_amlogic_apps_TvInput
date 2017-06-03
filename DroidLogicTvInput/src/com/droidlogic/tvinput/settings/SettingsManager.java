@@ -1619,4 +1619,10 @@ public class SettingsManager {
         mContext.sendBroadcast(intent);
     }
 
+    public void startTvPlayAndSetSourceInput() {
+            mTvControlManager.StartTv();
+            int deviceId = DroidLogicTvUtils.getHardwareDeviceId(mInputId);
+            //Log.e(TAG,"deviceId:"+deviceId);
+            mTvControlManager.SetSourceInput(mTvSourceInput, DroidLogicTvUtils.parseTvSourceInputFromDeviceId(deviceId));
+        }
 }
