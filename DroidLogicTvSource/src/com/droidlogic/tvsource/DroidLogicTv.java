@@ -762,7 +762,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 if (!down)
                     return true;
 
-                if (mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_DTV) {
+                if (mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_DTV || mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_ATV) {
                     doTrackKey(TvTrackInfo.TYPE_AUDIO);
                 }
                 return true;
@@ -959,7 +959,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 showCustomToast(getResources().getString(R.string.subtitle), getResources().getString(R.string.no),type);
         } else if (type == TvTrackInfo.TYPE_AUDIO) {
             String audioTrackId = mSourceView.getSelectedTrack(TvTrackInfo.TYPE_AUDIO);
-            if (audioTrackId != null) {
+            Boolean isAtvSign  = (mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_ATV) ? true : false;
+            if (audioTrackId != null && !isAtvSign) {
                 List<TvTrackInfo> aTrackList = mSourceView.getTracks(TvTrackInfo.TYPE_AUDIO);
                 int aTrackIndex = 0;
                 for (aTrackIndex = 0; aTrackIndex < aTrackList.size(); aTrackIndex++) {
@@ -973,9 +974,40 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     updateTracksInfo(aTrackIndex, -1);
                 }
                 showCustomToast(getResources().getString(R.string.audio_track), aTrackList.get(aTrackIndex).getLanguage(),type);
+            } else if (isAtvSign) {
+                int audiochannelindex = 0;
+                audiochannelindex = mTvControlManager.GetAudioOutmode();
+                if (isToastShow) {
+                    audiochannelindex = audiochannelindex + 1;
+                    if (audiochannelindex > 2) {
+                        audiochannelindex = 0;
+                    }
+                    setAtvAudioOutmode(audiochannelindex);
+                }
+                showCustomToast(getResources().getString(R.string.audio_track), getAtvAudioOutmode(), type);
             } else
                 showCustomToast(getResources().getString(R.string.audio_track), getResources().getString(R.string.no),type);
         }
+    }
+
+    private String getAtvAudioOutmode(){
+        int mode = mTvControlManager.GetAudioOutmode();
+        Utils.logd(TAG, "getAtvAudioOutmode"+" mode = " + mode);
+        switch (mode) {
+            case TvControlManager.AUDIO_OUTMODE_MONO:
+                return getResources().getString(R.string.audio_outmode_mono);
+            case TvControlManager.AUDIO_OUTMODE_STEREO:
+                return getResources().getString(R.string.audio_outmode_stereo);
+            case TvControlManager.AUDIO_OUTMODE_SAP:
+                return getResources().getString(R.string.audio_outmode_sap);
+            default:
+                return getResources().getString(R.string.audio_outmode_stereo);
+        }
+    }
+
+    private void setAtvAudioOutmode(int mode) {
+        Utils.logd(TAG, "setAtvAudioOutmode"+" mode = " + mode);
+        mTvControlManager.SetAudioOutmode(mode);
     }
 
     public void processKeyInputChannel(int offset) {

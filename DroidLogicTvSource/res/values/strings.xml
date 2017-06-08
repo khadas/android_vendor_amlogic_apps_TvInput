@@ -28,6 +28,9 @@
     <string name="radio">Radio</string>
 
     <string name="audio_track">Auido track</string>
+    <string name="audio_outmode_mono">Mono</string>
+    <string name="audio_outmode_stereo">Stereo</string>
+    <string name="audio_outmode_sap">SAP</string>
     <string name="subtitle">Subtitle</string>
     <string name="no">null</string>
     <string name="off">off</string>
