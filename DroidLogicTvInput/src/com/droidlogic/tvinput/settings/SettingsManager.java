@@ -1051,6 +1051,9 @@ public class SettingsManager {
             case DroidLogicTvUtils.DEVICE_ID_HDMI3:
                 hdmiPortID = TvControlManager.HdmiPortID.HDMI_PORT_3;
                 break;
+            case DroidLogicTvUtils.DEVICE_ID_HDMI4:
+                hdmiPortID = TvControlManager.HdmiPortID.HDMI_PORT_4;
+                break;
             default:
                 hdmiPortID = TvControlManager.HdmiPortID.HDMI_PORT_1;
                 Log.w(TAG, "current source input is NOT HDMI");
