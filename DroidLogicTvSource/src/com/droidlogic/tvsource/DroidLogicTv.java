@@ -1011,8 +1011,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             keyInputNumber = Integer.toString(mSourceInput.getChannelVideoList().valueAt((index + offset) % size).getNumber());
         else
             keyInputNumber = Integer.toString(mSourceInput.getChannelVideoList().valueAt((size + (index + offset) % size) % size).getNumber());
-        if (mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_DTV ||
-            mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_ADTV) {
+        if (mSourceInput.getSigType() == DroidLogicTvUtils.SIG_INFO_TYPE_DTV ||
+            mSourceInput.getSigType() == DroidLogicTvUtils.SIG_INFO_TYPE_ADTV) {
             showUi(Utils.UI_TYPE_DTV_INFO,false);
             mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_CHANNEL_NUM_SWITCH), 300);
         } else {
@@ -1030,7 +1030,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         int val = keyCode - DroidLogicKeyEvent.KEYCODE_0;
         if (keyInputNumber.length() <= 8)
             keyInputNumber = keyInputNumber + val;
-        if (mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_DTV || mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_ADTV) {
+        if (mSourceInput.getSigType() == DroidLogicTvUtils.SIG_INFO_TYPE_DTV || mSourceInput.getSigType() == DroidLogicTvUtils.SIG_INFO_TYPE_ADTV) {
             showUi(Utils.UI_TYPE_DTV_INFO, false);
             mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_CHANNEL_NUM_SWITCH), 2000);
         } else {
