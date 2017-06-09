@@ -445,7 +445,8 @@ public class DTVInputService extends DroidLogicTvInputService {
             if (TvContract.buildChannelUri(channelInfo.getId()).compareTo(mCurrentUri) != 0)
                 return;
 
-            if ((mChannelBlocked != -1) && (mChannelBlocked == 1) == channelBlocked)
+            if ((mChannelBlocked != -1) && (mChannelBlocked == 1) == channelBlocked
+                    && (!channelBlocked || (channelBlocked && contentRating != null && contentRating.equals(mLastBlockedRating))))
                 return;
 
             mChannelBlocked = (channelBlocked ? 1 : 0);
