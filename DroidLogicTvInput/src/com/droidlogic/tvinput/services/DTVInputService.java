@@ -1615,7 +1615,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                                     .setContentRatings(evt.rrt_ratings == null ? null : DroidLogicTvUtils.parseDRatings(new String(evt.rrt_ratings)))
                                     //.setCanonicalGenres(programInfo.genres)
                                     //.setPosterArtUri(programInfo.posterArtUri)
-                                    .setInternalProviderData(new String(evt.rrt_ratings))
+                                    .setInternalProviderData(evt.rrt_ratings == null ? null : new String(evt.rrt_ratings))
                                     .setStartTimeUtcMillis(start * 1000)
                                     .setEndTimeUtcMillis(end * 1000)
                                     .build();
