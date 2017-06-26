@@ -115,6 +115,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                   Log.d(TAG, "-----onReceive:"+action);
                   if (mCurrentSession != null)
                       mCurrentSession.doRelease();
+                  resetScanStoreListener();
             }
     };
 
