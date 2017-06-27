@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Arrays;
+import java.util.Iterator;
 
 import java.util.Date;
 import java.util.TimeZone;
@@ -220,6 +221,7 @@ public class DTVInputService extends DroidLogicTvInputService {
         protected TvContentRating mLastBlockedRating;
         protected final Set<TvContentRating> mUnblockedRatingSet = new HashSet<>();
         protected ChannelInfo mCurrentChannel;
+        protected List<ChannelInfo.Subtitle> mCurrentSubtitles;
         protected SystemControlManager mSystemControlManager;
 
         protected final static int AD_MIXING_LEVEL_DEF = 50;
@@ -244,6 +246,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             mSystemControlManager = new SystemControlManager(mContext);
             mLastBlockedRating = null;
             mCurrentChannel = null;
+            mCurrentSubtitles = null;
             mCurrentUri = null;
             initWorkThread();
         }
@@ -370,7 +373,7 @@ public class DTVInputService extends DroidLogicTvInputService {
 
             stopSubtitle();
 
-            subtitleAutoStart = mSystemControlManager.getPropertyBoolean(DTV_SUBTITLE_AUTO_START, false);
+            subtitleAutoStart = mSystemControlManager.getPropertyBoolean(DTV_SUBTITLE_AUTO_START, true);
             subtitleAutoSave = subtitleAutoStart;
 
             Log.d(TAG, "switchToSourceInput  uri=" + uri + " this:"+ this);
@@ -379,15 +382,26 @@ public class DTVInputService extends DroidLogicTvInputService {
                 mTvControlManager.PlayDTVProgram(
                     new TvControlManager.TvMode(mDtvType).getMode(), 470000000, 0, 0, 0, 0, -1, -1, 0, 0, false);
                 mCurrentChannel = null;
+                mCurrentSubtitles = null;
                 return;
             }
 
             ChannelInfo ch = mTvDataBaseManager.getChannelInfo(uri);
+
+            prepareChannelInfo(ch);
+
             if (ch != null) {
                 tryPlayProgram(ch);
             } else {
                 Log.w(TAG, "Failed to get channel info for " + uri);
                 mTvControlManager.SetAVPlaybackListener(null);
+            }
+        }
+
+        protected void prepareChannelInfo(ChannelInfo channel) {
+            mCurrentSubtitles = new ArrayList<ChannelInfo.Subtitle>();
+            if (channel != null) {
+                prepareSubtitles(mCurrentSubtitles, channel);
             }
         }
 
@@ -469,7 +483,7 @@ public class DTVInputService extends DroidLogicTvInputService {
         protected TvContentRating[] getContentRatingsOfCurrentProgram(ChannelInfo channelInfo) {
             TVTime tvTime = new TVTime(mContext);
             Program mCurrentProgram = mTvDataBaseManager.getProgram(TvContract.buildChannelUri(channelInfo.getId()), tvTime.getTime());
-            Log.d(TAG, "Time:"+getDateAndTime(tvTime.getTime()));
+            Log.d(TAG, "TvTime:"+getDateAndTime(tvTime.getTime()));
             return mCurrentProgram == null ? null : mCurrentProgram.getContentRatings();
         }
 
@@ -637,14 +651,9 @@ public class DTVInputService extends DroidLogicTvInputService {
                     stopSubtitle();
                     index = -2;
                 } else {
-                    Map<String, String> parsedMap = DroidLogicTvUtils.stringToMap(trackId);
-                    index = Integer.parseInt(parsedMap.get("id"));
-                    startSubtitle(Integer.parseInt(parsedMap.get("type")),
-                                  Integer.parseInt(parsedMap.get("pid")),
-                                  Integer.parseInt(parsedMap.get("stype")),
-                                  Integer.parseInt(parsedMap.get("uid1")),
-                                  Integer.parseInt(parsedMap.get("uid2")));
-                    mSystemControlManager.setProperty(DTV_SUBTITLE_TRACK_IDX, String.valueOf(index));
+                    ChannelInfo.Subtitle subtitle = parseSubtitleIdString(trackId);
+                    startSubtitle(subtitle);
+                    mSystemControlManager.setProperty(DTV_SUBTITLE_TRACK_IDX, String.valueOf(subtitle.id));
                 }
 
                 notifyTrackSelected(type, trackId);
@@ -708,57 +717,267 @@ public class DTVInputService extends DroidLogicTvInputService {
                     tracks.add(AudioTrack);
                     if (isDefault)
                         AudioSelectedId = Id;
-                    Log.d(TAG, "\t" + i + ": [" + audioLanguages[i] + "] [pid:" + audioPids[i] + "] [fmt:" + audioFormats[i] + "]"
+                    Log.d(TAG, "\t" + (isDefault ? ("*"+i+":[") : (""+i+": [")) + audioLanguages[i] + "]"
+                        + " [pid:" + audioPids[i] + "] [fmt:" + audioFormats[i] + "]"
                         + " [ext:" + Integer.toHexString(audioExts[i]) + "]");
                 }
             }
             return AudioSelectedId;
         }
 
-        protected String addSubtitleTracks(List <TvTrackInfo> tracks, ChannelInfo ch) {
-            String SubSelectedId = null;
+        protected List<ChannelInfo.Subtitle> getChannelProgramCaptions(ChannelInfo channelInfo) {
+            TVTime tvTime = new TVTime(mContext);
+            Program mCurrentProgram = mTvDataBaseManager.getProgram(TvContract.buildChannelUri(channelInfo.getId()), tvTime.getTime());
+            Log.d(TAG, "TvTime:"+getDateAndTime(tvTime.getTime()));
+            return DroidLogicTvUtils.parseAtscCaptions(mCurrentProgram == null ? null : mCurrentProgram.getInternalProviderData());
+        }
+
+        protected List<ChannelInfo.Subtitle> getChannelSubtitles(ChannelInfo ch) {
+            ArrayList<ChannelInfo.Subtitle> SubtitleList = new ArrayList<ChannelInfo.Subtitle>();
+
             int[] subPids = ch.getSubtitlePids();
             int SubTracksCount = (subPids == null) ? 0 : subPids.length;
-            if (SubTracksCount != 0) {
-                Log.d(TAG, "add subtitle tracks["+SubTracksCount+"]:");
-                String[] subLanguages = ch.getSubtitleLangs();
-                int[] subTypes = ch.getSubtitleTypes();
-                int[] subStypes = ch.getSubtitleStypes();
-                int[] subId1s = ch.getSubtitleId1s();
-                int[] subId2s = ch.getSubtitleId2s();
-                int subTrackAuto = getSubtitleTrackAuto(ch);
+            if (SubTracksCount == 0)
+                return null;
+            String[] subLanguages = ch.getSubtitleLangs();
+            int[] subTypes = ch.getSubtitleTypes();
+            int[] subStypes = ch.getSubtitleStypes();
+            int[] subId1s = ch.getSubtitleId1s();
+            int[] subId2s = ch.getSubtitleId2s();
 
-                if (tracks == null)
-                    tracks = new ArrayList<>();
-
-                for (int i = 0; i < SubTracksCount; i++) {
-                    boolean isDefault = false;
-                    if (subTrackAuto == i)
-                        isDefault = true;
-
-                    Map<String, String> map = new HashMap<String, String>();
-                    map.put("id", String.valueOf(i));
-                    map.put("pid", String.valueOf(subPids[i]));
-                    map.put("type", String.valueOf(subTypes[i]));
-                    map.put("stype", String.valueOf(subStypes[i]));
-                    map.put("uid1", String.valueOf(subId1s[i]));
-                    map.put("uid2", String.valueOf(subId2s[i]));
-                    //if (isDefault)
-                    //    map.put("default", String.valueOf(1));
-                    String Id = DroidLogicTvUtils.mapToString(map);
-                    TvTrackInfo SubtitleTrack =
-                        new TvTrackInfo.Builder(TvTrackInfo.TYPE_SUBTITLE, Id)
-                    .setLanguage(subLanguages[i])
-                    .build();
-                    tracks.add(SubtitleTrack);
-                    if (isDefault && subtitleAutoStart)
-                        SubSelectedId = Id;
-                    Log.d(TAG, "\t" + i + ": [" + subLanguages[i] + "] [pid:" + subPids[i] + "] [type:" + subTypes[i] + "]");
-                    Log.d(TAG, "\t" + "   [id1:" + subId1s[i] + "] [id2:" + subId2s[i] + "] [stype:" + subStypes[i] + "]");
-                }
-
+            for (int i = 0; i < SubTracksCount; i++) {
+                ChannelInfo.Subtitle s
+                    = new ChannelInfo.Subtitle(subTypes[i],
+                                            subPids[i],
+                                            subStypes[i],
+                                            subId1s[i],
+                                            subId2s[i],
+                                            subLanguages[i],
+                                            i);
+                SubtitleList.add(s);
             }
-            return SubSelectedId;
+            return (SubtitleList.size() == 0 ? null : SubtitleList);
+        }
+
+        protected List<ChannelInfo.Subtitle> getChannelFixedCaptions(ChannelInfo channel) {
+            ArrayList<ChannelInfo.Subtitle> SubtitleList = new ArrayList<ChannelInfo.Subtitle>();
+            int CaptionCSMax = 6;
+            int CaptionCCMax = 4;
+            int CaptionTXMax = 4;
+            boolean isAnalog = channel.isAnalogChannel();
+            int CaptionType
+                = isAnalog ? ChannelInfo.Subtitle.TYPE_ATV_CC : ChannelInfo.Subtitle.TYPE_DTV_CC;
+            int count = 0;
+
+            if (!isAnalog) {
+                for (int i = 0; i < CaptionCSMax; i++) {
+                    ChannelInfo.Subtitle s
+                        = new ChannelInfo.Subtitle(CaptionType,
+                                                ChannelInfo.Subtitle.CC_CAPTION_SERVICE1 + i,
+                                                CaptionType,
+                                                0,
+                                                0,
+                                                "CS"+(i+1),
+                                                count++);
+                    SubtitleList.add(s);
+                }
+            }
+            for (int i = 0; i < CaptionCCMax; i++) {
+                ChannelInfo.Subtitle s
+                    = new ChannelInfo.Subtitle(CaptionType,
+                                            ChannelInfo.Subtitle.CC_CAPTION_CC1 + i,
+                                            CaptionType,
+                                            0,
+                                            0,
+                                            "CC"+(i+1),
+                                            count++);
+                SubtitleList.add(s);
+            }
+            for (int i = 0; i < CaptionTXMax; i++) {
+                ChannelInfo.Subtitle s
+                    = new ChannelInfo.Subtitle(CaptionType,
+                                            ChannelInfo.Subtitle.CC_CAPTION_TEXT1 + i,
+                                            CaptionType,
+                                            0,
+                                            0,
+                                            "TX"+(i+1),
+                                            count++);
+                SubtitleList.add(s);
+            }
+            return SubtitleList;
+        }
+
+        protected ChannelInfo.Subtitle getExistSubtitleFromList(
+                List<ChannelInfo.Subtitle> subtitles, ChannelInfo.Subtitle sub) {
+
+            if (subtitles == null)
+                return null;
+
+            Iterator<ChannelInfo.Subtitle> iter = subtitles.iterator();
+            while (iter.hasNext()) {
+                ChannelInfo.Subtitle s = iter.next();
+                if (s.mType == sub.mType && s.mPid == sub.mPid)
+                    return s;
+            }
+            return null;
+        }
+
+        protected void prepareAtscCaptions(List<ChannelInfo.Subtitle> subtitles, ChannelInfo channel) {
+            if (subtitles == null)
+                return;
+
+            List<ChannelInfo.Subtitle> fixedSubs = getChannelFixedCaptions(channel);
+            List<ChannelInfo.Subtitle> channelSubs = getChannelSubtitles(channel);
+            List<ChannelInfo.Subtitle> programSubs = getChannelProgramCaptions(channel);
+
+            Log.d(TAG, "cc fixedSubs:"+ (fixedSubs==null? "null" : fixedSubs.size()));
+            Log.d(TAG, "cc channelSubs:"+(channelSubs==null? "null" : channelSubs.size()));
+            Log.d(TAG, "cc programSubs:"+(programSubs==null? "null" : programSubs.size()));
+
+            Iterator<ChannelInfo.Subtitle> iter = fixedSubs.iterator();
+            while (iter.hasNext()) {
+                ChannelInfo.Subtitle s = iter.next();
+                ChannelInfo.Subtitle sub = null;
+                sub = getExistSubtitleFromList(channelSubs, s);
+                if (sub != null)
+                    s = new ChannelInfo.Subtitle.Builder(sub).setId(s.id).setLang(s.mLang).build();
+                sub = getExistSubtitleFromList(programSubs, s);
+                if (sub != null)
+                    s = new ChannelInfo.Subtitle.Builder(sub).setId(s.id).setLang(s.mLang).build();;
+                subtitles.add(s);
+            }
+        }
+
+        protected int getAtscCaptionDefault(ChannelInfo channel) {
+            if (mCurrentSubtitles == null)
+                return 0;
+
+            List<ChannelInfo.Subtitle> fixedSubs = getChannelFixedCaptions(channel);
+            List<ChannelInfo.Subtitle> channelSubs = getChannelSubtitles(channel);
+            List<ChannelInfo.Subtitle> programSubs = getChannelProgramCaptions(channel);
+
+            //defult: cs(exist) > cc(exist) > cs1(fixed) > cc1(fixed) > 1st
+            //        event > channel > fixed
+            ChannelInfo.Subtitle defaultSub = null;
+            Iterator<ChannelInfo.Subtitle> iter = null;
+
+            if (programSubs != null) {
+                iter = programSubs.iterator();
+                while (iter.hasNext()) {
+                    ChannelInfo.Subtitle s = iter.next();
+                    if (defaultSub == null
+                        || (defaultSub.mStype == ChannelInfo.Subtitle.TYPE_ATV_CC
+                            && s.mStype == ChannelInfo.Subtitle.TYPE_DTV_CC )) {
+                        defaultSub = s;
+                        Log.d(TAG, "cc default to pid:"+s.mPid+" in program");
+                    }
+                }
+            }
+            if (channelSubs != null) {
+                iter = channelSubs.iterator();
+                while (iter.hasNext()) {
+                    ChannelInfo.Subtitle s = iter.next();
+                    if (defaultSub == null
+                        || (defaultSub.mStype == ChannelInfo.Subtitle.TYPE_ATV_CC
+                            && s.mStype == ChannelInfo.Subtitle.TYPE_DTV_CC )) {
+                        defaultSub = s;
+                        Log.d(TAG, "cc default to pid:"+s.mPid+" in channel");
+                    }
+                }
+            }
+            if (fixedSubs != null) {
+                iter = fixedSubs.iterator();
+                while (iter.hasNext()) {
+                    ChannelInfo.Subtitle s = iter.next();
+                    if (defaultSub == null
+                        || (defaultSub.mStype == ChannelInfo.Subtitle.TYPE_ATV_CC
+                            && s.mStype == ChannelInfo.Subtitle.TYPE_DTV_CC )) {
+                        defaultSub = s;
+                        Log.d(TAG, "cc default to pid:"+s.mPid+" in fixed");
+                    }
+                }
+            }
+            if (defaultSub == null)
+                return 0;
+
+            iter = mCurrentSubtitles.iterator();
+            while (iter.hasNext()) {
+                ChannelInfo.Subtitle s = iter.next();
+                if (s.mPid == defaultSub.mPid
+                    && s.mType == defaultSub.mType)
+                    return s.id;
+            }
+            Log.d(TAG, "cc FATAL, not found default");
+            return 0;
+        }
+        public boolean isAtscForcedStandard() {
+            String forcedStandard = mSystemControlManager.getProperty(DTV_STANDARD_FORCE);
+            return TextUtils.equals(forcedStandard, "atsc");
+        }
+
+        protected String generateSubtitleIdString(ChannelInfo.Subtitle subtitle) {
+            if (subtitle == null)
+                return null;
+
+            Map<String, String> map = new HashMap<String, String>();
+            map.put("id", String.valueOf(subtitle.id));
+            map.put("pid", String.valueOf(subtitle.mPid));
+            map.put("type", String.valueOf(subtitle.mType));
+            map.put("stype", String.valueOf(subtitle.mStype));
+            map.put("uid1", String.valueOf(subtitle.mId1));
+            map.put("uid2", String.valueOf(subtitle.mId2));
+            map.put("lang", subtitle.mLang);
+            return DroidLogicTvUtils.mapToString(map);
+        }
+
+        protected ChannelInfo.Subtitle parseSubtitleIdString(String subtitleId) {
+            if (subtitleId == null)
+                return null;
+
+            Map<String, String> parsedMap = DroidLogicTvUtils.stringToMap(subtitleId);
+            return new ChannelInfo.Subtitle(Integer.parseInt(parsedMap.get("type")),
+                            Integer.parseInt(parsedMap.get("pid")),
+                            Integer.parseInt(parsedMap.get("stype")),
+                            Integer.parseInt(parsedMap.get("uid1")),
+                            Integer.parseInt(parsedMap.get("uid2")),
+                            parsedMap.get("lang"),
+                            Integer.parseInt(parsedMap.get("id")));
+        }
+
+        protected void prepareSubtitles(List<ChannelInfo.Subtitle> subtitles, ChannelInfo channel) {
+            if (channel.isAtscChannel() || isAtscForcedStandard()) {
+                prepareAtscCaptions(subtitles, channel);
+            } else {
+                subtitles.addAll(getChannelSubtitles(channel));
+            }
+        }
+
+        protected String addSubtitleTracks(List <TvTrackInfo> tracks, ChannelInfo ch) {
+            if (mCurrentSubtitles == null)
+                return null;
+
+            Log.d(TAG, "add subtitle tracks["+mCurrentSubtitles.size()+"]");
+
+            int auto = (subtitleAutoStart? getSubtitleAuto(ch) : -1);
+            Iterator<ChannelInfo.Subtitle> iter = mCurrentSubtitles.iterator();
+            while (iter.hasNext()) {
+                ChannelInfo.Subtitle s = iter.next();
+                String Id = generateSubtitleIdString(s);
+                TvTrackInfo SubtitleTrack =
+                    new TvTrackInfo.Builder(TvTrackInfo.TYPE_SUBTITLE, Id)
+                        .setLanguage(s.mLang)
+                        .build();
+                tracks.add(SubtitleTrack);
+
+                Log.d(TAG, "\t" + ((subtitleAutoStart && (auto==s.id))? ("*"+s.id+":[") : (""+s.id+": [")) + s.mLang + "]"
+                    + " [pid:" + s.mPid + "] [type:" + s.mType + "]");
+                Log.d(TAG, "\t" + "   [id1:" + s.mId1 + "] [id2:" + s.mId2 + "] [stype:" + s.mStype + "]");
+            }
+
+            if (auto >= 0)
+                return generateSubtitleIdString(mCurrentSubtitles.get(auto));
+
+            return null;
         }
 
         protected void notifyTracks(ChannelInfo ch) {
@@ -783,7 +1002,7 @@ public class DTVInputService extends DroidLogicTvInputService {
 
         /*
                 Auto rule: channel specified track > default language track > system language > the 1st track > -1
-            */
+        */
         protected int getAudioTrackAuto(ChannelInfo info) {
             String[] trackLangArray = info.getAudioLangs();
             /*no audio tracks, get fail.*/
@@ -813,53 +1032,48 @@ public class DTVInputService extends DroidLogicTvInputService {
             return 0;
         }
 
-        protected int getSubtitleTrackAuto(ChannelInfo info) {
-            String[] trackLangArray = info.getSubtitleLangs();
-            if (trackLangArray == null)
-                return -1;
+        protected int getSubtitleAuto(ChannelInfo info) {
+            if (mCurrentSubtitles.size() == 0)
+                return 0;
 
             int index = info.getSubtitleTrackIndex();
-
             /*off by user*/
             if (index == -2)
                 return -2;
 
             /*if valid*/
-            if (index >= 0 && index < trackLangArray.length)
+            if (index >= 0 && index < mCurrentSubtitles.size())
                 return index;
 
-            String def_lan = Settings.System.getString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DEFAULT_LANGUAGE);
-            if (def_lan == null)
-                def_lan = TVMultilingualText.getLocalLang();
-            for (int trackIdx = 0; trackIdx < trackLangArray.length; trackIdx++) {
-                if (trackLangArray[trackIdx].equals(def_lan))
-                    return trackIdx;
+            String defaultLanguage = Settings.System.getString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DEFAULT_LANGUAGE);
+            if (defaultLanguage == null)
+                defaultLanguage = TVMultilingualText.getLocalLang();
+
+            Iterator<ChannelInfo.Subtitle> iter = mCurrentSubtitles.iterator();
+            while (iter.hasNext()) {
+                ChannelInfo.Subtitle s = iter.next();
+                if (TextUtils.equals(s.mLang, defaultLanguage)) {
+                    return s.id;
+                }
             }
+
+            if (info.isAtscChannel() || isAtscForcedStandard())
+                return getAtscCaptionDefault(info);
 
             /*none match, use the 1st.*/
             return 0;
         }
 
-
         protected DTVSubtitleView mSubtitleView = null;
-        protected static final int TYPE_DVB_SUBTITLE = 1;
-        protected static final int TYPE_DTV_TELETEXT = 2;
-        protected static final int TYPE_ATV_TELETEXT = 3;
-        protected static final int TYPE_DTV_CC = 4;
-        protected static final int TYPE_ATV_CC = 5;
 
         protected void startSubtitle(ChannelInfo channelInfo) {
 
             if (!subtitleAutoStart)
                 return ;
 
-            int idx = getSubtitleTrackAuto(channelInfo);
-            if (idx >= 0) {
-                startSubtitle(channelInfo.getSubtitleTypes()[idx],
-                              channelInfo.getSubtitlePids()[idx],
-                              channelInfo.getSubtitleStypes()[idx],
-                              channelInfo.getSubtitleId1s()[idx],
-                              channelInfo.getSubtitleId2s()[idx]);
+            int idx = getSubtitleAuto(channelInfo);
+            if (mCurrentSubtitles != null && idx >= 0) {
+                startSubtitle(mCurrentSubtitles.get(idx));
                 mSystemControlManager.setProperty(DTV_SUBTITLE_TRACK_IDX, String.valueOf(idx));
             } else {
                 stopSubtitle();
@@ -924,12 +1138,12 @@ public class DTVInputService extends DroidLogicTvInputService {
          }
 
         protected void setSubtitleParam(int type, int pid, int stype, int id1, int id2) {
-            if (type == TYPE_DVB_SUBTITLE) {
+            if (type == ChannelInfo.Subtitle.TYPE_DVB_SUBTITLE) {
                 DTVSubtitleView.DVBSubParams params =
                     new DTVSubtitleView.DVBSubParams(0, pid, id1, id2);
                 mSubtitleView.setSubParams(params);
 
-            } else if (type == TYPE_DTV_TELETEXT) {
+            } else if (type == ChannelInfo.Subtitle.TYPE_DTV_TELETEXT) {
                 int pgno;
                 pgno = (id1 == 0) ? 800 : id1 * 100;
                 pgno += (id2 & 15) + ((id2 >> 4) & 15) * 10 + ((id2 >> 8) & 15) * 100;
@@ -937,7 +1151,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                     new DTVSubtitleView.DTVTTParams(0, pid, pgno, 0x3F7F, getTeletextRegionID("English"));
                 mSubtitleView.setSubParams(params);
 
-            } else if (type == TYPE_DTV_CC) {
+            } else if (type == ChannelInfo.Subtitle.TYPE_DTV_CC) {
                 CCStyleParams ccParam = getCaptionStyle();
                 DTVSubtitleView.DTVCCParams params =
                     new DTVSubtitleView.DTVCCParams(pid,
@@ -951,7 +1165,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                 mSubtitleView.setMargin(225, 128, 225, 128);
                 Log.d(TAG, "DTV CC pid="+pid+",fg_color="+ccParam.fg_color+", fg_op="+ccParam.fg_opacity+", bg_color="+ccParam.bg_color+", bg_op="+ccParam.bg_opacity);
 
-            } else if (type == TYPE_ATV_CC) {
+            } else if (type == ChannelInfo.Subtitle.TYPE_ATV_CC) {
                 CCStyleParams ccParam = getCaptionStyle();
                 DTVSubtitleView.ATVCCParams params =
                     new DTVSubtitleView.ATVCCParams(pid,
@@ -1119,6 +1333,11 @@ public class DTVInputService extends DroidLogicTvInputService {
             setOverlayViewEnabled(true);
         }
 
+        protected void startSubtitle(ChannelInfo.Subtitle subtitle) {
+            if (subtitle != null)
+                startSubtitle(subtitle.mType, subtitle.mPid, subtitle.mStype, subtitle.mId1, subtitle.mId2);
+        }
+
         protected void stopSubtitle() {
             Log.d(TAG, "stop Subtitle");
 
@@ -1179,7 +1398,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             public void run() {
                 synchronized (mLock) {
                     Log.d(TAG, "monitor ch: " + mChannel.getDisplayNumber() + "-" + mChannel.getDisplayName());
-                    String standard = (mChannel.isAtscChannnel() ? "atsc" : "dvb");
+                    String standard = (mChannel.isAtscChannel() ? "atsc" : "dvb");
                     String forceStandard = mSystemControlManager.getProperty(DTV_STANDARD_FORCE);
                     Log.d(TAG, "std:"+standard + " forcestd:"+forceStandard);
                     if (forceStandard != null && forceStandard.length() != 0)

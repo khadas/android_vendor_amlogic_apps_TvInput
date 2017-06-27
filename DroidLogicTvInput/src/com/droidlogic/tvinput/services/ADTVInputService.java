@@ -153,13 +153,9 @@ public class ADTVInputService extends DTVInputService {
             if (!channelInfo.isAnalogChannel() && !subtitleAutoStart)
                 return ;
 
-            int idx = getSubtitleTrackAuto(channelInfo);
-            if (idx >= 0) {
-                startSubtitle(channelInfo.getSubtitleTypes()[idx],
-                              channelInfo.getSubtitlePids()[idx],
-                              channelInfo.getSubtitleStypes()[idx],
-                              channelInfo.getSubtitleId1s()[idx],
-                              channelInfo.getSubtitleId2s()[idx]);
+            int idx = getSubtitleAuto(channelInfo);
+            if (mCurrentSubtitles != null && idx >= 0) {
+                startSubtitle(mCurrentSubtitles.get(idx));
                 mSystemControlManager.setProperty(DTV_SUBTITLE_TRACK_IDX, String.valueOf(idx));
             } else if (channelInfo.isAnalogChannel()) {
                 startSubtitleAutoAnalog();
@@ -175,7 +171,7 @@ public class ADTVInputService extends DTVInputService {
 
             mSubtitleView.stop();
 
-            setSubtitleParam(TYPE_ATV_CC, DTVSubtitleView.CC_CAPTION_CC1, 0, 0, 0);//we need xds data
+            setSubtitleParam(ChannelInfo.Subtitle.TYPE_ATV_CC, ChannelInfo.Subtitle.CC_CAPTION_CC1, 0, 0, 0);//we need xds data
 
             mSubtitleView.setActive(true);
             mSubtitleView.startSub();
