@@ -154,11 +154,6 @@
                 <action android:name="android.intent.action.MAIN" />
             </intent-filter>
         </activity>
-        <service android:name=".services.TimeSuspendService" >
-            <intent-filter>
-                <action android:name="android.intent.action.suspend"></action>
-            </intent-filter>
-        </service>
         <activity
             android:name=".settings.HdmiExtendSetupActivity"
             android:label="@string/app_name" >

@@ -2,6 +2,8 @@ package com.droidlogic.tvinput.settings;
 
 import android.R.integer;
 import android.app.ActivityManager;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.ComponentName;
 import android.content.Intent;
@@ -14,6 +16,7 @@ import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.os.SystemProperties;
 
 import java.util.ArrayList;
@@ -35,7 +38,6 @@ import com.droidlogic.app.tv.TVInSignalInfo;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.app.tv.TVMultilingualText;
 import com.droidlogic.tvinput.R;
-import com.droidlogic.tvinput.services.TimeSuspendService;
 
 public class SettingsManager {
     public static final String TAG = "SettingsManager";
@@ -974,27 +976,27 @@ public class SettingsManager {
 
     public String getSleepTimerStatus () {
         String ret = "";
-        int time = mSystemControlManager.getPropertyInt("tv.sleep_timer", 0);
-        switch (time) {
+        int mode  = mSystemControlManager.getPropertyInt("tv.sleep_timer", 0);
+        switch (mode) {
             case 0://off
                 ret = mResources.getString(R.string.off);
                 break;
-            case 15://15min
+            case 1://15min
                 ret = mResources.getString(R.string.time_15min);
                 break;
-            case 30://30min
+            case 2://30min
                 ret = mResources.getString(R.string.time_30min);
                 break;
-            case 45://45min
+            case 3://45min
                 ret = mResources.getString(R.string.time_45min);
                 break;
-            case 60://60min
+            case 4://60min
                 ret = mResources.getString(R.string.time_60min);
                 break;
-            case 90://90min
+            case 5://90min
                 ret = mResources.getString(R.string.time_90min);
                 break;
-            case 120://120min
+            case 6://120min
                 ret = mResources.getString(R.string.time_120min);
                 break;
             default:
@@ -1498,11 +1500,25 @@ public class SettingsManager {
         Settings.System.putString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DTV_TYPE, type);
     }
 
-    public void setSleepTimer (int mins) {
-        mSystemControlManager.setProperty("tv.sleep_timer", mins+"");
-        //Intent intent = new Intent(DroidLogicTvUtils.ACTION_TIMEOUT_SUSPEND);
-        //mContext.sendBroadcast(intent);//to tvapp
-        mContext.startService ( new Intent ( mContext, TimeSuspendService.class ) );
+    public void setSleepTimer (int mode) {
+        AlarmManager alarm = (AlarmManager)mContext.getSystemService(Context.ALARM_SERVICE);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(mContext, 0,
+                new Intent("android.intent.action.TIMER_SUSPEND"), 0);
+        alarm.cancel(pendingIntent);
+
+        mSystemControlManager.setProperty("tv.sleep_timer", mode+"");
+
+        long timeout = 0;
+        if (mode == 0) {
+            return;
+        } else if (mode < 5) {
+            timeout = (mode * 15  - 1) * 60 * 1000;
+        } else {
+            timeout = ((mode - 4) * 30 + 4 * 15  - 1) * 60 * 1000;
+        }
+
+        alarm.setExact(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime() + timeout, pendingIntent);
+        Log.d(TAG, "start time count down after " + timeout + " ms");
     }
 
     public void setMenuTime (int seconds) {
