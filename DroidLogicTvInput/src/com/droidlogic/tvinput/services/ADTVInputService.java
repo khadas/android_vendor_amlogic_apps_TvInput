@@ -157,7 +157,7 @@ public class ADTVInputService extends DTVInputService {
             if (mCurrentSubtitles != null && idx >= 0) {
                 startSubtitle(mCurrentSubtitles.get(idx));
                 mSystemControlManager.setProperty(DTV_SUBTITLE_TRACK_IDX, String.valueOf(idx));
-            } else if (channelInfo.isAnalogChannel()) {
+            } else if (channelInfo.isNtscChannel()) {
                 startSubtitleAutoAnalog();
             } else {
                 stopSubtitle();

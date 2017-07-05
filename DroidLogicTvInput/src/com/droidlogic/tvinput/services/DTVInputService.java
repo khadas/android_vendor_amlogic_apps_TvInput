@@ -849,7 +849,7 @@ public class DTVInputService extends DroidLogicTvInputService {
         }
 
         protected int getAtscCaptionDefault(ChannelInfo channel) {
-            if (mCurrentSubtitles == null)
+            if (mCurrentSubtitles == null || mCurrentSubtitles.size() == 0)
                 return 0;
 
             List<ChannelInfo.Subtitle> fixedSubs = getChannelFixedCaptions(channel);
@@ -945,15 +945,17 @@ public class DTVInputService extends DroidLogicTvInputService {
         }
 
         protected void prepareSubtitles(List<ChannelInfo.Subtitle> subtitles, ChannelInfo channel) {
-            if (channel.isAtscChannel() || isAtscForcedStandard()) {
+            if (channel.isAtscChannel() || channel.isNtscChannel() || isAtscForcedStandard()) {
                 prepareAtscCaptions(subtitles, channel);
             } else {
-                subtitles.addAll(getChannelSubtitles(channel));
+                List<ChannelInfo.Subtitle> subs = getChannelSubtitles(channel);
+                if (subs != null)
+                    subtitles.addAll(subs);
             }
         }
 
         protected String addSubtitleTracks(List <TvTrackInfo> tracks, ChannelInfo ch) {
-            if (mCurrentSubtitles == null)
+            if (mCurrentSubtitles == null || mCurrentSubtitles.size() == 0)
                 return null;
 
             Log.d(TAG, "add subtitle tracks["+mCurrentSubtitles.size()+"]");
@@ -1033,8 +1035,8 @@ public class DTVInputService extends DroidLogicTvInputService {
         }
 
         protected int getSubtitleAuto(ChannelInfo info) {
-            if (mCurrentSubtitles.size() == 0)
-                return 0;
+            if (mCurrentSubtitles == null || mCurrentSubtitles.size() == 0)
+                return -1;
 
             int index = info.getSubtitleTrackIndex();
             /*off by user*/
