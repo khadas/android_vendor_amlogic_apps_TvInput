@@ -133,6 +133,10 @@ public class HdmiExtendInputService extends TvInputService {
         }
         @Override
         public boolean onKeyUp(int keyCode, KeyEvent event) {
+            if (isNavigationKey(keyCode)) {
+                mHardware.dispatchKeyEventToHdmi(event);
+                return true;
+            }
             return false;
         }
         @Override
