@@ -67,9 +67,9 @@ public class SettingsManager {
     public static final String KEY_BASS_BOOST                       = "bass_boost";
 
     public static final String KEY_CHANNEL                          = "channel";
-    public static final String KEY_AUIDO_TRACK                         = "audio_track";
-    public static final String KEY_SOUND_CHANNEL                        = "sound_channel";
-    public static final String KEY_CHANNEL_INFO                         = "channel_info";
+    public static final String KEY_AUIDO_TRACK                      = "audio_track";
+    public static final String KEY_SOUND_CHANNEL                    = "sound_channel";
+    public static final String KEY_CHANNEL_INFO                     = "channel_info";
     public static final String KEY_COLOR_SYSTEM                     = "color_system";
     public static final String KEY_SOUND_SYSTEM                     = "sound_system";
     public static final String KEY_VOLUME_COMPENSATE                = "volume_compensate";
@@ -90,19 +90,20 @@ public class SettingsManager {
     public static final String KEY_DEFAULT_LANGUAGE                 = "default_language";
     public static final String KEY_SUBTITLE_SWITCH                  = "sub_switch";
     public static final String KEY_AD_SWITCH                        = "ad_switch";
-    public static final String KEY_AD_MIX                         = "ad_mix_level";
-    public static final String KEY_AD_LIST                        = "ad_list";
+    public static final String KEY_AD_MIX                           = "ad_mix_level";
+    public static final String KEY_AD_LIST                          = "ad_list";
     public static final String KEY_HDMI20                           = "hdmi20";
     public static final String KEY_FBC_UPGRADE                      ="fbc_upgrade";
 
     public static final String STATUS_STANDARD                      = "standard";
     public static final String STATUS_VIVID                         = "vivid";
     public static final String STATUS_SOFT                          = "soft";
+    public static final String STATUS_MONITOR                       = "monitor";
     public static final String STATUS_USER                          = "user";
     public static final String STATUS_WARM                          = "warm";
-    public static final String STATUS_MUSIC                          = "music";
+    public static final String STATUS_MUSIC                         = "music";
     public static final String STATUS_NEWS                          = "news";
-    public static final String STATUS_MOVIE                          = "movie";
+    public static final String STATUS_MOVIE                         = "movie";
     public static final String STATUS_COOL                          = "cool";
     public static final String STATUS_ON                            = "on";
     public static final String STATUS_OFF                           = "off";
@@ -118,11 +119,11 @@ public class SettingsManager {
     public static final String STATUS_3D_UD_MODE                    = "up down mode";
     public static final String STATUS_3D_DU_MODE                    = "down up mode";
     public static final String STATUS_3D_TO_2D                      = "3D to 2D";
-    public static final String STATUS_PCM                            = "pcm";
-    public static final String STATUS_STEREO                         = "stereo";
+    public static final String STATUS_PCM                           = "pcm";
+    public static final String STATUS_STEREO                        = "stereo";
     public static final String STATUS_LEFT_CHANNEL                  = "left channel";
     public static final String STATUS_RIGHT_CHANNEL                 = "right channel";
-    public static final String STATUS_RAW                            = "raw";
+    public static final String STATUS_RAW                           = "raw";
 
     public static final String STATUS_DEFAULT_PERCENT               = "50%";
     public static final double STATUS_DEFAUT_FREQUENCY              = 44250000;
@@ -130,15 +131,15 @@ public class SettingsManager {
     public static final int PERCENT_DECREASE                        = -1;
     public static final int DEFAULT_SLEEP_TIMER                     = 0;
     public static final int DEFUALT_MENU_TIME                       = 10;
-    public static final String LAUNCHER_NAME                         = "com.android.launcher";
+    public static final String LAUNCHER_NAME                        = "com.android.launcher";
     public static final String LAUNCHER_ACTIVITY                    = "com.android.launcher2.Launcher";
-    public static final String TV_NAME                                = "com.droidlogic.tv";
-    public static final String TV_ACTIVITY                           = "com.droidlogic.tv.DroidLogicTv";
+    public static final String TV_NAME                              = "com.droidlogic.tv";
+    public static final String TV_ACTIVITY                          = "com.droidlogic.tv.DroidLogicTv";
 
-    public static final String STRING_ICON               = "icon";
-    public static final String STRING_NAME               = "name";
-    public static final String STRING_STATUS              = "status";
-    public static final String STRING_PRIVATE          = "private";
+    public static final String STRING_ICON                          = "icon";
+    public static final String STRING_NAME                          = "name";
+    public static final String STRING_STATUS                        = "status";
+    public static final String STRING_PRIVATE                       = "private";
     public static String currentTag = null;
 
     private Context mContext;
@@ -356,6 +357,8 @@ public class SettingsManager {
                 return mResources.getString(R.string.soft);
             case 3:
                 return mResources.getString(R.string.user);
+            case 6:
+                return mResources.getString(R.string.monitor);
             default:
                 return mResources.getString(R.string.standard);
         }
@@ -1096,6 +1099,8 @@ public class SettingsManager {
             mTvControlManager.SetPQMode(TvControlManager.PQMode.PQ_MODE_BRIGHT, mTvSourceInput, 1);
         } else if (mode.equals(STATUS_SOFT)) {
             mTvControlManager.SetPQMode(TvControlManager.PQMode.PQ_MODE_SOFTNESS, mTvSourceInput, 1);
+        } else if (mode.equals(STATUS_MONITOR)) {
+            mTvControlManager.SetPQMode(TvControlManager.PQMode.PQ_MODE_MONITOR, mTvSourceInput, 1);
         } else if (mode.equals(STATUS_USER)) {
             mTvControlManager.SetPQMode(TvControlManager.PQMode.PQ_MODE_USER, mTvSourceInput, 1);
         }
@@ -1115,6 +1120,7 @@ public class SettingsManager {
             case 0:
             case 1:
             case 2:
+            case 6:
                 setPictureMode(STATUS_USER);
                 break;
         }
