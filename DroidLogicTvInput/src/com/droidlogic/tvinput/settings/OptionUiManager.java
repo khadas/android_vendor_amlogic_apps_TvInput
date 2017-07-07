@@ -1777,12 +1777,12 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     //add by ww
     private void startAutosearch() {
         Log.d(TAG, "startAutoSearch");
+        TvControlManager.TvMode mode = new TvControlManager.TvMode(mSettingsManager.getDtvType());
         //mSettingsManager.sendBroadcastToTvapp("search_channel");
-        mTvDataBaseManager.deleteChannels(mSettingsManager.getInputId());
+        mTvDataBaseManager.deleteChannels(mSettingsManager.getInputId(), mode.toType());
         if (mSettingsManager.getCurentVirtualTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_ADTV) {
             Log.d(TAG, "ADTV");
 
-            TvControlManager.TvMode mode = new TvControlManager.TvMode(mSettingsManager.getDtvType());
             Bundle bundle = new Bundle();
             int[] freqPair = new int[2];
             mTvControlManager.ATVGetMinMaxFreq(freqPair);
@@ -1811,7 +1811,6 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_ATV_CHANNEL_INDEX, -1);
         } else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
             Log.d(TAG, "SOURCE_TYPE_DTV");
-            TvControlManager.TvMode mode = new TvControlManager.TvMode(mSettingsManager.getDtvType());
             Bundle bundle = new Bundle();
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_MODE, mode.getMode());
             bundle.putString(TvInputInfo.EXTRA_INPUT_ID,mSettingsManager.getInputId());
@@ -1826,9 +1825,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
 
     private void startAutosearchAccrodingTvMode() {
         Log.d(TAG, "startAutoSearch");
-        //mSettingsManager.sendBroadcastToTvapp("search_channel");
-        mTvDataBaseManager.deleteChannels(mSettingsManager.getInputId());
         TvControlManager.TvMode mode = new TvControlManager.TvMode(mSettingsManager.getDtvType());
+        //mSettingsManager.sendBroadcastToTvapp("search_channel");
+        mTvDataBaseManager.deleteChannels(mSettingsManager.getInputId(), mode.toType());
         Bundle bundle = new Bundle();
         int[] freqPair = new int[2];
         mTvControlManager.ATVGetMinMaxFreq(freqPair);
