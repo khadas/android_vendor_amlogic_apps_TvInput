@@ -77,6 +77,7 @@ public class DTVInputService extends DroidLogicTvInputService {
     protected static final String DTV_AUDIO_TRACK_IDX = "tv.dtv.audio_track_idx";
     protected static final String DTV_AUDIO_AD_TRACK_IDX = "tv.dtv.audio_ad_track_idx";
     protected static final String DTV_SUBTITLE_TRACK_IDX = "tv.dtv.subtitle_track_idx";
+    protected static final String DTV_AUDIO_TRACK_ID = "tv.dtv.audio_track_id";
 
     protected static final String DTV_SUBTITLE_AUTO_START = "tv.dtv.subtitle.autostart";
 
@@ -222,6 +223,7 @@ public class DTVInputService extends DroidLogicTvInputService {
         protected final Set<TvContentRating> mUnblockedRatingSet = new HashSet<>();
         protected ChannelInfo mCurrentChannel;
         protected List<ChannelInfo.Subtitle> mCurrentSubtitles;
+        protected List<ChannelInfo.Audio> mCurrentAudios;
         protected SystemControlManager mSystemControlManager;
 
         protected final static int AD_MIXING_LEVEL_DEF = 50;
@@ -247,6 +249,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             mLastBlockedRating = null;
             mCurrentChannel = null;
             mCurrentSubtitles = null;
+            mCurrentAudios = null;
             mCurrentUri = null;
             initWorkThread();
         }
@@ -310,7 +313,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                 if (mCurrentChannel != null) {
                     if (audioADAutoStart) {
                         if (adTrackIndex == -1)
-                            startAudioADByMain(mCurrentChannel, getAudioTrackAuto(mCurrentChannel));
+                            startAudioADByMain(mCurrentChannel, getAudioAuto(mCurrentChannel));
                         else
                             startAudioAD(mCurrentChannel, adTrackIndex);
                         return;
@@ -383,6 +386,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                     new TvControlManager.TvMode(mDtvType).getMode(), 470000000, 0, 0, 0, 0, -1, -1, 0, 0, false);
                 mCurrentChannel = null;
                 mCurrentSubtitles = null;
+                mCurrentAudios = null;
                 return;
             }
 
@@ -400,8 +404,10 @@ public class DTVInputService extends DroidLogicTvInputService {
 
         protected void prepareChannelInfo(ChannelInfo channel) {
             mCurrentSubtitles = new ArrayList<ChannelInfo.Subtitle>();
+            mCurrentAudios = new ArrayList<ChannelInfo.Audio>();
             if (channel != null) {
                 prepareSubtitles(mCurrentSubtitles, channel);
+                prepareAudios(mCurrentAudios, channel);
             }
         }
 
@@ -423,17 +429,21 @@ public class DTVInputService extends DroidLogicTvInputService {
             info.print();
 
             TvControlManager.FEParas fe = new TvControlManager.FEParas(info.getFEParas());
-            int audioTrackAuto = getAudioTrackAuto(info);
+            int audioAuto = getAudioAuto(info);
             int mixingLevel = mAudioADMixingLevel;
             if (mixingLevel < 0)
                 mixingLevel = Settings.System.getInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_AD_MIX, AD_MIXING_LEVEL_DEF);
+
+            ChannelInfo.Audio audio = null;
+            if (mCurrentAudios != null && audioAuto >= 0)
+                audio = mCurrentAudios.get(audioAuto);
 
             mTvControlManager.PlayDTVProgram(
                     fe,
                     info.getVideoPid(),
                     info.getVfmt(),
-                    (audioTrackAuto >= 0) ? info.getAudioPids()[audioTrackAuto] : -1,
-                    (audioTrackAuto >= 0) ? info.getAudioFormats()[audioTrackAuto] : -1,
+                    (audio != null) ? audio.mPid : -1,
+                    (audio != null) ? audio.mFormat : -1,
                     info.getPcrPid(),
                     info.getAudioCompensation(),
                     DroidLogicTvUtils.hasAudioADTracks(info),
@@ -441,13 +451,14 @@ public class DTVInputService extends DroidLogicTvInputService {
             mTvControlManager.DtvSetAudioChannleMod(info.getAudioChannel());
             mTvControlManager.SetAVPlaybackListener(this);
             mSystemControlManager.setProperty(DTV_AUDIO_TRACK_IDX,
-                        ((audioTrackAuto>=0)? String.valueOf(audioTrackAuto) : "-1"));
+                        ((audioAuto>=0)? String.valueOf(audioAuto) : "-1"));
+            mSystemControlManager.setProperty(DTV_AUDIO_TRACK_ID, generateAudioIdString(audio));
 
             notifyTracks(info);
 
             startSubtitle(info);
 
-            startAudioADByMain(info, audioTrackAuto);
+            startAudioADByMain(info, audioAuto);
 
             return true;
         }
@@ -620,17 +631,18 @@ public class DTVInputService extends DroidLogicTvInputService {
                     //close audio track
                     index = -2;
                 } else {
-                    Map<String, String> parsedMap = DroidLogicTvUtils.stringToMap(trackId);
-                    index = Integer.parseInt(parsedMap.get("id"));
-
-                    stopAudioAD();
-
-                    mTvControlManager.DtvSwitchAudioTrack(Integer.parseInt(parsedMap.get("pid")),
-                                            Integer.parseInt(parsedMap.get("fmt")),
-                                            0);
-                    mSystemControlManager.setProperty(DTV_AUDIO_TRACK_IDX, String.valueOf(index));
-
-                    startAudioADByMain(mCurrentChannel, index);
+                    String oldId = mSystemControlManager.getProperty(DTV_AUDIO_TRACK_ID);
+                    Log.d(TAG, "oldId:"+oldId);
+                    if (!trackId.equals(oldId)) {
+                        ChannelInfo.Audio audio = parseAudioIdString(trackId);
+                        stopAudioAD();
+                        mTvControlManager.DtvSwitchAudioTrack(audio.mPid, audio.mFormat, 0);
+                        mSystemControlManager.setProperty(DTV_AUDIO_TRACK_IDX, ""+audio.id);
+                        mSystemControlManager.setProperty(DTV_AUDIO_TRACK_ID, trackId);
+                        startAudioADByMain(mCurrentChannel, audio.id);
+                    } else {
+                        Log.d(TAG, "same audio track");
+                    }
                 }
 
                 notifyTrackSelected(type, trackId);
@@ -682,47 +694,88 @@ public class DTVInputService extends DroidLogicTvInputService {
             Log.d(TAG, "onOverlayViewSizeChanged[" + width + "," + height + "]");
         }
 
-        protected String addAudioTracks(List <TvTrackInfo> tracks, ChannelInfo ch) {
-            String AudioSelectedId = null;
+        protected String generateAudioIdString(ChannelInfo.Audio audio) {
+            if (audio == null)
+                return null;
+
+            Map<String, String> map = new HashMap<String, String>();
+            map.put("id", String.valueOf(audio.id));
+            map.put("pid", String.valueOf(audio.mPid));
+            map.put("fmt", String.valueOf(audio.mFormat));
+            map.put("ext", String.valueOf(audio.mExt));
+            map.put("lang", audio.mLang);
+            return DroidLogicTvUtils.mapToString(map);
+        }
+
+        protected ChannelInfo.Audio parseAudioIdString(String audioId) {
+            if (audioId == null)
+                return null;
+
+            Map<String, String> parsedMap = DroidLogicTvUtils.stringToMap(audioId);
+            return new ChannelInfo.Audio(
+                            Integer.parseInt(parsedMap.get("pid")),
+                            Integer.parseInt(parsedMap.get("fmt")),
+                            Integer.parseInt(parsedMap.get("ext")),
+                            parsedMap.get("lang"),
+                            Integer.parseInt(parsedMap.get("id")));
+        }
+
+        protected List<ChannelInfo.Audio> getChannelAudios(ChannelInfo ch) {
+            ArrayList<ChannelInfo.Audio> AudioList = new ArrayList<ChannelInfo.Audio>();
+
             int[] audioPids = ch.getAudioPids();
             int AudioTracksCount = (audioPids == null) ? 0 : audioPids.length;
-            if (AudioTracksCount != 0) {
-                Log.d(TAG, "add audio tracks["+AudioTracksCount+"]:");
-                String[] audioLanguages = ch.getAudioLangs();
-                int[] audioFormats = ch.getAudioFormats();
-                int[] audioExts = ch.getAudioExts();
-                int audioTrackAuto = getAudioTrackAuto(ch);
+            if (AudioTracksCount == 0)
+                return null;
+            String[] audioLanguages = ch.getAudioLangs();
+            int[] audioFormats = ch.getAudioFormats();
+            int[] audioExts = ch.getAudioExts();
 
-                if (tracks == null)
-                    tracks = new ArrayList<>();
-
-                for (int i = 0; i < AudioTracksCount; i++) {
-                    boolean isDefault = false;
-                    if (audioTrackAuto == i)
-                        isDefault = true;
-
-                    Map<String, String> map = new HashMap<String, String>();
-                    map.put("id", String.valueOf(i));
-                    map.put("pid", String.valueOf(audioPids[i]));
-                    map.put("fmt", String.valueOf(audioFormats[i]));
-                    map.put("ext", String.valueOf(audioExts[i]));
-                    //if (isDefault)
-                    //    map.put("default", String.valueOf(1));
-                    String Id = DroidLogicTvUtils.mapToString(map);
-                    TvTrackInfo AudioTrack =
-                        new TvTrackInfo.Builder(TvTrackInfo.TYPE_AUDIO, Id)
-                    .setLanguage(audioLanguages[i])
-                    .setAudioChannelCount(2)
-                    .build();
-                    tracks.add(AudioTrack);
-                    if (isDefault)
-                        AudioSelectedId = Id;
-                    Log.d(TAG, "\t" + (isDefault ? ("*"+i+":[") : (""+i+": [")) + audioLanguages[i] + "]"
-                        + " [pid:" + audioPids[i] + "] [fmt:" + audioFormats[i] + "]"
-                        + " [ext:" + Integer.toHexString(audioExts[i]) + "]");
-                }
+            for (int i = 0; i < AudioTracksCount; i++) {
+                ChannelInfo.Audio a
+                    = new ChannelInfo.Audio(audioPids[i],
+                                            audioFormats[i],
+                                            audioExts[i],
+                                            audioLanguages[i],
+                                            i);
+                AudioList.add(a);
             }
-            return AudioSelectedId;
+            return (AudioList.size() == 0 ? null : AudioList);
+        }
+
+        protected void prepareAudios(List<ChannelInfo.Audio> audios, ChannelInfo channel) {
+            List<ChannelInfo.Audio> auds = getChannelAudios(channel);
+            if (auds != null)
+                audios.addAll(auds);
+        }
+
+        protected String addAudioTracks(List <TvTrackInfo> tracks, ChannelInfo ch) {
+            if (mCurrentAudios == null || mCurrentAudios.size() == 0)
+                return null;
+
+            Log.d(TAG, "add audio tracks["+mCurrentAudios.size()+"]");
+
+            int auto = getAudioAuto(ch);
+            Iterator<ChannelInfo.Audio> iter = mCurrentAudios.iterator();
+            while (iter.hasNext()) {
+                ChannelInfo.Audio a = iter.next();
+                String Id = generateAudioIdString(a);
+                TvTrackInfo AudioTrack =
+                    new TvTrackInfo.Builder(TvTrackInfo.TYPE_AUDIO, Id)
+                        .setLanguage(a.mLang)
+                        .setAudioChannelCount(2)
+                        .build();
+                tracks.add(AudioTrack);
+
+                Log.d(TAG, "\t" + ((auto==a.id)? ("*"+a.id+":[") : (""+a.id+": [")) + a.mLang + "]"
+                    + " [pid:" + a.mPid + "] [fmt:" + a.mFormat + "]");
+                Log.d(TAG, "\t" + "   [ext:" + Integer.toHexString(a.mExt) + "]");
+            }
+
+            if (auto >= 0)
+                return generateAudioIdString(mCurrentAudios.get(auto));
+
+            return null;
         }
 
         protected List<ChannelInfo.Subtitle> getChannelProgramCaptions(ChannelInfo channelInfo) {
@@ -1005,29 +1058,30 @@ public class DTVInputService extends DroidLogicTvInputService {
         /*
                 Auto rule: channel specified track > default language track > system language > the 1st track > -1
         */
-        protected int getAudioTrackAuto(ChannelInfo info) {
-            String[] trackLangArray = info.getAudioLangs();
-            /*no audio tracks, get fail.*/
-            if (trackLangArray == null)
+        protected int getAudioAuto(ChannelInfo info) {
+            if (mCurrentAudios == null || mCurrentAudios.size() == 0)
                 return -1;
 
             int index = info.getAudioTrackIndex();
-
             /*off by user*/
             if (index == -2)
                 return -2;
 
             /*if valid*/
-            if (index >= 0 && index < trackLangArray.length)
+            if (index >= 0 && index < mCurrentAudios.size())
                 return index;
 
             /*default language track*/
-            String def_lan = Settings.System.getString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DEFAULT_LANGUAGE);
-            if (def_lan == null)/*system language track*/
-                def_lan = TVMultilingualText.getLocalLang();
-            for (int trackIdx = 0; trackIdx < trackLangArray.length; trackIdx++) {
-                if (trackLangArray[trackIdx].equals(def_lan))
-                    return trackIdx;
+            String defaultLanguage = Settings.System.getString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DEFAULT_LANGUAGE);
+            if (defaultLanguage == null)/*system language track*/
+                defaultLanguage = TVMultilingualText.getLocalLang();
+
+            Iterator<ChannelInfo.Audio> iter = mCurrentAudios.iterator();
+            while (iter.hasNext()) {
+                ChannelInfo.Audio a = iter.next();
+                if (TextUtils.equals(a.mLang, defaultLanguage)) {
+                    return a.id;
+                }
             }
 
             /*none match, use the 1st.*/

@@ -105,7 +105,10 @@ public class ADTVInputService extends DTVInputService {
 
             info.print();
 
-            int audioTrackAuto = getAudioTrackAuto(info);
+            int audioAuto = getAudioAuto(info);
+            ChannelInfo.Audio audio = null;
+            if (mCurrentAudios != null && audioAuto >= 0)
+                audio = mCurrentAudios.get(audioAuto);
 
             if (info.isAnalogChannel()) {
                 mTvControlManager.PlayATVProgram(info.getFrequency() + info.getFineTune(),
@@ -121,12 +124,13 @@ public class ADTVInputService extends DTVInputService {
                 if (mixingLevel < 0)
                     mixingLevel = Settings.System.getInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_AD_MIX, AD_MIXING_LEVEL_DEF);
 
+                Log.d(TAG, "v:"+info.getVideoPid()+" a:"+(audio!=null?audio.mPid:"null")+" p:"+info.getPcrPid());
                 mTvControlManager.PlayDTVProgram(
                         fe,
                         info.getVideoPid(),
                         info.getVfmt(),
-                        (audioTrackAuto >= 0) ? info.getAudioPids()[audioTrackAuto] : -1,
-                        (audioTrackAuto >= 0) ? info.getAudioFormats()[audioTrackAuto] : -1,
+                        (audio != null) ? audio.mPid : -1,
+                        (audio != null) ? audio.mFormat : -1,
                         info.getPcrPid(),
                         info.getAudioCompensation(),
                         DroidLogicTvUtils.hasAudioADTracks(info),
@@ -136,14 +140,15 @@ public class ADTVInputService extends DTVInputService {
             }
 
             mSystemControlManager.setProperty(DTV_AUDIO_TRACK_IDX,
-                        ((audioTrackAuto>=0)? String.valueOf(audioTrackAuto) : "-1"));
+                        ((audioAuto>=0)? String.valueOf(audioAuto) : "-1"));
+            mSystemControlManager.setProperty(DTV_AUDIO_TRACK_ID, generateAudioIdString(audio));
 
             notifyTracks(info);
 
             startSubtitle(info);
 
             if (!info.isAnalogChannel())
-                startAudioADByMain(info, audioTrackAuto);
+                startAudioADByMain(info, audioAuto);
 
             return true;
         }
