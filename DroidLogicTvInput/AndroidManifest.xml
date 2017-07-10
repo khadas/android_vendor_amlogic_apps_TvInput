@@ -23,6 +23,7 @@
     <uses-permission android:name="android.permission.SET_TIME" />
     <uses-permission android:name="android.permission.DEVICE_POWER" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="com.android.tv.permission.RECEIVE_INPUT_EVENT" />
 
     <application
         android:icon="@drawable/ic_launcher"
