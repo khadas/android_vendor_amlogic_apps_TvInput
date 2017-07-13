@@ -40,6 +40,8 @@ import com.droidlogic.app.tv.TVMultilingualText;
 import com.droidlogic.app.tv.TVTime;
 import com.droidlogic.app.tv.TvStoreManager;
 import com.droidlogic.app.SystemControlManager;
+import com.droidlogic.tvinput.widget.DTVSubtitleView;
+import com.droidlogic.tvinput.R;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -214,7 +216,8 @@ public class DTVInputService extends DroidLogicTvInputService {
     protected static DTVSessionImpl.DTVMonitor monitor = null;
     protected final Object mLock = new Object();
 
-    public class DTVSessionImpl extends TvInputBaseSession implements TvControlManager.AVPlaybackListener {
+    public class DTVSessionImpl extends TvInputBaseSession
+            implements TvControlManager.AVPlaybackListener, DTVSubtitleView.SubtitleDataListener {
         protected final Context mContext;
         protected TvInputManager mTvInputManager;
         protected TvDataBaseManager mTvDataBaseManager;
@@ -237,7 +240,6 @@ public class DTVInputService extends DroidLogicTvInputService {
         protected HandlerThread mHandlerThread = null;
         protected Handler mHandler = null;
 
-
         protected DTVSessionImpl(Context context, String inputId, int deviceId) {
             super(context, inputId, deviceId);
             Log.d(TAG, "create:" + this);
@@ -252,6 +254,11 @@ public class DTVInputService extends DroidLogicTvInputService {
             mCurrentAudios = null;
             mCurrentUri = null;
             initWorkThread();
+
+            initOverlayView(R.layout.layout_overlay);
+            mOverlayView.setImage(R.drawable.bg_no_signal);
+            mSubtitleView = (DTVSubtitleView)mOverlayView.getSubtitleView();
+            mSubtitleView.setSubtitleDataListener(this);
         }
 
         @Override
@@ -526,7 +533,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             if (mTvInputManager == null)
                 mTvInputManager = (TvInputManager)getSystemService(Context.TV_INPUT_SERVICE);
 
-            Log.d(TAG, "doPC:"+this);
+            //Log.d(TAG, "doPC:"+this);
 
             boolean isParentalControlsEnabled = mTvInputManager.isParentalControlsEnabled();
             if (isParentalControlsEnabled) {
@@ -535,11 +542,11 @@ public class DTVInputService extends DroidLogicTvInputService {
                     Log.d(TAG, "Check parental controls: blocked by content rating - "
                             + blockContentRating.flattenToString());
                 } else {
-                    Log.d(TAG, "Check parental controls: available");
+                    //Log.d(TAG, "Check parental controls: available");
                 }
                 updateChannelBlockStatus(blockContentRating != null, blockContentRating, channelInfo);
             } else {
-                Log.d(TAG, "Check parental controls: disabled");
+                //Log.d(TAG, "Check parental controls: disabled");
                 updateChannelBlockStatus(false, null, channelInfo);
             }
 
@@ -684,14 +691,36 @@ public class DTVInputService extends DroidLogicTvInputService {
         }
 
         @Override
-        public View onCreateOverlayView() {
-            Log.d(TAG, "onCreateOverlayView");
-            return initSubtitleView();
+        public void notifyVideoAvailable() {
+            Log.d(TAG, "notifyVideoAvailable ");
+            super.notifyVideoAvailable();
+            if (ChannelInfo.isRadioChannel(mCurrentChannel)) {
+                mOverlayView.setImage(R.drawable.bg_radio);
+                mOverlayView.setImageVisibility(true);
+                return;
+            }
         }
 
         @Override
-        public void onOverlayViewSizeChanged(int width, int height) {
-            Log.d(TAG, "onOverlayViewSizeChanged[" + width + "," + height + "]");
+        public void notifyVideoUnavailable(int reason) {
+            Log.d(TAG, "notifyVideoUnavailable: "+reason);
+            switch (reason) {
+                case TvInputManager.VIDEO_UNAVAILABLE_REASON_AUDIO_ONLY:
+                    super.notifyVideoAvailable();
+                    mOverlayView.setImage(R.drawable.bg_radio);
+                    mOverlayView.setImageVisibility(true);
+                    break;
+                case TvInputManager.VIDEO_UNAVAILABLE_REASON_TUNING:
+                case TvInputManager.VIDEO_UNAVAILABLE_REASON_BUFFERING:
+                case TvInputManager.VIDEO_UNAVAILABLE_REASON_WEAK_SIGNAL:
+                case TvInputManager.VIDEO_UNAVAILABLE_REASON_UNKNOWN:
+                default:
+                    super.notifyVideoAvailable();
+                    mOverlayView.setImage(R.drawable.bg_no_signal);
+                    mOverlayView.setImageVisibility(true);
+                    mOverlayView.setTextVisibility(true);
+                    break;
+            }
         }
 
         protected String generateAudioIdString(ChannelInfo.Audio audio) {
@@ -722,7 +751,6 @@ public class DTVInputService extends DroidLogicTvInputService {
 
         protected List<ChannelInfo.Audio> getChannelAudios(ChannelInfo ch) {
             ArrayList<ChannelInfo.Audio> AudioList = new ArrayList<ChannelInfo.Audio>();
-
             int[] audioPids = ch.getAudioPids();
             int AudioTracksCount = (audioPids == null) ? 0 : audioPids.length;
             if (AudioTracksCount == 0)
@@ -1159,19 +1187,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             return regionIDMaps[i];
         }
 
-        protected View initSubtitleView() {
-            if (mSubtitleView == null) {
-                mSubtitleView = new DTVSubtitleView(mContext) {
-                    @Override
-                    public void updateData(String json) {
-                        onSubtitleData(json);
-                    }
-                };
-            }
-            return mSubtitleView;
-        }
-
-        protected void onSubtitleData(String json) {
+        public void onSubtitleData(String json) {
         }
 
         private class CCStyleParams {
@@ -1376,8 +1392,10 @@ public class DTVInputService extends DroidLogicTvInputService {
 
         protected void startSubtitle(int type, int pid, int stype, int id1, int id2) {
             Log.d(TAG, "start Subtitle");
-
-            initSubtitleView();
+            if (mSubtitleView == null) {
+                Log.d(TAG, "subtitle view is null");
+                return;
+            }
 
             mSubtitleView.stop();
 
@@ -1385,8 +1403,8 @@ public class DTVInputService extends DroidLogicTvInputService {
 
             mSubtitleView.setActive(true);
             mSubtitleView.startSub();
+            mSessionHandler.sendMessage(mSessionHandler.obtainMessage(MSG_SUBTITLE_SHOW));
 
-            setOverlayViewEnabled(true);
         }
 
         protected void startSubtitle(ChannelInfo.Subtitle subtitle) {
@@ -1399,7 +1417,7 @@ public class DTVInputService extends DroidLogicTvInputService {
 
             if (mSubtitleView != null) {
                 mSubtitleView.stop();
-                setOverlayViewEnabled(false);
+                mSessionHandler.sendMessage(mSessionHandler.obtainMessage(MSG_SUBTITLE_HIDE));
             }
 
             mSystemControlManager.setProperty(DTV_SUBTITLE_TRACK_IDX, "-1");

@@ -23,6 +23,7 @@ import com.droidlogic.app.tv.DroidLogicTvInputService;
 import com.droidlogic.app.tv.TvDataBaseManager;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.app.tv.TvInputBaseSession;
+import com.droidlogic.tvinput.R;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -116,6 +117,9 @@ public class ATVInputService extends DroidLogicTvInputService {
             mTvControlManager = TvControlManager.getInstance();
             mLastBlockedRating = null;
             mCurrentChannel = null;
+
+            initOverlayView(R.layout.layout_overlay);
+            mOverlayView.setImage(R.drawable.bg_no_signal);
         }
         @Override
         public boolean onSetSurface(Surface surface) {
@@ -141,6 +145,14 @@ public class ATVInputService extends DroidLogicTvInputService {
                 || DroidLogicTvUtils.ACTION_ATV_MANUAL_SCAN.equals(action)) {
                 resetScanStoreListener();
             }*/
+        }
+
+        @Override
+        public void notifyVideoUnavailable(int reason) {
+            super.notifyVideoAvailable();
+            mOverlayView.setImage(R.drawable.bg_no_signal);
+            mOverlayView.setImageVisibility(true);
+            mOverlayView.setTextVisibility(true);
         }
 
         @Override

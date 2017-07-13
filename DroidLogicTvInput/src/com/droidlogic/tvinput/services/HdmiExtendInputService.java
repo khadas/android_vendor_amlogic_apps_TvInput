@@ -28,6 +28,11 @@ import android.media.tv.TvInputManager.HardwareCallback;
 import android.media.tv.TvInputHardwareInfo;
 import com.droidlogic.app.SystemControlManager;
 
+import android.view.View;
+import android.view.LayoutInflater;
+import com.droidlogic.tvinput.R;
+import com.droidlogic.tvinput.widget.OverlayView;
+
 public class HdmiExtendInputService extends TvInputService {
     private static final String TAG = "HdmiExtendInputService";
     private static final boolean DEBUG = true;
@@ -82,10 +87,17 @@ public class HdmiExtendInputService extends TvInputService {
     }
 
     public class HdmiExtendInputSession extends TvInputService.Session{
+        public OverlayView mOverlayView = null;
+
         public HdmiExtendInputSession(Context context) {
             super(context);
             mContext = context;
             Log.d(TAG, "HdmiExtendInputSession");
+            LayoutInflater inflater = (LayoutInflater)
+                    context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            mOverlayView = (OverlayView)inflater.inflate(R.layout.layout_overlay, null);
+            mOverlayView.setImage(R.drawable.hotplug_out);
+            setOverlayViewEnabled(true);
         }
         @Override
         public boolean onSetSurface(Surface surface) {
@@ -109,6 +121,7 @@ public class HdmiExtendInputService extends TvInputService {
         public void onRelease() {
             Log.d(TAG, "onRelease");
             mHardware.setSurface(null, null);
+            setOverlayViewEnabled(false);
         }
         @Override
         public void onSetStreamVolume(float volume) {
@@ -143,6 +156,30 @@ public class HdmiExtendInputService extends TvInputService {
         public void onSurfaceChanged(int format, int width, int height) {
             super.onSurfaceChanged(format, width, height);
         }
+
+        @Override
+        public View onCreateOverlayView() {
+            if (mOverlayView != null)
+                return mOverlayView;
+            return null;
+        }
+
+        @Override
+        public void onOverlayViewSizeChanged(int width, int height) {
+        }
+
+        @Override
+        public void notifyVideoAvailable() {
+            super.notifyVideoAvailable();
+            mOverlayView.setImageVisibility(false);
+        }
+
+        @Override
+        public void notifyVideoUnavailable(int reason) {
+            super.notifyVideoAvailable();
+            mOverlayView.setImageVisibility(true);
+        }
+
     }
 
     private int getHardwareDeviceId(String input_id) {

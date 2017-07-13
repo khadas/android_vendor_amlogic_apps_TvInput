@@ -194,4 +194,7 @@
     <string name="atv">ATV:</string>
     <string name="lrc">LRC</string>
     <string name="hrc">HRC</string>
+
+    <string name="nosignal">No Signal</string>
+
 </resources>

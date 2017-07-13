@@ -510,7 +510,7 @@ error:
         pthread_mutex_init(&data->lock, NULL);
 
         data->obj = env->NewGlobalRef(obj);
-        bmp = env->GetStaticObjectField(env->FindClass("com/droidlogic/tvinput/services/DTVSubtitleView"), gBitmapID);
+        bmp = env->GetStaticObjectField(env->FindClass("com/droidlogic/tvinput/widget/DTVSubtitleView"), gBitmapID);
         data->obj_bitmap = env->NewGlobalRef(bmp);
 
         data->buffer = get_bitmap(env, data, &data->bmp_w, &data->bmp_h, &data->bmp_pitch);
@@ -941,9 +941,9 @@ error:
             return -1;
         }
 
-        clazz = env->FindClass("com/droidlogic/tvinput/services/DTVSubtitleView");
+        clazz = env->FindClass("com/droidlogic/tvinput/widget/DTVSubtitleView");
         if (clazz == NULL) {
-            LOGE("FindClass com/droidlogic/tvinput/services/DTVSubtitleView failed");
+            LOGE("FindClass com/droidlogic/tvinput/widget/DTVSubtitleView failed");
             return -1;
         }
 

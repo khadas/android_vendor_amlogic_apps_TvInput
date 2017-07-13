@@ -9,6 +9,7 @@ import com.droidlogic.tvinput.Utils;
 import com.droidlogic.app.tv.DroidLogicTvInputService;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.app.tv.TvInputBaseSession;
+import com.droidlogic.tvinput.R;
 
 import android.content.Context;
 import android.content.pm.ResolveInfo;
@@ -69,6 +70,8 @@ public class Hdmi4InputService extends DroidLogicTvInputService {
         public Hdmi4InputSession(Context context, String inputId, int deviceId) {
             super(context, inputId, deviceId);
             Utils.logd(TAG, "=====new HdmiInputSession=====");
+            initOverlayView(R.layout.layout_overlay);
+            mOverlayView.setImage(R.drawable.hotplug_out);
         }
 
         @Override

@@ -1,4 +1,4 @@
-package com.droidlogic.tvinput.services;
+package com.droidlogic.tvinput.widget;
 
 import android.content.Context;
 import android.view.View;
@@ -745,8 +745,18 @@ public class DTVSubtitleView extends View {
         visible = value;
     }
 
+    private SubtitleDataListener mSubtitleDataListener = null;
     public void updateData(String json) {
-
+        mSubtitleDataListener.onSubtitleData(json);
     }
+
+    public void setSubtitleDataListener(SubtitleDataListener l) {
+        mSubtitleDataListener = l;
+    }
+
+    public interface SubtitleDataListener {
+        public void onSubtitleData(String json);
+    }
+
 }
 

@@ -172,7 +172,10 @@ public class ADTVInputService extends DTVInputService {
         protected void startSubtitleAutoAnalog() {
             Log.d(TAG, "start Subtitle AutoAnalog");
 
-            initSubtitleView();
+            if (mSubtitleView == null) {
+                Log.d(TAG, "subtitle view is null");
+                return;
+            }
 
             mSubtitleView.stop();
 
@@ -199,7 +202,7 @@ public class ADTVInputService extends DTVInputService {
         }
 
         @Override
-        protected void onSubtitleData(String json) {
+        public void onSubtitleData(String json) {
             mATVContentRatings = DroidLogicTvUtils.parseARatings(json);
             mHandler.sendMessage(mHandler.obtainMessage(MSG_PARENTAL_CONTROL, this));
         }
