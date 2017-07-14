@@ -111,6 +111,8 @@ public class ADTVInputService extends DTVInputService {
                 audio = mCurrentAudios.get(audioAuto);
 
             if (info.isAnalogChannel()) {
+                if (info.isNtscChannel())
+                    muteVideo(false);
                 mTvControlManager.PlayATVProgram(info.getFrequency() + info.getFineTune(),
                     info.getVideoStd(),
                     info.getAudioStd(),
@@ -153,6 +155,21 @@ public class ADTVInputService extends DTVInputService {
             return true;
         }
 
+        protected void muteVideo(boolean mute) {
+            if (mute)
+                mSystemControlManager.writeSysFs("/sys/class/deinterlace/di0/config", "hold_video 1");
+            else
+                mSystemControlManager.writeSysFs("/sys/class/deinterlace/di0/config", "hold_video 0");
+        }
+
+        @Override
+        protected void releasePlayerBlock() {
+            if (mCurrentChannel.isNtscChannel())
+                muteVideo(true);
+            else
+                super.releasePlayerBlock();
+        }
+
         @Override
         protected void startSubtitle(ChannelInfo channelInfo) {
             if (!channelInfo.isAnalogChannel() && !subtitleAutoStart)
@@ -182,7 +199,29 @@ public class ADTVInputService extends DTVInputService {
             setSubtitleParam(ChannelInfo.Subtitle.TYPE_ATV_CC, ChannelInfo.Subtitle.CC_CAPTION_CC1, 0, 0, 0);//we need xds data
 
             mSubtitleView.setActive(true);
+            mSubtitleView.show();
             mSubtitleView.startSub();
+        }
+
+        @Override
+        protected void stopSubtitleBlock() {
+            Log.d(TAG, "stopSubtitleBlock");
+
+            if (mCurrentChannel.isNtscChannel())
+                stopSubtitleAnalog();
+            else
+                stopSubtitle();
+        }
+
+        protected void stopSubtitleAnalog() {
+            Log.d(TAG, "stop Subtitle Analog");
+
+            if (mSubtitleView != null) {
+                mSubtitleView.hide();
+                setOverlayViewEnabled(false);
+            }
+
+            mSystemControlManager.setProperty(DTV_SUBTITLE_TRACK_IDX, "-1");
         }
 
         private TvContentRating[] mATVContentRatings = null;

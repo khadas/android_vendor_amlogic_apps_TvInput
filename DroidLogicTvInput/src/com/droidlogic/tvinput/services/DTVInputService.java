@@ -470,6 +470,10 @@ public class DTVInputService extends DroidLogicTvInputService {
             return true;
         }
 
+        protected void releasePlayerBlock() {
+            releasePlayer();
+        }
+
         private void updateChannelBlockStatus(boolean channelBlocked,
                 TvContentRating contentRating, ChannelInfo channelInfo) {
             Log.d(TAG, "updateBlock:"+channelBlocked + " curBlock:"+mChannelBlocked + " channel:"+channelInfo.getId());
@@ -484,8 +488,8 @@ public class DTVInputService extends DroidLogicTvInputService {
 
             mChannelBlocked = (channelBlocked ? 1 : 0);
             if (channelBlocked) {
-                stopSubtitle();
-                releasePlayer();
+                stopSubtitleBlock();
+                releasePlayerBlock();
                 if (contentRating != null) {
                     Log.d(TAG, "notifyBlock:"+contentRating.flattenToString());
                     notifyContentBlocked(contentRating);
@@ -667,7 +671,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             } else if (type == TvTrackInfo.TYPE_SUBTITLE) {
                 int index = -1;
                 if (trackId == null) {
-                    stopSubtitle();
+                    stopSubtitleUser();
                     index = -2;
                 } else {
                     ChannelInfo.Subtitle subtitle = parseSubtitleIdString(trackId);
@@ -1402,6 +1406,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             setSubtitleParam(type, pid, stype, id1, id2);
 
             mSubtitleView.setActive(true);
+            mSubtitleView.show();
             mSubtitleView.startSub();
             mSessionHandler.sendMessage(mSessionHandler.obtainMessage(MSG_SUBTITLE_SHOW));
 
@@ -1421,6 +1426,14 @@ public class DTVInputService extends DroidLogicTvInputService {
             }
 
             mSystemControlManager.setProperty(DTV_SUBTITLE_TRACK_IDX, "-1");
+        }
+
+        protected void stopSubtitleBlock() {
+            stopSubtitle();
+        }
+
+        protected void stopSubtitleUser() {
+            stopSubtitleBlock();
         }
 
         protected void startAudioADByMain(ChannelInfo channelInfo, int mainAudioTrackIndex) {
