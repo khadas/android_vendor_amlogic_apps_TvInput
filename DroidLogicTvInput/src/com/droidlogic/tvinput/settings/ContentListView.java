@@ -57,7 +57,7 @@ public class ContentListView extends ListView implements OnItemSelectedListener 
                         return true;
                     break;
                 case KeyEvent.KEYCODE_DPAD_LEFT:
-                    selectedPosition = 0;
+                    //selectedPosition = 0;
                     break;
                 case KeyEvent.KEYCODE_DPAD_RIGHT:
                     setMenuAlpha(false);

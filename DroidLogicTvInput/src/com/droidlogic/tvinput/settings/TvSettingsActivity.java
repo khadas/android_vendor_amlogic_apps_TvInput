@@ -48,7 +48,6 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
     private TvControlManager mTvControlManager;
     private AudioManager mAudioManager = null;
     private boolean isFinished = false;
-    private boolean isExiting = false;
 
     /*password to enter factory menu*/
     private int factoryPasswordFirstKey = 8;
@@ -119,6 +118,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
         transaction.commit();
     }
 
+    @Override
     public boolean dispatchKeyEvent (KeyEvent event) {
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             switch (event.getKeyCode()) {
@@ -174,15 +174,17 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
         return super.dispatchKeyEvent(event);
     }
 
+    @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         //Log.d(TAG, "==== focus =" + getCurrentFocus() + ", keycode =" + keyCode);
         switch (keyCode) {
             case KeyEvent.KEYCODE_BACK:
                 if (mOptionUiManager.isSearching()) {
                     mTvControlManager.DtvStopScan();
-                    return true;
+                } else {
+                    finish();
                 }
-                break;
+                return true;
             case KeyEvent.KEYCODE_MENU:
                 if (mOptionUiManager.isSearching()) {
                     mTvControlManager.DtvStopScan();
@@ -263,29 +265,42 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
 
             switch (v.getId()) {
                 case R.id.button_picture:
-                    currentFragment = new ContentFragment(R.xml.list_picture, v);
-                    transaction.replace(R.id.settings_list, currentFragment);
-                    transaction.commit();
+                    if (fragmentImage == null) {
+                        fragmentImage = new ContentFragment(R.xml.list_picture, v);
+                    }
+                    currentFragment = fragmentImage;
                     break;
                 case R.id.button_sound:
-                    currentFragment = new ContentFragment(R.xml.list_sound, v);
-                    transaction.replace(R.id.settings_list, currentFragment);
-                    transaction.commit();
+                    if (fragmentSound == null) {
+                        fragmentSound = new ContentFragment(R.xml.list_sound, v);
+                    }
+                    currentFragment = fragmentSound;
                     break;
                 case R.id.button_channel:
-                    if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV)
-                        currentFragment = new ContentFragment(R.xml.list_channel_dtv, v);
-                   else  if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV)
-                        currentFragment = new ContentFragment(R.xml.list_channel_atv, v);
-                    transaction.replace(R.id.settings_list, currentFragment);
-                    transaction.commit();
+                    if (fragmentChannel == null) {
+                        if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV)
+                            fragmentChannel = new ContentFragment(R.xml.list_channel_dtv, v);
+                       else  if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV)
+                            fragmentChannel = new ContentFragment(R.xml.list_channel_atv, v);
+                   }
+                    currentFragment = fragmentChannel;
                     break;
                 case R.id.button_settings:
-                    currentFragment = new ContentFragment(R.xml.list_settings, v);
-                    transaction.replace(R.id.settings_list, currentFragment);
-                    transaction.commit();
+                    if (fragmentSettings == null) {
+                        fragmentSettings = new ContentFragment(R.xml.list_settings, v);
+                    }
+                    currentFragment = fragmentSettings;
+                    break;
+                default:
+                    if (fragmentImage == null) {
+                        fragmentImage = new ContentFragment(R.xml.list_picture, v);
+                    }
+                    currentFragment = fragmentImage;
                     break;
             }
+
+            transaction.replace(R.id.settings_list, currentFragment);
+            transaction.commit();
             // transaction.addToBackStack();
         }
     }
@@ -308,12 +323,13 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
         // if press power in atv searching, suspend progress has called onPause/onStop,
         // and then receive scan exit or store end message, and it calls finish(),
         // so it will go back to tv app and play program, and can't go to sleep.
-        if (isExiting)
-            return;
+        //if (isExiting)
+        //    return;
         setResult(mSettingsManager.getActivityResult());
         super.finish();
     }
 
+    @Override
     public void onResume() {
         super.onResume();
         Log.d(TAG, "onResume");
@@ -321,31 +337,42 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
         filter.addAction(DroidLogicTvUtils.ACTION_CHANNEL_CHANGED);
         filter.addAction(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
         registerReceiver(mReceiver, filter);
-        isExiting = false;
         if (isFinished)
             finish();
     }
 
+    @Override
     public void onPause() {
         super.onPause();
         Log.d(TAG, "onPause");
-        isExiting = true;
         unregisterReceiver(mReceiver);
         mOptionUiManager.release();
         if (mOptionUiManager.isSearching()) {
             mTvControlManager.DtvStopScan();
         }
+
+        if (!isFinishing()) {
+            finish();
+        }
     }
 
+    @Override
     public void onStop() {
         Log.d(TAG, "onStop");
         super.onStop();
-        finish();
+        release();
     }
 
+    @Override
     public void onDestroy() {
         Log.d(TAG, "onDestroy");
         super.onDestroy();
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        super.finalize();
+        Log.d(TAG, "finalized");
     }
 
     public void startShowActivityTimer () {
@@ -383,6 +410,18 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
             }
         }
     };
+
+    private void release() {
+        handler.removeCallbacksAndMessages(null);
+        mSettingsManager = null;
+        mOptionUiManager = null;
+        mTvControlManager = null;
+
+        RelativeLayout main_view = (RelativeLayout)findViewById(R.id.main);
+        if (mOptionLayout != null) {
+            main_view.removeView(mOptionLayout);
+        }
+    }
 
     /*add enter factory menu*/
     private void enterFactoryCount(int keyValue) {

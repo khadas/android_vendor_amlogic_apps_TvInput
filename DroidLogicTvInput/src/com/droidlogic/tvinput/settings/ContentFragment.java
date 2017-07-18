@@ -122,14 +122,18 @@ public class ContentFragment extends Fragment {
         content_title = (TextView)view.findViewById(R.id.content_title);
         content_list = (ContentListView)view.findViewById(R.id.content_list);
         content_list.setContentFocus(relatedButton);
+        return view;
+    }
 
+    @Override
+    public void onResume () {
+        super.onResume();
+
+        content_list.setAdapter(null);
         listItem.clear();
         new XmlReader(mContext, mContentList, "PreferenceScreen", "Preference", new PreferenceXmlReaderListener()).read();
-
         mContentAdapter = new ContentAdapter(mContext, listItem);
         content_list.setAdapter(mContentAdapter);
-
-        return view;
     }
 
     private class PreferenceXmlReaderListener implements XmlReaderListener {
