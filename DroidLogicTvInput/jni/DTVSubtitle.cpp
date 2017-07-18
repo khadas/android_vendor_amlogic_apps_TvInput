@@ -207,6 +207,13 @@ extern "C" {
        }
     }
 
+    static void cc_nodata_cb(AM_CC_Handle_t handle)
+    {
+        TVSubtitleData *sub = (TVSubtitleData *)AM_CC_GetUserData(handle);
+        char json[64] = "{Aratings:{}}";
+        data_update(sub->obj, json);
+    }
+
     static void pes_tt_cb(AM_PES_Handle_t handle, uint8_t *buf, int size)
     {
         TVSubtitleData *sub = (TVSubtitleData *)AM_PES_GetUserData(handle);
@@ -802,6 +809,7 @@ error:
         cc_para.user_data = (void *)data;
         cc_para.input = (AM_CC_Input_t)source;
         cc_para.rating_cb = cc_rating_cb;
+        cc_para.nodata_cb = cc_nodata_cb;
         spara.caption                  = (AM_CC_CaptionMode_t)caption;
         spara.user_options.bg_color    = (AM_CC_Color_t)bg_color;
         spara.user_options.fg_color    = (AM_CC_Color_t)fg_color;
