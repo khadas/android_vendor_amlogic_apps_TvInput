@@ -1779,9 +1779,10 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         Log.d(TAG, "startAutoSearch");
         TvControlManager.TvMode mode = new TvControlManager.TvMode(mSettingsManager.getDtvType());
         //mSettingsManager.sendBroadcastToTvapp("search_channel");
-        mTvDataBaseManager.deleteChannels(mSettingsManager.getInputId(), mode.toType());
         if (mSettingsManager.getCurentVirtualTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_ADTV) {
             Log.d(TAG, "ADTV");
+
+            deleteChannels(mode, true, true);
 
             Bundle bundle = new Bundle();
             int[] freqPair = new int[2];
@@ -1800,6 +1801,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_DTV_CHANNEL_INDEX, -1);
         } else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV) {
             Log.d(TAG, "SOURCE_TYPE_TV");
+
+            deleteChannels(mode, true, false);
+
             Bundle bundle = new Bundle();
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA1, 0);
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA2, 0);
@@ -1811,6 +1815,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_ATV_CHANNEL_INDEX, -1);
         } else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
             Log.d(TAG, "SOURCE_TYPE_DTV");
+
+            deleteChannels(mode, true, false);
+
             Bundle bundle = new Bundle();
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_MODE, mode.getMode());
             bundle.putString(TvInputInfo.EXTRA_INPUT_ID,mSettingsManager.getInputId());
@@ -1823,11 +1830,23 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         mSettingsManager.setActivityResult(DroidLogicTvUtils.RESULT_UPDATE);
     }
 
+    private void deleteChannels(TvControlManager.TvMode mode, boolean deleteAtv, boolean deleteDtv)
+    {
+        Log.d(TAG, " delete mode:"+mode.getBase()+" atv:"+deleteAtv+" dtv:"+deleteDtv);
+        if (deleteAtv) {
+            if (mode.getBase() == TVChannelParams.MODE_ATSC)
+                mTvDataBaseManager.deleteChannels(mSettingsManager.getInputId(), TvContract.Channels.TYPE_NTSC);
+            //else
+                mTvDataBaseManager.deleteChannels(mSettingsManager.getInputId(), TvContract.Channels.TYPE_PAL);
+        }
+        if (deleteDtv)
+            mTvDataBaseManager.deleteChannels(mSettingsManager.getInputId(), mode.toType());
+    }
+
     private void startAutosearchAccrodingTvMode() {
         Log.d(TAG, "startAutoSearch");
         TvControlManager.TvMode mode = new TvControlManager.TvMode(mSettingsManager.getDtvType());
         //mSettingsManager.sendBroadcastToTvapp("search_channel");
-        mTvDataBaseManager.deleteChannels(mSettingsManager.getInputId(), mode.toType());
         Bundle bundle = new Bundle();
         int[] freqPair = new int[2];
         mTvControlManager.ATVGetMinMaxFreq(freqPair);
@@ -1838,6 +1857,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         switch (((TvSettingsActivity)mContext).mScanEdit.checkAutoScanMode()) {
             case ScanEdit.SCAN_ATV_DTV:
                 Log.d(TAG, "ADTV");
+
+                deleteChannels(mode, true, true);
+
                 if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_C)) {
                     if (((TvSettingsActivity)mContext).mScanEdit.checkCableMode() == ScanEdit.CABLE_MODE_STANDARD) {
                         mode.setList(1);
@@ -1854,6 +1876,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             break;
             case ScanEdit.SCAN_ONLY_ATV:
                 Log.d(TAG, "SOURCE_TYPE_TV");
+
+                deleteChannels(mode, true, false);
+
                 mode.setExt(mode.getExt() | 1);//mixed adtv
                 bundle.putInt(DroidLogicTvUtils.PARA_SCAN_MODE, mode.getMode());
                 bundle.putInt(DroidLogicTvUtils.PARA_SCAN_TYPE_DTV, TvControlManager.ScanType.SCAN_DTV_NONE);
@@ -1861,6 +1886,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             break;
             case ScanEdit.SCAN_ONLY_DTV:
                 Log.d(TAG, "SOURCE_TYPE_DTV");
+
+                deleteChannels(mode, false, true);
+
                 if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_C)) {
                     if (((TvSettingsActivity)mContext).mScanEdit.checkCableMode() == ScanEdit.CABLE_MODE_STANDARD) {
                         mode.setList(1);
