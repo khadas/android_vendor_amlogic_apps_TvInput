@@ -1257,8 +1257,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                 Log.d(TAG, "audioTrackId" + audioTrackId);
                 int index = 0;
                 if (audioTrackId != null) {
-                    String[] audioTrack = audioTrackId.split("=");
-                    int audioTrackPid = Integer.parseInt(audioTrack[4]);
+                    String[] item = audioTrackId.split("\\&");
+                    String[] audioTrack = item[0].split("=");
+                    int audioTrackPid = Integer.parseInt(audioTrack[1]);
                     for (int i = 0; i < mAudioPids.length; i++) {
                         if (audioTrackPid == (mAudioPids[i])) {
                             index = i;
