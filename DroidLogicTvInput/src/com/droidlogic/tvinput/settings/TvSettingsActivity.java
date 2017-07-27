@@ -11,6 +11,7 @@ import android.provider.Settings;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.PowerManager;
 import android.view.View;
 import android.view.KeyEvent;
 import android.view.View.OnClickListener;
@@ -40,6 +41,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
     private ContentFragment currentFragment;
     private SettingsManager mSettingsManager;
     private OptionUiManager mOptionUiManager;
+    private PowerManager mPowerManager;
 
     private ImageButton tabPicture;
     private ImageButton tabSound;
@@ -70,6 +72,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
         mSettingsManager = new SettingsManager(this, getIntent());
         mTvControlManager = mSettingsManager.getTvControlManager();
         mAudioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+        mPowerManager = (PowerManager)getSystemService(Context.POWER_SERVICE);
 
         tabPicture = (ImageButton) findViewById(R.id.button_picture);
         tabSound = (ImageButton) findViewById(R.id.button_sound);
@@ -320,25 +323,32 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
     @Override
     public void finish() {
         isFinished = true;
-        // if press power in atv searching, suspend progress has called onPause/onStop,
-        // and then receive scan exit or store end message, and it calls finish(),
-        // so it will go back to tv app and play program, and can't go to sleep.
-        //if (isExiting)
-        //    return;
-        setResult(mSettingsManager.getActivityResult());
+
+        if (!mPowerManager.isScreenOn()) {
+            Log.d(TAG, "TV is going to sleep, stop tv");
+            return;
+        }
+
+        if (mSettingsManager != null) {
+            setResult(mSettingsManager.getActivityResult());
+        }
         super.finish();
     }
 
     @Override
     public void onResume() {
+        if (isFinished) {
+            resume();
+            isFinished = false;
+        }
+
         super.onResume();
         Log.d(TAG, "onResume");
         IntentFilter filter = new IntentFilter();
         filter.addAction(DroidLogicTvUtils.ACTION_CHANNEL_CHANGED);
         filter.addAction(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
         registerReceiver(mReceiver, filter);
-        if (isFinished)
-            finish();
+
     }
 
     @Override
@@ -346,9 +356,13 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
         super.onPause();
         Log.d(TAG, "onPause");
         unregisterReceiver(mReceiver);
-        mOptionUiManager.release();
+
         if (mOptionUiManager.isSearching()) {
             mTvControlManager.DtvStopScan();
+
+            if (!mPowerManager.isScreenOn()) {
+                mTvControlManager.StopTv();
+            }
         }
 
         if (!isFinishing()) {
@@ -410,6 +424,14 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
             }
         }
     };
+
+    private void resume() {
+        mSettingsManager = new SettingsManager(this, getIntent());
+        mTvControlManager = mSettingsManager.getTvControlManager();
+        mOptionUiManager = new OptionUiManager(this);
+
+        startShowActivityTimer();
+    }
 
     private void release() {
         handler.removeCallbacksAndMessages(null);
