@@ -168,8 +168,8 @@ public class DTVInputService extends DroidLogicTvInputService {
         super.onCreateSession(inputId);
 
         mCurrentSession = new DTVSessionImpl(this, inputId, getHardwareDeviceId(inputId));
-        registerInputSession(mCurrentSession);
         mCurrentSession.setSessionId(id);
+        registerInputSession(mCurrentSession);
         sessionMap.put(id, mCurrentSession);
         id++;
 
@@ -278,6 +278,15 @@ public class DTVInputService extends DroidLogicTvInputService {
             stopSubtitle();
             setMonitor(null);
             releaseWorkThread();
+            synchronized(mLock) {
+                mCurrentChannel = null;
+            }
+            if (sessionMap.containsKey(getSessionId())) {
+                sessionMap.remove(getSessionId());
+            }
+            if (mHandler != null) {
+                mHandler.removeMessages(MSG_PARENTAL_CONTROL);
+            }
         }
 
         @Override
@@ -496,9 +505,13 @@ public class DTVInputService extends DroidLogicTvInputService {
                 }
                 mLastBlockedRating = contentRating;
             } else {
-                playProgram(mCurrentChannel);
-                Log.d(TAG, "notifyAllowed");
-                notifyContentAllowed();
+                synchronized(mLock) {
+                    if (mCurrentChannel != null) {
+                        playProgram(mCurrentChannel);
+                        Log.d(TAG, "notifyAllowed");
+                        notifyContentAllowed();
+                    }
+                }
             }
         }
 
@@ -696,7 +709,7 @@ public class DTVInputService extends DroidLogicTvInputService {
 
         @Override
         public void notifyVideoAvailable() {
-            Log.d(TAG, "notifyVideoAvailable ");
+            Log.d(TAG, "notifyVideoAvailable "+getSessionId());
             super.notifyVideoAvailable();
             if (ChannelInfo.isRadioChannel(mCurrentChannel)) {
                 mOverlayView.setImage(R.drawable.bg_radio);
@@ -707,7 +720,7 @@ public class DTVInputService extends DroidLogicTvInputService {
 
         @Override
         public void notifyVideoUnavailable(int reason) {
-            Log.d(TAG, "notifyVideoUnavailable: "+reason);
+            Log.d(TAG, "notifyVideoUnavailable: "+reason+", "+getSessionId());
             switch (reason) {
                 case TvInputManager.VIDEO_UNAVAILABLE_REASON_AUDIO_ONLY:
                     super.notifyVideoAvailable();
