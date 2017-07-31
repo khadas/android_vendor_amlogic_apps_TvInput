@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ContentUris;
 import android.content.pm.ResolveInfo;
+import android.media.AudioManager;
+import android.media.AudioSystem;
 import android.media.tv.TvContentRating;
 import android.media.tv.TvInputManager;
 import android.media.tv.TvInputInfo;
@@ -228,6 +230,7 @@ public class DTVInputService extends DroidLogicTvInputService {
         protected List<ChannelInfo.Subtitle> mCurrentSubtitles;
         protected List<ChannelInfo.Audio> mCurrentAudios;
         protected SystemControlManager mSystemControlManager;
+        private AudioManager mAudioManager = null;
 
         protected final static int AD_MIXING_LEVEL_DEF = 50;
         protected int mAudioADMixingLevel = -1;
@@ -254,6 +257,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             mCurrentAudios = null;
             mCurrentUri = null;
             initWorkThread();
+            mAudioManager = (AudioManager)mContext.getSystemService(Context.AUDIO_SERVICE);
 
             initOverlayView(R.layout.layout_overlay);
             mOverlayView.setImage(R.drawable.bg_no_signal);
@@ -711,6 +715,7 @@ public class DTVInputService extends DroidLogicTvInputService {
         public void notifyVideoAvailable() {
             Log.d(TAG, "notifyVideoAvailable "+getSessionId());
             super.notifyVideoAvailable();
+            mAudioManager.setStreamMute(AudioSystem.STREAM_MUSIC, false);
             if (ChannelInfo.isRadioChannel(mCurrentChannel)) {
                 mOverlayView.setImage(R.drawable.bg_radio);
                 mOverlayView.setImageVisibility(true);
@@ -721,6 +726,7 @@ public class DTVInputService extends DroidLogicTvInputService {
         @Override
         public void notifyVideoUnavailable(int reason) {
             Log.d(TAG, "notifyVideoUnavailable: "+reason+", "+getSessionId());
+            mAudioManager.setStreamMute(AudioSystem.STREAM_MUSIC, true);
             switch (reason) {
                 case TvInputManager.VIDEO_UNAVAILABLE_REASON_AUDIO_ONLY:
                     super.notifyVideoAvailable();
