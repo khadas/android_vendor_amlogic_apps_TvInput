@@ -218,7 +218,7 @@ public class ADTVInputService extends DTVInputService {
 
             if (mSubtitleView != null) {
                 mSubtitleView.hide();
-                setOverlayViewEnabled(false);
+                mSessionHandler.sendMessage(mSessionHandler.obtainMessage(MSG_SUBTITLE_HIDE));
             }
 
             mSystemControlManager.setProperty(DTV_SUBTITLE_TRACK_IDX, "-1");
@@ -242,8 +242,12 @@ public class ADTVInputService extends DTVInputService {
 
         @Override
         public void onSubtitleData(String json) {
-            mATVContentRatings = DroidLogicTvUtils.parseARatings(json);
-            mHandler.sendMessage(mHandler.obtainMessage(MSG_PARENTAL_CONTROL, this));
+            Log.d(TAG, "onSubtitleData curchannel:"+(mCurrentChannel!=null?mCurrentChannel.toString():"null"));
+            if (mCurrentChannel != null && mCurrentChannel.isAnalogChannel()) {
+                mATVContentRatings = DroidLogicTvUtils.parseARatings(json);
+                if (mHandler != null)
+                    mHandler.sendMessage(mHandler.obtainMessage(MSG_PARENTAL_CONTROL, this));
+            }
         }
 
         @Override

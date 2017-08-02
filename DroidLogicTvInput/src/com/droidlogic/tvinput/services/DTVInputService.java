@@ -694,6 +694,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                     ChannelInfo.Subtitle subtitle = parseSubtitleIdString(trackId);
                     startSubtitle(subtitle);
                     mSystemControlManager.setProperty(DTV_SUBTITLE_TRACK_IDX, String.valueOf(subtitle.id));
+                    index = subtitle.id;
                 }
 
                 notifyTrackSelected(type, trackId);
