@@ -52,8 +52,8 @@
         android:text="@string/panorama"
         android:textSize="26sp"
         android:textColor="@color/color_text_item"
-        android:visibility="gone"
         />
+        <!-- android:visibility="gone" -->
     <TextView
         android:id="@+id/apect_ratio_full_screen"
         android:layout_width="262dp"
