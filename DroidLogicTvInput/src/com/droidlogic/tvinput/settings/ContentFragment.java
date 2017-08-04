@@ -14,6 +14,7 @@ import android.util.TypedValue;
 import android.util.Xml;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.os.SystemProperties;
 
 import com.android.internal.util.XmlUtils;
 import org.xmlpull.v1.XmlPullParser;
@@ -180,7 +181,9 @@ public class ContentFragment extends Fragment {
                 map.put(ITEM_KEY, key);
                 map.put(ITEM_NAME, title);
                 map.put(ITEM_STATUS, getSettingsManager().getStatus(key));
-                listItem.add(map);
+                if (!(key.equals(SettingsManager.KEY_COLOR_TEMPERATURE) && !SystemProperties.getBoolean("ro.product.pq.colortemperature", true))) {
+                    listItem.add(map);
+                }
             }
         }
     }
