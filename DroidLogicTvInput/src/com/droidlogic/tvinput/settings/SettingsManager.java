@@ -180,7 +180,7 @@ public class SettingsManager {
         mVirtualTvSource = mTvSource;
 
         if (mTvSource == TvControlManager.SourceInput_Type.SOURCE_TYPE_ADTV) {
-            long channelId = intent.getIntExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, -1);
+            long channelId = intent.getLongExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, -1);
             currentChannel = mTvDataBaseManager.getChannelInfo(TvContract.buildChannelUri(channelId));
             if (currentChannel != null) {
                 mTvSource = DroidLogicTvUtils.parseTvSourceTypeFromSigType(DroidLogicTvUtils.getSigType(currentChannel));
