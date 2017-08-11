@@ -230,7 +230,6 @@ public class DTVInputService extends DroidLogicTvInputService {
         protected List<ChannelInfo.Subtitle> mCurrentSubtitles;
         protected List<ChannelInfo.Audio> mCurrentAudios;
         protected SystemControlManager mSystemControlManager;
-        private AudioManager mAudioManager = null;
 
         protected final static int AD_MIXING_LEVEL_DEF = 50;
         protected int mAudioADMixingLevel = -1;
@@ -257,7 +256,6 @@ public class DTVInputService extends DroidLogicTvInputService {
             mCurrentAudios = null;
             mCurrentUri = null;
             initWorkThread();
-            mAudioManager = (AudioManager)mContext.getSystemService(Context.AUDIO_SERVICE);
 
             initOverlayView(R.layout.layout_overlay);
             mOverlayView.setImage(R.drawable.bg_no_signal);
@@ -624,7 +622,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             else if (msgType == TvControlManager.EVENT_AV_PLAYBACK_RESUME) {
                 if (mCurrentChannel != null && ChannelInfo.isRadioChannel(mCurrentChannel)) {
                     mTvControlManager.SetAudioMuteForTv(TvControlManager.AUDIO_UNMUTE_FOR_TV);
-                    notifyVideoAvailable();
+                    notifyVideoUnavailable(TvInputManager.VIDEO_UNAVAILABLE_REASON_AUDIO_ONLY);
                 }
             } else if (msgType == TvControlManager.EVENT_AV_VIDEO_AVAILABLE) {
                 notifyVideoAvailable();
@@ -716,30 +714,22 @@ public class DTVInputService extends DroidLogicTvInputService {
         public void notifyVideoAvailable() {
             Log.d(TAG, "notifyVideoAvailable "+getSessionId());
             super.notifyVideoAvailable();
-            mAudioManager.setStreamMute(AudioSystem.STREAM_MUSIC, false);
-            if (ChannelInfo.isRadioChannel(mCurrentChannel)) {
-                mOverlayView.setImage(R.drawable.bg_radio);
-                mOverlayView.setImageVisibility(true);
-                return;
-            }
         }
 
         @Override
         public void notifyVideoUnavailable(int reason) {
             Log.d(TAG, "notifyVideoUnavailable: "+reason+", "+getSessionId());
-            mAudioManager.setStreamMute(AudioSystem.STREAM_MUSIC, true);
+            super.notifyVideoUnavailable(reason);
             switch (reason) {
                 case TvInputManager.VIDEO_UNAVAILABLE_REASON_AUDIO_ONLY:
-                    super.notifyVideoAvailable();
                     mOverlayView.setImage(R.drawable.bg_radio);
-                    mOverlayView.setImageVisibility(true);
+                    mSystemControlManager.writeSysFs("/sys/class/video/disable_video", "2");
                     break;
                 case TvInputManager.VIDEO_UNAVAILABLE_REASON_TUNING:
                 case TvInputManager.VIDEO_UNAVAILABLE_REASON_BUFFERING:
                 case TvInputManager.VIDEO_UNAVAILABLE_REASON_WEAK_SIGNAL:
                 case TvInputManager.VIDEO_UNAVAILABLE_REASON_UNKNOWN:
                 default:
-                    super.notifyVideoAvailable();
                     mOverlayView.setImage(R.drawable.bg_no_signal);
                     mOverlayView.setImageVisibility(true);
                     mOverlayView.setTextVisibility(true);
