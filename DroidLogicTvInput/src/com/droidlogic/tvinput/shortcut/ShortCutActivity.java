@@ -192,6 +192,8 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
                 } else if (picture_mode.equals(mResources.getString(R.string.vivid))) {
                     mSettingsManager.setPictureMode(SettingsManager.STATUS_SOFT);
                 } else if (picture_mode.equals(mResources.getString(R.string.soft))) {
+                    mSettingsManager.setPictureMode(SettingsManager.STATUS_MONITOR);
+                } else if (picture_mode.equals(mResources.getString(R.string.monitor))) {
                     mSettingsManager.setPictureMode(SettingsManager.STATUS_USER);
                 } else if (picture_mode.equals(mResources.getString(R.string.user))) {
                     mSettingsManager.setPictureMode(SettingsManager.STATUS_STANDARD);

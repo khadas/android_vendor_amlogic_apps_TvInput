@@ -449,6 +449,9 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             case R.id.picture_mode_soft:
                 mSettingsManager.setPictureMode(SettingsManager.STATUS_SOFT);
                 break;
+            case R.id.picture_mode_monitor:
+                mSettingsManager.setPictureMode(SettingsManager.STATUS_MONITOR);
+                break;
             case R.id.picture_mode_user:
                 mSettingsManager.setPictureMode(SettingsManager.STATUS_USER);
                 break;
@@ -854,6 +857,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                     setIcon(parent, R.id.picture_mode_vivid);
                 } else if (TextUtils.equals(mSettingsManager.getPictureModeStatus(), mResources.getString(R.string.soft))) {
                     setIcon(parent, R.id.picture_mode_soft);
+                } else if (TextUtils.equals(mSettingsManager.getPictureModeStatus(), mResources.getString(R.string.monitor))) {
+                    setIcon(parent, R.id.picture_mode_monitor);
                 } else if (TextUtils.equals(mSettingsManager.getPictureModeStatus(), mResources.getString(R.string.user))) {
                     setIcon(parent, R.id.picture_mode_user);
                 }
