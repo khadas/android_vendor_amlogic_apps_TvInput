@@ -1853,10 +1853,17 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         TvControlManager.TvMode mode = new TvControlManager.TvMode(mSettingsManager.getDtvType());
         //mSettingsManager.sendBroadcastToTvapp("search_channel");
         Bundle bundle = new Bundle();
-        int[] freqPair = new int[2];
-        mTvControlManager.ATVGetMinMaxFreq(freqPair);
-        bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA1, freqPair[0]);
-        bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA2, freqPair[1]);
+
+        //atsc atvscan use list-mode from now on,
+        //DO NOT set freq-pair which may confuse the scanner.
+        if (!mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_C)
+            && !(mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_T))) {
+            int[] freqPair = new int[2];
+            mTvControlManager.ATVGetMinMaxFreq(freqPair);
+            bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA1, freqPair[0]);
+            bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA2, freqPair[1]);
+        }
+
         bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA3, TvControlManager.ATV_VIDEO_STD_AUTO);
         bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA4, TvControlManager.ATV_AUDIO_STD_AUTO);
         switch (((TvSettingsActivity)mContext).mScanEdit.checkAutoScanMode()) {
@@ -1868,26 +1875,43 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_C)) {
                     if (((TvSettingsActivity)mContext).mScanEdit.checkCableMode() == ScanEdit.CABLE_MODE_STANDARD) {
                         mode.setList(1);
+                        bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA5, 5);
                     } else if (((TvSettingsActivity)mContext).mScanEdit.checkCableMode() == ScanEdit.CABLE_MODE_LRC) {
                         mode.setList(2);
+                        bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA5, 6);
                     } else if (((TvSettingsActivity)mContext).mScanEdit.checkCableMode() == ScanEdit.CABLE_MODE_HRC) {
                         mode.setList(3);
+                        bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA5, 7);
                     }
+                } else if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_T)) {
+                    bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA5, 4);
                 }
                 mode.setExt(mode.getExt() | 1);//mixed adtv
                 bundle.putInt(DroidLogicTvUtils.PARA_SCAN_MODE, mode.getMode());
                 bundle.putInt(DroidLogicTvUtils.PARA_SCAN_TYPE_DTV, TvControlManager.ScanType.SCAN_DTV_ALLBAND);
-                bundle.putInt(DroidLogicTvUtils.PARA_SCAN_TYPE_ATV, TvControlManager.ScanType.SCAN_ATV_AUTO);
+                bundle.putInt(DroidLogicTvUtils.PARA_SCAN_TYPE_ATV, TvControlManager.ScanType.SCAN_ATV_FREQ);
             break;
             case ScanEdit.SCAN_ONLY_ATV:
                 Log.d(TAG, "SOURCE_TYPE_TV");
 
                 deleteChannels(mode, true, false);
 
+                if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_C)) {
+                    if (((TvSettingsActivity)mContext).mScanEdit.checkCableMode() == ScanEdit.CABLE_MODE_STANDARD) {
+                        bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA5, 5);
+                    } else if (((TvSettingsActivity)mContext).mScanEdit.checkCableMode() == ScanEdit.CABLE_MODE_LRC) {
+                        bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA5, 6);
+                    } else if (((TvSettingsActivity)mContext).mScanEdit.checkCableMode() == ScanEdit.CABLE_MODE_HRC) {
+                        bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA5, 7);
+                    }
+                } else if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_T)) {
+                    bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA5, 4);
+                }
+
                 mode.setExt(mode.getExt() | 1);//mixed adtv
                 bundle.putInt(DroidLogicTvUtils.PARA_SCAN_MODE, mode.getMode());
                 bundle.putInt(DroidLogicTvUtils.PARA_SCAN_TYPE_DTV, TvControlManager.ScanType.SCAN_DTV_NONE);
-                bundle.putInt(DroidLogicTvUtils.PARA_SCAN_TYPE_ATV, TvControlManager.ScanType.SCAN_ATV_AUTO);
+                bundle.putInt(DroidLogicTvUtils.PARA_SCAN_TYPE_ATV, TvControlManager.ScanType.SCAN_ATV_FREQ);
             break;
             case ScanEdit.SCAN_ONLY_DTV:
                 Log.d(TAG, "SOURCE_TYPE_DTV");
@@ -1957,6 +1981,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                         : bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA3, TvControlManager.ATV_VIDEO_STD_PAL));
                 int atvAudioStd = (bundle == null ? TvControlManager.ATV_AUDIO_STD_DK
                         : bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA4, TvControlManager.ATV_AUDIO_STD_DK));
+                int atvList = (bundle == null ? tvMode.getList()
+                        : bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA5, tvMode.getList()));
                 TvControlManager.FEParas fe = new TvControlManager.FEParas();
                 fe.setMode(tvMode);
                 fe.setVideoStd(atvVideoStd);
@@ -1969,6 +1995,8 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 scan.setAtvFrequency2(atvFreq2);
                 scan.setDtvFrequency1(dtvFreq);
                 scan.setDtvFrequency2(dtvFreq);
+                scan.setAtvModifier(TvControlManager.FEParas.K_MODE,
+                    TvControlManager.TvMode.fromMode(dtvMode).setList(atvList).getMode());
                 //ww//
                 mTvControlManager.OpenDevForScan(DroidLogicTvUtils.OPEN_DEV_FOR_SCAN_DTV);
                 mTvControlManager.TvScan(fe, scan);
