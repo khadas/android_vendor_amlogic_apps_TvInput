@@ -1377,6 +1377,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     }
     private void startManualSearchAccordingMode() {
         Log.d(TAG, "startManualSearchAccordingMode");
+        mTvControlManager.setAmAudioPreMute(1);
         ViewGroup parent = (ViewGroup) ((TvSettingsActivity) mContext).mOptionLayout.getChildAt(0);
         OptionEditText edit = (OptionEditText) parent.findViewById(R.id.manual_search_dtv_channel_manual);
         String channel = edit.getText().toString();
@@ -1467,6 +1468,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     private void startManualSearch() {
         Log.d(TAG, "startManualSearch");
         ViewGroup parent = (ViewGroup) ((TvSettingsActivity) mContext).mOptionLayout.getChildAt(0);
+        mTvControlManager.setAmAudioPreMute(1);
         if (mSettingsManager.getCurentVirtualTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_ADTV) {
             Log.d(TAG, "ADTV");
             OptionEditText edit = (OptionEditText) parent.findViewById(R.id.manual_search_dtv_channel);
@@ -1783,6 +1785,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     private void startAutosearch() {
         Log.d(TAG, "startAutoSearch");
         TvControlManager.TvMode mode = new TvControlManager.TvMode(mSettingsManager.getDtvType());
+        mTvControlManager.setAmAudioPreMute(1);
         //mSettingsManager.sendBroadcastToTvapp("search_channel");
         if (mSettingsManager.getCurentVirtualTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_ADTV) {
             Log.d(TAG, "ADTV");
@@ -1849,7 +1852,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     }
 
     private void startAutosearchAccrodingTvMode() {
-        Log.d(TAG, "startAutoSearch");
+        Log.d(TAG, "startAutosearchAccrodingTvMode");
         TvControlManager.TvMode mode = new TvControlManager.TvMode(mSettingsManager.getDtvType());
         //mSettingsManager.sendBroadcastToTvapp("search_channel");
         Bundle bundle = new Bundle();
@@ -1859,6 +1862,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
         bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA2, freqPair[1]);
         bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA3, TvControlManager.ATV_VIDEO_STD_AUTO);
         bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA4, TvControlManager.ATV_AUDIO_STD_AUTO);
+        mTvControlManager.setAmAudioPreMute(1);
         switch (((TvSettingsActivity)mContext).mScanEdit.checkAutoScanMode()) {
             case ScanEdit.SCAN_ATV_DTV:
                 Log.d(TAG, "ADTV");
