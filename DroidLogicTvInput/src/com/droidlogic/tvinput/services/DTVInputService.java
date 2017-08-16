@@ -714,12 +714,14 @@ public class DTVInputService extends DroidLogicTvInputService {
         public void notifyVideoAvailable() {
             Log.d(TAG, "notifyVideoAvailable "+getSessionId());
             super.notifyVideoAvailable();
+            mTvControlManager.setAmAudioPreMute(0);
         }
 
         @Override
         public void notifyVideoUnavailable(int reason) {
             Log.d(TAG, "notifyVideoUnavailable: "+reason+", "+getSessionId());
             super.notifyVideoUnavailable(reason);
+            mTvControlManager.setAmAudioPreMute(1);
             switch (reason) {
                 case TvInputManager.VIDEO_UNAVAILABLE_REASON_AUDIO_ONLY:
                     mOverlayView.setImage(R.drawable.bg_radio);
