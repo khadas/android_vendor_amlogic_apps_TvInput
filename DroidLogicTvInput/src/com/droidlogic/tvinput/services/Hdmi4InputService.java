@@ -108,7 +108,7 @@ public class Hdmi4InputService extends DroidLogicTvInputService {
 
         @Override
         public boolean onKeyDown(int keyCode, KeyEvent event) {
-            if (isNavigationKey(keyCode)) {
+            if (isNavigationKey(keyCode)  && mHardware != null ) {
                 mHardware.dispatchKeyEventToHdmi(event);
                 return true;
             }
