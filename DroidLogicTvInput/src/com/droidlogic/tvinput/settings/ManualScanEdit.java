@@ -219,16 +219,15 @@ public class ManualScanEdit implements OnFocusChangeListener , OnClickListener, 
         }
     }
 
-    /*public int checkCableMode() {
+    public int checkCableMode() {
         Log.d(TAG," checkCableMode ");
-        if (standardRb.isChecked() && !lrcRb.isChecked() ) {
+        /*if (standardRb.isChecked() && !lrcRb.isChecked() ) {
             return CABLE_MODE_STANDARD;
         }else if(!standardRb.isChecked() && lrcRb.isChecked() ) {
             return CABLE_MODE_LRC;
-        }else {
-            return 0;
-        }
-    }*/
+        }*/
+        return 0;
+    }
 
     private String getTvType() {
         int deviceId = DroidLogicTvUtils.getHardwareDeviceId(mInputId);
