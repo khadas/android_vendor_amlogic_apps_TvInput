@@ -721,9 +721,9 @@ public class DTVInputService extends DroidLogicTvInputService {
         public void notifyVideoUnavailable(int reason) {
             Log.d(TAG, "notifyVideoUnavailable: "+reason+", "+getSessionId());
             super.notifyVideoUnavailable(reason);
-            mTvControlManager.setAmAudioPreMute(1);
             switch (reason) {
                 case TvInputManager.VIDEO_UNAVAILABLE_REASON_AUDIO_ONLY:
+                    mTvControlManager.setAmAudioPreMute(0);
                     mOverlayView.setImage(R.drawable.bg_radio);
                     mSystemControlManager.writeSysFs("/sys/class/video/disable_video", "2");
                     break;
@@ -732,6 +732,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                 case TvInputManager.VIDEO_UNAVAILABLE_REASON_WEAK_SIGNAL:
                 case TvInputManager.VIDEO_UNAVAILABLE_REASON_UNKNOWN:
                 default:
+                    mTvControlManager.setAmAudioPreMute(1);
                     mOverlayView.setImage(R.drawable.bg_no_signal);
                     mOverlayView.setImageVisibility(true);
                     mOverlayView.setTextVisibility(true);
