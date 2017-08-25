@@ -41,6 +41,7 @@ import com.droidlogic.app.tv.Program;
 import com.droidlogic.app.tv.TVMultilingualText;
 import com.droidlogic.app.tv.TVTime;
 import com.droidlogic.app.tv.TvStoreManager;
+import com.droidlogic.app.tv.TVInSignalInfo;
 import com.droidlogic.app.SystemControlManager;
 import com.droidlogic.tvinput.widget.DTVSubtitleView;
 import com.droidlogic.tvinput.R;
@@ -112,6 +113,7 @@ public class DTVInputService extends DroidLogicTvInputService {
 
     protected DTVSessionImpl mCurrentSession;
     protected int id = 0;
+    protected TvControlManager mTvControlManager;
 
     protected Map<Integer, DTVSessionImpl> sessionMap = new HashMap<>();
     protected final BroadcastReceiver mChannelScanStartReceiver = new BroadcastReceiver() {
@@ -157,6 +159,8 @@ public class DTVInputService extends DroidLogicTvInputService {
         filter.addAction(DroidLogicTvUtils.ACTION_DTV_AUTO_SCAN);
         filter.addAction(DroidLogicTvUtils.ACTION_DTV_MANUAL_SCAN);
         registerReceiver(mChannelScanStartReceiver, filter);
+
+        mTvControlManager = TvControlManager.getInstance();
     }
 
     @Override
@@ -206,6 +210,25 @@ public class DTVInputService extends DroidLogicTvInputService {
         }
     }
 
+    @Override
+    public void onSigChanged(TVInSignalInfo signal_info) {
+        if (mTvControlManager.GetCurrentSourceInput() == DroidLogicTvUtils.DEVICE_ID_DTV
+            || mTvControlManager.GetCurrentVirtualSourceInput() == DroidLogicTvUtils.DEVICE_ID_ADTV) {
+
+            TVInSignalInfo.SignalStatus status = signal_info.sigStatus;
+
+            Log.d(TAG, "onSigChanged status: id["+status.ordinal()+"]["+status.toString()+"]");
+
+            //if a/v runs well, notify
+            if (status == TVInSignalInfo.SignalStatus.TVIN_SIG_STATUS_STABLE
+                    && mCurrentSession != null
+                    && mCurrentSession.mCurrentChannel != null
+                    && !mCurrentSession.mCurrentChannel.isAnalogChannel()
+                    && mTvControlManager.DtvGetVideoFormatInfo().fps != 0)
+                    mCurrentSession.notifyVideoAvailable();
+        }
+    }
+
     /*set below 3 vars true to enable tracks-auto-select in this service.*/
     protected static boolean subtitleAutoSave = false;
     protected static boolean audioAutoSave = false;
@@ -223,7 +246,6 @@ public class DTVInputService extends DroidLogicTvInputService {
         protected final Context mContext;
         protected TvInputManager mTvInputManager;
         protected TvDataBaseManager mTvDataBaseManager;
-        protected TvControlManager mTvControlManager;
         protected TvContentRating mLastBlockedRating;
         protected final Set<TvContentRating> mUnblockedRatingSet = new HashSet<>();
         protected ChannelInfo mCurrentChannel;
@@ -248,7 +270,6 @@ public class DTVInputService extends DroidLogicTvInputService {
 
             mContext = context;
             mTvDataBaseManager = new TvDataBaseManager(mContext);
-            mTvControlManager = TvControlManager.getInstance();
             mSystemControlManager = new SystemControlManager(mContext);
             mLastBlockedRating = null;
             mCurrentChannel = null;
