@@ -508,6 +508,10 @@ public class DTVInputService extends DroidLogicTvInputService {
 
         private void updateChannelBlockStatus(boolean channelBlocked,
                 TvContentRating contentRating, ChannelInfo channelInfo) {
+            if (channelInfo == null) {
+                Log.d(TAG,"channelInfo is null ,exit updateChannelBlockStatus");
+                return;
+            }
             Log.d(TAG, "updateBlock:"+channelBlocked + " curBlock:"+mChannelBlocked + " channel:"+channelInfo.getId());
 
             //maybe from the previous channel
@@ -540,6 +544,8 @@ public class DTVInputService extends DroidLogicTvInputService {
 
         protected TvContentRating[] getContentRatingsOfCurrentProgram(ChannelInfo channelInfo) {
             TVTime tvTime = new TVTime(mContext);
+            if (channelInfo == null)
+                return null;
             Program mCurrentProgram = mTvDataBaseManager.getProgram(TvContract.buildChannelUri(channelInfo.getId()), tvTime.getTime());
             Log.d(TAG, "TvTime:"+getDateAndTime(tvTime.getTime()));
             return mCurrentProgram == null ? null : mCurrentProgram.getContentRatings();
