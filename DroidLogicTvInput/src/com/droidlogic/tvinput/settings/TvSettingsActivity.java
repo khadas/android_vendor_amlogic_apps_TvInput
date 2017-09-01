@@ -360,11 +360,12 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
         if (mOptionUiManager.isSearching()) {
             mTvControlManager.DtvStopScan();
 
-            if (!mPowerManager.isScreenOn()) {
+            /*if (!mPowerManager.isScreenOn()) {
                 mTvControlManager.StopTv();
-            }
+            }*/
         }
-
+        mTvControlManager.StopTv();
+        //Log.d(TAG, "GetTvRunStatus:"+mTvControlManager.GetTvRunStatus());
         if (!isFinishing()) {
             finish();
         }
