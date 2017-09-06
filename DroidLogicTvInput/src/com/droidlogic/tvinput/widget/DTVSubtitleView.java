@@ -717,6 +717,13 @@ public class DTVSubtitleView extends View {
             canvas.setDrawFilter(new PaintFlagsDrawFilter(0, Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG));
             canvas.drawBitmap(bitmap, sr, dr, new Paint());
 
+            //trick here
+            try {
+                Thread.sleep(30);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
             native_sub_unlock();
         }
     }
