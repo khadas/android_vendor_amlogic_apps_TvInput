@@ -12,4 +12,11 @@
 	<color name="color_text_hint">#FFBFBFBF</color>
 	<color name="color_text_blue_0">#FF39A8D5</color>
 	<color name="color_text_blue_1">#FF92D4EA</color>
+	<color name="ut_scan_title_text">#EEEEEE</color>
+	<color name="ut_scan_description_text">#B3EEEEEE</color>
+	<color name="ut_scan_progress">#EEEEEE</color>
+	<color name="ut_scan_progress_background">#26EEEEEE</color>
+	<color name="ut_scan_button_text">#EEEEEE</color>
+	<color name="ut_scan_channellist_background">#26EEEEEE</color>
+	<color name="common_tv_background">#0288D1</color>
 </resources>
