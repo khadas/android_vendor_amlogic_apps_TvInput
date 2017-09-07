@@ -171,13 +171,17 @@ public class HdmiExtendInputService extends TvInputService {
         @Override
         public void notifyVideoAvailable() {
             super.notifyVideoAvailable();
-            mOverlayView.setImageVisibility(false);
+            if (mOverlayView != null) {
+                mOverlayView.setImageVisibility(false);
+            }
         }
 
         @Override
         public void notifyVideoUnavailable(int reason) {
             super.notifyVideoAvailable();
-            mOverlayView.setImageVisibility(true);
+            if (mOverlayView != null) {
+                mOverlayView.setImageVisibility(true);
+            }
         }
 
     }

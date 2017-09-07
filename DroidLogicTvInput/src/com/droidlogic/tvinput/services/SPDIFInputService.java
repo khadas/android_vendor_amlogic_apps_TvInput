@@ -57,7 +57,9 @@ public class SPDIFInputService extends DroidLogicTvInputService {
             super(context, inputId, deviceId);
             Utils.logd(TAG, "=====new SPDIFInputSession=====");
             initOverlayView(R.layout.layout_overlay);
-            mOverlayView.setImage(R.drawable.spdifin);
+            if (mOverlayView != null) {
+                mOverlayView.setImage(R.drawable.spdifin);
+            }
         }
 
         @Override

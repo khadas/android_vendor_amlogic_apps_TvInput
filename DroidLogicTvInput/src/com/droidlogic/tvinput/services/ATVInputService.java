@@ -119,7 +119,9 @@ public class ATVInputService extends DroidLogicTvInputService {
             mCurrentChannel = null;
 
             initOverlayView(R.layout.layout_overlay);
-            mOverlayView.setImage(R.drawable.bg_no_signal);
+            if (mOverlayView != null) {
+                mOverlayView.setImage(R.drawable.bg_no_signal);
+            }
         }
         @Override
         public boolean onSetSurface(Surface surface) {
@@ -150,9 +152,11 @@ public class ATVInputService extends DroidLogicTvInputService {
         @Override
         public void notifyVideoUnavailable(int reason) {
             super.notifyVideoAvailable();
-            mOverlayView.setImage(R.drawable.bg_no_signal);
-            mOverlayView.setImageVisibility(true);
-            mOverlayView.setTextVisibility(true);
+            if (mOverlayView != null) {
+                mOverlayView.setImage(R.drawable.bg_no_signal);
+                mOverlayView.setImageVisibility(true);
+                mOverlayView.setTextVisibility(true);
+            }
         }
 
         @Override

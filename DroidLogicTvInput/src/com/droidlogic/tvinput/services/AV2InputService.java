@@ -61,7 +61,9 @@ public class AV2InputService extends DroidLogicTvInputService {
             super(context, inputId, deviceId);
             Utils.logd(TAG, "=====new AVInputSession=====");
             initOverlayView(R.layout.layout_overlay);
-            mOverlayView.setImage(R.drawable.hotplug_out);
+            if (mOverlayView != null) {
+                mOverlayView.setImage(R.drawable.hotplug_out);
+            }
         }
 
         @Override
