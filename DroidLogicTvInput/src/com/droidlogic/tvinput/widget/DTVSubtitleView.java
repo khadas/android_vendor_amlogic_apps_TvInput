@@ -719,7 +719,7 @@ public class DTVSubtitleView extends View {
 
             //trick here
             try {
-                Thread.sleep(30);
+                Thread.sleep(15);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
