@@ -62,6 +62,8 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
     public ManualScanEdit mManualScanEdit;
 
     private TvInputInfo mTvInputInfo;
+    private Boolean isNeedStopTv = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -185,6 +187,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
                 if (mOptionUiManager.isSearching()) {
                     mTvControlManager.DtvStopScan();
                 } else {
+                    isNeedStopTv = false;
                     finish();
                 }
                 return true;
@@ -193,7 +196,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
                     mTvControlManager.DtvStopScan();
                     return true;
                 }
-
+                isNeedStopTv = false;
                 finish();
                 break;
             case KeyEvent.KEYCODE_VOLUME_UP:
@@ -364,8 +367,12 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
                 mTvControlManager.StopTv();
             }*/
         }
-        mTvControlManager.StopTv();
-        //Log.d(TAG, "GetTvRunStatus:"+mTvControlManager.GetTvRunStatus());
+        if (isNeedStopTv) {
+            mTvControlManager.StopTv();
+            Log.d(TAG, "stoptv");
+        }
+        isNeedStopTv = true;
+
         if (!isFinishing()) {
             finish();
         }
@@ -400,9 +407,10 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
     Handler handler = new Handler() {
         public void handleMessage(Message msg) {
             InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-            if (!mOptionUiManager.isSearching() && !imm. isAcceptingText())
+            if (!mOptionUiManager.isSearching() && !imm. isAcceptingText()) {
                 finish();
-            else  {
+                isNeedStopTv = false;
+            } else  {
                 int seconds = Settings.System.getInt(getContentResolver(), SettingsManager.KEY_MENU_TIME, SettingsManager.DEFUALT_MENU_TIME);
                 sendEmptyMessageDelayed(0, seconds * 1000);
             }
