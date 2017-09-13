@@ -612,6 +612,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         isMenuShowing = true;
         TvInputInfo info = mSourceInput.getTvInputInfo();
         Intent intent = info.createSetupIntent();
+        //actually, we don't need to setClassName().But we need this activity to be compared,so fix it.
+        intent.setClassName("com.droidlogic.tvinput", "com.droidlogic.tvinput.settings.TvSettingsActivity");
         if (intent != null) {
             intent.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_DEVICE_ID, mSourceInput.getDeviceId());
             intent.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, (int)mSourceInput.getChannelId());

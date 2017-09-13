@@ -155,4 +155,16 @@
     <string name="appointed_success">预约成功</string>
     <string name="appointed_cancel">取消预约</string>
     <string name="appointed_expired">节目已过期！</string>
+
+    <!-- for scan ui -->
+    <string name="ut_channel_scan">电视节目搜台设置</string>
+    <string name="ut_channel_scan_time">该过程将需要一段时间</string>
+    <string name="ut_stop_channel_scan">重新搜台</string>
+    <string name="ut_manual_scan">手动搜索</string>
+    <string name="ut_auto_scan">自动搜索</string>
+    <string name="ut_set_frequency_start">频道</string>
+    <string name="ut_set_frequency_end">终止: </string>
+    <string name="set_frquency_channel">请先设置频率或者频道!</string>
+    <string name="tv_manual_option">手动搜索选项:</string>
+    <string name="tv_auto_option">自动搜索选项:</string>
 </resources>
