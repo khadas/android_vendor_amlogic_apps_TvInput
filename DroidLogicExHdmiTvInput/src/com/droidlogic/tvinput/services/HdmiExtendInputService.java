@@ -26,17 +26,16 @@ import android.util.SparseArray;
 import android.media.tv.TvInputManager.Hardware;
 import android.media.tv.TvInputManager.HardwareCallback;
 import android.media.tv.TvInputHardwareInfo;
-import com.droidlogic.app.SystemControlManager;
+import com.droidlogic.app.tv.DroidLogicTvUtils;
+
 
 import android.view.View;
 import android.view.LayoutInflater;
 import com.droidlogic.tvinput.R;
-import com.droidlogic.tvinput.widget.OverlayView;
 
 public class HdmiExtendInputService extends TvInputService {
     private static final String TAG = "HdmiExtendInputService";
     private static final boolean DEBUG = true;
-    private static final int DEVICE_ID_HDMIEXTEND = 18;
     private HdmiExtendInputSession mSession;
     private String mInputId;
     private Surface mSurface;
@@ -44,7 +43,6 @@ public class HdmiExtendInputService extends TvInputService {
     public Hardware mHardware;
     public TvStreamConfig[] mConfigs;
     private TvInputManager mTvInputManager;
-    private SystemControlManager mSystemControlManager = new SystemControlManager(this);
     private int mDeviceId = -1;
     private SparseArray<TvInputInfo> mInfoList = new SparseArray<TvInputInfo>();
 
@@ -87,7 +85,6 @@ public class HdmiExtendInputService extends TvInputService {
     }
 
     public class HdmiExtendInputSession extends TvInputService.Session{
-        public OverlayView mOverlayView = null;
 
         public HdmiExtendInputSession(Context context) {
             super(context);
@@ -95,42 +92,35 @@ public class HdmiExtendInputService extends TvInputService {
             Log.d(TAG, "HdmiExtendInputSession");
             LayoutInflater inflater = (LayoutInflater)
                     context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            mOverlayView = (OverlayView)inflater.inflate(R.layout.layout_overlay, null);
-            mOverlayView.setImage(R.drawable.hotplug_out);
-            setOverlayViewEnabled(true);
         }
         @Override
         public boolean onSetSurface(Surface surface) {
             Log.d(TAG, "onSetSurface");
+            if ((null == surface) && (mHardware != null)) {
+                onRelease();
+            }
             mSurface = surface;
-            return false;
-        }
-        @Override
-        public boolean onTune(Uri channelUri) {
-            Log.d(TAG, "onTune " );
             Log.d(TAG, "mConfigs :" + mConfigs +" mSurface :" + mSurface);
             if (mConfigs != null && mSurface != null && mHardware != null) {
                 Log.d(TAG, "setSurface start!");
                 mHardware.setSurface(mSurface,mConfigs[0]);
                 mSession.notifyVideoAvailable();
             }
-            Log.d(TAG, "onTune finish");
+            return false;
+        }
+        @Override
+        public boolean onTune(Uri channelUri) {
+            Log.d(TAG, "onTune " );
             return false;
         }
         @Override
         public void onRelease() {
             Log.d(TAG, "onRelease");
             mHardware.setSurface(null, null);
-            setOverlayViewEnabled(false);
         }
         @Override
         public void onSetStreamVolume(float volume) {
             Log.d(TAG, "onSetStreamVolume");
-          /* if ( 1.0 == volume ) {
-                mSystemControlManager.openAmAudio(48000, 1, 2);
-            } else {
-                mSystemControlManager.closeAmAudio();
-            }*/
         }
         @Override
         public void onSetCaptionEnabled(boolean enabled) {
@@ -159,8 +149,6 @@ public class HdmiExtendInputService extends TvInputService {
 
         @Override
         public View onCreateOverlayView() {
-            if (mOverlayView != null)
-                return mOverlayView;
             return null;
         }
 
@@ -171,17 +159,11 @@ public class HdmiExtendInputService extends TvInputService {
         @Override
         public void notifyVideoAvailable() {
             super.notifyVideoAvailable();
-            if (mOverlayView != null) {
-                mOverlayView.setImageVisibility(false);
-            }
         }
 
         @Override
         public void notifyVideoUnavailable(int reason) {
             super.notifyVideoAvailable();
-            if (mOverlayView != null) {
-                mOverlayView.setImageVisibility(true);
-            }
         }
 
     }
@@ -201,9 +183,10 @@ public class HdmiExtendInputService extends TvInputService {
 
     public TvInputInfo onHardwareAdded(TvInputHardwareInfo hardwareInfo) {
         Log.d(TAG, "onHardwareAdded ," + "DeviceId :" + hardwareInfo.getDeviceId());
-        if (hardwareInfo.getDeviceId() != DEVICE_ID_HDMIEXTEND
+        if (hardwareInfo.getDeviceId() != DroidLogicTvUtils.DEVICE_ID_HDMIEXTEND
                 || hasInfoExisted(hardwareInfo))
             return null;
+        mDeviceId = hardwareInfo.getDeviceId();
         TvInputInfo info = null;
         ResolveInfo rinfo = getResolveInfo(HdmiExtendInputService.class.getName());
         if (rinfo != null) {
@@ -223,6 +206,7 @@ public class HdmiExtendInputService extends TvInputService {
         Log.d(TAG, "onHardwareRemoved");
         if (hardwareInfo.getDeviceId() != mDeviceId)
             return null;
+        mDeviceId = -1;
         TvInputInfo info = getTvInputInfo(hardwareInfo);
         String id = null;
         if (info != null)
