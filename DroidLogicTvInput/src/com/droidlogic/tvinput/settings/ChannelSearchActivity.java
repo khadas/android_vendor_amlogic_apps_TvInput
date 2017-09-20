@@ -77,6 +77,7 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
     private ListView channelList;
     private Spinner mManualSpinner;
     private Spinner mAutoSpinner;
+    private Spinner mAtscOption;
 
     private TvInputInfo mTvInputInfo;
 
@@ -85,6 +86,7 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
     public static final int PROCCESS = 2;
     public static final int CHANNEL = 3;
     public static final int STATUS = 4;
+    public static final int ATSCC_OPTION_DEFAULT = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,6 +123,7 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
         mAutoATV = (CheckBox) findViewById(R.id.auto_tune_atv);
         mAutoDTV.setChecked(true);
         mAutoATV.setChecked(false);
+        mAutoDTV.setOnClickListener(this);
         if (!(mOptionUiManagerT.getCurentVirtualTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_ADTV)) {
             mManualDTV.setEnabled(false);
             mManualATV.setEnabled(false);
@@ -140,21 +143,37 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
 
     private ArrayAdapter<String> arr_adapter;
     private List<String> data_list;
+    private ArrayAdapter<String> arr_adapter_atsc_c;
+    private List<String> data_list_atsc_c;
 
     private void initSpinner() {
         data_list = new ArrayList<String>();
+        data_list_atsc_c = new ArrayList<String>();
         final int[] type = {R.string.dtmb, R.string.dvbc, R.string.dvbt, R.string.dvbt2, R.string.atsc_t, R.string.atsc_c, R.string.isdb_t};
+        final int[] type_atsc_c = {R.string.ut_tune_atsc_c_standard, R.string.ut_tune_atsc_c_lrc, R.string.hrc};
         for (int i = 0; i < type.length; i++) {
             data_list.add(getString(type[i]));
         }
+        for (int i = 0; i < type_atsc_c.length; i++) {
+            data_list_atsc_c.add(getString(type_atsc_c[i]));
+        }
         mManualSpinner = (Spinner) findViewById(R.id.manual_spinner);
         mAutoSpinner = (Spinner) findViewById(R.id.auto_spinner);
-        arr_adapter= new ArrayAdapter<String>(ChannelSearchActivity.this, android.R.layout.simple_spinner_item, data_list);
+        mAtscOption = (Spinner) findViewById(R.id.atsc_c_spinner);
+        arr_adapter = new ArrayAdapter<String>(ChannelSearchActivity.this, android.R.layout.simple_spinner_item, data_list);
         arr_adapter.setDropDownViewResource(android.R.layout.simple_list_item_single_choice );
         mManualSpinner.setAdapter(arr_adapter);
         mAutoSpinner.setAdapter(arr_adapter);
         mManualSpinner.setSelection(mOptionUiManagerT.getDtvTypeStatus());
         mAutoSpinner.setSelection(mOptionUiManagerT.getDtvTypeStatus());
+        arr_adapter_atsc_c = new ArrayAdapter<String>(ChannelSearchActivity.this, android.R.layout.simple_spinner_item, data_list_atsc_c);
+        arr_adapter_atsc_c.setDropDownViewResource(android.R.layout.simple_list_item_single_choice );
+        mAtscOption.setAdapter(arr_adapter_atsc_c);
+        mAtscOption.setSelection(ATSCC_OPTION_DEFAULT);
+        if (mOptionUiManagerT.getDtvTypeStatus() != OptionUiManagerT.SET_ATSC_C) {
+            mAtscOption.setEnabled(false);
+        }
+
         mManualSpinner.setOnItemSelectedListener(new OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -178,7 +197,30 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
                 if (position >= 0 && position <= 6) {
                     mOptionUiManagerT.setDtvType(position);
                     mManualSpinner.setSelection(position, false);
+                    final int standard = 0;
+                    if (position == OptionUiManagerT.SET_ATSC_C) {
+                        mAtscOption.setEnabled(true);
+                        mAtscOption.setSelection(standard, false);
+                        mOptionUiManagerT.setAtsccSearchSys(standard);
+                    } else {
+                        mAtscOption.setSelection(standard, false);
+                        mAtscOption.setEnabled(false);
+                        mOptionUiManagerT.setAtsccSearchSys(standard);
+                    }
                     //mManualSpinner.postInvalidate();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // TODO Auto-generated method stub
+            }
+        });
+        mAtscOption.setOnItemSelectedListener(new OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (position >= 0 && position <= 2) {
+                    mOptionUiManagerT.setAtsccSearchSys(position);
                 }
             }
 

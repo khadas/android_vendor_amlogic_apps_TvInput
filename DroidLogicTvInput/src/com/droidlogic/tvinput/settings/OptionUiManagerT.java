@@ -141,6 +141,7 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
     private String mLiveTvFrequencyTo = "868250";
     private boolean mSearchDtv = false;
     private boolean mSearchAtv = false;
+    private int mAtsccMode = 0;
     private boolean mLiveTvManualSearch = false;
     private boolean mLiveTvAutoSearch = false;
 
@@ -789,7 +790,7 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
                 if (!isLiveTvScaning) {
                     checkcablemode = ((TvSettingsActivity)mContext).mScanEdit.checkCableMode();
                 } else {
-                    checkcablemode = 1;// not sure
+                    checkcablemode = mAtsccMode + 1;//mAtsccMode value change from 0~2
                 }
                 if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_C)) {
                     if (checkcablemode == ScanEdit.CABLE_MODE_STANDARD) {
@@ -818,7 +819,7 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
                 if (!isLiveTvScaning) {
                     checkcablemode = ((TvSettingsActivity)mContext).mScanEdit.checkCableMode();
                 } else {
-                    checkcablemode = 1;// not sure
+                    checkcablemode = mAtsccMode + 1;
                 }
                 if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_C)) {
                     if (checkcablemode == ScanEdit.CABLE_MODE_STANDARD) {
@@ -845,7 +846,7 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
                 if (!isLiveTvScaning) {
                     checkcablemode = ((TvSettingsActivity)mContext).mScanEdit.checkCableMode();
                 } else {
-                    checkcablemode = 1;// not sure
+                    checkcablemode = mAtsccMode + 1;
                 }
                 if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_C)) {
                     if (checkcablemode == ScanEdit.CABLE_MODE_STANDARD) {
@@ -1205,6 +1206,11 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
         Log.d(TAG, "[setSearchSys] value1 = " + value1 + ", value2 = " + value2);
         mSearchDtv = value1;
         mSearchAtv = value2;
+    }
+
+    public void setAtsccSearchSys (int value) {
+        Log.d(TAG, "[setAtsccSearchSys] value = " + value);
+        mAtsccMode = value;
     }
 
     private void sendMessage(int type, int message, Object information) {

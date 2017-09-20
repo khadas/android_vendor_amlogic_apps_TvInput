@@ -159,7 +159,7 @@
     <!-- for scan ui -->
     <string name="ut_channel_scan">电视节目搜台设置</string>
     <string name="ut_channel_scan_time">该过程将需要一段时间</string>
-    <string name="ut_stop_channel_scan">重新搜台</string>
+    <string name="ut_stop_channel_scan">暂停搜索</string>
     <string name="ut_manual_scan">手动搜索</string>
     <string name="ut_auto_scan">自动搜索</string>
     <string name="ut_set_frequency_start">频道</string>
@@ -167,4 +167,5 @@
     <string name="set_frquency_channel">请先设置频率或者频道!</string>
     <string name="tv_manual_option">手动搜索选项:</string>
     <string name="tv_auto_option">自动搜索选项:</string>
+    <string name="ut_tune_atsc_c_standard">标准</string>
 </resources>

@@ -247,13 +247,24 @@
                 android:textSize="@dimen/ut_scan_description_text_size"
                 android:layout_below="@id/auto_option"
                 android:layout_toRightOf="@id/auto_tune_atv" />
+            <Spinner
+                android:id="@+id/atsc_c_spinner"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/ut_scan_description_margin_top"
+                android:layout_marginLeft="@dimen/ut_scan_icon_margin_right"
+                android:fontFamily="sans-serif"
+                android:textColor="@color/ut_scan_description_text"
+                android:textSize="@dimen/ut_scan_description_text_size"
+                android:layout_below="@id/auto_tune_dtv"
+                android:layout_toRightOf="@id/tune_icon" />
             <Button
                 android:id="@+id/tune_auto"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/ut_scan_button_height"
                 android:layout_marginTop="@dimen/ut_scan_button_margin_top"
                 android:layout_marginLeft="@dimen/ut_scan_icon_margin_right"
-                android:layout_below="@id/auto_tune_dtv"
+                android:layout_below="@id/atsc_c_spinner"
                 android:layout_toRightOf="@id/tune_icon"
                 android:paddingLeft="@dimen/ut_scan_button_padding"
                 android:paddingRight="@dimen/ut_scan_button_padding"

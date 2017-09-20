@@ -201,7 +201,7 @@
     <!-- for scan ui -->
     <string name="ut_channel_scan">TV channel tuner setup</string>
     <string name="ut_channel_scan_time">This may take several minutes</string>
-    <string name="ut_stop_channel_scan">Resume Scan</string>
+    <string name="ut_stop_channel_scan">Pause Scan</string>
     <string name="ut_manual_scan">Manual Scan</string>
     <string name="ut_auto_scan">Auto Scan</string>
     <string name="ut_set_frequency_start">Channel</string>
@@ -210,5 +210,8 @@
     <string name="ut_tune_atv">ATV</string>
     <string name="set_frquency_channel">Please set frequency or channel first !</string>
     <string name="tv_manual_option">Manual Search Option:</string>
-    <string name="tv_auto_option">Atuo Search Option:</string>
+    <string name="tv_auto_option">Auto Search Option:</string>
+    <string name="ut_tune_atsc_c_standard">standard</string>
+    <string name="ut_tune_atsc_c_lrc">LRC</string>
+    <string name="ut_tune_atsc_c_hrc">HRC</string>
 </resources>
