@@ -24,6 +24,7 @@ import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.view.accessibility.CaptioningManager;
 import android.database.ContentObserver;
 import android.database.IContentObserver;
 import android.provider.Settings;
@@ -1343,26 +1344,35 @@ public class DTVInputService extends DroidLogicTvInputService {
         }
         protected CCStyleParams getCaptionStyle()
         {
-
             int fontSize;
             CCStyleParams params;
-            int style;
-            float textSize = Settings.Secure.getFloat(mContext.getContentResolver(),
-                Settings.Secure.ACCESSIBILITY_CAPTIONING_FONT_SCALE, 1);
-            int fg_color = Settings.Secure.getInt(mContext.getContentResolver(),
-                Settings.Secure.ACCESSIBILITY_CAPTIONING_FOREGROUND_COLOR, 0) & 0x00ffffff;
-            int fg_opacity = Settings.Secure.getInt(mContext.getContentResolver(),
-                Settings.Secure.ACCESSIBILITY_CAPTIONING_FOREGROUND_COLOR, 0) & 0xff000000;
-            int bg_color = Settings.Secure.getInt(mContext.getContentResolver(),
-                Settings.Secure.ACCESSIBILITY_CAPTIONING_BACKGROUND_COLOR, 0) & 0x00ffffff;
-            int bg_opacity = Settings.Secure.getInt(mContext.getContentResolver(),
-                Settings.Secure.ACCESSIBILITY_CAPTIONING_BACKGROUND_COLOR, 0) & 0xff000000;
-            int fontStyle = DTVSubtitleView.CC_FONTSTYLE_DEFAULT;//not support
 
-            int fg = Settings.Secure.getInt(mContext.getContentResolver(),
-                Settings.Secure.ACCESSIBILITY_CAPTIONING_FOREGROUND_COLOR, 0);
-            int bg = Settings.Secure.getInt(mContext.getContentResolver(),
-                Settings.Secure.ACCESSIBILITY_CAPTIONING_BACKGROUND_COLOR, 0);
+            String[] typeface = getResources().getStringArray(R.array.captioning_typeface_selector_values);
+
+            /*
+             * Gets CC paramsters by CaptioningManager.
+             */
+            CaptioningManager captioningManager = (CaptioningManager) mContext.getSystemService(Context.CAPTIONING_SERVICE);
+            CaptioningManager.CaptionStyle userStyle = captioningManager.getUserStyle();
+
+            int style = captioningManager.getRawUserStyle();
+            float textSize = captioningManager.getFontScale();
+            int fg_color = userStyle.foregroundColor & 0x00ffffff;
+            int fg_opacity = userStyle.foregroundColor & 0xff000000;
+            int bg_color = userStyle.backgroundColor & 0x00ffffff;
+            int bg_opacity = userStyle.backgroundColor & 0xff000000;
+            int fontStyle = DTVSubtitleView.CC_FONTSTYLE_DEFAULT;
+
+            for (int i = 0; i < typeface.length; ++i) {
+                if (typeface[i].equals(userStyle.mRawTypeface)) {
+                    fontStyle = i;
+                    break;
+                }
+            }
+            Log.d(TAG, "get style: " + style + ", fontStyle" + fontStyle + ", typeface: " + userStyle.mRawTypeface);
+
+            int fg = userStyle.foregroundColor;
+            int bg = userStyle.backgroundColor;
 
             int convert_fg_color = getColor(fg_color);
             int convert_fg_opacity = getOpacity(fg_opacity);
@@ -1387,9 +1397,6 @@ public class DTVInputService extends DroidLogicTvInputService {
                 " ,bg_color:"+Integer.toHexString(bg)+", @fg_color:"+convert_fg_color+", @bg_color:"+
                 convert_bg_color+", @fg_opacity:"+convert_fg_opacity+", @bg_opacity:"+convert_bg_opacity);
 
-            style = Settings.Secure.getInt(mContext.getContentResolver(),
-                Settings.Secure.ACCESSIBILITY_CAPTIONING_PRESET, 0);
-            Log.d(TAG, "get style:"+style);
             switch (style)
             {
                 case DTV_CC_STYLE_WHITE_ON_BLACK:
