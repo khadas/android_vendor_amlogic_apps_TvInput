@@ -467,6 +467,8 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
             } else */if (action.equals(Intent.ACTION_CLOSE_SYSTEM_DIALOGS)) {
                 String reason = intent.getStringExtra("reason");
                 if (TextUtils.equals(reason, "homekey")) {
+                    mOptionUiManagerT.StopTv();
+                    Log.d(TAG,"stop tv when exiting by home key");
                     finish();
                 }
             }
