@@ -25,6 +25,8 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.accessibility.CaptioningManager;
+import android.view.accessibility.CaptioningManager.CaptionStyle;
+import android.view.accessibility.CaptioningManager.CaptioningChangeListener;
 import android.database.ContentObserver;
 import android.database.IContentObserver;
 import android.provider.Settings;
@@ -45,6 +47,7 @@ import com.droidlogic.app.tv.TvStoreManager;
 import com.droidlogic.app.tv.TVInSignalInfo;
 import com.droidlogic.app.SystemControlManager;
 import com.droidlogic.tvinput.widget.DTVSubtitleView;
+
 import com.droidlogic.tvinput.R;
 
 import java.util.HashSet;
@@ -53,6 +56,7 @@ import java.util.Map;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Arrays;
 import java.util.Iterator;
 
@@ -264,6 +268,7 @@ public class DTVInputService extends DroidLogicTvInputService {
         protected ChannelInfo.Subtitle mCurrentSubtitle;
         protected List<ChannelInfo.Audio> mCurrentAudios;
         protected SystemControlManager mSystemControlManager;
+        protected CaptioningManager mCaptioningManager = null;
 
         protected final static int AD_MIXING_LEVEL_DEF = 50;
         protected int mAudioADMixingLevel = -1;
@@ -299,6 +304,8 @@ public class DTVInputService extends DroidLogicTvInputService {
                 mSubtitleView = (DTVSubtitleView)mOverlayView.getSubtitleView();
                 mSubtitleView.setSubtitleDataListener(this);
             }
+            mCaptioningManager = (CaptioningManager) mContext.getSystemService(Context.CAPTIONING_SERVICE);
+
             if (getBlockNoRatingEnable()) {
                 isBlockNoRatingEnable = true;
             } else {
@@ -542,6 +549,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                 mCurrentCCExist = 0;
                 mSystemControlManager.setProperty(DTV_SUBTITLE_CAPTION_EXIST, String.valueOf(mCurrentCCExist));
                 startSubtitleCCBackground(info);
+                mCurrentCCEnabled = mCaptioningManager == null? false : mCaptioningManager.isEnabled();
             }
 
             mLastChannel = mCurrentChannel;
@@ -1415,7 +1423,9 @@ public class DTVInputService extends DroidLogicTvInputService {
             }
         }
 
+
         private int mCurrentCCExist = 0;
+        private boolean mCurrentCCEnabled = false;
 
         /*When CC data changed.*/
         public void doCCData(int mask) {
@@ -1471,7 +1481,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                     to = ccPrefer;
                 }
 
-                Log.d(TAG, "ccc tryPrefer, exist["+exist+"], current["+curr+"] to["+to+"] prefer[cc:"+ccPrefer+" cs:"+csPrefer+"]");
+                Log.d(TAG, "ccc tryPrefer, exist["+exist+"], current["+curr+"] to["+to+"] prefer[cc:"+ccPrefer+" cs:"+csPrefer+"] Enable["+mCurrentCCEnabled+"]");
 
                 if (curr == to)//already show
                     return 0;
@@ -1601,11 +1611,10 @@ public class DTVInputService extends DroidLogicTvInputService {
             /*
              * Gets CC paramsters by CaptioningManager.
              */
-            CaptioningManager captioningManager = (CaptioningManager) mContext.getSystemService(Context.CAPTIONING_SERVICE);
-            CaptioningManager.CaptionStyle userStyle = captioningManager.getUserStyle();
+            CaptioningManager.CaptionStyle userStyle = mCaptioningManager.getUserStyle();
 
-            int style = captioningManager.getRawUserStyle();
-            float textSize = captioningManager.getFontScale();
+            int style = mCaptioningManager.getRawUserStyle();
+            float textSize = mCaptioningManager.getFontScale();
             int fg_color = userStyle.foregroundColor & 0x00ffffff;
             int fg_opacity = userStyle.foregroundColor & 0xff000000;
             int bg_color = userStyle.backgroundColor & 0x00ffffff;
@@ -2078,16 +2087,13 @@ public class DTVInputService extends DroidLogicTvInputService {
                         mChannelObserver = new ChannelObserver();
                     mContext.getContentResolver().registerContentObserver(TvContract.Channels.CONTENT_URI, true, mChannelObserver);
                 }
+
                 if (mCCObserver == null) {
                     Log.d(TAG, "new cc style observer");
                     Log.d(TAG, "CONTENT_URI: "+TvContract.Channels.CONTENT_URI);
                     mCCObserver = new CCStyleObserver();
-                    mContext.getContentResolver().registerContentObserver(Settings.Secure.getUriFor(Settings.Secure.ACCESSIBILITY_CAPTIONING_TYPEFACE), true, mCCObserver);
-                    mContext.getContentResolver().registerContentObserver(Settings.Secure.getUriFor(Settings.Secure.ACCESSIBILITY_CAPTIONING_FONT_SCALE), true, mCCObserver);
-                    mContext.getContentResolver().registerContentObserver(Settings.Secure.getUriFor(Settings.Secure.ACCESSIBILITY_CAPTIONING_FOREGROUND_COLOR), true, mCCObserver);
-                    mContext.getContentResolver().registerContentObserver(Settings.Secure.getUriFor(Settings.Secure.ACCESSIBILITY_CAPTIONING_BACKGROUND_COLOR), true, mCCObserver);
+                    mCaptioningManager.addCaptioningChangeListener((CaptioningChangeListener) mCCObserver);
                 }
-
             }
 
             private void refreshChannelMap() {
@@ -2141,7 +2147,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                 }
 
                 if (mCCObserver != null) {
-                    mContext.getContentResolver().unregisterContentObserver(mCCObserver);
+                    mCaptioningManager.removeCaptioningChangeListener((CaptioningChangeListener) mCCObserver);
                     mCCObserver = null;
                 }
 
@@ -2581,17 +2587,16 @@ public class DTVInputService extends DroidLogicTvInputService {
                 }
             }
 
-            private final class CCStyleObserver extends ContentObserver {
+            private final class CCStyleObserver extends CaptioningChangeListener {
                 public CCStyleObserver() {
-                    super(new Handler());
+
                 }
 
-                @Override
-                public void onChange(boolean selfChange, Uri uri) {
-                    Log.d(TAG, "CC style changed: selfchange:" + selfChange + " uri:" + uri);
+                private void updateCCStyleParams() {
+                    Log.d(TAG, "CCStyleObserver updateCCStyleParams.");
                     CCStyleParams ccParam = getCaptionStyle();
-                    DTVSubtitleView.DTVCCParams params =
-                        new DTVSubtitleView.DTVCCParams(0,
+                    DTVSubtitleView.DTVCCParams params = new DTVSubtitleView.DTVCCParams(
+                            0,
                             ccParam.fg_color,
                             ccParam.fg_opacity,
                             ccParam.bg_color,
@@ -2602,9 +2607,25 @@ public class DTVInputService extends DroidLogicTvInputService {
                 }
 
                 @Override
-                public IContentObserver releaseContentObserver() {
-                    // TODO Auto-generated method stub
-                    return super.releaseContentObserver();
+                public void onEnabledChanged(boolean enabled) {
+                    //updateCCStyleParams();
+                    mCurrentCCEnabled = enabled;
+                    Log.d(TAG, "CCStyleObserver onEnabledChanged: " + enabled);
+                }
+
+                @Override
+                public void onUserStyleChanged(CaptionStyle userStyle) {
+                    updateCCStyleParams();
+                }
+
+                @Override
+                public void onLocaleChanged(Locale locale) {
+                    updateCCStyleParams();
+                }
+
+                @Override
+                public void onFontScaleChanged(float fontScale) {
+                    updateCCStyleParams();
                 }
             }
 
