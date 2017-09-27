@@ -248,6 +248,7 @@ public class ADTVInputService extends DTVInputService {
                 if (mHandler != null)
                     mHandler.sendMessage(mHandler.obtainMessage(MSG_PARENTAL_CONTROL, this));
             }
+            super.onSubtitleData(json);
         }
 
         @Override

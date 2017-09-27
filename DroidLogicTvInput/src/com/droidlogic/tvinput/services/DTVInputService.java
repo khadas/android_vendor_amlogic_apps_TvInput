@@ -87,6 +87,9 @@ public class DTVInputService extends DroidLogicTvInputService {
 
     protected static final String DTV_SUBTITLE_AUTO_START = "tv.dtv.subtitle.autostart";
 
+    protected static final String DTV_SUBTITLE_CS_PREFER = "tv.dtv.cs.prefer";
+    protected static final String DTV_SUBTITLE_CC_PREFER = "tv.dtv.cc.prefer";
+
     protected static final String DTV_TYPE_DEFAULT = "tv.dtv.type.default";
     protected static final String DTV_STANDARD_FORCE = "tv.dtv.standard.force";
     protected static final String DTV_MONITOR_MODE_FORCE = "tv.dtv.monitor.mode.force";
@@ -251,6 +254,7 @@ public class DTVInputService extends DroidLogicTvInputService {
         protected final Set<TvContentRating> mUnblockedRatingSet = new HashSet<>();
         protected ChannelInfo mCurrentChannel;
         protected List<ChannelInfo.Subtitle> mCurrentSubtitles;
+        protected ChannelInfo.Subtitle mCurrentSubtitle;
         protected List<ChannelInfo.Audio> mCurrentAudios;
         protected SystemControlManager mSystemControlManager;
 
@@ -312,6 +316,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             }
             if (mHandler != null) {
                 mHandler.removeMessages(MSG_PARENTAL_CONTROL);
+                mHandler.removeCallbacksAndMessages(null);
             }
             mSubtitleView = null;
         }
@@ -380,6 +385,8 @@ public class DTVInputService extends DroidLogicTvInputService {
         }
 
         public static final int MSG_PARENTAL_CONTROL = 1;
+        public static final int MSG_DTVCC_NODATA = 12;
+        public static final int MSG_DTVCC_FOUND = 13;
 
         protected void initWorkThread() {
             if (mHandlerThread == null) {
@@ -392,6 +399,12 @@ public class DTVInputService extends DroidLogicTvInputService {
                             switch (msg.what) {
                                 case MSG_PARENTAL_CONTROL:
                                     checkContentBlockNeeded(mCurrentChannel);
+                                    break;
+                                case MSG_DTVCC_NODATA:
+                                    doDtvccNodata();
+                                    break;
+                                case MSG_DTVCC_FOUND:
+                                    doDtvccFound(msg.arg1);
                                     break;
                                 default:
                                     break;
@@ -1239,7 +1252,61 @@ public class DTVInputService extends DroidLogicTvInputService {
         }
 
         public void onSubtitleData(String json) {
+            Log.d(TAG, "onSubtitleData["+json+"]");
+            if (mCurrentChannel != null) {
+                int nodata = DroidLogicTvUtils.getObjectValueInt(json, "dtvcc", "nodata", -1);
+                if (nodata != -1) {
+                    if (mHandler != null)
+                        mHandler.obtainMessage(MSG_DTVCC_NODATA, this).sendToTarget();
+                    Log.d("ccc", "send nodata");
+                    return;
+                }
+                int found = DroidLogicTvUtils.getObjectValueInt(json, "dtvcc", "found", 0);
+                if (found != 0) {
+                    if (mHandler != null)
+                        mHandler.obtainMessage(MSG_DTVCC_FOUND, found, 0, this).sendToTarget();
+                    Log.d("ccc", "send found");
+                    return;
+                }
+            }
         }
+
+        public void doDtvccNodata() {
+            Log.d(TAG, "dtvcc nodata");
+            Log.d("ccc", "cur subtitle:"+mCurrentSubtitle+" sysctrl:"+mSystemControlManager);
+            if (mCurrentSubtitle != null && mSystemControlManager != null) {
+                int ccPrefer = mSystemControlManager.getPropertyInt(DTV_SUBTITLE_CC_PREFER, -1);
+                Log.d("ccc", "ccPrefer:"+ccPrefer);
+                if (ccPrefer != -1) {
+                    Log.d("ccc", "try cc:"+ccPrefer);
+                    for (ChannelInfo.Subtitle s : mCurrentSubtitles) {
+                        if (s.mPid == ccPrefer && mCurrentSubtitle.mPid != ccPrefer) {
+                            startSubtitle(s);
+                            notifyTrackSelected(TvTrackInfo.TYPE_SUBTITLE, s.id);
+                        }
+
+                    }
+                }
+            }
+        }
+
+        public void doDtvccFound(int channel) {
+            Log.d(TAG, "dtvcc found:"+channel);
+            if (mCurrentSubtitle != null && mSystemControlManager != null) {
+                int csPrefer = mSystemControlManager.getPropertyInt(DTV_SUBTITLE_CS_PREFER, -1);
+                Log.d("ccc", "csPrefer:"+csPrefer);
+                if (csPrefer != -1 && channel == csPrefer) {
+                    Log.d("ccc", "try cs:"+csPrefer);
+                    for (ChannelInfo.Subtitle s : mCurrentSubtitles) {
+                        if (s.mPid == csPrefer && mCurrentSubtitle.mPid != csPrefer) {
+                            startSubtitle(s);
+                            notifyTrackSelected(TvTrackInfo.TYPE_SUBTITLE, s.id);
+                        }
+                    }
+                }
+            }
+        }
+
 
         private class CCStyleParams {
              protected int fg_color;
@@ -1466,12 +1533,15 @@ public class DTVInputService extends DroidLogicTvInputService {
         }
 
         protected void startSubtitle(ChannelInfo.Subtitle subtitle) {
+            mCurrentSubtitle = subtitle;
             if (subtitle != null)
                 startSubtitle(subtitle.mType, subtitle.mPid, subtitle.mStype, subtitle.mId1, subtitle.mId2);
         }
 
         protected void stopSubtitle() {
             Log.d(TAG, "stop Subtitle");
+
+            mCurrentSubtitle = null;
 
             if (mSubtitleView != null) {
                 mSubtitleView.stop();
