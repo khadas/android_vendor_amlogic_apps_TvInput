@@ -342,19 +342,19 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
     @Override
     public void onClick(View v) {
          switch (v.getId()) {
-             case R.id.tune_manual:
-                 sendMessage(MANUAL_START, 0, null);
-                 break;
-             case R.id.tune_auto:
-                 if (!isAutoStarted) {
-                     isAutoStarted = true;
-                     mAutoScanButton.setText(R.string.ut_stop_channel_scan);
-                 } else {
-                     isAutoStarted = false;
-                     mAutoScanButton.setText(R.string.ut_auto_scan);
-                 }
-                 sendMessage(AUTO_START, 0, null);
-                 break;
+            case R.id.tune_manual:
+                sendMessage(MANUAL_START, 0, null);
+                break;
+            case R.id.tune_auto:
+                if (!isAutoStarted) {
+                    isAutoStarted = true;
+                    mAutoScanButton.setText(R.string.ut_stop_channel_scan);
+                } else {
+                    isAutoStarted = false;
+                    mAutoScanButton.setText(R.string.ut_auto_scan);
+                }
+                sendMessage(AUTO_START, 0, null);
+                break;
              default:
                  break;
          }
