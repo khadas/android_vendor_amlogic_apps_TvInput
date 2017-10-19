@@ -1258,14 +1258,14 @@ public class DTVInputService extends DroidLogicTvInputService {
                 if (nodata != -1) {
                     if (mHandler != null)
                         mHandler.obtainMessage(MSG_DTVCC_NODATA, this).sendToTarget();
-                    Log.d("ccc", "send nodata");
+                    Log.d(TAG, "ccc send nodata");
                     return;
                 }
                 int found = DroidLogicTvUtils.getObjectValueInt(json, "dtvcc", "found", 0);
                 if (found != 0) {
                     if (mHandler != null)
                         mHandler.obtainMessage(MSG_DTVCC_FOUND, found, 0, this).sendToTarget();
-                    Log.d("ccc", "send found");
+                    Log.d(TAG, "ccc send found");
                     return;
                 }
             }
@@ -1273,16 +1273,16 @@ public class DTVInputService extends DroidLogicTvInputService {
 
         public void doDtvccNodata() {
             Log.d(TAG, "dtvcc nodata");
-            Log.d("ccc", "cur subtitle:"+mCurrentSubtitle+" sysctrl:"+mSystemControlManager);
+            Log.d(TAG, "ccc cur subtitle:"+mCurrentSubtitle+" sysctrl:"+mSystemControlManager);
             if (mCurrentSubtitle != null && mSystemControlManager != null) {
                 int ccPrefer = mSystemControlManager.getPropertyInt(DTV_SUBTITLE_CC_PREFER, -1);
-                Log.d("ccc", "ccPrefer:"+ccPrefer);
+                Log.d(TAG, "ccc ccPrefer:"+ccPrefer);
                 if (ccPrefer != -1) {
-                    Log.d("ccc", "try cc:"+ccPrefer);
+                    Log.d(TAG, "ccc try cc:"+ccPrefer);
                     for (ChannelInfo.Subtitle s : mCurrentSubtitles) {
                         if (s.mPid == ccPrefer && mCurrentSubtitle.mPid != ccPrefer) {
                             startSubtitle(s);
-                            notifyTrackSelected(TvTrackInfo.TYPE_SUBTITLE, s.id);
+                            notifyTrackSelected(TvTrackInfo.TYPE_SUBTITLE, generateSubtitleIdString(s));
                         }
 
                     }
@@ -1294,13 +1294,13 @@ public class DTVInputService extends DroidLogicTvInputService {
             Log.d(TAG, "dtvcc found:"+channel);
             if (mCurrentSubtitle != null && mSystemControlManager != null) {
                 int csPrefer = mSystemControlManager.getPropertyInt(DTV_SUBTITLE_CS_PREFER, -1);
-                Log.d("ccc", "csPrefer:"+csPrefer);
+                Log.d(TAG, "ccc csPrefer:"+csPrefer);
                 if (csPrefer != -1 && channel == csPrefer) {
-                    Log.d("ccc", "try cs:"+csPrefer);
+                    Log.d(TAG, "ccc try cs:"+csPrefer);
                     for (ChannelInfo.Subtitle s : mCurrentSubtitles) {
                         if (s.mPid == csPrefer && mCurrentSubtitle.mPid != csPrefer) {
                             startSubtitle(s);
-                            notifyTrackSelected(TvTrackInfo.TYPE_SUBTITLE, s.id);
+                            notifyTrackSelected(TvTrackInfo.TYPE_SUBTITLE, generateSubtitleIdString(s));
                         }
                     }
                 }
