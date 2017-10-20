@@ -208,7 +208,9 @@
     <string name="ut_set_frequency_end">to: </string>
     <string name="ut_tune_dtv">DTV</string>
     <string name="ut_tune_atv">ATV</string>
-    <string name="set_frquency_channel">Please set frequency or channel first !</string>
+    <string name="set_frquency_channel">Please set frequency and channel first !</string>
+    <string name="set_channel">Please set channel first !</string>
+    <string name="set_frequency">Please set frequency first !</string>
     <string name="tv_manual_option">Manual Search Option:</string>
     <string name="tv_auto_option">Auto Search Option:</string>
     <string name="ut_tune_atsc_c_standard">standard</string>

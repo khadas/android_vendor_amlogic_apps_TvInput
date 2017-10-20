@@ -237,10 +237,8 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
             super.handleMessage(msg);
             switch (msg.arg1) {
                 case MANUAL_START:
-                    if (ShowNoAtvFrequency()) {
-                        initparametres(MANUAL_SEARCH);
-                        mOptionUiManagerT.callManualSearch();
-                    }
+                    initparametres(MANUAL_SEARCH);
+                    mOptionUiManagerT.callManualSearch();
                     break;
                 case AUTO_START:
                     initparametres(AUTO_SEARCH);
@@ -304,11 +302,21 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
         }
     }
 
-    private boolean ShowNoAtvFrequency() {
+    private boolean ShowNoAtvFrequencyOrChannel() {
         boolean status = false;
-        if (mFrequecyFrom.getText() != null && mFrequecyFrom.getText().length() > 0) {
+        if ((mFrequecyFrom.getText() != null && mFrequecyFrom.getText().length() > 0)
+            && (mManualDTV.isChecked() != false || mManualATV.isChecked() != false)) {
             status = true;
-        } else {
+        } else if ((mFrequecyFrom.getText() == null || mFrequecyFrom.getText().length() <= 0)
+            && (mManualDTV.isChecked() != false || mManualATV.isChecked() != false)) {
+            status = false;
+            ShowToastTint(getString(R.string.set_frequency));
+        } else if ((mFrequecyFrom.getText() != null && mFrequecyFrom.getText().length() > 0)
+            && (mManualDTV.isChecked() == false && mManualATV.isChecked() == false)) {
+            status = false;
+            ShowToastTint(getString(R.string.set_channel));
+        } else if ((mFrequecyFrom.getText() == null || mFrequecyFrom.getText().length() <= 0)
+            && (mManualDTV.isChecked() == false && mManualATV.isChecked() == false)) {
             status = false;
             ShowToastTint(getString(R.string.set_frquency_channel));
         }
@@ -343,7 +351,9 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
     public void onClick(View v) {
          switch (v.getId()) {
             case R.id.tune_manual:
-                sendMessage(MANUAL_START, 0, null);
+                if (ShowNoAtvFrequencyOrChannel()) {
+                    sendMessage(MANUAL_START, 0, null);
+                }
                 break;
             case R.id.tune_auto:
                 if (!isAutoStarted) {
