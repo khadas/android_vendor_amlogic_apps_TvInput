@@ -1794,7 +1794,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
 
         item = new HashMap<String, Object>();
         item.put(SettingsManager.STRING_NAME, mResources.getString(R.string.strength) + ":");
-        item.put(SettingsManager.STRING_STATUS, event.strength /1000.0 + "%");
+        item.put(SettingsManager.STRING_STATUS, event.strength + "%");
         list.add(item);
 
         item = new HashMap<String, Object>();
