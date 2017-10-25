@@ -242,9 +242,16 @@ public class ADTVInputService extends DTVInputService {
 
         @Override
         public void onSubtitleData(String json) {
+            Log.d(TAG, "onSubtitleData json: " + json);
             Log.d(TAG, "onSubtitleData curchannel:"+(mCurrentChannel!=null?mCurrentChannel.toString():"null"));
             if (mCurrentChannel != null && mCurrentChannel.isAnalogChannel()) {
                 mATVContentRatings = DroidLogicTvUtils.parseARatings(json);
+                if (mATVContentRatings != null) {
+                    TvDataBaseManager tvdatabasemanager = new TvDataBaseManager(mContext);
+                    mCurrentChannel.setContentRatings(json);
+                    tvdatabasemanager.updateOrinsertAtvChannel(mCurrentChannel);
+                }
+
                 if (mHandler != null)
                     mHandler.sendMessage(mHandler.obtainMessage(MSG_PARENTAL_CONTROL, this));
             }
