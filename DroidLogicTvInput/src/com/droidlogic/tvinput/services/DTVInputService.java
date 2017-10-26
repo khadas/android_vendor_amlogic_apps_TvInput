@@ -66,6 +66,9 @@ import java.util.HashMap;
 import java.util.Map;
 import android.net.Uri;
 import android.view.Surface;
+import android.util.NtpTrustedTime;
+import android.util.TrustedTime;
+import android.os.SystemClock;
 
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -305,6 +308,24 @@ public class DTVInputService extends DroidLogicTvInputService {
         public void doRelease() {
             Log.d(TAG, "release:"+this);
             super.doRelease();
+            if (mSystemControlManager.getPropertyBoolean("persist.sys.getdtvtime.isneed", false)) {
+                int autoTimeValue = Settings.Global.getInt(mContext.getContentResolver(), Settings.Global.AUTO_TIME, 0);
+                NtpTrustedTime mTime = NtpTrustedTime.getInstance(mContext);
+                if (autoTimeValue == 0) {
+                    Settings.Global.putInt(mContext.getContentResolver(), Settings.Global.AUTO_TIME, 1);
+                    mTime.forceRefresh();
+                    long mCachedAge = mTime.getCacheAge();
+                    long mCachedNtpTime = mTime.getCachedNtpTime();
+                    if (mCachedAge != Long.MAX_VALUE) {
+                        Log.d("DroidLogic", "I have mCachedAge");
+                        SystemClock.setCurrentTimeMillis(mCachedNtpTime + mCachedAge);
+                    }
+                    Log.d("DroidLogic", "autoTimeValue changed 0");
+                } else if (autoTimeValue == 1) {
+                    Settings.Global.putInt(mContext.getContentResolver(), Settings.Global.AUTO_TIME, 1);
+                    Log.d("DroidLogic", "autoTimeValue changed 1");
+                }
+            }
             stopSubtitle();
             setMonitor(null);
             releaseWorkThread();
