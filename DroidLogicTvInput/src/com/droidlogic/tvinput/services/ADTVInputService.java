@@ -171,57 +171,25 @@ public class ADTVInputService extends DTVInputService {
         }
 
         @Override
-        protected void startSubtitle(ChannelInfo channelInfo) {
-            if (!channelInfo.isAnalogChannel() && !subtitleAutoStart)
-                return ;
+        protected boolean startSubtitle(ChannelInfo channelInfo) {
+            if (super.startSubtitle(channelInfo))
+                return true;
 
-            int idx = getSubtitleAuto(channelInfo);
-            if (mCurrentSubtitles != null && idx >= 0) {
-                startSubtitle(mCurrentSubtitles.get(idx));
-                mSystemControlManager.setProperty(DTV_SUBTITLE_TRACK_IDX, String.valueOf(idx));
-            } else if (channelInfo.isNtscChannel()) {
-                startSubtitleAutoAnalog();
-            } else {
-                stopSubtitle();
+            if (channelInfo != null && channelInfo.isNtscChannel()) {
+                startSubtitleCCBackground(channelInfo);
+                return true;
             }
-        }
-
-        protected void startSubtitleAutoAnalog() {
-            Log.d(TAG, "start Subtitle AutoAnalog");
-
-            if (mSubtitleView == null) {
-                Log.d(TAG, "subtitle view is null");
-                return;
-            }
-
-            mSubtitleView.stop();
-
-            setSubtitleParam(ChannelInfo.Subtitle.TYPE_ATV_CC, ChannelInfo.Subtitle.CC_CAPTION_CC1, 0, 0, 0);//we need xds data
-
-            mSubtitleView.setActive(true);
-            mSubtitleView.show();
-            mSubtitleView.startSub();
+            return false;
         }
 
         @Override
-        protected void stopSubtitleBlock() {
+        protected void stopSubtitleBlock(ChannelInfo channel) {
             Log.d(TAG, "stopSubtitleBlock");
 
-            if (mCurrentChannel.isNtscChannel())
-                stopSubtitleAnalog();
+            if (channel.isNtscChannel())
+                startSubtitleCCBackground(channel);
             else
-                stopSubtitle();
-        }
-
-        protected void stopSubtitleAnalog() {
-            Log.d(TAG, "stop Subtitle Analog");
-
-            if (mSubtitleView != null) {
-                mSubtitleView.hide();
-                mSessionHandler.sendMessage(mSessionHandler.obtainMessage(MSG_SUBTITLE_HIDE));
-            }
-
-            mSystemControlManager.setProperty(DTV_SUBTITLE_TRACK_IDX, "-1");
+                super.stopSubtitleBlock(channel);
         }
 
         private TvContentRating[] mATVContentRatings = null;
@@ -229,6 +197,8 @@ public class ADTVInputService extends DTVInputService {
         @Override
         protected boolean tryPlayProgram(ChannelInfo info) {
             mATVContentRatings = null;
+            //xxx if (info.isNtscChannel())
+            //    startSubtitle(info, false);
             return super.tryPlayProgram(info);
         }
 
@@ -244,7 +214,7 @@ public class ADTVInputService extends DTVInputService {
         @Override
         public void onSubtitleData(String json) {
             Log.d(TAG, "onSubtitleData json: " + json);
-            Log.d(TAG, "onSubtitleData curchannel:"+(mCurrentChannel!=null?mCurrentChannel.toString():"null"));
+            Log.d(TAG, "onSubtitleData curchannel:"+(mCurrentChannel!=null?mCurrentChannel.getDisplayName():"null"));
             if (mCurrentChannel != null && mCurrentChannel.isAnalogChannel()) {
                 mATVContentRatings = DroidLogicTvUtils.parseARatings(json);
                 if (/*mATVContentRatings != null && */json.contains("Aratings") && !TextUtils.equals(json, mCurrentChannel.getContentRatings())) {
