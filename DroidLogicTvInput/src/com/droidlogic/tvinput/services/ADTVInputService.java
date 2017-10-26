@@ -235,7 +235,8 @@ public class ADTVInputService extends DTVInputService {
         @Override
         protected TvContentRating[] getContentRatingsOfCurrentProgram(ChannelInfo channelInfo) {
             if (channelInfo != null && channelInfo.isAnalogChannel())
-                return mATVContentRatings;
+                return DroidLogicTvUtils.parseARatings(channelInfo.getContentRatings());
+                //return mATVContentRatings;
             else
                 return super.getContentRatingsOfCurrentProgram(channelInfo);
         }
@@ -246,7 +247,7 @@ public class ADTVInputService extends DTVInputService {
             Log.d(TAG, "onSubtitleData curchannel:"+(mCurrentChannel!=null?mCurrentChannel.toString():"null"));
             if (mCurrentChannel != null && mCurrentChannel.isAnalogChannel()) {
                 mATVContentRatings = DroidLogicTvUtils.parseARatings(json);
-                if (mATVContentRatings != null) {
+                if (/*mATVContentRatings != null && */json.contains("Aratings") && !TextUtils.equals(json, mCurrentChannel.getContentRatings())) {
                     TvDataBaseManager tvdatabasemanager = new TvDataBaseManager(mContext);
                     mCurrentChannel.setContentRatings(json);
                     tvdatabasemanager.updateOrinsertAtvChannel(mCurrentChannel);
