@@ -170,4 +170,9 @@
     <string name="tv_manual_option">手动搜索选项:</string>
     <string name="tv_auto_option">自动搜索选项:</string>
     <string name="ut_tune_atsc_c_standard">标准</string>
+
+    <!-- number search channel-->
+    <string name="number_search_title">"搜台中"</string>
+    <string name="number_search_dtv">"正在搜台，请稍等"</string>
+    <string name="number_search_atv">"正在搜索atv节目，请稍等"</string>
 </resources>

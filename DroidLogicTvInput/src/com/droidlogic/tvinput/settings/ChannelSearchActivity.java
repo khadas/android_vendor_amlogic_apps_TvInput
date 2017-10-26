@@ -42,6 +42,7 @@ import android.widget.Toast;
 import android.widget.SimpleAdapter;
 import android.widget.ArrayAdapter;
 import android.media.tv.TvContract;
+import android.app.ProgressDialog;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -86,19 +87,52 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
     public static final int PROCCESS = 2;
     public static final int CHANNEL = 3;
     public static final int STATUS = 4;
+    public static final int NUMBER_SEARCH_START = 5;
     public static final int ATSCC_OPTION_DEFAULT = 0;
+
+    //number search  key "numbersearch" true or false, "number" 2~135
+    public static final String NUMBERSEARCH = "numbersearch";
+    public static final String NUMBER = "number";
+    public static final boolean NUMBERSEARCHDEFAULT = false;
+    public static final int NUMBERDEFAULT = -1;
+    private ProgressDialog mProDia;
+    private boolean isNumberSearchMode = false;
+    private int mNumber = -1;
+    private boolean hasFoundChannel = false;
+    private boolean mNumberSearchDtv = true;
+    private boolean  mNumberSearchAtv = true;
+    private int hasFoundChannelNumber = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        setContentView(R.layout.tv_channel_scan);
+        Intent in = getIntent();
+        if (in != null && in.getBooleanExtra(NUMBERSEARCH, NUMBERSEARCHDEFAULT)) {
+            mNumber = in.getIntExtra(NUMBER, NUMBERDEFAULT);
+            if (NUMBERDEFAULT == mNumber) {
+                finish();
+                return;
+            }
+
+            isNumberSearchMode = true;
+            setContentView(R.layout.tv_number_channel_scan);
+        } else {
+            setContentView(R.layout.tv_channel_scan);
+        }
         isFinished = false;
 
         mOptionUiManagerT = new OptionUiManagerT(this, getIntent(), true);
         mOptionUiManagerT.setHandler(mHandler);
         mAudioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
         mPowerManager = (PowerManager)getSystemService(Context.POWER_SERVICE);
+
+        if (isNumberSearchMode) {
+            initNumberSearch(this);
+            startShowActivityTimer();
+            mOptionUiManagerT.startTvPlayAndSetSourceInput();
+            return;
+        }
 
         mProgressBar = (ProgressBar) findViewById(R.id.tune_progress);
         mScanningMessage = (TextView) findViewById(R.id.tune_description);
@@ -139,6 +173,21 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
         startShowActivityTimer();
 
         mOptionUiManagerT.startTvPlayAndSetSourceInput();
+    }
+
+    private void initNumberSearch(Context context) {
+        mProDia= new ProgressDialog(this);
+        mProDia.setTitle(R.string.number_search_title);
+        mProDia.setMessage(getResources().getString(R.string.number_search_dtv));
+        mProDia.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        mProDia.show();
+        sendMessage(NUMBER_SEARCH_START, 0, null);
+    }
+
+    private void exitNumberSearch() {
+        if (mProDia != null && mProDia.isShowing()) {
+            mProDia.dismiss();
+        }
     }
 
     private ArrayAdapter<String> arr_adapter;
@@ -245,18 +294,46 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
                     mOptionUiManagerT.callAutosearch();
                     break;
                 case PROCCESS:
-                    mProgressBar.setProgress(msg.what);
+                    if (!isNumberSearchMode) {
+                        mProgressBar.setProgress(msg.what);
+                    } else {
+                        mProDia.setProgress(msg.what);
+                    }
                     break;
                 case CHANNEL:
-                    mAdapter = (SimpleAdapter) msg.obj;
-                    channelList.setAdapter(mAdapter);
-                    channelList.setOnItemClickListener(null);
-                    if (mChannelHolder.getVisibility() == View.GONE) {
-                        mChannelHolder.setVisibility(View.VISIBLE);
+                    if (!isNumberSearchMode) {
+                        mAdapter = (SimpleAdapter) msg.obj;
+                        channelList.setAdapter(mAdapter);
+                        channelList.setOnItemClickListener(null);
+                        if (mChannelHolder.getVisibility() == View.GONE) {
+                            mChannelHolder.setVisibility(View.VISIBLE);
+                        }
                     }
                     break;
                 case STATUS:
-                    mScanningMessage.setText((String) msg.obj);
+                    if (!isNumberSearchMode) {
+                        mScanningMessage.setText((String) msg.obj);
+                    } else {
+                        hasFoundChannelNumber = msg.what;
+                        if (hasFoundChannelNumber > 0) {
+                            hasFoundChannel = true;
+                            Log.d(TAG, "find channel num = " + hasFoundChannelNumber);
+                            if (mOptionUiManagerT.isSearching()) {
+                                mOptionUiManagerT.DtvStopScan();
+                            }
+                            exitNumberSearch();
+                            finish();
+                            return;
+                        }
+                        if ("exit".equals((String) msg.obj)) {//scan exit
+                            exitNumberSearch();
+                            finish();
+                        }
+                    }
+                    break;
+                case NUMBER_SEARCH_START:
+                    initparametres(NUMBER_SEARCH_START);
+                    mOptionUiManagerT.callManualSearch();
                     break;
                 default :
                     break;
@@ -267,14 +344,17 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
     private static final int MANUAL_SEARCH = 0;
     private static final int AUTO_SEARCH = 1;
 
-   private void initparametres(int type) {
-       if (type == MANUAL_SEARCH) {
-           mOptionUiManagerT.setSearchSys(mManualDTV.isChecked(), mManualATV.isChecked());
-	 } else if (AUTO_SEARCH == type) {
+    private void initparametres(int type) {
+        if (type == MANUAL_SEARCH) {
+            mOptionUiManagerT.setSearchSys(mManualDTV.isChecked(), mManualATV.isChecked());
+        } else if (AUTO_SEARCH == type) {
             mOptionUiManagerT.setSearchSys(mAutoDTV.isChecked(), mAutoATV.isChecked());
-       }
-	 setFrequency();
-        if (mChannelHolder.getVisibility() == View.VISIBLE) {
+        } else if (NUMBER_SEARCH_START== type) {
+            mOptionUiManagerT.setSearchSys(mNumberSearchDtv, mNumberSearchAtv);
+            mOptionUiManagerT.setNumberSearchNeed(true);
+        }
+        setFrequency();
+        if (!isNumberSearchMode && mChannelHolder.getVisibility() == View.VISIBLE) {
             mChannelHolder.setVisibility(View.GONE);
         }
    }
@@ -285,12 +365,14 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
         String dtvdefaultstart = "0";
         String from = null;
         String to = null;
-        if (mFrequecyFrom.getText() != null && mFrequecyFrom.getText().length() > 0) {
+        if (!isNumberSearchMode && mFrequecyFrom.getText() != null && mFrequecyFrom.getText().length() > 0) {
             from = mFrequecyFrom.getText().toString();
+        } else if (isNumberSearchMode) {
+            from = String.valueOf(mNumber);
         } else {
             from = null;
         }
-        if (mFrequecyTo.getText() != null && mFrequecyTo.getText().length() > 0) {
+        if (!isNumberSearchMode && mFrequecyTo.getText() != null && mFrequecyTo.getText().length() > 0) {
             to = mFrequecyTo.getText().toString();
         } else {
             to= atvdefaultend;
@@ -372,7 +454,7 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        //Log.d(TAG, "==== focus =" + getCurrentFocus() + ", keycode =" + keyCode);
+        Log.d(TAG, "==== focus =" + getCurrentFocus() + ", keycode =" + keyCode);
         switch (keyCode) {
             case KeyEvent.KEYCODE_BACK:
                 if (mOptionUiManagerT.isSearching()) {
@@ -430,8 +512,11 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
             Log.d(TAG, "TV is going to sleep, stop tv");
             return;
         }
-
-        setResult(mOptionUiManagerT.getActivityResult());
+        if (isNumberSearchMode && hasFoundChannel) {
+            setResult(RESULT_OK);
+        } else {
+            setResult(mOptionUiManagerT.getActivityResult());
+        }
         super.finish();
     }
 
@@ -499,9 +584,9 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
     Handler handler = new Handler() {
         public void handleMessage(Message msg) {
             InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-            if (!mOptionUiManagerT.isSearching() && !imm. isAcceptingText())
+            if (!isNumberSearchMode && (!mOptionUiManagerT.isSearching() && !imm. isAcceptingText()) || (isNumberSearchMode && hasFoundChannel)) {
                 finish();
-            else  {
+            } else  {
                 int seconds = Settings.System.getInt(getContentResolver(), SettingsManager.KEY_MENU_TIME, SettingsManager.DEFUALT_MENU_TIME);
                 sendEmptyMessageDelayed(0, 30 * 1000);
             }
@@ -535,7 +620,9 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
 
     private void release() {
         handler.removeCallbacksAndMessages(null);
+        mHandler.removeCallbacksAndMessages(null);
         mOptionUiManagerT.release();
+        exitNumberSearch();
         mOptionUiManagerT = null;
     }
 }

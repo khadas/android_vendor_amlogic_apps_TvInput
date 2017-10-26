@@ -19,4 +19,5 @@
 	<color name="ut_scan_button_text">#EEEEEE</color>
 	<color name="ut_scan_channellist_background">#26EEEEEE</color>
 	<color name="common_tv_background">#37474F</color>
+	<color name="black_background">#000000</color>
 </resources>

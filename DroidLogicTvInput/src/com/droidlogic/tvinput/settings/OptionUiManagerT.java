@@ -1132,7 +1132,11 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
                 if (!isLiveTvScaning) {
                     ((TvSettingsActivity) mContext).finish();
                 } else {
-                    ((ChannelSearchActivity) mContext).finish();
+                    if (!mNumberSearchNeed) {
+                        ((ChannelSearchActivity) mContext).finish();
+                    } {
+                        sendMessage(ChannelSearchActivity.STATUS, -1, "exit");
+                    }
                 }
                 if (channelNumber == 0 && radioNumber == 0) {
                     showToast(mResources.getString(R.string.searched) + " 0 " + mResources.getString(R.string.channel));
@@ -1256,7 +1260,7 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
     }
 
     private int checkLiveTvAutoScanMode() {
-        Log.d(TAG," TvAutoScanMode mSearchDtv = " + mSearchDtv + ", mSearchDtv = " + mSearchAtv);
+        Log.d(TAG," TvAutoScanMode mSearchDtv = " + mSearchDtv + ", mSearchAtv = " + mSearchAtv);
         if (mSearchDtv && !mSearchAtv) {
             return ManualScanEdit.SCAN_ONLY_DTV;
         } else if (!mSearchDtv && mSearchAtv){
@@ -1279,6 +1283,7 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
                     new String[] {SettingsManager.STRING_NAME, SettingsManager.STRING_STATUS},
                     new int[] {R.id.text_name, R.id.text_status});
             sendMessage(ChannelSearchActivity.CHANNEL, 0, adapter);
+            sendMessage(ChannelSearchActivity.STATUS, channelNumber, null);//send searched channelnumber
         }else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
             ArrayList<HashMap<String, Object>> dataList = getSearchedDtvInfo(event);
             SimpleAdapter adapter = new SimpleAdapter(mContext, dataList,
@@ -1286,6 +1291,7 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
                     new String[] {SettingsManager.STRING_NAME, SettingsManager.STRING_STATUS},
                     new int[] {R.id.text_name, R.id.text_status});
             sendMessage(ChannelSearchActivity.CHANNEL, 0, adapter);
+            sendMessage(ChannelSearchActivity.STATUS, channelNumber, null);//send searched channelnumber
         }
     }
 
@@ -1379,6 +1385,13 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
             mSettingsManager.setDtvType(type);
         }
     }
+
+    private boolean mNumberSearchNeed = false;;
+
+    public void setNumberSearchNeed(boolean need) {
+        mNumberSearchNeed = need;
+    }
+
 /************************mSettingsManager interface end****************************************8*/
 
 /************************mTvControlManager interface start****************************************8*/

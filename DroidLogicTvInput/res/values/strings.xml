@@ -216,4 +216,9 @@
     <string name="ut_tune_atsc_c_standard">standard</string>
     <string name="ut_tune_atsc_c_lrc">LRC</string>
     <string name="ut_tune_atsc_c_hrc">HRC</string>
+
+    <!-- number search channel-->
+    <string name="number_search_title">Searching</string>
+    <string name="number_search_dtv">Searching channel, please wait...</string>
+    <string name="number_search_atv">Searching atv channel, please wait...</string>
 </resources>
