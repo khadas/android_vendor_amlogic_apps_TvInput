@@ -494,10 +494,17 @@ public class DTVInputService extends DroidLogicTvInputService {
             }
         }
 
+        private ChannelInfo mLastChannel = null;
         protected boolean tryPlayProgram(ChannelInfo info) {
             mCurrentChannel = info;
             mCurrentPmtContentRatings = null;
             mCurrentCCContentRatings = null;
+
+            if ((mLastChannel != null) && (mCurrentChannel != null)) {
+                if ((mLastChannel.getFrequency() != mCurrentChannel.getFrequency())) {
+                    setMonitor(null);
+                }
+            }
 
             mTvControlManager.TvSetFrontEnd(new TvControlManager.FEParas(info.getFEParas()));
             setMonitor(info);
@@ -505,6 +512,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             //xxx if (info.isAtscChannel() || isAtscForcedStandard())
             //    startSubtitle(info, false);
 
+            mLastChannel = mCurrentChannel;
             checkContentBlockNeeded(info);
 
             return true;
@@ -2195,17 +2203,125 @@ public class DTVInputService extends DroidLogicTvInputService {
                 return programs;
             }
 
+            private ChannelInfo mVctChannel = null;
+            private Map<Integer, Long> mVctMap = null;
+
+            /*Update ATSC programs*/
+            private void updateAtscPrograms(DTVEpgScanner.Event event) {
+                if ((mCurrentChannel == null) || channelMap == null)
+                    return;
+                if (mVctChannel != mCurrentChannel) {
+                    mVctChannel = mCurrentChannel;
+
+                    String vct = mVctChannel.getVct();
+                    if (vct == null) {
+                        Log.d(TAG, "build VCT map vct null:"+vct);
+                        return;
+                    }
+                    String items[] = vct.split(",");
+                    if (items == null) {
+                        Log.d(TAG, "build VCT map items null");
+                        return;
+                    }
+
+                    mVctMap = new HashMap<Integer, Long>();
+                    for (String item : items) {
+                        ChannelInfo chan = null;
+                        int srcId, major, minor;
+                        int p1, p2;
+
+                        p1 = item.indexOf(':');
+                        if (p1 == -1)
+                            continue;
+                        p2 = item.indexOf('-', p1);
+                        if (p2 == -1)
+                            continue;
+                        Log.d(TAG, "build VCT map id :"+item.substring(0, p1)+" maj:" + item.substring(p1 + 1, p2)+" min:" + item.substring(p2 + 1));
+                        srcId = Integer.parseInt(item.substring(0, p1));
+                        major = Integer.parseInt(item.substring(p1 + 1, p2));
+                        minor = Integer.parseInt(item.substring(p2 + 1));
+
+                        for (ChannelInfo c : channelMap) {
+                            if ((c.getMajorChannelNumber() == major) && (c.getMinorChannelNumber() == minor)) {
+                                chan = c;
+                                break;
+                            }
+                        }
+
+                        if (chan == null)
+                            continue;
+
+                        mVctMap.put(srcId, chan.getId());
+                    }
+                    Log.d(TAG, "build VCT map");
+                } else {
+                    Log.d(TAG, "build VCT map mVctChannel == mCurrentChannel");
+                }
+
+                if (mVctMap == null) {
+                    Log.d(TAG, "build VCT map mVctMap is null");
+                    return;
+                }
+
+                for (ChannelInfo c : channelMap) {
+                    Uri channelUri = TvContract.buildChannelUri(c.getId());
+                    List<Program> programs = new ArrayList<>();
+
+                    for (DTVEpgScanner.Event.Evt evt : event.evts) {
+                        Long cid = mVctMap.get(evt.source_id);
+                        Log.d(TAG, "build VCT map cid " + cid + " c.getId():" + c.getId() + " evt.srv_id" + evt.srv_id);
+                        if (cid == null)
+                            continue;
+                        if (c.getId() == cid) {
+                            try {
+
+                                long start = evt.start;
+                                long end = evt.end;
+                                Program p = new Program.Builder()
+                                    .setProgramId(evt.evt_id)
+                                    .setChannelId(cid)
+                                    .setTitle(TVMultilingualText.getText((evt.name == null ? null : new String(evt.name)), languages))
+                                    .setDescription(TVMultilingualText.getText((evt.ext_descr == null ? null : new String(evt.ext_descr)), languages))
+                                    .setContentRatings(evt.rrt_ratings == null ? null : DroidLogicTvUtils.parseDRatings(new String(evt.rrt_ratings)))
+                                    //.setCanonicalGenres(programInfo.genres)
+                                    //.setPosterArtUri(programInfo.posterArtUri)
+                                    .setInternalProviderData(evt.rrt_ratings == null ? null : new String(evt.rrt_ratings))
+                                    .setStartTimeUtcMillis(start * 1000)
+                                    .setEndTimeUtcMillis(end * 1000)
+                                    .build();
+                                programs.add(p);
+
+                                Log.d(TAG, "build VCT map epg: sid[" + evt.srv_id + "]"
+                                      + "eid[" + evt.evt_id + "]"
+                                      + "{" + p.getTitle() + "}"
+                                      + "[" + (p.getStartTimeUtcMillis() == 0 ? 0 : p.getStartTimeUtcMillis() / 1000)
+                                      + "-" + (p.getEndTimeUtcMillis() == 0 ? 0 : p.getEndTimeUtcMillis() / 1000) + "]");
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                    Log.d(TAG, "build VCT map programs.size()" + programs.size());
+                    if (mTvDataBaseManager != null && programs.size() != 0)
+                        mTvDataBaseManager.updatePrograms(c.getId(), programs);
+                }
+            }
+
             private void resolveMonitorEvent(DTVEpgScanner.Event event) {
                 Log.d(TAG, "Monitor event: " + event.type + " this:" +this);
                 switch (event.type) {
                     case DTVEpgScanner.Event.EVENT_PROGRAM_EVENTS_UPDATE:
-                        for (int i = 0; (channelMap != null && i < channelMap.size()); ++i) {
-                            ChannelInfo channel = (ChannelInfo)channelMap.get(i);
-                            Uri channelUri = TvContract.buildChannelUri(channel.getId());
+                        if (isAtscEvent(event.evts[0])) {
+                            updateAtscPrograms(event);
+                        } else {
+                            for (int i = 0; (channelMap != null && i < channelMap.size()); ++i) {
+                                ChannelInfo channel = (ChannelInfo)channelMap.get(i);
+                                Uri channelUri = TvContract.buildChannelUri(channel.getId());
 
-                            List<Program> programs = getChannelPrograms(channelUri, channel, event);
-                            if (mTvDataBaseManager != null && programs.size() != 0)
-                                mTvDataBaseManager.updatePrograms(channelUri, programs, isAtscEvent(event.evts[0]));
+                                List<Program> programs = getChannelPrograms(channelUri, channel, event);
+                                if (mTvDataBaseManager != null && programs.size() != 0)
+                                    mTvDataBaseManager.updatePrograms(channelUri, programs, isAtscEvent(event.evts[0]));
+                            }
                         }
                         break;
                     case DTVEpgScanner.Event.EVENT_TDT_END:
