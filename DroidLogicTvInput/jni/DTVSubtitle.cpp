@@ -207,25 +207,12 @@ extern "C" {
        }
     }
 
-    static void cc_nodata_cb(AM_CC_Handle_t handle)
-    {
-        TVSubtitleData *sub = (TVSubtitleData *)AM_CC_GetUserData(handle);
-        char json[64] = "{Aratings:{}}";
-        data_update(sub->obj, json);
-    }
-
-    static void dtvcc_nodata_cb(AM_CC_Handle_t handle)
-    {
-        TVSubtitleData *sub = (TVSubtitleData *)AM_CC_GetUserData(handle);
-        char json[64] = "{dtvcc:{nodata:1}}";
-        data_update(sub->obj, json);
-    }
-
-    static void channel_cb(AM_CC_Handle_t handle, AM_CC_CaptionMode_t chn)
+    static void cc_data_cb(AM_CC_Handle_t handle, int mask)
     {
         TVSubtitleData *sub = (TVSubtitleData *)AM_CC_GetUserData(handle);
         char json[64];
-        sprintf(json, "{dtvcc:{found:%d}}", (int)chn);
+
+        sprintf(json, "{cc:{data:%d}}", mask);
         data_update(sub->obj, json);
     }
 
@@ -484,7 +471,7 @@ error:
         }
         jstring data = env->NewStringUTF(json);
         env->CallVoidMethod(obj, gUpdateDataID, data);
-
+        env->DeleteLocalRef(data);
         if (attached) {
             gJavaVM->DetachCurrentThread();
         }
@@ -790,6 +777,7 @@ error:
         }
 
         free(buf);
+        env->DeleteLocalRef(strencode);
         env->ReleaseByteArrayElements(barr, ba, 0);
         return 0;
     }
@@ -824,11 +812,11 @@ error:
         cc_para.user_data = (void *)data;
         cc_para.input = (AM_CC_Input_t)source;
         cc_para.rating_cb = cc_rating_cb;
-        cc_para.nodata_cb = cc_nodata_cb;
-        cc_para.dtvcc_time_out = 5000;//5s
-        cc_para.dtvcc_nodata_cb = dtvcc_nodata_cb;
-        cc_para.channel_cb = channel_cb;
-        spara.caption                  = (AM_CC_CaptionMode_t)caption;
+        cc_para.data_cb = cc_data_cb;
+        cc_para.data_timeout = 5000;//5s
+        cc_para.switch_timeout = 3000;//3s
+        spara.caption1                 = (AM_CC_CaptionMode_t)caption;
+        spara.caption2                 = AM_CC_CAPTION_NONE;
         spara.user_options.bg_color    = (AM_CC_Color_t)bg_color;
         spara.user_options.fg_color    = (AM_CC_Color_t)fg_color;
         spara.user_options.bg_opacity  = (AM_CC_Opacity_t)bg_opacity;
