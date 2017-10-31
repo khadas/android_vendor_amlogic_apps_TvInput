@@ -214,6 +214,14 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
         doScanCmd(DroidLogicTvUtils.ACTION_ATV_RESUME_SCAN, null);
         isSearching = SEARCH_RUNNING;
     }
+
+    private static final int LRC = 2;
+    private static final int HRC = 3;
+    private static final int ATSC_C_LRC_SET = 1;
+    private static final int ATSC_C_HRC_SET = 2;
+    private static final int DTV_TO_ATV = 4;
+    private static final int SET_TO_MODE = 1;
+
     private void startManualSearchAccordingMode() {
         Log.d(TAG, "startManualSearchAccordingMode");
         mTvControlManager.setAmAudioPreMute(1);
@@ -246,7 +254,12 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
         case ManualScanEdit.SCAN_ATV_DTV:
             Log.d(TAG, "MANUAL_SCAN_ATV_DTV");
             if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_C)) {
-                mode.setList(1);
+                //mode.setList(1);
+                if (mAtsccMode == ATSC_C_LRC_SET) {
+                    mode.setList(LRC);
+                } else if (mAtsccMode == ATSC_C_HRC_SET) {
+                    mode.setList(HRC);
+                }
             }
             mode.setExt(mode.getExt() | 1);//mixed adtv
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_MODE, mode.getMode());
@@ -256,9 +269,14 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
         case ManualScanEdit.SCAN_ONLY_ATV:
             Log.d(TAG, "MANUAL_SCAN_ONLY_ATV");
             if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_T)) {
-                mode.setList(4);
+                //mode.setList(4);
             } else if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_C)) {
-                mode.setList(5);
+                //mode.setList(5);
+                if (mAtsccMode == ATSC_C_LRC_SET) {
+                    mode.setList(LRC);
+                } else if (mAtsccMode == ATSC_C_HRC_SET) {
+                    mode.setList(HRC);
+                }
             }
             mode.setExt(mode.getExt() | 1);//mixed adtv
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_MODE, mode.getMode());
@@ -268,7 +286,12 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
         case ManualScanEdit.SCAN_ONLY_DTV:
             Log.d(TAG, "MANUAL_SCAN_ONLY_DTV");
             if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_C)) {
-                mode.setList(1);
+                //mode.setList(1);
+                if (mAtsccMode == ATSC_C_LRC_SET) {
+                    mode.setList(LRC);
+                } else if (mAtsccMode == ATSC_C_HRC_SET) {
+                    mode.setList(HRC);
+                }
             }
             mode.setExt(mode.getExt() | 1);//mixed adtv
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_MODE, mode.getMode());
@@ -316,6 +339,9 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
             scan.setDtvMode(dtvScanType);
             scan.setDtvFrequency1(dtvFreq);
             scan.setDtvFrequency2(dtvFreq);
+            if (checkLiveTvAutoScanMode() == ScanEdit.SCAN_ATV_DTV || checkLiveTvAutoScanMode() == ScanEdit.SCAN_ONLY_ATV) {
+                scan.setAtvModifier(TvControlManager.FEParas.K_MODE, tvMode.setList(tvMode.getList() + DTV_TO_ATV).getMode());
+            }
             mTvControlManager.OpenDevForScan(DroidLogicTvUtils.OPEN_DEV_FOR_SCAN_DTV);
             mTvControlManager.TvScan(fe, scan);
             }
@@ -552,7 +578,7 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
                     cableMode = ((TvSettingsActivity)mContext).mManualScanEdit.checkCableMode();
                     autoscanmode = ((TvSettingsActivity)mContext).mManualScanEdit.checkAutoScanMode();
                 } else {
-                    cableMode = 0;
+                    cableMode = mAtsccMode + SET_TO_MODE;//select atsc-c std lrc drc
                     autoscanmode = checkLiveTvAutoScanMode();
                 }
 

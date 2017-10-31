@@ -108,6 +108,12 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         Intent in = getIntent();
+
+        mOptionUiManagerT = new OptionUiManagerT(this, in, true);
+        mOptionUiManagerT.setHandler(mHandler);
+        mAudioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+        mPowerManager = (PowerManager)getSystemService(Context.POWER_SERVICE);
+
         if (in != null && in.getBooleanExtra(NUMBERSEARCH, NUMBERSEARCHDEFAULT)) {
             mNumber = in.getIntExtra(NUMBER, NUMBERDEFAULT);
             if (NUMBERDEFAULT == mNumber) {
@@ -121,11 +127,6 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
             setContentView(R.layout.tv_channel_scan);
         }
         isFinished = false;
-
-        mOptionUiManagerT = new OptionUiManagerT(this, getIntent(), true);
-        mOptionUiManagerT.setHandler(mHandler);
-        mAudioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
-        mPowerManager = (PowerManager)getSystemService(Context.POWER_SERVICE);
 
         if (isNumberSearchMode) {
             initNumberSearch(this);
@@ -218,7 +219,8 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
         arr_adapter_atsc_c = new ArrayAdapter<String>(ChannelSearchActivity.this, android.R.layout.simple_spinner_item, data_list_atsc_c);
         arr_adapter_atsc_c.setDropDownViewResource(android.R.layout.simple_list_item_single_choice );
         mAtscOption.setAdapter(arr_adapter_atsc_c);
-        mAtscOption.setSelection(ATSCC_OPTION_DEFAULT);
+        //mAtscOption.setSelection(ATSCC_OPTION_DEFAULT);
+        mAtscOption.setSelection(getAtsccListMode());
         if (mOptionUiManagerT.getDtvTypeStatus() != OptionUiManagerT.SET_ATSC_C) {
             mAtscOption.setEnabled(false);
         }
@@ -249,12 +251,12 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
                     final int standard = 0;
                     if (position == OptionUiManagerT.SET_ATSC_C) {
                         mAtscOption.setEnabled(true);
-                        mAtscOption.setSelection(standard, false);
-                        mOptionUiManagerT.setAtsccSearchSys(standard);
+                        mAtscOption.setSelection(getAtsccListMode(), false);
+                        mOptionUiManagerT.setAtsccSearchSys(getAtsccListMode());
                     } else {
-                        mAtscOption.setSelection(standard, false);
+                        mAtscOption.setSelection(getAtsccListMode(), false);
                         mAtscOption.setEnabled(false);
-                        mOptionUiManagerT.setAtsccSearchSys(standard);
+                        mOptionUiManagerT.setAtsccSearchSys(getAtsccListMode());
                     }
                     //mManualSpinner.postInvalidate();
                 }
@@ -270,6 +272,7 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 if (position >= 0 && position <= 2) {
                     mOptionUiManagerT.setAtsccSearchSys(position);
+                    setAtsccListMode(position);
                 }
             }
 
@@ -332,6 +335,7 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
                     }
                     break;
                 case NUMBER_SEARCH_START:
+                    handler.postDelayed(TimeOutStopScanRunnable, 30000);//timeout 30s
                     initparametres(NUMBER_SEARCH_START);
                     mOptionUiManagerT.callManualSearch();
                     break;
@@ -353,6 +357,7 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
             mOptionUiManagerT.setSearchSys(mNumberSearchDtv, mNumberSearchAtv);
             mOptionUiManagerT.setNumberSearchNeed(true);
         }
+        mOptionUiManagerT.setAtsccSearchSys(getAtsccListMode());
         setFrequency();
         if (!isNumberSearchMode && mChannelHolder.getVisibility() == View.VISIBLE) {
             mChannelHolder.setVisibility(View.GONE);
@@ -584,7 +589,7 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
     Handler handler = new Handler() {
         public void handleMessage(Message msg) {
             InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-            if (!isNumberSearchMode && (!mOptionUiManagerT.isSearching() && !imm. isAcceptingText()) || (isNumberSearchMode && hasFoundChannel)) {
+            if ((!isNumberSearchMode && (!mOptionUiManagerT.isSearching() && !imm. isAcceptingText())) || (isNumberSearchMode && hasFoundChannel)) {
                 finish();
             } else  {
                 int seconds = Settings.System.getInt(getContentResolver(), SettingsManager.KEY_MENU_TIME, SettingsManager.DEFUALT_MENU_TIME);
@@ -625,4 +630,30 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
         exitNumberSearch();
         mOptionUiManagerT = null;
     }
+
+    final int STANDARD = 0;
+    final int LRC = 1;
+    final int HRC = 2;
+
+    private void setAtsccListMode(int mode) {
+        Log.d(TAG, "setAtsccListMode = " + mode);
+        Settings.System.putInt(ChannelSearchActivity.this.getContentResolver(), "atsc_c_list_mode", mode);
+    }
+
+    private int getAtsccListMode() {
+        Log.d(TAG, "getAtsccListMode = " + Settings.System.getInt(ChannelSearchActivity.this.getContentResolver(), "atsc_c_list_mode", STANDARD));
+        return Settings.System.getInt(ChannelSearchActivity.this.getContentResolver(), "atsc_c_list_mode", STANDARD);
+    }
+
+     //30s timeout, stop scan
+    Runnable TimeOutStopScanRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (mOptionUiManagerT != null && mOptionUiManagerT.isSearching()) {
+                mOptionUiManagerT.DtvStopScan();
+            }
+            exitNumberSearch();
+            finish();
+        }
+    };
 }
