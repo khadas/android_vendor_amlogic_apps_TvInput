@@ -488,14 +488,16 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
         switch (keyCode) {
             case KeyEvent.KEYCODE_BACK:
                 if (mOptionUiManagerT.isSearching()) {
-                    mOptionUiManagerT.DtvStopScan();
+                    //mOptionUiManagerT.DtvStopScan();
+                    handler.post(StopScanRunnable);//prevent anr
                 } else {
                     finish();
                 }
                 return true;
             /*case KeyEvent.KEYCODE_MENU:
                 if (mOptionUiManagerT.isSearching()) {
-                    mOptionUiManagerT.DtvStopScan();
+                    //mOptionUiManagerT.DtvStopScan();
+                    handler.post(StopScanRunnable);//prevent anr
                     return true;
                 }
 
@@ -529,6 +531,16 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
         }
         return super.onKeyDown(keyCode, event);
     }
+
+    //prevent anr when stop scan
+    Runnable StopScanRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (mOptionUiManagerT != null && mOptionUiManagerT.isSearching()) {
+                mOptionUiManagerT.DtvStopScan();
+            }
+        }
+    };
 
     public OptionUiManagerT getOptionUiManager () {
         return mOptionUiManagerT;
