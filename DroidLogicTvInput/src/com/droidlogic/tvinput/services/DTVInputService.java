@@ -1867,6 +1867,54 @@ public class DTVInputService extends DroidLogicTvInputService {
             private int MODE_Time = 0;
             private int MODE_Ts = 0;
 
+            private String mVct = null;
+            private Map<Integer, Long> mVctMap = null;
+
+            private void buildVct () {
+                if (mVct == null || channelMap == null) {
+                    Log.d(TAG, "build VCT map vct null:");
+                    return;
+                } else {
+                    Log.d(TAG, "build VCT map vct :" + mVct);
+                }
+                String items[] = mVct.split(",");
+                if (items == null) {
+                    Log.d(TAG, "build VCT map items null");
+                    return;
+                }
+
+                mVctMap = new HashMap<Integer, Long>();
+                for (String item : items) {
+                    ChannelInfo chan = null;
+                    int srcId, major, minor;
+                    int p1, p2;
+
+                    p1 = item.indexOf(':');
+                    if (p1 == -1)
+                        continue;
+                    p2 = item.indexOf('-', p1);
+                    if (p2 == -1)
+                        continue;
+                    Log.d(TAG, "build VCT map id :"+item.substring(0, p1)+" maj:" + item.substring(p1 + 1, p2)+" min:" + item.substring(p2 + 1));
+                    srcId = Integer.parseInt(item.substring(0, p1));
+                    major = Integer.parseInt(item.substring(p1 + 1, p2));
+                    minor = Integer.parseInt(item.substring(p2 + 1));
+
+                    for (ChannelInfo c : channelMap) {
+                        if ((c.getMajorChannelNumber() == major) && (c.getMinorChannelNumber() == minor)) {
+                            chan = c;
+                            break;
+                        }
+                    }
+
+                    if (chan == null)
+                        continue;
+
+                    mVctMap.put(srcId, chan.getId());
+                }
+                Log.d(TAG, "build VCT map end");
+            }
+
             public DTVMonitor(Context context, String inputId, String coding, int mode, String standard) {
                 mContext = context;
                 mInputId = inputId;
@@ -1877,6 +1925,9 @@ public class DTVInputService extends DroidLogicTvInputService {
 
                 int channel_number_start = mSystemControlManager.getPropertyInt(DTV_CHANNEL_NUMBER_START, 1);
                 mMonitorStoreManager = new MonitorStoreManager(mInputId, channel_number_start);
+
+                if (mCurrentChannel != null)
+                    mVct = mCurrentChannel.getVct();
 
                 mHandlerThread = new HandlerThread(getClass().getSimpleName());
                 mHandlerThread.start();
@@ -2203,64 +2254,17 @@ public class DTVInputService extends DroidLogicTvInputService {
                 return programs;
             }
 
-            private ChannelInfo mVctChannel = null;
-            private Map<Integer, Long> mVctMap = null;
-
             /*Update ATSC programs*/
             private void updateAtscPrograms(DTVEpgScanner.Event event) {
-                if ((mCurrentChannel == null) || channelMap == null)
+                if (channelMap == null)
                     return;
-                if (mVctChannel != mCurrentChannel) {
-                    mVctChannel = mCurrentChannel;
-
-                    String vct = mVctChannel.getVct();
-                    if (vct == null) {
-                        Log.d(TAG, "build VCT map vct null:"+vct);
-                        return;
-                    }
-                    String items[] = vct.split(",");
-                    if (items == null) {
-                        Log.d(TAG, "build VCT map items null");
-                        return;
-                    }
-
-                    mVctMap = new HashMap<Integer, Long>();
-                    for (String item : items) {
-                        ChannelInfo chan = null;
-                        int srcId, major, minor;
-                        int p1, p2;
-
-                        p1 = item.indexOf(':');
-                        if (p1 == -1)
-                            continue;
-                        p2 = item.indexOf('-', p1);
-                        if (p2 == -1)
-                            continue;
-                        Log.d(TAG, "build VCT map id :"+item.substring(0, p1)+" maj:" + item.substring(p1 + 1, p2)+" min:" + item.substring(p2 + 1));
-                        srcId = Integer.parseInt(item.substring(0, p1));
-                        major = Integer.parseInt(item.substring(p1 + 1, p2));
-                        minor = Integer.parseInt(item.substring(p2 + 1));
-
-                        for (ChannelInfo c : channelMap) {
-                            if ((c.getMajorChannelNumber() == major) && (c.getMinorChannelNumber() == minor)) {
-                                chan = c;
-                                break;
-                            }
-                        }
-
-                        if (chan == null)
-                            continue;
-
-                        mVctMap.put(srcId, chan.getId());
-                    }
-                    Log.d(TAG, "build VCT map");
-                } else {
-                    Log.d(TAG, "build VCT map mVctChannel == mCurrentChannel");
-                }
 
                 if (mVctMap == null) {
-                    Log.d(TAG, "build VCT map mVctMap is null");
-                    return;
+                    buildVct();
+                    if (mVctMap == null) {
+                        Log.d(TAG, "build VCT map mVctMap is null");
+                        return;
+                    }
                 }
 
                 for (ChannelInfo c : channelMap) {
