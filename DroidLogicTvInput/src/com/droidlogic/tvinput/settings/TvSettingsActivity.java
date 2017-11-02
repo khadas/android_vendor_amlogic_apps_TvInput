@@ -401,6 +401,15 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
         handler.removeMessages(0);
 
         int seconds = Settings.System.getInt(getContentResolver(), SettingsManager.KEY_MENU_TIME, SettingsManager.DEFUALT_MENU_TIME);
+        if (seconds == 0) {
+            seconds = 10;
+        } else if (seconds == 1) {
+            seconds = 20;
+        } else if (seconds == 2) {
+            seconds = 40;
+        } else if (seconds == 3) {
+            seconds = 60;
+        }
         handler.sendEmptyMessageDelayed(0, seconds * 1000);
     }
 
@@ -412,6 +421,15 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
                 isNeedStopTv = false;
             } else  {
                 int seconds = Settings.System.getInt(getContentResolver(), SettingsManager.KEY_MENU_TIME, SettingsManager.DEFUALT_MENU_TIME);
+                if (seconds == 0) {
+                    seconds = 10;
+                } else if (seconds == 1) {
+                    seconds = 20;
+                } else if (seconds == 2) {
+                    seconds = 40;
+                } else if (seconds == 3) {
+                    seconds = 60;
+                }
                 sendEmptyMessageDelayed(0, seconds * 1000);
             }
         }
