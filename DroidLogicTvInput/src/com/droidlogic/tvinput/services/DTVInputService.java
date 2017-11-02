@@ -619,7 +619,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             mChannelBlocked = (needChannelBlock ? 1 : 0);
             if (needChannelBlock) {
                 stopSubtitleBlock(channelInfo);
-                releasePlayerBlock();
+                //releasePlayerBlock();
                 if (contentRating != null) {
                     Log.d(TAG, "notifyBlock:"+contentRating.flattenToString());
                     notifyContentBlocked(contentRating);
@@ -635,6 +635,23 @@ public class DTVInputService extends DroidLogicTvInputService {
                         Log.d(TAG, "notifyAllowed");
                         notifyContentAllowed();
                     }
+                }
+            }
+        }
+
+        // if 3rd cc ratings is not null, the save it to channel's ratings
+        private void saveCurrentChannelRatings() {
+            if (mCurrentChannel != null) {
+                String rstr = null;
+
+                if ((mCurrentCCContentRatings != null) && (mCurrentCCContentRatings.length > 0)) {
+                    rstr = mCurrentCCContentRatings[0].flattenToString();
+                }
+
+                if (!TextUtils.equals(rstr, mCurrentChannel.getContentRatings())) {
+                    Log.d(TAG, "rating:updateChannel:"+rstr);
+                    mCurrentChannel.setContentRatings(rstr);
+                    mTvDataBaseManager.updateChannelInfo(mCurrentChannel);
                 }
             }
         }
@@ -657,20 +674,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             /*cc ratings 3rd*/
             if (ratings == null) {
                 ratings = mCurrentCCContentRatings;
-
-                if (mCurrentChannel != null) {
-                    String rstr = null;
-
-                    if ((ratings != null) && (ratings.length > 0)) {
-                        rstr = ratings[0].flattenToString();
-                    }
-
-                    if (!TextUtils.equals(rstr, mCurrentChannel.getContentRatings())) {
-                        Log.d(TAG, "rating:updateChannel:"+rstr);
-                        mCurrentChannel.setContentRatings(rstr);
-                        mTvDataBaseManager.updateChannelInfo(mCurrentChannel);
-                    }
-                }
+                saveCurrentChannelRatings();
             }
 
             return ratings;
@@ -1399,6 +1403,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                 }
                 if (mCurrentChannel.isAtscChannel() || isAtscForcedStandard()) {
                     mCurrentCCContentRatings = DroidLogicTvUtils.parseARatings(json);
+                    saveCurrentChannelRatings();
                     if (mHandler != null)
                         mHandler.sendMessage(mHandler.obtainMessage(MSG_PARENTAL_CONTROL, this));
                 }
