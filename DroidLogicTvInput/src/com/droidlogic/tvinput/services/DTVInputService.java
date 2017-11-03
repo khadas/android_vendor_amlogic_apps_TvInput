@@ -296,6 +296,19 @@ public class DTVInputService extends DroidLogicTvInputService {
                 mSubtitleView = (DTVSubtitleView)mOverlayView.getSubtitleView();
                 mSubtitleView.setSubtitleDataListener(this);
             }
+            if (getBlockNoRatingEnable()) {
+                isBlockNoRatingEnable = true;
+            } else {
+                isBlockNoRatingEnable = false;
+                isUnlockCurrent_NR = false;
+            }
+            Log.d(TAG,"isBlockNoRatingEnable:"+isBlockNoRatingEnable+",isUnlockCurrent_NR:"+isUnlockCurrent_NR);
+        }
+
+        private boolean getBlockNoRatingEnable() {
+            int status = Settings.System.getInt(mContext.getContentResolver(), DroidLogicTvUtils.BLOCK_NORATING, 0) ;
+            Log.d(TAG,"getBlockNoRatingEnable:"+status);
+            return (status == 1) ? true : false;
         }
 
         @Override
@@ -396,6 +409,16 @@ public class DTVInputService extends DroidLogicTvInputService {
             } else if (TextUtils.equals(DroidLogicTvUtils.ACTION_AD_MIXING_LEVEL, action)) {
                 mAudioADMixingLevel = bundle.getInt(DroidLogicTvUtils.PARA_VALUE1);
                 Log.d(TAG, "do private cmd: ACTION_AD_MIXING_LEVEL ["+mAudioADMixingLevel+"]");
+            } else if (DroidLogicTvUtils.ACTION_BLOCK_NORATING.equals(action)) {
+                Log.d(TAG, "do private cmd: ACTION_BLOCK_NORATING:"+ bundle.getInt(DroidLogicTvUtils.PARAM_NORATING_ENABLE));
+                if (DroidLogicTvUtils.NORATING_OFF == bundle.getInt(DroidLogicTvUtils.PARAM_NORATING_ENABLE)) {
+                    isBlockNoRatingEnable = false;
+                    isUnlockCurrent_NR = false;
+                } else if (DroidLogicTvUtils.NORATING_ON == bundle.getInt(DroidLogicTvUtils.PARAM_NORATING_ENABLE))
+                    isBlockNoRatingEnable = true;
+                else if (DroidLogicTvUtils.NORATING_UNLOCK_CURRENT == bundle.getInt(DroidLogicTvUtils.PARAM_NORATING_ENABLE))
+                    isUnlockCurrent_NR = true;
+                checkCurrentContentBlockNeeded();
             }
 
             super.doAppPrivateCmd(action, bundle);
@@ -454,7 +477,7 @@ public class DTVInputService extends DroidLogicTvInputService {
 
             mUnblockedRatingSet.clear();
             mChannelBlocked = -1;
-
+            isUnlockCurrent_NR = false;
             stopSubtitle();
 
             subtitleAutoStart = mSystemControlManager.getPropertyBoolean(DTV_SUBTITLE_AUTO_START, true);
@@ -556,7 +579,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                 startSubtitle(info);
 
             startAudioADByMain(info, audioAuto);
-
+            isUnlockCurrent_NR = false;
             return true;
         }
 
@@ -572,22 +595,37 @@ public class DTVInputService extends DroidLogicTvInputService {
                 return;
             }
             Log.d(TAG, "updateBlock:"+channelBlocked + " curBlock:"+mChannelBlocked + " channel:"+channelInfo.getId());
-
+            TvContentRating tcr = TvContentRating.createRating("com.android.tv", "block_norating", "block_norating", null);//only for block norationg function
             //maybe from the previous channel
             if (TvContract.buildChannelUri(channelInfo.getId()).compareTo(mCurrentUri) != 0)
                 return;
 
-            if ((mChannelBlocked != -1) && (mChannelBlocked == 1) == channelBlocked
-                    && (!channelBlocked || (channelBlocked && contentRating != null && contentRating.equals(mLastBlockedRating))))
+            boolean needChannelBlock = channelBlocked;
+            Log.d(TAG, "isBlockNoRatingEnable:"+isBlockNoRatingEnable+",isUnlockCurrent_NR:"+isUnlockCurrent_NR);
+            //add for no-rating block
+            boolean isParentControlEnabled = mTvInputManager.isParentalControlsEnabled();
+            TvContentRating ratings[] = getContentRatingsOfCurrentProgram(channelInfo);
+            if (ratings == null && isBlockNoRatingEnable && !isUnlockCurrent_NR)
+                needChannelBlock = true;
+
+            Log.d(TAG, "needChannelBlock:"+needChannelBlock);
+            needChannelBlock = isParentControlEnabled & needChannelBlock;
+            Log.d(TAG, "updated needChannelBlock:"+needChannelBlock);
+            if ((mChannelBlocked != -1) && (mChannelBlocked == 1) == needChannelBlock
+                    && (!needChannelBlock || (needChannelBlock && contentRating != null && contentRating.equals(mLastBlockedRating))))
+                //if(!isBlockNoRatingEnable)
                 return;
 
-            mChannelBlocked = (channelBlocked ? 1 : 0);
-            if (channelBlocked) {
+            mChannelBlocked = (needChannelBlock ? 1 : 0);
+            if (needChannelBlock) {
                 stopSubtitleBlock(channelInfo);
                 releasePlayerBlock();
                 if (contentRating != null) {
                     Log.d(TAG, "notifyBlock:"+contentRating.flattenToString());
                     notifyContentBlocked(contentRating);
+                } else if (isBlockNoRatingEnable) {
+                    Log.d(TAG, "notifyBlock because of block_norating:"+tcr.flattenToString());
+                    notifyContentBlocked(tcr);
                 }
                 mLastBlockedRating = contentRating;
             } else {
@@ -717,6 +755,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                 mLastBlockedRating = null;
                 if (rating != null) {
                     mUnblockedRatingSet.add(rating);
+                    isUnlockCurrent_NR = true;
                 }
 
                 playProgram(mCurrentChannel);
