@@ -1012,13 +1012,13 @@ public class SettingsManager {
     public String getMenuTimeStatus () {
         int seconds = Settings.System.getInt(mContext.getContentResolver(), KEY_MENU_TIME, DEFUALT_MENU_TIME);
         switch (seconds) {
-            case 10:
+            case 0:
                 return mResources.getString(R.string.time_10s);
-            case 20:
+            case 1:
                 return mResources.getString(R.string.time_20s);
-            case 40:
+            case 2:
                 return mResources.getString(R.string.time_40s);
-            case 60:
+            case 3:
                 return mResources.getString(R.string.time_60s);
             default:
                 return mResources.getString(R.string.time_10s);
@@ -1528,7 +1528,17 @@ public class SettingsManager {
     }
 
     public void setMenuTime (int seconds) {
-        Settings.System.putInt(mContext.getContentResolver(), KEY_MENU_TIME, seconds);
+        int type = -1;
+        if (seconds == 10) {
+            type = 0;
+        } else if (seconds == 20) {
+            type = 1;
+        } else if (seconds == 40) {
+            type = 2;
+        } else if (seconds == 60) {
+            type = 3;
+        }
+        Settings.System.putInt(mContext.getContentResolver(), KEY_MENU_TIME, type);
         ((TvSettingsActivity)mContext).startShowActivityTimer();
     }
 
