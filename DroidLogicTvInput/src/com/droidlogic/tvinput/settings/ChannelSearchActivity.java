@@ -463,7 +463,7 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
                     finish();
                 }
                 return true;
-            case KeyEvent.KEYCODE_MENU:
+            /*case KeyEvent.KEYCODE_MENU:
                 if (mOptionUiManagerT.isSearching()) {
                     mOptionUiManagerT.DtvStopScan();
                     return true;
