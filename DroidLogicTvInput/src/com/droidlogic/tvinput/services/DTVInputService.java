@@ -523,6 +523,10 @@ public class DTVInputService extends DroidLogicTvInputService {
             }
         }
 
+        protected boolean isAtsc(ChannelInfo info) {
+            return info.isAtscChannel() || isAtscForcedStandard();
+        }
+
         private ChannelInfo mLastChannel = null;
         protected boolean tryPlayProgram(ChannelInfo info) {
             mCurrentChannel = info;
@@ -538,7 +542,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             mTvControlManager.TvSetFrontEnd(new TvControlManager.FEParas(info.getFEParas()));
             setMonitor(info);
 
-            if (info.isAtscChannel() || isAtscForcedStandard()) {
+            if (isAtsc(info)) {
                 mCurrentCCExist = 0;
                 mSystemControlManager.setProperty(DTV_SUBTITLE_CAPTION_EXIST, String.valueOf(mCurrentCCExist));
                 startSubtitleCCBackground(info);

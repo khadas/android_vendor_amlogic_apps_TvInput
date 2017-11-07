@@ -196,10 +196,13 @@ public class ADTVInputService extends DTVInputService {
         private TvContentRating[] mATVContentRatings = null;
 
         @Override
+        protected boolean isAtsc(ChannelInfo info) {
+            return info.isNtscChannel() || super.isAtsc(info);
+        }
+
+        @Override
         protected boolean tryPlayProgram(ChannelInfo info) {
             mATVContentRatings = null;
-            //xxx if (info.isNtscChannel())
-            //    startSubtitle(info, false);
             return super.tryPlayProgram(info);
         }
 
