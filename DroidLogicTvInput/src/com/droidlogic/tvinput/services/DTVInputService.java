@@ -549,6 +549,13 @@ public class DTVInputService extends DroidLogicTvInputService {
             mTvControlManager.TvSetFrontEnd(new TvControlManager.FEParas(info.getFEParas()));
             setMonitor(info);
 
+            mLastChannel = mCurrentChannel;
+            checkContentBlockNeeded(info);
+
+            return true;
+        }
+
+        protected int tryStartSubtitle(ChannelInfo info) {
             if (isAtsc(info)) {
                 mCurrentCCExist = 0;
                 mSystemControlManager.setProperty(DTV_SUBTITLE_CAPTION_EXIST, String.valueOf(mCurrentCCExist));
@@ -556,10 +563,10 @@ public class DTVInputService extends DroidLogicTvInputService {
                 mCurrentCCEnabled = mCaptioningManager == null? false : mCaptioningManager.isEnabled();
             }
 
-            mLastChannel = mCurrentChannel;
-            checkContentBlockNeeded(info);
+            if (subtitleAutoStart)
+                startSubtitle(info);
 
-            return true;
+            return 0;
         }
 
         protected boolean playProgram(ChannelInfo info) {
@@ -596,8 +603,7 @@ public class DTVInputService extends DroidLogicTvInputService {
 
             notifyTracks(info);
 
-            if (subtitleAutoStart)
-                startSubtitle(info);
+            tryStartSubtitle(info);
 
             startAudioADByMain(info, audioAuto);
             isUnlockCurrent_NR = false;

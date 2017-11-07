@@ -147,8 +147,7 @@ public class ADTVInputService extends DTVInputService {
 
             notifyTracks(info);
 
-            if (subtitleAutoStart)
-                startSubtitle(info);
+            tryStartSubtitle(info);
 
             if (!info.isAnalogChannel())
                 startAudioADByMain(info, audioAuto);
