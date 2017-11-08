@@ -200,7 +200,7 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
         data_list = new ArrayList<String>();
         data_list_atsc_c = new ArrayList<String>();
         final int[] type = {R.string.dtmb, R.string.dvbc, R.string.dvbt, R.string.dvbt2, R.string.atsc_t, R.string.atsc_c, R.string.isdb_t};
-        final int[] type_atsc_c = {R.string.ut_tune_atsc_c_standard, R.string.ut_tune_atsc_c_lrc, R.string.hrc};
+        final int[] type_atsc_c = {R.string.ut_tune_atsc_c_auto, R.string.ut_tune_atsc_c_standard, R.string.ut_tune_atsc_c_lrc, R.string.hrc};
         for (int i = 0; i < type.length; i++) {
             data_list.add(getString(type[i]));
         }
@@ -220,7 +220,11 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
         arr_adapter_atsc_c.setDropDownViewResource(android.R.layout.simple_list_item_single_choice );
         mAtscOption.setAdapter(arr_adapter_atsc_c);
         //mAtscOption.setSelection(ATSCC_OPTION_DEFAULT);
-        mAtscOption.setSelection(getAtsccListMode());
+        if (getAtsccListMode() > HRC) {
+            mAtscOption.setSelection(STANDARD);//display the first item
+        } else {
+            mAtscOption.setSelection(getAtsccListMode() + 1);//display std lrc hrc
+        }
         if (mOptionUiManagerT.getDtvTypeStatus() != OptionUiManagerT.SET_ATSC_C) {
             mAtscOption.setEnabled(false);
         }
@@ -251,10 +255,20 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
                     final int standard = 0;
                     if (position == OptionUiManagerT.SET_ATSC_C) {
                         mAtscOption.setEnabled(true);
-                        mAtscOption.setSelection(getAtsccListMode(), false);
+                        //mAtscOption.setSelection(getAtsccListMode(), false);
+                        if (getAtsccListMode() > HRC) {
+                            mAtscOption.setSelection(STANDARD);//display the first item
+                        } else {
+                            mAtscOption.setSelection(getAtsccListMode() + 1);//display std lrc hrc
+                        }
                         mOptionUiManagerT.setAtsccSearchSys(getAtsccListMode());
                     } else {
-                        mAtscOption.setSelection(getAtsccListMode(), false);
+                        //mAtscOption.setSelection(getAtsccListMode(), false);
+                        if (getAtsccListMode() > HRC) {
+                            mAtscOption.setSelection(STANDARD);//display the first item
+                        } else {
+                            mAtscOption.setSelection(getAtsccListMode() + 1);//display std lrc hrc
+                        }
                         mAtscOption.setEnabled(false);
                         mOptionUiManagerT.setAtsccSearchSys(getAtsccListMode());
                     }
@@ -270,9 +284,14 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
         mAtscOption.setOnItemSelectedListener(new OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (position >= 0 && position <= 2) {
-                    mOptionUiManagerT.setAtsccSearchSys(position);
-                    setAtsccListMode(position);
+                if (position >= 0 && position <= 3) {
+                    if (position > STANDARD) {
+                        mOptionUiManagerT.setAtsccSearchSys(position - 1);
+                        setAtsccListMode(position - 1);
+                    } else {
+                        mOptionUiManagerT.setAtsccSearchSys(AUTO);
+                        setAtsccListMode(AUTO);
+                    }
                 }
             }
 
@@ -634,6 +653,7 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
     final int STANDARD = 0;
     final int LRC = 1;
     final int HRC = 2;
+    final int AUTO = 3;
 
     private void setAtsccListMode(int mode) {
         Log.d(TAG, "setAtsccListMode = " + mode);
