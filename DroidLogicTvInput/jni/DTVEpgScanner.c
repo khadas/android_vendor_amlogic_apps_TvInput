@@ -19,6 +19,7 @@
 #define EVENT_PROGRAM_NAME_UPDATE    8
 #define EVENT_PROGRAM_EVENTS_UPDATE  9
 #define EVENT_TS_UPDATE              10
+#define EVENT_EIT_CHANGED            11
 
 static JavaVM   *gJavaVM = NULL;
 static jclass    gEventClass;
@@ -50,6 +51,7 @@ typedef struct {
     int dvbServiceID;
     long time;
     int dvbVersion;
+    int eitNumber;
 }EPGEventData;
 
 struct sdt_service;
@@ -80,6 +82,7 @@ typedef struct {
     int mPcrPID;
     int mSdtVersion;
     sdt_service_t *services;
+    int mEitVersions[128];
 }EPGChannelData;
 
 struct sdt_service{
@@ -125,6 +128,7 @@ static void epg_on_event(jobject obj, EPGEventData *evt_data)
     (*env)->SetIntField(env,event,(*env)->GetFieldID(env, gEventClass, "dvbServiceID", "I"), evt_data->dvbServiceID);
     (*env)->SetLongField(env,event,(*env)->GetFieldID(env, gEventClass, "time", "J"), evt_data->time);
     (*env)->SetIntField(env,event,(*env)->GetFieldID(env, gEventClass, "dvbVersion", "I"), evt_data->dvbVersion);
+    (*env)->SetIntField(env,event,(*env)->GetFieldID(env, gEventClass, "eitNumber", "I"), evt_data->eitNumber);
     (*env)->CallVoidMethod(env, obj, gOnEventID, event);
 
     if (attached) {
@@ -136,8 +140,6 @@ static void epg_evt_callback(long dev_no, int event_type, void *param, void *use
 {
     EPGData *priv_data;
     EPGEventData edata;
-
-    UNUSED(user_data);
 
     log_info("evt callback %d\n", event_type);
 
@@ -181,6 +183,12 @@ static void epg_evt_callback(long dev_no, int event_type, void *param, void *use
         case AM_EPG_EVT_UPDATE_TS:
             edata.type = EVENT_TS_UPDATE;
             edata.channelID = (int)(long)param;
+            epg_on_event(priv_data->obj, &edata);
+            break;
+        case EVENT_EIT_CHANGED:
+            edata.type = EVENT_EIT_CHANGED;
+            edata.eitNumber = (int)(long)param;
+            edata.dvbVersion = (int)(long)user_data;
             epg_on_event(priv_data->obj, &edata);
             break;
         default:
@@ -915,6 +923,42 @@ static int epg_pat_update(AM_EPG_Handle_t handle, int type, void *tables, void *
     return 0;
 }
 
+static int epg_mgt_update(AM_EPG_Handle_t handle, int type, void *tables, void *user_data)
+{
+    dvbpsi_atsc_mgt_t *mgts = (dvbpsi_atsc_mgt_t*)tables;
+    EPGChannelData *pch_cur = &gChannelMonitored;
+    dvbpsi_atsc_mgt_t *mgt;
+    dvbpsi_atsc_mgt_table_t *table;
+
+    UNUSED(type);
+    UNUSED(user_data);
+
+    if (!pch_cur->valid)
+        return 1;
+
+    AM_SI_LIST_BEGIN(mgts, mgt)
+        AM_SI_LIST_BEGIN(mgt->p_first_table, table)
+            switch(table->i_table_type) {
+                case AM_SI_ATSC_TT_EIT0 ... AM_SI_ATSC_TT_EIT0+127: {
+                    int k = table->i_table_type - AM_SI_ATSC_TT_EIT0;
+                    //log_info("mgt: k:%d v:%d", k, table->i_table_type_version);
+                    if (pch_cur->mEitVersions[k] != table->i_table_type_version) {
+                        log_info("mgt: version chaned, eit[%d]: %d -> %d",
+                            k, pch_cur->mEitVersions[k], table->i_table_type_version);
+                        epg_evt_callback((long)handle, EVENT_EIT_CHANGED,
+                                (void*)(long)k,
+                                (void*)(long)table->i_table_type_version);
+                        pch_cur->mEitVersions[k] = table->i_table_type_version;
+                    }
+                }break;
+                case AM_SI_ATSC_TT_ETT0 ... AM_SI_ATSC_TT_ETT0+127:
+                break;
+            }
+        AM_SI_LIST_END()
+    AM_SI_LIST_END()
+    return 0;
+}
+
 static void epg_table_callback(AM_EPG_Handle_t handle, int type, void *tables, void *user_data)
 {
     if (!tables)
@@ -926,6 +970,9 @@ static void epg_table_callback(AM_EPG_Handle_t handle, int type, void *tables, v
         break;
         case AM_EPG_TAB_PAT:
             epg_pat_update(handle, type, tables, user_data);
+        break;
+        case AM_EPG_TAB_MGT:
+            epg_mgt_update(handle, type, tables, user_data);
         break;
         default:
         break;
@@ -992,6 +1039,7 @@ static void epg_create(JNIEnv* env, jobject obj, jint fend_id, jint dmx_id, jint
     AM_EPG_SetTablesCallback(data->handle, AM_EPG_TAB_SDT, epg_table_callback, NULL);
     if (!epg_conf_get("tv.dtv.tsupdate.pat.disable", 0))
         AM_EPG_SetTablesCallback(data->handle, AM_EPG_TAB_PAT, epg_table_callback, NULL);
+    AM_EPG_SetTablesCallback(data->handle, AM_EPG_TAB_MGT, epg_table_callback, NULL);
 }
 
 static void epg_destroy(JNIEnv* env, jobject obj)
@@ -1131,6 +1179,24 @@ static int get_channel_data(JNIEnv* env, jobject obj, jobject channel, EPGChanne
     }
 
     pch->mSdtVersion = (*env)->GetIntField(env, channel, (*env)->GetFieldID(env, objclass, "mSdtVersion", "I"));
+
+    int versionCount = 0;
+    jintArray eitVersions = (*env)->GetObjectField(env, channel, (*env)->GetFieldID(env, objclass, "mEitVersions", "[I"));
+    if (eitVersions) {
+        jint *pVersions = (*env)->GetIntArrayElements(env, eitVersions, 0);
+        versionCount = (*env)->GetArrayLength(env, eitVersions);
+        for (i=0; i<versionCount; i++)
+            pch->mEitVersions[i] = pVersions[i];
+    }
+
+    for (i = versionCount; i < sizeof(pch->mEitVersions)/sizeof(pch->mEitVersions[0]); i++)
+        pch->mEitVersions[i] = -1;
+
+    char buf[2048] = "\0";
+    for (i = 0; i < sizeof(pch->mEitVersions)/sizeof(pch->mEitVersions[0]); i++)
+        sprintf(buf, "%s,%d", buf, pch->mEitVersions[i]);
+    log_error("eitversions: %s\n", buf);
+
     pch->valid = 1;
     return 0;
 }

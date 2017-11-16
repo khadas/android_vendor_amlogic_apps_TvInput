@@ -353,6 +353,7 @@ public class DTVInputService extends DroidLogicTvInputService {
     protected static DTVSessionImpl.DTVMonitor monitor = null;
     protected final Object mLock = new Object();
     protected final Object mSubtitleLock = new Object();
+    protected final Object mEpgUpdateLock = new Object();
 
 
 
@@ -885,7 +886,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                 return null;
 
             Program mCurrentProgram = mTvDataBaseManager.getProgram(TvContract.buildChannelUri(channelInfo.getId()), tvTime.getTime());
-            Log.d(TAG, "TvTime:"+getDateAndTime(tvTime.getTime()));
+            Log.d(TAG, "TvTime:"+getDateAndTime(tvTime.getTime())+" ("+tvTime.getTime()+")");
 
             TvContentRating[] ratings = mCurrentProgram == null ? null : mCurrentProgram.getContentRatings();
 
@@ -907,10 +908,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             if (ratings == null)
                 return null;
 
-            Log.d(TAG, "current Ratings:");
-            for (TvContentRating rating : ratings) {
-                Log.d(TAG, "\t" + rating.flattenToString());
-            }
+            Log.d(TAG, "current Ratings:"+Program.contentRatingsToString(ratings));
 
             for (TvContentRating rating : ratings) {
                 if (!mUnblockedRatingSet.contains(rating) && mTvInputManager
@@ -965,6 +963,8 @@ public class DTVInputService extends DroidLogicTvInputService {
         }
 
         protected void checkContentBlockNeeded(ChannelInfo channelInfo) {
+            //this is DTVInputService, no ParentControl, just unlock all channels
+            //ParentControl will be exec in ADTVInputService
             //doParentalControls(channelInfo);
             updateChannelBlockStatus(false, null, channelInfo);
         }
@@ -2100,6 +2100,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             private static final int MSG_MONITOR_EVENT = 1000;
             private static final int MSG_MONITOR_RESCAN_SERVICE = 2000;
             private static final int MSG_MONITOR_RESCAN_TIME = 3000;
+            private static final int MSG_MONITOR_EVENT_CLEAR = 4000;
 
             private static final int AUTO_RESCAN_NONE = 0;
             private static final int AUTO_RESCAN_ONCE = 1;
@@ -2150,6 +2151,7 @@ public class DTVInputService extends DroidLogicTvInputService {
 
             private String mVct = null;
             private Map<Integer, Long> mVctMap = null;
+
 
             private void buildVct () {
                 if (mVct == null || channelMap == null) {
@@ -2215,12 +2217,19 @@ public class DTVInputService extends DroidLogicTvInputService {
                 mHandler = new Handler(mHandlerThread.getLooper()) {
                     @Override
                     public void handleMessage(Message msg) {
-                        if (msg.what == MSG_MONITOR_EVENT) {
-                            resolveMonitorEvent((DTVEpgScanner.Event)msg.obj);
-                        } else if (msg.what == MSG_MONITOR_RESCAN_SERVICE) {
-                            rescanService(true);
-                        } else if (msg.what == MSG_MONITOR_RESCAN_TIME) {
-                            rescanTime(true);
+                        switch (msg.what) {
+                            case MSG_MONITOR_EVENT:
+                                resolveMonitorEvent((DTVEpgScanner.Event)msg.obj);
+                                break;
+                            case MSG_MONITOR_RESCAN_SERVICE:
+                                rescanService(true);
+                                break;
+                            case MSG_MONITOR_RESCAN_TIME:
+                                rescanTime(true);
+                                break;
+                            case MSG_MONITOR_EVENT_CLEAR:
+                                clearChannelProgram((ChannelInfo)msg.obj);
+                                break;
                         }
                     }
                 };
@@ -2233,7 +2242,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                     MODE_Ts = DTVEpgScanner.SCAN_NIT;
                 } else {// (std == ATSC) {
                     MODE_Epg = DTVEpgScanner.SCAN_PSIP_EIT_ALL;
-                    MODE_Service = DTVEpgScanner.SCAN_MGT |DTVEpgScanner.SCAN_VCT;
+                    MODE_Service = DTVEpgScanner.SCAN_MGT | DTVEpgScanner.SCAN_VCT;
                     MODE_Time = DTVEpgScanner.SCAN_STT;
                     MODE_Ts = DTVEpgScanner.SCAN_VCT;
                 }
@@ -2268,6 +2277,13 @@ public class DTVInputService extends DroidLogicTvInputService {
                     Log.d(TAG, "CONTENT_URI: "+TvContract.Channels.CONTENT_URI);
                     mCCObserver = new CCStyleObserver();
                     mCaptioningManager.addCaptioningChangeListener((CaptioningChangeListener) mCCObserver);
+                }
+            }
+
+            private void clearChannelProgram(ChannelInfo channel) {
+                if (mTvDataBaseManager != null && channel != null) {
+                    int count = mTvDataBaseManager.deleteProgram(channel);
+                    Log.d(TAG, "epg delete "+count+" programs");
                 }
             }
 
@@ -2336,9 +2352,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                         epgScanner = null;
                     }
                     if (mHandler != null) {
-                        mHandler.removeMessages(MSG_MONITOR_EVENT);
-                        mHandler.removeMessages(MSG_MONITOR_RESCAN_SERVICE);
-                        mHandler.removeMessages(MSG_MONITOR_RESCAN_TIME);
+                        mHandler.removeCallbacksAndMessages(null);
                         mHandler = null;
                     }
 
@@ -2535,6 +2549,8 @@ public class DTVInputService extends DroidLogicTvInputService {
 
             /*Update ATSC programs*/
             private void updateAtscPrograms(DTVEpgScanner.Event event) {
+                boolean needCheckBlock = false;
+
                 if (channelMap == null)
                     return;
 
@@ -2552,12 +2568,11 @@ public class DTVInputService extends DroidLogicTvInputService {
 
                     for (DTVEpgScanner.Event.Evt evt : event.evts) {
                         Long cid = mVctMap.get(evt.source_id);
-                        Log.d(TAG, "build VCT map cid " + cid + " c.getId():" + c.getId() + " evt.srv_id" + evt.srv_id);
+                        Log.d(TAG, "build VCT map cid " + cid + " c.getId():" + c.getId() + " evt.srv_id" + evt.srv_id + " evt.v:(" + evt.sub_flag + ":" + evt.sub_status +")");
                         if (cid == null)
                             continue;
                         if (c.getId() == cid) {
                             try {
-
                                 long start = evt.start;
                                 long end = evt.end;
                                 Program p = new Program.Builder()
@@ -2572,22 +2587,33 @@ public class DTVInputService extends DroidLogicTvInputService {
                                     .setInternalProviderData(evt.rrt_ratings == null ? null : new String(evt.rrt_ratings))
                                     .setStartTimeUtcMillis(start * 1000)
                                     .setEndTimeUtcMillis(end * 1000)
+                                    .setVersion(String.valueOf(evt.sub_flag))
+                                    .setEitExt(String.valueOf(evt.sub_status))
                                     .build();
                                 programs.add(p);
                                 Log.d(TAG,"evt.rrt_ratings"+evt.rrt_ratings);
                                 Log.d(TAG, "build VCT map epg: sid[" + evt.srv_id + "]"
                                       + "eid[" + evt.evt_id + "]"
+                                      + "ver[" + evt.sub_flag + ":" +evt.sub_status + "]"
                                       + "{" + p.getTitle() + "}"
                                       + "[" + (p.getStartTimeUtcMillis() == 0 ? 0 : p.getStartTimeUtcMillis() / 1000)
-                                      + "-" + (p.getEndTimeUtcMillis() == 0 ? 0 : p.getEndTimeUtcMillis() / 1000) + "]");
+                                      + "-" + (p.getEndTimeUtcMillis() == 0 ? 0 : p.getEndTimeUtcMillis() / 1000) + "]"
+                                      + "R["+ Program.contentRatingsToString(p.getContentRatings()) +"]");
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
                         }
                     }
                     Log.d(TAG, "build VCT map programs.size()" + programs.size());
-                    if (mTvDataBaseManager != null && programs.size() != 0)
-                        mTvDataBaseManager.updatePrograms(c.getId(), programs);
+                    if (mTvDataBaseManager != null && programs.size() != 0) {
+                        boolean updated = mTvDataBaseManager.updatePrograms(c.getId(), programs);
+                        /*
+                        if (updated && mCurrentChannnel != null && mCurrentChannel.getId() == c.getId()) {
+                            Log.d(TAG, "epg eit, new programs for current channel");
+                            checkContentBlockNeeded();
+                        }
+                        */
+                    }
                 }
             }
 
@@ -2606,6 +2632,54 @@ public class DTVInputService extends DroidLogicTvInputService {
                                 if (mTvDataBaseManager != null && programs.size() != 0)
                                     mTvDataBaseManager.updatePrograms(channelUri, programs, isAtscEvent(event.evts[0]));
                             }
+                        }
+                        break;
+                    case DTVEpgScanner.Event.EVENT_EIT_CHANGED: {
+                        int[] mEitVersions = mCurrentChannel != null? mCurrentChannel.getEitVersions() : null;
+                        if (mEitVersions == null) {
+                            mEitVersions = new int[128];
+                            for (int i = 0; i < 128; i++)
+                                mEitVersions[i] = -1;
+                            Log.d(TAG, "epg eit, create eit versions for channel");
+                        }
+
+                        if (mVctMap == null) {
+                            buildVct();
+                            if (mVctMap == null) {
+                                Log.d(TAG, "epg eit, build VCT map mVctMap is null");
+                                return;
+                            }
+                        }
+
+                        if (event.eitNumber >= mEitVersions.length) {
+                            Log.d(TAG, "epg eit, wrong eitNumber notified: max("+mEitVersions.length+") but ("+event.eitNumber+")notified");
+                            break;
+                        }
+                        if (mEitVersions[event.eitNumber] == event.dvbVersion)
+                            break;
+
+                        Log.d(TAG, "epg eit, ver changed: "+mEitVersions[event.eitNumber]+":"+event.eitNumber
+                                                      +" -> "+event.dvbVersion+":"+event.eitNumber);
+
+                        int oldVersion = mEitVersions[event.eitNumber];
+                        mEitVersions[event.eitNumber] = event.dvbVersion;
+
+                        if (mTvDataBaseManager != null) {
+                            for (Integer c : mVctMap.keySet()) {
+                                Log.d(TAG, "epg eit, clear old programs for channel(id:"+c+") with version: "
+                                                +oldVersion+":"+event.eitNumber);
+                                mTvDataBaseManager.deleteProgram(mVctMap.get(c),
+                                                String.valueOf(mEitVersions[event.eitNumber]),
+                                                String.valueOf(event.eitNumber));
+                                for (ChannelInfo ch : channelMap) {
+                                    if (ch.getId() == mVctMap.get(c)) {
+                                        Log.d(TAG, "epg eit, update channel(id:"+ch.getId()+" name:"+ch.getDisplayName()+") with new version");
+                                        ch.setEitVersions(mEitVersions);
+                                        mTvDataBaseManager.updateChannelInfo(ch);
+                                    }
+                                }
+                            }
+                        }
                         }
                         break;
                     case DTVEpgScanner.Event.EVENT_TDT_END:

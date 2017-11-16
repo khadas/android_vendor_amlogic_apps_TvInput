@@ -49,6 +49,7 @@ abstract public class DTVEpgScanner {
         public static final int EVENT_PROGRAM_NAME_UPDATE   = 8;
         public static final int EVENT_PROGRAM_EVENTS_UPDATE = 9;
         public static final int EVENT_CHANNEL_UPDATE        = 10;
+		public static final int EVENT_EIT_CHANGED           = 11;
 
         public int type;
         public int channelID;
@@ -62,6 +63,7 @@ abstract public class DTVEpgScanner {
         public Evt[] evts;
         public ChannelInfo channel;
         public ServiceInfosFromSDT services;
+        public int eitNumber;//atsc:eit-(k),dvb:0
 
         public class Evt {
             int src;
