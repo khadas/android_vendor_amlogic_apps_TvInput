@@ -2606,13 +2606,12 @@ public class DTVInputService extends DroidLogicTvInputService {
                     }
                     Log.d(TAG, "build VCT map programs.size()" + programs.size());
                     if (mTvDataBaseManager != null && programs.size() != 0) {
-                        boolean updated = mTvDataBaseManager.updatePrograms(c.getId(), programs);
-                        /*
-                        if (updated && mCurrentChannnel != null && mCurrentChannel.getId() == c.getId()) {
-                            Log.d(TAG, "epg eit, new programs for current channel");
-                            checkContentBlockNeeded();
+                        TVTime tvTime = new TVTime(mContext);
+                        boolean updated = mTvDataBaseManager.updatePrograms(c.getId(), programs, tvTime.getTime());
+                        if (updated && mCurrentChannel != null && mCurrentChannel.getId() == c.getId()) {
+                            Log.d(TAG, "epg eit, program updated for current");
+                            checkCurrentContentBlockNeeded();
                         }
-                        */
                     }
                 }
             }
@@ -2630,7 +2629,7 @@ public class DTVInputService extends DroidLogicTvInputService {
 
                                 List<Program> programs = getChannelPrograms(channelUri, channel, event);
                                 if (mTvDataBaseManager != null && programs.size() != 0)
-                                    mTvDataBaseManager.updatePrograms(channelUri, programs, isAtscEvent(event.evts[0]));
+                                    mTvDataBaseManager.updatePrograms(channelUri, programs, null, isAtscEvent(event.evts[0]));
                             }
                         }
                         break;
