@@ -1149,7 +1149,9 @@ public class CcImplement {
 
         void draw(Canvas canvas)
         {
-            for (int i = 0; i < windows_count; i++)
+            /* Windows come in rising queue,
+             * so we need to revert the draw sequence */
+            for (int i = windows_count - 1; i >= 0; i--)
                 windows[i].draw(canvas);
         }
     }
