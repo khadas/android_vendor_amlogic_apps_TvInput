@@ -1,17 +1,30 @@
 package com.droidlogic.tvinput.widget;
 
 import android.content.Context;
+import android.content.res.Resources;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.util.DisplayMetrics;
+import android.view.KeyEvent;
 import android.view.View;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.Paint;
 import android.graphics.PaintFlagsDrawFilter;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.util.AttributeSet;
 import java.lang.Exception;
-import android.util.Log;
+import java.util.Locale;
 
+import android.util.Log;
+import android.view.accessibility.CaptioningManager;
+import android.widget.Toast;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import com.droidlogic.tvinput.widget.CcImplement;
 /**
  * DTVSubtitleView提供数字/模拟电视字幕和图文信息支持.
  * 目前支持DVB subtitle, DTV/ATV teletext, ATSC/NTSC closed caption.
@@ -29,6 +42,13 @@ public class DTVSubtitleView extends View {
     private static final int MODE_DVB_SUB = 3;
     private static final int MODE_ATV_TT = 4;
     private static final int MODE_ATV_CC = 5;
+    private static final int MODE_AV_CC = 6;
+
+    private static final int EDGE_NONE = 0;
+    private static final int EDGE_OUTLINE = 1;
+    private static final int EDGE_DROP_SHADOW = 2;
+    private static final int EDGE_RAISED = 3;
+    private static final int EDGE_DEPRESSED = 4;
 
     private static final int PLAY_NONE = 0;
     private static final int PLAY_SUB = 1;
@@ -87,7 +107,11 @@ public class DTVSubtitleView extends View {
     public static final int CC_COLOR_MAGENTA = 7;
     public static final int CC_COLOR_CYAN = 8;
 
-    private static int init_count = 0;
+    private int init_count = 0;
+    public String cc_json_str;
+    CaptioningManager captioningManager;
+    CustomFonts cf;
+    CcImplement ci;
 
     private native int native_sub_init();
     private native int native_sub_destroy();
@@ -179,10 +203,10 @@ public class DTVSubtitleView extends View {
         protected int bg_color;
         protected int bg_opacity;
         protected int font_style;
-        protected int font_size;
+        protected float font_size;
 
         public DTVCCParams(int caption, int fg_color, int fg_opacity,
-                           int bg_color, int bg_opacity, int font_style, int font_size) {
+                int bg_color, int bg_opacity, int font_style, float font_size) {
             this.caption_mode = caption;
             this.fg_color = fg_color;
             this.fg_opacity = fg_opacity;
@@ -195,12 +219,18 @@ public class DTVSubtitleView extends View {
 
     static public class ATVCCParams extends DTVCCParams {
         public ATVCCParams(int caption, int fg_color, int fg_opacity,
-                           int bg_color, int bg_opacity, int font_style, int font_size) {
+                int bg_color, int bg_opacity, int font_style, float font_size) {
+            super(caption, fg_color, fg_opacity,
+                    bg_color, bg_opacity, font_style, font_size);
+        }
+    }
+    static public class AVCCParams extends DTVCCParams {
+        public AVCCParams(int caption, int fg_color, int fg_opacity,
+                           int bg_color, int bg_opacity, int font_style, float font_size) {
             super(caption, fg_color, fg_opacity,
                            bg_color, bg_opacity, font_style, font_size);
         }
     }
-
     private class SubParams {
         int mode;
         DVBSubParams dvb_sub;
@@ -208,6 +238,7 @@ public class DTVSubtitleView extends View {
         ATVTTParams  atv_tt;
         DTVCCParams  dtv_cc;
         ATVCCParams  atv_cc;
+        AVCCParams  av_cc;
 
         private SubParams() {
             mode = MODE_NONE;
@@ -235,13 +266,12 @@ public class DTVSubtitleView extends View {
     private static int       play_mode;
     private static boolean   visible;
     private static boolean   destroy;
-    private static Bitmap bitmap = null;
     private static DTVSubtitleView activeView = null;
-
     private void update() {
-        //Log.d(TAG, "update");
+        //Log.e(TAG, "update");
         postInvalidate();
     }
+
 
     private void stopDecoder() {
         synchronized(lock) {
@@ -267,6 +297,7 @@ public class DTVSubtitleView extends View {
                             break;
                         case MODE_DTV_CC:
                         case MODE_ATV_CC:
+                        case MODE_AV_CC:
                             native_sub_stop_atsc_cc();
                             break;
                         default:
@@ -288,15 +319,19 @@ public class DTVSubtitleView extends View {
                 tt_params  = new TTParams();
                 sub_params = new SubParams();
 
-                if (bitmap == null) {
-                    bitmap = Bitmap.createBitmap(BUFFER_W, BUFFER_H, Bitmap.Config.ARGB_8888);
-                }
-
                 if (native_sub_init() < 0) {
                 }
                 setLayerType(View.LAYER_TYPE_SOFTWARE, null);
-            }
 
+                cf = new CustomFonts(getContext());
+                if (ci == null) {
+                    ci = new CcImplement(getContext(), cf);
+                }
+                captioningManager = (CaptioningManager) getContext().getSystemService(Context.CAPTIONING_SERVICE);
+                ci.cc_setting.UpdateCcSetting(captioningManager);
+                Log.e(TAG, "subtitle view init");
+
+            }
             init_count++;
         }
     }
@@ -349,10 +384,10 @@ public class DTVSubtitleView extends View {
             this.active = active;
             if (active) {
                 activeView = this;
-                /*}else if(activeView == this){
-                    activeView = null;*/
-            }
-            postInvalidate();
+                /*}else if (activeView == this){
+                  activeView = null;*/
+                }
+        postInvalidate();
         }
     }
 
@@ -412,6 +447,15 @@ public class DTVSubtitleView extends View {
         }
     }
 
+    public void setSubParams(AVCCParams params) {
+        synchronized(lock) {
+            sub_params.mode = MODE_AV_CC;
+            sub_params.av_cc = params;
+
+            if (play_mode == PLAY_SUB)
+                startSub();
+        }
+    }
     /**
      * 设定图文参数
      * @param params 字幕参数
@@ -428,13 +472,14 @@ public class DTVSubtitleView extends View {
 
     public static void setCaptionParams(DTVCCParams params) {
         synchronized(lock) {
-        native_sub_set_atsc_cc_options(
-              params.fg_color,
-              params.fg_opacity,
-              params.bg_color,
-              params.bg_opacity,
-              params.font_style,
-              params.font_size);
+            sub_params.dtv_cc = params;
+            native_sub_set_atsc_cc_options(
+                    params.fg_color,
+                    params.fg_opacity,
+                    params.bg_color,
+                    params.bg_opacity,
+                    params.font_style,
+                    new Float(params.font_size).intValue());
         }
     }
 
@@ -481,11 +526,11 @@ public class DTVSubtitleView extends View {
             switch (tt_params.mode) {
                 case MODE_DTV_TT:
                     ret = native_sub_start_dtv_tt(tt_params.dtv_tt.dmx_id,
-                                                  tt_params.dtv_tt.region_id,
-                                                  tt_params.dtv_tt.pid,
-                                                  tt_params.dtv_tt.page_no,
-                                                  tt_params.dtv_tt.sub_page_no,
-                                                  false);
+                            tt_params.dtv_tt.region_id,
+                            tt_params.dtv_tt.pid,
+                            tt_params.dtv_tt.page_no,
+                            tt_params.dtv_tt.sub_page_no,
+                            false);
                     break;
                 default:
                     break;
@@ -513,37 +558,47 @@ public class DTVSubtitleView extends View {
             switch (sub_params.mode) {
                 case MODE_DVB_SUB:
                     ret = native_sub_start_dvb_sub(sub_params.dvb_sub.dmx_id,
-                                                   sub_params.dvb_sub.pid,
-                                                   sub_params.dvb_sub.composition_page_id,
-                                                   sub_params.dvb_sub.ancillary_page_id);
+                            sub_params.dvb_sub.pid,
+                            sub_params.dvb_sub.composition_page_id,
+                            sub_params.dvb_sub.ancillary_page_id);
                     break;
                 case MODE_DTV_TT:
                     ret = native_sub_start_dtv_tt(sub_params.dtv_tt.dmx_id,
-                                                  sub_params.dtv_tt.region_id,
-                                                  sub_params.dtv_tt.pid,
-                                                  sub_params.dtv_tt.page_no,
-                                                  sub_params.dtv_tt.sub_page_no,
-                                                  true);
+                            sub_params.dtv_tt.region_id,
+                            sub_params.dtv_tt.pid,
+                            sub_params.dtv_tt.page_no,
+                            sub_params.dtv_tt.sub_page_no,
+                            true);
                     break;
                 case MODE_DTV_CC:
                     ret = native_sub_start_atsc_cc(
-                              sub_params.dtv_cc.caption_mode,
-                              sub_params.dtv_cc.fg_color,
-                              sub_params.dtv_cc.fg_opacity,
-                              sub_params.dtv_cc.bg_color,
-                              sub_params.dtv_cc.bg_opacity,
-                              sub_params.dtv_cc.font_style,
-                              sub_params.dtv_cc.font_size);
+                            sub_params.dtv_cc.caption_mode,
+                            sub_params.dtv_cc.fg_color,
+                            sub_params.dtv_cc.fg_opacity,
+                            sub_params.dtv_cc.bg_color,
+                            sub_params.dtv_cc.bg_opacity,
+                            sub_params.dtv_cc.font_style,
+                            new Float(sub_params.dtv_cc.font_size).intValue());
                     break;
                 case MODE_ATV_CC:
                     ret = native_sub_start_atsc_atvcc(
-                              sub_params.atv_cc.caption_mode,
-                              sub_params.atv_cc.fg_color,
-                              sub_params.atv_cc.fg_opacity,
-                              sub_params.atv_cc.bg_color,
-                              sub_params.atv_cc.bg_opacity,
-                              sub_params.atv_cc.font_style,
-                              sub_params.atv_cc.font_size);
+                            sub_params.atv_cc.caption_mode,
+                            sub_params.atv_cc.fg_color,
+                            sub_params.atv_cc.fg_opacity,
+                            sub_params.atv_cc.bg_color,
+                            sub_params.atv_cc.bg_opacity,
+                            sub_params.atv_cc.font_style,
+                            new Float(sub_params.atv_cc.font_size).intValue());
+                    break;
+                case MODE_AV_CC:
+                    ret = native_sub_start_atsc_atvcc(
+                              sub_params.av_cc.caption_mode,
+                              sub_params.av_cc.fg_color,
+                              sub_params.av_cc.fg_opacity,
+                              sub_params.av_cc.bg_color,
+                              sub_params.av_cc.bg_opacity,
+                              sub_params.av_cc.font_style,
+                              new Float(sub_params.av_cc.font_size).intValue());
                     break;
                 default:
                     break;
@@ -694,38 +749,40 @@ public class DTVSubtitleView extends View {
             native_sub_tt_search_next(-1);
         }
     }
-
     @Override
     public void onDraw(Canvas canvas) {
-        synchronized(lock) {
-            Rect sr;
-            Rect dr = new Rect(disp_left, disp_top, getWidth() - disp_right, getHeight() - disp_bottom);
-            if (!active || !visible || (play_mode == PLAY_NONE)) {
-                return;
-            }
-
-            native_sub_lock();
-
-            if (play_mode == PLAY_TT || sub_params.mode == MODE_DTV_TT || sub_params.mode == MODE_ATV_TT) {
-                sr = new Rect(0, 0, 12 * 41, 10 * 25);
-            } else if (play_mode == PLAY_SUB) {
-                sr = new Rect(0, 0, native_get_subtitle_picture_width(), native_get_subtitle_picture_height());
-            } else {
-                sr = new Rect(0, 0, BUFFER_W, BUFFER_H);
-            }
-
-            canvas.setDrawFilter(new PaintFlagsDrawFilter(0, Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG));
-            canvas.drawBitmap(bitmap, sr, dr, new Paint());
-
-            //trick here
-            try {
-                Thread.sleep(15);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            native_sub_unlock();
+        Rect sr;
+        Rect dr = new Rect(disp_left, disp_top, getWidth() - disp_right, getHeight() - disp_bottom);
+        if (!active || !visible || (play_mode == PLAY_NONE)) {
+            return;
         }
+        if (captioningManager == null) {
+            Log.e(TAG, "captionManager is null!");
+            return;
+        }
+        if (captioningManager.isEnabled() == false) {
+            Log.e(TAG, "captionManager is false!");
+            return;
+        }
+
+        if (play_mode == PLAY_TT || sub_params.mode == MODE_DTV_TT || sub_params.mode == MODE_ATV_TT) {
+            sr = new Rect(0, 0, 12 * 41, 10 * 25);
+        } else if (play_mode == PLAY_SUB) {
+            sr = new Rect(0, 0, native_get_subtitle_picture_width(), native_get_subtitle_picture_height());
+        } else {
+            sr = new Rect(0, 0, BUFFER_W, BUFFER_H);
+        }
+
+        ci.caption_screen.updateCaptionScreen(canvas.getWidth(), canvas.getHeight());
+        ci.cc_setting.UpdateCcSetting(captioningManager);
+        CcImplement.CaptionWindow cw;
+        if (cc_json_str != null) {
+            Log.e(TAG, "json str: " + cc_json_str);
+            cw = ci.new CaptionWindow(cc_json_str);
+            cw.draw(canvas);
+        }
+//        native_sub_lock();
+//        native_sub_unlock();
     }
 
     public void dispose() {
@@ -753,8 +810,15 @@ public class DTVSubtitleView extends View {
     }
 
     private SubtitleDataListener mSubtitleDataListener = null;
+
+    public void saveJsonStr(String str) {
+        this.cc_json_str = str;
+    }
+
     public void updateData(String json) {
-        mSubtitleDataListener.onSubtitleData(json);
+        if (mSubtitleDataListener != null) {
+            mSubtitleDataListener.onSubtitleData(json);
+        }
     }
 
     public void setSubtitleDataListener(SubtitleDataListener l) {

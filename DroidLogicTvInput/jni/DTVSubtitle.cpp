@@ -43,108 +43,24 @@ extern "C" {
 #define LOG_TAG    "jnidtvsubtitle"
 #define LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
 #define LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
+#define CC_JSON_BUFFER_SIZE 8192
+
 
     static JavaVM   *gJavaVM = NULL;
     static jmethodID gUpdateID;
     static jfieldID  gBitmapID;
     static TVSubtitleData gSubtitleData;
     static jmethodID gUpdateDataID;
+    static jfieldID gCC_JsonID;
+    static jstring gCC_JsonStr;
+    static jmethodID gPassJsonStr;
+    static char gJsonStr[CC_JSON_BUFFER_SIZE];
 
     static jint sub_clear(JNIEnv *env, jobject obj);
     static void sub_update(jobject obj);
     static void data_update(jobject obj, char *json);
-
-    static uint8_t *lock_bitmap(JNIEnv *env, jobject bitmap)
-    {
-        int attached = 0;
-        if (!env) {
-            int ret;
-            ret = gJavaVM->GetEnv((void **) &env, JNI_VERSION_1_4);
-            if (ret < 0) {
-                ret = gJavaVM->AttachCurrentThread(&env, NULL);
-                if (ret < 0) {
-                    LOGE("Can't attach thread");
-                    return NULL;
-                }
-                attached = 1;
-            }
-        }
-
-        uint8_t *buf;
-        AndroidBitmap_lockPixels(env, bitmap, (void **) &buf);
-
-        if (attached) {
-            gJavaVM->DetachCurrentThread();
-        }
-
-        return buf;
-    }
-    static void unlock_bitmap(JNIEnv *env, jobject bitmap)
-    {
-        int attached = 0;
-        if (!env) {
-            int ret;
-            ret = gJavaVM->GetEnv((void **) &env, JNI_VERSION_1_4);
-            if (ret < 0) {
-                ret = gJavaVM->AttachCurrentThread(&env, NULL);
-                if (ret < 0) {
-                    LOGE("Can't attach thread");
-                    return;
-                }
-                attached = 1;
-            }
-        }
-
-        AndroidBitmap_unlockPixels(env, bitmap);
-
-        if (attached) {
-            gJavaVM->DetachCurrentThread();
-        }
-    }
     static void notify_bitmap_changed(jobject bitmap)
     {
-        lock_bitmap(NULL, bitmap);
-        unlock_bitmap(NULL, bitmap);
-    }
-
-    static uint8_t *get_bitmap(JNIEnv *env, TVSubtitleData *sub, int *w, int *h, int *pitch)
-    {
-        uint8_t *buf;
-
-        buf = lock_bitmap(env, sub->obj_bitmap);
-        unlock_bitmap(env, sub->obj_bitmap);
-        LOGI("bitmap buffer [%p]", buf);
-
-        if (!buf) {
-            LOGE("allocate bitmap buffer failed");
-        } else {
-            AndroidBitmapInfo bitmapInfo;
-            AndroidBitmap_getInfo(env, sub->obj_bitmap, &bitmapInfo);
-            LOGI("init bitmap info w:%d h:%d s:%d", bitmapInfo.width, bitmapInfo.height, bitmapInfo.stride);
-
-            if (w) {
-                *w = bitmapInfo.width;
-            }
-            if (h) {
-                *h = bitmapInfo.height;
-            }
-            if (pitch) {
-                *pitch = bitmapInfo.stride;
-            }
-        }
-
-        return buf;
-    }
-
-    static void clear_bitmap(TVSubtitleData *sub)
-    {
-        uint8_t *ptr = sub->buffer;
-        int y = sub->bmp_h;
-
-        while (y--) {
-            memset(ptr, 0, sub->bmp_pitch);
-            ptr += sub->bmp_pitch;
-        }
     }
 
     static void draw_begin_cb(AM_TT2_Handle_t handle)
@@ -152,16 +68,11 @@ extern "C" {
         TVSubtitleData *sub = (TVSubtitleData *)AM_TT2_GetUserData(handle);
 
         pthread_mutex_lock(&sub->lock);
-
-        sub->buffer = lock_bitmap(NULL, sub->obj_bitmap);
-        clear_bitmap(sub);
     }
 
     static void draw_end_cb(AM_TT2_Handle_t handle)
     {
         TVSubtitleData *sub = (TVSubtitleData *)AM_TT2_GetUserData(handle);
-
-        unlock_bitmap(NULL, sub->obj_bitmap);
 
         pthread_mutex_unlock(&sub->lock);
 
@@ -174,21 +85,18 @@ extern "C" {
 
         pthread_mutex_lock(&sub->lock);
 
-        sub->buffer = lock_bitmap(NULL, sub->obj_bitmap);
     }
 
     static void cc_draw_end_cb(AM_CC_Handle_t handle, AM_CC_DrawPara_t *draw_para)
     {
         TVSubtitleData *sub = (TVSubtitleData *)AM_CC_GetUserData(handle);
 
-        unlock_bitmap(NULL, sub->obj_bitmap);
-
         sub->sub_w = draw_para->caption_width;
         sub->sub_h = draw_para->caption_height;
 
         pthread_mutex_unlock(&sub->lock);
-
         sub_update(sub->obj);
+
     }
 
     static void cc_rating_cb(AM_CC_Handle_t handle, vbi_rating *pr)
@@ -198,13 +106,13 @@ extern "C" {
             TVSubtitleData *sub = (TVSubtitleData *)AM_CC_GetUserData(handle);
             char json[64] = {0};
             snprintf(json, 64, "{%s:{g:%d,i:%d,dlsv:%d}}",
-                tag,
-                pr->auth,
-                pr->id,
-                pr->dlsv
-            );
+                    tag,
+                    pr->auth,
+                    pr->id,
+                    pr->dlsv
+                    );
             data_update(sub->obj, json);
-       }
+        }
     }
 
     static void cc_data_cb(AM_CC_Handle_t handle, int mask)
@@ -213,6 +121,21 @@ extern "C" {
         char json[64];
 
         sprintf(json, "{cc:{data:%d}}", mask);
+        data_update(sub->obj, json);
+    }
+
+    static void dtvcc_nodata_cb(AM_CC_Handle_t handle)
+    {
+        TVSubtitleData *sub = (TVSubtitleData *)AM_CC_GetUserData(handle);
+        char json[64] = "{dtvcc:{nodata:1}}";
+        data_update(sub->obj, json);
+    }
+
+    static void channel_cb(AM_CC_Handle_t handle, AM_CC_CaptionMode_t chn)
+    {
+        TVSubtitleData *sub = (TVSubtitleData *)AM_CC_GetUserData(handle);
+        char json[64];
+        sprintf(json, "{dtvcc:{found:%d}}", (int)chn);
         data_update(sub->obj, json);
     }
 
@@ -247,95 +170,6 @@ extern "C" {
         TVSubtitleData *sub = (TVSubtitleData *)AM_SUB2_GetUserData(handle);
 
         LOGI("show sub");
-
-        pthread_mutex_lock(&sub->lock);
-
-        sub->buffer = lock_bitmap(NULL, sub->obj_bitmap);
-
-        clear_bitmap(sub);
-
-        if (pic) {
-            AM_SUB2_Region_t *rgn = pic->p_region;
-
-            sub->sub_w = pic->original_width;
-            sub->sub_h = pic->original_height;
-            while (rgn) {
-                int sx, sy, dx, dy, rw, rh;
-
-                /* ensure we have a valid buffer */
-                if (! rgn->p_buf) {
-                    rgn = rgn->p_next;
-                    continue;
-                }
-
-                sx = 0;
-                sy = 0;
-                dx = pic->original_x + rgn->left;
-                dy = pic->original_y + rgn->top;
-                rw = rgn->width;
-                rh = rgn->height;
-
-                if (dx < 0) {
-                    sx = -dx;
-                    dx = 0;
-                    rw += dx;
-                }
-
-                if (dx + rw > sub->bmp_w) {
-                    rw = sub->bmp_w - dx;
-                }
-
-                if (dy < 0) {
-                    sy = -dy;
-                    dy = 0;
-                    rh += dy;
-                }
-
-                if (dy + rh > sub->bmp_h) {
-                    rh = sub->bmp_h - dy;
-                }
-
-                if ((rw > 0) && (rh > 0)) {
-                    uint8_t *sbegin = rgn->p_buf + sy * rgn->width + sx;
-                    uint8_t *dbegin = sub->buffer + dy * sub->bmp_pitch + dx * 4;
-                    uint8_t *src, *dst;
-                    int size;
-
-                    while (rh) {
-                        src = sbegin;
-                        dst = dbegin;
-                        size = rw;
-                        while (size--) {
-                            int c = src[0];
-
-                            if (c < (int)rgn->entry) {
-                                if (rgn->clut[c].a) {
-                                    *dst++ = rgn->clut[c].r;
-                                    *dst++ = rgn->clut[c].g;
-                                    *dst++ = rgn->clut[c].b;
-                                } else {
-                                    dst += 3;
-                                }
-                                *dst++ = rgn->clut[c].a;
-
-                            } else {
-                                dst += 4;
-                            }
-                            src ++;
-                        }
-                        sbegin += rgn->width;
-                        dbegin += sub->bmp_pitch;
-                        rh--;
-                    }
-                }
-
-                rgn = rgn->p_next;
-            }
-        }
-
-        unlock_bitmap(NULL, sub->obj_bitmap);
-
-        pthread_mutex_unlock(&sub->lock);
 
         sub_update(sub->obj);
     }
@@ -443,11 +277,38 @@ error:
             }
             attached = 1;
         }
-
-        env->CallVoidMethod(obj, gUpdateID);
+        env->CallVoidMethod(obj, gUpdateID, NULL);
         if (attached) {
             gJavaVM->DetachCurrentThread();
         }
+    }
+
+    static void json_update_cb(AM_CC_Handle_t handle)
+    {
+        TVSubtitleData *sub = (TVSubtitleData *)AM_CC_GetUserData(handle);
+        JNIEnv *env;
+        int ret;
+        jstring data;
+        int attached = 0;
+        ret = gJavaVM->GetEnv((void **) &env, JNI_VERSION_1_4);
+
+        if (ret < 0) {
+            ret = gJavaVM->AttachCurrentThread(&env, NULL);
+            if (ret < 0) {
+                LOGE("Can't attach thread");
+                return;
+            }
+            attached = 1;
+        }
+
+        data = env->NewStringUTF(gJsonStr);
+        env->CallVoidMethod(sub->obj, gPassJsonStr, data);
+        env->DeleteLocalRef(data);
+
+        if (attached) {
+            gJavaVM->DetachCurrentThread();
+        }
+
     }
 
     static void data_update(jobject obj, char *json)
@@ -475,7 +336,7 @@ error:
         if (attached) {
             gJavaVM->DetachCurrentThread();
         }
-   }
+    }
 
     static jint get_subtitle_piture_width(JNIEnv *env, jobject obj)
     {
@@ -519,17 +380,7 @@ error:
         pthread_mutex_init(&data->lock, NULL);
 
         data->obj = env->NewGlobalRef(obj);
-        bmp = env->GetStaticObjectField(env->FindClass("com/droidlogic/tvinput/widget/DTVSubtitleView"), gBitmapID);
-        data->obj_bitmap = env->NewGlobalRef(bmp);
 
-        data->buffer = get_bitmap(env, data, &data->bmp_w, &data->bmp_h, &data->bmp_pitch);
-        if (!data->buffer) {
-            env->DeleteGlobalRef(data->obj);
-            env->DeleteGlobalRef(data->obj_bitmap);
-            pthread_mutex_destroy(&data->lock);
-            return -1;
-        }
-        LOGI("init w:%d h:%d p:%d", data->bmp_w, data->bmp_h, data->bmp_pitch);
         /*just init, no effect*/
         data->sub_w = 720;
         data->sub_h = 576;
@@ -547,11 +398,6 @@ error:
             if (data->obj) {
                 env->DeleteGlobalRef(data->obj);
                 data->obj = NULL;
-            }
-
-            if (data->obj_bitmap) {
-                env->DeleteGlobalRef(data->obj_bitmap);
-                data->obj_bitmap = NULL;
             }
 
             pthread_mutex_destroy(&data->lock);
@@ -689,13 +535,6 @@ error:
         close_dmx(data);
         AM_SUB2_Destroy(data->sub_handle);
         AM_PES_Destroy(data->pes_handle);
-
-        pthread_mutex_lock(&data->lock);
-        data->buffer = lock_bitmap(env, data->obj_bitmap);
-        clear_bitmap(data);
-        unlock_bitmap(env, data->obj_bitmap);
-        pthread_mutex_unlock(&data->lock);
-
         sub_update(data->obj);
 
         data->sub_handle = NULL;
@@ -712,12 +551,6 @@ error:
         AM_PES_Destroy(data->pes_handle);
         data->pes_handle = NULL;
         AM_TT2_Stop(data->tt_handle);
-
-        pthread_mutex_lock(&data->lock);
-        data->buffer = lock_bitmap(env, data->obj_bitmap);
-        clear_bitmap(data);
-        unlock_bitmap(env, data->obj_bitmap);
-        pthread_mutex_unlock(&data->lock);
 
         sub_update(data->obj);
 
@@ -792,7 +625,7 @@ error:
     }
 
     static jint sub_start_atsc_cc(JNIEnv *env, jobject obj, jint source, jint caption, jint fg_color,
-                                  jint fg_opacity, jint bg_color, jint bg_opacity, jint font_style, jint font_size)
+            jint fg_opacity, jint bg_color, jint bg_opacity, jint font_style, jint font_size)
     {
         TVSubtitleData *data = sub_get_data(env, obj);
         AM_CC_CreatePara_t cc_para;
@@ -800,7 +633,7 @@ error:
         int ret;
 
         LOGI("start cc: caption %d, fgc %d, bgc %d, fgo %d, bgo %d, fsize %d, fstyle %d",
-             caption, fg_color, bg_color, fg_opacity, bg_opacity, font_size, font_style);
+                caption, fg_color, bg_color, fg_opacity, bg_opacity, font_size, font_style);
 
         memset(&cc_para, 0, sizeof(cc_para));
         memset(&spara, 0, sizeof(spara));
@@ -817,6 +650,9 @@ error:
         cc_para.switch_timeout = 3000;//3s
         spara.caption1                 = (AM_CC_CaptionMode_t)caption;
         spara.caption2                 = AM_CC_CAPTION_NONE;
+        cc_para.json_update = json_update_cb;
+        cc_para.json_buffer = gJsonStr;
+
         spara.user_options.bg_color    = (AM_CC_Color_t)bg_color;
         spara.user_options.fg_color    = (AM_CC_Color_t)fg_color;
         spara.user_options.bg_opacity  = (AM_CC_Opacity_t)bg_opacity;
@@ -831,7 +667,6 @@ error:
         ret = AM_CC_Start(data->cc_handle, &spara);
         if (ret != AM_SUCCESS)
             goto error;
-
         LOGI("start cc successfully!");
         return 0;
 error:
@@ -843,17 +678,17 @@ error:
     }
 
     static jint sub_start_atsc_dtvcc(JNIEnv *env, jobject obj, jint caption, jint fg_color,
-                                  jint fg_opacity, jint bg_color, jint bg_opacity, jint font_style, jint font_size)
+            jint fg_opacity, jint bg_color, jint bg_opacity, jint font_style, jint font_size)
     {
         return sub_start_atsc_cc(env, obj, AM_CC_INPUT_USERDATA, caption, fg_color,
-                                  fg_opacity, bg_color, bg_opacity, font_style, font_size);
+                fg_opacity, bg_color, bg_opacity, font_style, font_size);
     }
 
     static jint sub_start_atsc_atvcc(JNIEnv *env, jobject obj, jint caption, jint fg_color,
-                                  jint fg_opacity, jint bg_color, jint bg_opacity, jint font_style, jint font_size)
+            jint fg_opacity, jint bg_color, jint bg_opacity, jint font_style, jint font_size)
     {
         return sub_start_atsc_cc(env, obj, AM_CC_INPUT_VBI, caption, fg_color,
-                                  fg_opacity, bg_color, bg_opacity, font_style, font_size);
+                fg_opacity, bg_color, bg_opacity, font_style, font_size);
     }
 
     static jint sub_stop_atsc_cc(JNIEnv *env, jobject obj)
@@ -862,13 +697,6 @@ error:
 
         LOGI("stop cc");
         AM_CC_Destroy(data->cc_handle);
-
-        pthread_mutex_lock(&data->lock);
-        data->buffer = lock_bitmap(env, data->obj_bitmap);
-        clear_bitmap(data);
-        unlock_bitmap(env, data->obj_bitmap);
-        pthread_mutex_unlock(&data->lock);
-
         sub_update(data->obj);
 
         data->cc_handle = NULL;
@@ -877,7 +705,7 @@ error:
     }
 
     static jint sub_set_atsc_cc_options(JNIEnv *env, jobject obj, jint fg_color,
-        jint fg_opacity, jint bg_color, jint bg_opacity, jint font_style, jint font_size)
+            jint fg_opacity, jint bg_color, jint bg_opacity, jint font_style, jint font_size)
     {
         TVSubtitleData *data = sub_get_data(env, obj);
         AM_CC_UserOptions_t param;
@@ -942,50 +770,52 @@ error:
     };
 
     JNIEXPORT jint
-    JNI_OnLoad(JavaVM *vm, void *reserved)
-    {
-        JNIEnv *env = NULL;
-        jclass clazz;
-        int rc;
+        JNI_OnLoad(JavaVM *vm, void *reserved)
+        {
+            JNIEnv *env = NULL;
+            jclass clazz;
+            int rc;
 
-        gJavaVM = vm;
+            gJavaVM = vm;
 
-        if (vm->GetEnv((void **) &env, JNI_VERSION_1_4) != JNI_OK) {
-            LOGE("GetEnv failed");
-            return -1;
+            if (vm->GetEnv((void **) &env, JNI_VERSION_1_4) != JNI_OK) {
+                LOGE("GetEnv failed");
+                return -1;
+            }
+
+            clazz = env->FindClass("com/droidlogic/tvinput/widget/DTVSubtitleView");
+            if (clazz == NULL) {
+                LOGE("FindClass com/droidlogic/tvinput/widget/DTVSubtitleView failed");
+                return -1;
+            }
+
+            if ((rc = (env->RegisterNatives(clazz, gMethods, sizeof(gMethods) / sizeof(gMethods[0])))) < 0) {
+                LOGE("RegisterNatives failed");
+                return -1;
+            }
+
+
+            gUpdateID = env->GetMethodID(clazz, "update", "()V");
+
+            gPassJsonStr = env->GetMethodID(clazz, "saveJsonStr", "(Ljava/lang/String;)V");
+
+            gUpdateDataID = env->GetMethodID(clazz, "updateData", "(Ljava/lang/String;)V");
+
+
+            LOGI("load jnitvsubtitle ok");
+            return JNI_VERSION_1_4;
         }
-
-        clazz = env->FindClass("com/droidlogic/tvinput/widget/DTVSubtitleView");
-        if (clazz == NULL) {
-            LOGE("FindClass com/droidlogic/tvinput/widget/DTVSubtitleView failed");
-            return -1;
-        }
-
-        if ((rc = (env->RegisterNatives(clazz, gMethods, sizeof(gMethods) / sizeof(gMethods[0])))) < 0) {
-            LOGE("RegisterNatives failed");
-            return -1;
-        }
-
-        gUpdateID = env->GetMethodID(clazz, "update", "()V");
-
-        gBitmapID = env->GetStaticFieldID(clazz, "bitmap", "Landroid/graphics/Bitmap;");
-
-        gUpdateDataID = env->GetMethodID(clazz, "updateData", "(Ljava/lang/String;)V");
-
-        LOGI("load jnitvsubtitle ok");
-        return JNI_VERSION_1_4;
-    }
 
     JNIEXPORT void
-    JNI_OnUnload(JavaVM *vm, void *reserved)
-    {
-        JNIEnv *env = NULL;
-        int i;
+        JNI_OnUnload(JavaVM *vm, void *reserved)
+        {
+            JNIEnv *env = NULL;
+            int i;
 
-        if (vm->GetEnv((void **) &env, JNI_VERSION_1_4) != JNI_OK) {
-            return;
+            if (vm->GetEnv((void **) &env, JNI_VERSION_1_4) != JNI_OK) {
+                return;
+            }
         }
-    }
 
 } /*extern "C"*/
 
