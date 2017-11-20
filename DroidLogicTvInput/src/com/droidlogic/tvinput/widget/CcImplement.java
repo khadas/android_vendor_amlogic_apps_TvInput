@@ -11,7 +11,6 @@ import android.graphics.Typeface;
 import android.graphics.Xfermode;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
-import android.graphics.Typeface;
 import android.util.Log;
 import android.view.accessibility.CaptioningManager;
 
@@ -103,43 +102,58 @@ public class CcImplement {
         return convert_color;
     }
 
-    public Typeface getTypeface(String name,int style) {
-        Typeface.isFromCaption = true;
-        Typeface type= Typeface.create(name, style);
-        Typeface.isFromCaption = false;
-        return type;
-    }
-
     Typeface getTypefaceFromString(String font_face, boolean italics) {
-        String font_family_name;
-        int font_style;
-
+        Typeface convert_face;
+        //Log.e(TAG, "font_face " + font_face);
         if (font_face.equalsIgnoreCase("default")) {
-            font_family_name = "serif-monospace";
+            if (italics)
+                convert_face = mono_serif_it_tf;
+            else
+                convert_face = mono_serif_tf;
         } else if (font_face.equalsIgnoreCase("mono_serif")) {
-            font_family_name = "serif-monospace";
+            if (italics)
+                convert_face = mono_serif_it_tf;
+            else
+                convert_face = mono_serif_tf;
         } else if (font_face.equalsIgnoreCase("prop_serif")) {
-            font_family_name = "serif-monospace";
+            if (italics)
+                convert_face = mono_serif_it_tf;
+            else
+                convert_face = mono_serif_tf;
+
         } else if (font_face.equalsIgnoreCase("mono_sans")) {
-            font_family_name = "sans-serif-monospace";
+            if (italics)
+                convert_face = mono_serif_it_tf;
+            else
+                convert_face = mono_serif_tf;
         } else if (font_face.equalsIgnoreCase("prop_sans")) {
-            font_family_name = "sans-serif-monospace";
+            if (italics)
+                convert_face = prop_sans_it_tf;
+            else
+                convert_face = prop_sans_tf;
         } else if (font_face.equalsIgnoreCase("casual")) {
-            font_family_name = "casual";
+            if (italics)
+                convert_face = casual_it_tf;
+            else
+                convert_face = casual_tf;
         } else if (font_face.equalsIgnoreCase("cursive")) {
-            font_family_name = "cursive";
+            if (italics)
+                convert_face = casual_it_tf;
+            else
+                convert_face = casual_tf;
         } else if (font_face.equalsIgnoreCase("small_caps")) {
-            font_family_name = "sans-serif-smallcaps";
+            if (italics)
+                convert_face = small_capital_it_tf;
+            else
+                convert_face = small_capital_tf;
         } else {
             Log.e(TAG, "============== exception for font face");
-            font_family_name = "serif-monospace";
+            if (italics)
+                convert_face = mono_serif_it_tf;
+            else
+                convert_face = mono_serif_tf;
         }
-
-        if (italics)
-            font_style = 2;
-        else
-            font_style = 0;
-        return getTypeface(font_family_name, font_style);
+        return convert_face;
     }
 
     class CaptionScreen
@@ -488,8 +502,6 @@ public class CcImplement {
                         window_max_font_size = (window_max_font_size > row_max_font_size)
                                 ?window_max_font_size:row_max_font_size;
                     }
-                    if (window_max_font_size == 0)
-                        window_max_font_size = caption_screen.max_font_width;
                     window_width = col_count * window_max_font_size;
                     /* ugly repeat */
                     for (int i=0; i<json_rows.length(); i++) {
