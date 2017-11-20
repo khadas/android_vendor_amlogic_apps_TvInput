@@ -11,6 +11,7 @@ import android.graphics.Typeface;
 import android.graphics.Xfermode;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
+import android.graphics.Typeface;
 import android.util.Log;
 import android.view.accessibility.CaptioningManager;
 
@@ -102,58 +103,43 @@ public class CcImplement {
         return convert_color;
     }
 
-    Typeface getTypefaceFromString(String font_face, boolean italics) {
-        Typeface convert_face;
-        //Log.e(TAG, "font_face " + font_face);
-        if (font_face.equalsIgnoreCase("default")) {
-            if (italics)
-                convert_face = mono_serif_it_tf;
-            else
-                convert_face = mono_serif_tf;
-        } else if (font_face.equalsIgnoreCase("mono_serif")) {
-            if (italics)
-                convert_face = mono_serif_it_tf;
-            else
-                convert_face = mono_serif_tf;
-        } else if (font_face.equalsIgnoreCase("prop_serif")) {
-            if (italics)
-                convert_face = mono_serif_it_tf;
-            else
-                convert_face = mono_serif_tf;
+    public Typeface getTypeface(String name,int style) {
+        Typeface.isFromCaption = true;
+        Typeface type= Typeface.create(name, style);
+        Typeface.isFromCaption = false;
+        return type;
+    }
 
+    Typeface getTypefaceFromString(String font_face, boolean italics) {
+        String font_family_name;
+        int font_style;
+
+        if (font_face.equalsIgnoreCase("default")) {
+            font_family_name = "serif-monospace";
+        } else if (font_face.equalsIgnoreCase("mono_serif")) {
+            font_family_name = "serif-monospace";
+        } else if (font_face.equalsIgnoreCase("prop_serif")) {
+            font_family_name = "serif-monospace";
         } else if (font_face.equalsIgnoreCase("mono_sans")) {
-            if (italics)
-                convert_face = mono_serif_it_tf;
-            else
-                convert_face = mono_serif_tf;
+            font_family_name = "sans-serif-monospace";
         } else if (font_face.equalsIgnoreCase("prop_sans")) {
-            if (italics)
-                convert_face = prop_sans_it_tf;
-            else
-                convert_face = prop_sans_tf;
+            font_family_name = "sans-serif-monospace";
         } else if (font_face.equalsIgnoreCase("casual")) {
-            if (italics)
-                convert_face = casual_it_tf;
-            else
-                convert_face = casual_tf;
+            font_family_name = "casual";
         } else if (font_face.equalsIgnoreCase("cursive")) {
-            if (italics)
-                convert_face = casual_it_tf;
-            else
-                convert_face = casual_tf;
+            font_family_name = "cursive";
         } else if (font_face.equalsIgnoreCase("small_caps")) {
-            if (italics)
-                convert_face = small_capital_it_tf;
-            else
-                convert_face = small_capital_tf;
+            font_family_name = "sans-serif-smallcaps";
         } else {
             Log.e(TAG, "============== exception for font face");
-            if (italics)
-                convert_face = mono_serif_it_tf;
-            else
-                convert_face = mono_serif_tf;
+            font_family_name = "serif-monospace";
         }
-        return convert_face;
+
+        if (italics)
+            font_style = 2;
+        else
+            font_style = 0;
+        return getTypeface(font_family_name, font_style);
     }
 
     class CaptionScreen
@@ -502,6 +488,8 @@ public class CcImplement {
                         window_max_font_size = (window_max_font_size > row_max_font_size)
                                 ?window_max_font_size:row_max_font_size;
                     }
+                    if (window_max_font_size == 0)
+                        window_max_font_size = caption_screen.max_font_width;
                     window_width = col_count * window_max_font_size;
                     /* ugly repeat */
                     for (int i=0; i<json_rows.length(); i++) {
