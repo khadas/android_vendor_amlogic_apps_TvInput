@@ -1621,7 +1621,7 @@ public class DTVInputService extends DroidLogicTvInputService {
 
         protected void tryPreferredSubtitleContinue(int exist) {
             synchronized (mSubtitleLock) {
-                if (tryPreferredSubtitle(exist) == -1) {
+		if ((tryPreferredSubtitle(exist) == -1) && (mCurrentSubtitle == null)) {
                     startSubtitleCCBackground(mCurrentChannel);
                     notifyTrackSelected(TvTrackInfo.TYPE_SUBTITLE, null);
                 }

@@ -848,8 +848,6 @@ public class CcImplement {
                                     pen_size = rowStr.getString("pen_size");
                                     font_style = rowStr.getString("font_style");
                                     offset = rowStr.getString("offset");
-                                    italics = rowStr.getBoolean("italics");
-                                    underline = rowStr.getBoolean("underline");
                                     edge_type = rowStr.getString("edge_type");
                                     edge_color = rowStr.getInt("edge_color");
 
@@ -864,6 +862,8 @@ public class CcImplement {
                                         font_scale = 0.9;
                                     }
                                 }
+                                italics = rowStr.getBoolean("italics");
+                                underline = rowStr.getBoolean("underline");
                                 fg_color = rowStr.getInt("fg_color");
                                 fg_opacity = rowStr.getString("fg_opacity");
                                 bg_color = rowStr.getInt("bg_color");
