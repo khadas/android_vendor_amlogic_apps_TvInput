@@ -190,13 +190,22 @@ public class CcImplement {
             anchor_vertical_density = safe_title_height / anchor_vertical;
         }
 
-        double getWindowLeftTopX(int anchor_h, int anchor_point, double row_length)
+        double getWindowLeftTopX(boolean anchor_relative, int anchor_h, int anchor_point, double row_length)
         {
             double anchor_x;
+            double safe_title_to_top_screen_edge;
+
+            safe_title_to_top_screen_edge = (width - safe_title_width)/2;
             /* Get anchor coordinate x */
-            anchor_x = anchor_horizon_density * anchor_h + (width - safe_title_width)/2;
+            if (!anchor_relative)
+                /* anchor_h is horizontal steps */
+                anchor_x = anchor_horizon_density * anchor_h + safe_title_to_top_screen_edge;
+            else
+                /* anchor_h is percentage */
+                anchor_x = safe_title_width * anchor_h / 100 + safe_title_to_top_screen_edge;
             Log.e(TAG,
-                    "horizon density " + anchor_horizon_density
+                    "anchor relative " + anchor_relative +
+                    " horizon density " + anchor_horizon_density
                     + " h " + anchor_h + " point " + anchor_point + " " + width + " safe width " + safe_title_width);
             switch (anchor_point)
             {
@@ -217,15 +226,28 @@ public class CcImplement {
             }
         }
 
-        double getWindowLeftTopY(int anchor_v, int anchor_point, int row_count)
+        double getWindowLeftTopY(boolean anchor_relative, int anchor_v, int anchor_point, int row_count)
         {
             double anchor_y;
             double tall;
+            double safe_title_to_left_screen_edge;
 
             tall = row_count * max_font_height;
+            safe_title_to_left_screen_edge = (height - safe_title_height) / 2;
 
-            anchor_y = anchor_v * anchor_vertical_density + (height - safe_title_height)/2;
-            Log.e(TAG, "vertical density "+anchor_horizon_density + " v "+anchor_v+ " point " + anchor_point + " " + height);
+            if (!anchor_relative)
+                /* anchor_v is vertical steps */
+                anchor_y = anchor_v * anchor_vertical_density + safe_title_to_left_screen_edge;
+            else
+                /* anchor_v is percentage */
+                anchor_y = safe_title_height * anchor_v / 100 + safe_title_to_left_screen_edge;
+
+            Log.e(TAG,
+                    "anchor relative " + anchor_relative +
+                    " vertical density "+anchor_horizon_density +
+                            " v "+anchor_v+
+                            " point " + anchor_point +
+                            " " + height);
 
             switch (anchor_point)
             {
@@ -520,9 +542,9 @@ public class CcImplement {
                     window_left_most *= pensize_window_depend;
                     //max_row_str_length = col_count * caption_screen.max_font_width;
                     Log.e(TAG, "Max row length "+ window_width);
-                    window_start_x = caption_screen.getWindowLeftTopX(anchor_h, anchor_point, window_width);
+                    window_start_x = caption_screen.getWindowLeftTopX(anchor_relative, anchor_h, anchor_point, window_width);
 
-                    window_start_y = caption_screen.getWindowLeftTopY(anchor_v, anchor_point, row_count);
+                    window_start_y = caption_screen.getWindowLeftTopY(anchor_relative, anchor_v, anchor_point, row_count);
 
                 } catch (JSONException e)
                 {
