@@ -146,6 +146,24 @@ public class CcImplement {
                 convert_face = small_capital_it_tf;
             else
                 convert_face = small_capital_tf;
+        }
+        /* For caption manager convert */
+        else if (font_face.equalsIgnoreCase("sans-serif")) {
+            convert_face = prop_sans_tf;
+        } else if (font_face.equalsIgnoreCase("sans-serif-condensed")) {
+            convert_face = prop_sans_tf;
+        } else if (font_face.equalsIgnoreCase("sans-serif-monospace")) {
+            convert_face = mono_serif_tf;
+        } else if (font_face.equalsIgnoreCase("serif")) {
+            convert_face = prop_sans_tf;
+        } else if (font_face.equalsIgnoreCase("serif-monospace")) {
+            convert_face = mono_serif_tf;
+        } else if (font_face.equalsIgnoreCase("casual")) {
+            convert_face = casual_tf;
+        } else if (font_face.equalsIgnoreCase("cursive")) {
+            convert_face = mono_serif_tf;
+        } else if (font_face.equalsIgnoreCase("small-capitals")) {
+            convert_face = small_capital_tf;
         } else {
             Log.e(TAG, "============== exception for font face");
             if (italics)
@@ -307,6 +325,11 @@ public class CcImplement {
                     stroke_width = 0;
                     /* When use preset setting of cc, such as black on white,
                      * font face will be null */
+                    //type_face = cs.getTypeface();
+                    /* We need to find out the selected fontface name ourself,
+                     * and load the face from local area */
+                    Log.e(TAG, "typeface name " + Settings.Secure.getString(context.getContentResolver(),
+                            "accessibility_captioning_typeface"));
                     type_face = cs.getTypeface();
                     has_background_color = cs.hasBackgroundColor();
                     has_edge_color = cs.hasEdgeColor();
@@ -577,8 +600,17 @@ public class CcImplement {
                     window_paint.setColor(fill_color);
                     window_paint.setAlpha(fill_opacity_int);
                     Log.e(TAG, "window rect: "+ " color " + fill_color + " opacity "+fill_opacity_int);
-                    canvas.drawRect((float) window_left, (float) window_top, (float) window_right, (float) window_bottom, window_paint);
                 }
+                /* This is only for 608 text mode, and the window is background */
+                else {
+                    window_left = window_start_x;
+                    window_right = window_start_x + col_count * caption_screen.max_font_width;
+                    window_top = window_start_y;
+                    window_bottom = window_start_y + row_count * caption_screen.max_font_height;
+                    window_paint.setColor(fill_color);
+                    window_paint.setAlpha(fill_opacity_int);
+                }
+                canvas.drawRect((float) window_left, (float) window_top, (float) window_right, (float) window_bottom, window_paint);
 
 
                 /* Draw rows */
@@ -811,10 +843,6 @@ public class CcImplement {
                             /* Retreat font scale: 0.5 1 1.5 2 */
                             //font_scale = (cc_setting.font_scale - 2) / 5 + 1;
                             font_scale = cc_setting.font_scale/2;
-
-                            font_face = cc_setting.type_face;
-                            if (font_face == null)
-                                font_face = getTypefaceFromString("default", false);
                             font_size = caption_screen.max_font_size;
 
                             /* TODO: set edge type */
@@ -856,7 +884,7 @@ public class CcImplement {
                             {
                                 Log.e(TAG, "Get string failed: " + e.toString());
                             }
-                            setDrawerConfig(data, font_face.toString(), font_size, font_scale,
+                            setDrawerConfig(data, null, font_size, font_scale,
                                     offset,
                                     fg_color, fg_opacity_int,
                                     bg_color, bg_opacity_int,
@@ -969,6 +997,15 @@ public class CcImplement {
                          */
                         if (!use_caption_manager_style) {
                             this.font_face = getTypefaceFromString(font_face, italics);
+                        } else {
+                            /*
+                            String cm_fontface_name = Settings.Secure.getString(context.getContentResolver(),
+                                    "accessibility_captioning_typeface");
+                            this.font_face = getTypefaceFromString(cm_fontface_name, false);
+                            */
+                            this.font_face = cc_setting.type_face;
+                            if (this.font_face == null)
+                                this.font_face = getTypefaceFromString("default", false);
                         }
 
                         this.fg_color = fg_color;
