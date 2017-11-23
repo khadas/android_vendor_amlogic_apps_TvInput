@@ -870,9 +870,17 @@ public class CcImplement {
                                 /* TODO: convert font face */
                                 if (ccVersion.equalsIgnoreCase("cea708")) {
                                     pen_size = rowStr.getString("pen_size");
+                                    if (pen_size == null)
+                                        pen_size = "standard";
                                     font_style = rowStr.getString("font_style");
+                                    if (font_style == null)
+                                        font_style = "default";
                                     offset = rowStr.getString("offset");
+                                    if (offset == null)
+                                        offset = "normal";
                                     edge_type = rowStr.getString("edge_type");
+                                    if (edge_type == null)
+                                        edge_type = "none";
                                     edge_color = rowStr.getInt("edge_color");
 
                                     if (pen_size.equalsIgnoreCase("small")) {
@@ -890,8 +898,12 @@ public class CcImplement {
                                 underline = rowStr.getBoolean("underline");
                                 fg_color = rowStr.getInt("fg_color");
                                 fg_opacity = rowStr.getString("fg_opacity");
+                                if (fg_opacity == null)
+                                    fg_opacity = "transparent";
                                 bg_color = rowStr.getInt("bg_color");
                                 bg_opacity = rowStr.getString("bg_opacity");
+                                if (bg_opacity == null)
+                                    bg_opacity = "transparent";
                                 data = rowStr.getString("data");
 
                             } catch (JSONException e) {
