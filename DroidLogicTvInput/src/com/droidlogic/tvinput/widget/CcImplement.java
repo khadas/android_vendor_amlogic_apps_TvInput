@@ -524,6 +524,8 @@ public class CcImplement {
                         window_max_font_size = (window_max_font_size > row_max_font_size)
                                 ?window_max_font_size:row_max_font_size;
                     }
+                    if (window_max_font_size == 0)
+                        window_max_font_size = caption_screen.max_font_width * 0.75;
                     window_width = col_count * window_max_font_size;
                     /* ugly repeat */
                     for (int i=0; i<json_rows.length(); i++) {
