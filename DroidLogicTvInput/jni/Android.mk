@@ -50,6 +50,32 @@ LOCAL_SHARED_LIBRARIES += libzvbi libam_mw libam_adp libskia liblog libcutils
 LOCAL_PRELINK_MODULE := false
 
 include $(BUILD_SHARED_LIBRARY)
+#######################################################################
+
+include $(CLEAR_VARS)
+
+LOCAL_MODULE    := libvendorfont
+LOCAL_SRC_FILES_arm := libvendorfont.so
+LOCAL_PRELINK_MODULE := false
+LOCAL_MODULE_CLASS := SHARED_LIBRARIES
+LOCAL_MODULE_SUFFIX := .so
+LOCAL_MODULE_TARGET_ARCH := arm
+LOCAL_MULTILIB := 32
+include $(BUILD_PREBUILT)
 
 #######################################################################
 
+include $(CLEAR_VARS)
+
+LOCAL_MODULE    := libjnifont
+LOCAL_MODULE_TAGS := optional
+LOCAL_SRC_FILES := Fonts.cpp
+LOCAL_ARM_MODE := arm
+LOCAL_C_INCLUDES := $(JNI_H_INCLUDE)
+LOCAL_SHARED_LIBRARIES += libvendorfont liblog libnativehelper libandroid_runtime libcutils
+
+LOCAL_PRELINK_MODULE := false
+
+include $(BUILD_SHARED_LIBRARY)
+
+#######################################################################

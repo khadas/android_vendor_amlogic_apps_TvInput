@@ -12,7 +12,7 @@ LOCAL_PACKAGE_NAME := DroidLogicTvInput
 LOCAL_PROGUARD_ENABLED := disabled
 
 LOCAL_JAVA_LIBRARIES := droidlogic droidlogic-tv
-LOCAL_JNI_SHARED_LIBRARIES := libjnidtvsubtitle libjnidtvepgscanner
+LOCAL_JNI_SHARED_LIBRARIES := libjnidtvsubtitle libjnidtvepgscanner libjnifont
 
 include $(BUILD_PACKAGE)
 
