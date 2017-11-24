@@ -213,7 +213,8 @@
     <string name="set_frequency">Please set frequency first !</string>
     <string name="tv_manual_option">Manual Search Option:</string>
     <string name="tv_auto_option">Auto Search Option:</string>
-    <string name="ut_tune_atsc_c_standard">standard</string>
+    <string name="ut_tune_atsc_c_auto">AUTO</string>
+    <string name="ut_tune_atsc_c_standard">STD</string>
     <string name="ut_tune_atsc_c_lrc">LRC</string>
     <string name="ut_tune_atsc_c_hrc">HRC</string>
 
