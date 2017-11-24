@@ -606,9 +606,9 @@ public class CcImplement {
                 /* This is only for 608 text mode, and the window is background */
                 else {
                     window_left = window_start_x;
-                    window_right = window_start_x + col_count * caption_screen.max_font_width;
+                    window_right = window_start_x + caption_screen.safe_title_width;
                     window_top = window_start_y;
-                    window_bottom = window_start_y + row_count * caption_screen.max_font_height;
+                    window_bottom = window_start_y + caption_screen.safe_title_height;
                     window_paint.setColor(fill_color);
                     window_paint.setAlpha(fill_opacity_int);
                 }
