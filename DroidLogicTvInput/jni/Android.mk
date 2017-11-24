@@ -55,12 +55,21 @@ include $(BUILD_SHARED_LIBRARY)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE    := libvendorfont
-LOCAL_SRC_FILES_arm := libvendorfont.so
 LOCAL_PRELINK_MODULE := false
 LOCAL_MODULE_CLASS := SHARED_LIBRARIES
 LOCAL_MODULE_SUFFIX := .so
-LOCAL_MODULE_TARGET_ARCH := arm
-LOCAL_MULTILIB := 32
+LOCAL_MODULE_TAGS := optional
+
+ifdef TARGET_2ND_ARCH
+LOCAL_MULTILIB := $(multilib)
+LOCAL_MODULE_PATH_64 := $(TARGET_OUT)/lib64
+LOCAL_SRC_FILES_64 := arm64/libvendorfont.so
+LOCAL_MODULE_PATH_32 := $(TARGET_OUT)/lib
+LOCAL_SRC_FILES_32 := arm/libvendorfont.so
+else
+LOCAL_MODULE_PATH := $(TARGET_OUT)/lib
+LOCAL_SRC_FILES := arm/libvendorfont.so
+endif
 include $(BUILD_PREBUILT)
 
 #######################################################################
