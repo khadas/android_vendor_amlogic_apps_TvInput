@@ -754,6 +754,11 @@ public class DTVSubtitleView extends View {
         Rect sr;
         Rect dr = new Rect(disp_left, disp_top, getWidth() - disp_right, getHeight() - disp_bottom);
         if (!active || !visible || (play_mode == PLAY_NONE)) {
+            /* Clear canvas */
+            Paint clear_paint = new Paint();
+            clear_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+            canvas.drawPaint(clear_paint);
+            clear_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC));
             return;
         }
         if (captioningManager == null) {
