@@ -1616,7 +1616,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             }
         }
 
-        public int mTryPreferredSubtitleDelay = 2000;
+        private static final int DELAY_TRY_PREFER_CC = 2000;
 
         protected void tryPreferredSubtitleContinue(int exist) {
             synchronized (mSubtitleLock) {
@@ -1625,7 +1625,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                     notifyTrackSelected(TvTrackInfo.TYPE_SUBTITLE, null);
                 }
                 mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_CC_TRY_PREFERRED, mCurrentCCExist, 0, this),
-                                mTryPreferredSubtitleDelay);
+                                DELAY_TRY_PREFER_CC);
             }
         }
 
