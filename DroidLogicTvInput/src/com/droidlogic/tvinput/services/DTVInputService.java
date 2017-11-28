@@ -884,7 +884,6 @@ public class DTVInputService extends DroidLogicTvInputService {
             TVTime tvTime = new TVTime(mContext);
             if (channelInfo == null)
                 return null;
-
             Program mCurrentProgram = mTvDataBaseManager.getProgram(TvContract.buildChannelUri(channelInfo.getId()), tvTime.getTime());
             Log.d(TAG, "TvTime:"+getDateAndTime(tvTime.getTime())+" ("+tvTime.getTime()+")");
 
@@ -1621,7 +1620,7 @@ public class DTVInputService extends DroidLogicTvInputService {
 
         protected void tryPreferredSubtitleContinue(int exist) {
             synchronized (mSubtitleLock) {
-		if ((tryPreferredSubtitle(exist) == -1) && (mCurrentSubtitle == null)) {
+                if ((tryPreferredSubtitle(exist) == -1) && (mCurrentSubtitle == null)) {
                     startSubtitleCCBackground(mCurrentChannel);
                     notifyTrackSelected(TvTrackInfo.TYPE_SUBTITLE, null);
                 }
@@ -2260,7 +2259,6 @@ public class DTVInputService extends DroidLogicTvInputService {
 
                 epgScanner = new DTVEpgScanner(scannerMode) {
                     public void onEvent(DTVEpgScanner.Event event) {
-                        Log.d(TAG, "send event:" + event.type);
                         mHandler.obtainMessage(MSG_MONITOR_EVENT, event).sendToTarget();
                     }
                 };
@@ -2552,12 +2550,11 @@ public class DTVInputService extends DroidLogicTvInputService {
                 boolean needCheckBlock = false;
 
                 if (channelMap == null)
-                    return;
+                        return;
 
                 if (mVctMap == null) {
                     buildVct();
                     if (mVctMap == null) {
-                        Log.d(TAG, "build VCT map mVctMap is null");
                         return;
                     }
                 }
@@ -2565,16 +2562,19 @@ public class DTVInputService extends DroidLogicTvInputService {
                 for (ChannelInfo c : channelMap) {
                     Uri channelUri = TvContract.buildChannelUri(c.getId());
                     List<Program> programs = new ArrayList<>();
+                    Log.d(TAG," program name :"+c.getDisplayNumber());
 
                     for (DTVEpgScanner.Event.Evt evt : event.evts) {
                         Long cid = mVctMap.get(evt.source_id);
-                        Log.d(TAG, "build VCT map cid " + cid + " c.getId():" + c.getId() + " evt.srv_id" + evt.srv_id + " evt.v:(" + evt.sub_flag + ":" + evt.sub_status +")");
+                        Log.d(TAG, "build VCT map cid " + cid + " c.getId():" + c.getId() + " evt.srv_id" + evt.srv_id + " evt.v:(" + evt.sub_flag + ":" + evt.sub_status +")"+" source_id:"+evt.source_id);
                         if (cid == null)
                             continue;
                         if (c.getId() == cid) {
                             try {
                                 long start = evt.start;
                                 long end = evt.end;
+                                if (start != 0 && end !=0 && evt.rrt_ratings == null)
+                                    throw new Exception("Receive EIT data,but rating is NULL!!!");
                                 Program p = new Program.Builder()
                                     .setProgramId(evt.evt_id)
                                     .setChannelId(cid)
@@ -2591,7 +2591,6 @@ public class DTVInputService extends DroidLogicTvInputService {
                                     .setEitExt(String.valueOf(evt.sub_status))
                                     .build();
                                 programs.add(p);
-                                Log.d(TAG,"evt.rrt_ratings"+evt.rrt_ratings);
                                 Log.d(TAG, "build VCT map epg: sid[" + evt.srv_id + "]"
                                       + "eid[" + evt.evt_id + "]"
                                       + "ver[" + evt.sub_flag + ":" +evt.sub_status + "]"
@@ -2604,7 +2603,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                             }
                         }
                     }
-                    Log.d(TAG, "build VCT map programs.size()" + programs.size());
+
                     if (mTvDataBaseManager != null && programs.size() != 0) {
                         TVTime tvTime = new TVTime(mContext);
                         boolean updated = mTvDataBaseManager.updatePrograms(c.getId(), programs, tvTime.getTime());
@@ -3542,7 +3541,5 @@ public class DTVInputService extends DroidLogicTvInputService {
 
         return (RatingList.size() == 0 ? null : RatingList.toArray(new TvContentRating[RatingList.size()]));
     }
-
-
 
 }
