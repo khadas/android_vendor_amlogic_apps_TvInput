@@ -890,6 +890,18 @@ public class DTVInputService extends DroidLogicTvInputService {
             Log.d(TAG, "TvTime:"+getDateAndTime(tvTime.getTime())+" ("+tvTime.getTime()+")");
 
             TvContentRating[] ratings = mCurrentProgram == null ? null : mCurrentProgram.getContentRatings();
+            TvContentRating[] newparseratings = null;
+            String jason = null;
+            if (mCurrentProgram != null) {
+                jason = mCurrentProgram.getInternalProviderData();
+                newparseratings = parseDRatingsT(jason, -1, null, mCurrentProgram.getTitle());
+            }
+            if (newparseratings != null && !TextUtils.equals(Program.contentRatingsToString(newparseratings), Program.contentRatingsToString(ratings))) {
+                ratings = newparseratings;
+                mCurrentProgram.setContentRatings(ratings);
+                mTvDataBaseManager.updateProgram(mCurrentProgram);
+                Log.d(TAG, "getContentRatingsOfCurrentProgram update ratings:" +mCurrentProgram.getTitle());
+            }
 
             /*pmt ratings 2nd*/
             /*if (ratings == null)
@@ -2533,7 +2545,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                                     .setChannelId(ContentUris.parseId(channelUri))
                                     .setTitle(TVMultilingualText.getText((evt.name == null ? null : new String(evt.name)), languages))
                                     .setDescription(TVMultilingualText.getText((evt.ext_descr == null ? null : new String(evt.ext_descr)), languages))
-                                    .setContentRatings(evt.rrt_ratings == null ? null : parseDRatingsT(new String(evt.rrt_ratings)))
+                                    .setContentRatings(evt.rrt_ratings == null ? null : parseDRatingsT(new String(evt.rrt_ratings), evt.evt_id, mTvDataBaseManager, (evt.name == null ? null : new String(evt.name))))
                                     //.setContentRatings(evt.rrt_ratings == null ? null : DroidLogicTvUtils.parseDRatings(new String(evt.rrt_ratings)))
                                     //.setCanonicalGenres(programInfo.genres)
                                     //.setPosterArtUri(programInfo.posterArtUri)
@@ -2601,6 +2613,9 @@ public class DTVInputService extends DroidLogicTvInputService {
                 }
 
                 for (ChannelInfo c : channelMap) {
+                    if (c == null) {
+                        continue;
+                    }
                     Uri channelUri = TvContract.buildChannelUri(c.getId());
                     List<Program> programs = new ArrayList<>();
                     Log.d(TAG," program name :"+c.getDisplayNumber());
@@ -2621,7 +2636,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                                     .setChannelId(cid)
                                     .setTitle(TVMultilingualText.getText((evt.name == null ? null : new String(evt.name)), languages))
                                     .setDescription(TVMultilingualText.getText((evt.ext_descr == null ? null : new String(evt.ext_descr)), languages))
-                                    .setContentRatings(evt.rrt_ratings == null ? null : parseDRatingsT(new String(evt.rrt_ratings)))
+                                    .setContentRatings(evt.rrt_ratings == null ? null : parseDRatingsT(new String(evt.rrt_ratings), evt.evt_id, mTvDataBaseManager, (evt.name == null ? null : new String(evt.name))))
                                     //.setContentRatings(evt.rrt_ratings == null ? null : DroidLogicTvUtils.parseDRatings(new String(evt.rrt_ratings)))
                                     //.setCanonicalGenres(programInfo.genres)
                                     //.setPosterArtUri(programInfo.posterArtUri)
@@ -3539,9 +3554,10 @@ public class DTVInputService extends DroidLogicTvInputService {
         return id;
     }
 
-    public  TvContentRating[] parseDRatingsT(String jsonString) {
+    public TvContentRating[] parseDRatingsT(String jsonString, int programid, TvDataBaseManager tvdatamanager, String title) {
         String RatingDomain = DroidContentRatingsParser.DOMAIN_RRT_RATINGS;
-        Log.d(TAG, "parseDRatings:"+jsonString);
+        int rrt5count = 0;
+        Log.d(TAG, "parse ratings parseDRatings:"+jsonString + ", title = " + title);
         if (jsonString == null || jsonString.isEmpty())
             return null;
 
@@ -3561,8 +3577,6 @@ public class DTVInputService extends DroidLogicTvInputService {
             return null;
         }
 
-        //Log.d(TAG, "D rating:"+regionArray.toString());
-
         int ArraySize = regionArray.length();
         for (int i = 0; i < regionArray.length(); i++) {
             JSONObject g = regionArray.optJSONObject(i);
@@ -3571,7 +3585,10 @@ public class DTVInputService extends DroidLogicTvInputService {
 
             String ratingDescription = TVMultilingualText.getTextJ(g.optString("rs"));
             int region = g.optInt("g", -1);
-            //Log.d(TAG, "---region:"+ region);
+            if (region == 5) {
+                Log.d(TAG, "parse ratings rrt5 region = " + region + ", title = " + title);
+                rrt5count++;
+            }
 
             JSONArray ratings = g.optJSONArray("rx");
             if (ratings != null) {
@@ -3587,17 +3604,39 @@ public class DTVInputService extends DroidLogicTvInputService {
                         if (rrtSearchInfo != null) {
                             if (rrtSearchInfo.rating_region_name == null ||rrtSearchInfo.dimensions_name == null || rrtSearchInfo.rating_value_text == null)
                                 continue;
-                        /*TvContentRating r = TvContentRating.createRating(RatingDomain, rrtSearchInfo.rating_region_name,
-                                rrtSearchInfo.dimensions_name, rrtSearchInfo.rating_value_text);*/
-                        TvContentRating r = TvContentRating.createRating(RatingDomain,rrtSearchInfo.dimensions_name, rrtSearchInfo.rating_value_text, null);
-                        RatingList.add(r);
-                        Log.d(TAG, "add rating:"+r.flattenToString());
+                            TvContentRating r = TvContentRating.createRating(RatingDomain,rrtSearchInfo.dimensions_name, rrtSearchInfo.rating_value_text, null);
+                            if (r != null) {
+                                RatingList.add(r);
+                                Log.d(TAG, "parse ratings add rating:"+r.flattenToString()  + ", title = " + title);
+                        }
                     }
                 }
 
             }
         }
-
+        if (rrt5count > 0 && !(RatingList != null && RatingList.size() > 0)) {
+            int rrt5existcount = 0;
+            TvContentRating[] ratings = null;
+            if (tvdatamanager != null) {
+                Program program = tvdatamanager.getProgram(programid);
+                if (program != null) {
+                    ratings = program.getContentRatings();
+                    if (ratings != null) {
+                        for (int ii = 0; ii < ratings.length; ii++) {
+                            if (RatingDomain.equals(ratings[ii].getDomain())) {
+                                RatingList.add(ratings[ii]);
+                                rrt5existcount++;
+                                Log.d(TAG, "parse ratings add exist rrt5 rating:"+ratings[ii].flattenToString() + ", title = " + title);
+                            }
+                        }
+                    }
+                }
+            }
+            if (rrt5existcount == 0) {
+                Log.d(TAG, "parse ratings add rrt5 rating erro" + ", title = " + title);
+                return ratings;
+            }
+        }
         return (RatingList.size() == 0 ? null : RatingList.toArray(new TvContentRating[RatingList.size()]));
     }
 
