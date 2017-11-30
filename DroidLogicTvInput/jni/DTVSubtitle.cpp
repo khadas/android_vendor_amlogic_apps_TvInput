@@ -119,8 +119,13 @@ extern "C" {
     {
         TVSubtitleData *sub = (TVSubtitleData *)AM_CC_GetUserData(handle);
         char json[64];
+        char *ratings = "";
 
-        sprintf(json, "{cc:{data:%d}}", mask);
+        if (!(mask & (1 << AM_CC_CAPTION_XDS))) {
+                ratings = "Aratings:{},";
+        }
+
+        sprintf(json, "{%scc:{data:%d}}", ratings, mask);
         data_update(sub->obj, json);
     }
 
