@@ -1103,7 +1103,7 @@ public class DTVInputService extends DroidLogicTvInputService {
         public void notifyVideoAvailable() {
             Log.d(TAG, "notifyVideoAvailable "+getSessionId());
             super.notifyVideoAvailable();
-            mTvControlManager.setAmAudioPreMute(0);
+            mTvControlManager.SetAudioMuteForTv(TvControlManager.AUDIO_UNMUTE_FOR_TV);
         }
 
         @Override
@@ -1113,7 +1113,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             if (mOverlayView != null) {
                 switch (reason) {
                     case TvInputManager.VIDEO_UNAVAILABLE_REASON_AUDIO_ONLY:
-                        mTvControlManager.setAmAudioPreMute(0);
+                        mTvControlManager.SetAudioMuteForTv(TvControlManager.AUDIO_UNMUTE_FOR_TV);
                         mOverlayView.setImage(R.drawable.bg_radio);
                         mSystemControlManager.writeSysFs("/sys/class/video/disable_video",
                                 "2");
@@ -1123,7 +1123,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                     case TvInputManager.VIDEO_UNAVAILABLE_REASON_WEAK_SIGNAL:
                     case TvInputManager.VIDEO_UNAVAILABLE_REASON_UNKNOWN:
                     default:
-                        mTvControlManager.setAmAudioPreMute(1);
+                        mTvControlManager.SetAudioMuteForTv(TvControlManager.AUDIO_MUTE_FOR_TV);
                         mOverlayView.setImage(R.drawable.bg_no_signal);
                         mOverlayView.setImageVisibility(true);
                         mOverlayView.setTextVisibility(true);
