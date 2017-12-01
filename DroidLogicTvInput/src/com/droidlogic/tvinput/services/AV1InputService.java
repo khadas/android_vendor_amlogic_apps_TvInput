@@ -46,6 +46,8 @@ import android.view.accessibility.CaptioningManager;
 import android.view.accessibility.CaptioningManager.CaptionStyle;
 import android.view.accessibility.CaptioningManager.CaptioningChangeListener;
 import android.graphics.Color;
+import com.droidlogic.app.SystemControlManager;
+import android.media.tv.TvTrackInfo;
 
 public class AV1InputService extends DroidLogicTvInputService {
     private static final String TAG = AV1InputService.class.getSimpleName();;
@@ -74,6 +76,11 @@ public class AV1InputService extends DroidLogicTvInputService {
     protected static final int DTV_OPACITY_TRANSPARENT = 1;
     protected static final int DTV_OPACITY_TRANSLUCENT = 2;
     protected static final int DTV_OPACITY_SOLID = 3;
+
+
+    protected static final String DTV_SUBTITLE_CC_PREFER = "tv.dtv.cc.prefer";
+    protected static final String DTV_SUBTITLE_CAPTION_EXIST = "tv.dtv.caption.exist";
+    protected final Object mSubtitleLock = new Object();
 
     protected final BroadcastReceiver mParentalControlsBroadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -146,6 +153,8 @@ public class AV1InputService extends DroidLogicTvInputService {
         protected HandlerThread mHandlerThread = null;
         protected Handler mHandler = null;
         protected CaptioningManager mCaptioningManager = null;
+        protected SystemControlManager mSystemControlManager;
+        private static final int DELAY_TRY_PREFER_CC = 2000;
 
         private class CCStyleParams {
              protected int fg_color;
@@ -214,6 +223,7 @@ public class AV1InputService extends DroidLogicTvInputService {
             }
             Log.d(TAG,"isBlockNoRatingEnable:"+isBlockNoRatingEnable+",isUnlockCurrent_NR:"+isUnlockCurrent_NR);
             mCaptioningManager = (CaptioningManager) mContext.getSystemService(Context.CAPTIONING_SERVICE);
+            mSystemControlManager = new SystemControlManager(mContext);
         }
 
         private boolean getBlockNoRatingEnable() {
@@ -371,8 +381,67 @@ public class AV1InputService extends DroidLogicTvInputService {
                 mATVContentRatings = DroidLogicTvUtils.parseARatings(json);
                 if (mHandler != null)
                     mHandler.sendMessage(mHandler.obtainMessage(MSG_PARENTAL_CONTROL_AV, this));
-                }
+           }
+
+           int mask = DroidLogicTvUtils.getObjectValueInt(json, "cc", "data", -1);
+           if (mask != -1 ) {
+               if (mHandler != null) {
+                   Message msg = mHandler.obtainMessage(MSG_CC_DATA, this);
+                   msg.arg1 = mask;
+                   msg.sendToTarget();
+               }
+           }
         }
+
+        private int mCurrentCCExist = 0;
+        private boolean mCurrentCCEnabled = false;
+        public void doCCData(int mask) {
+            Log.d(TAG, "cc data: " + mask);
+
+            /*Check CC show*/
+            mCurrentCCExist = mask;
+            if (mSystemControlManager != null)
+                mSystemControlManager.setProperty(DTV_SUBTITLE_CAPTION_EXIST, String.valueOf(mCurrentCCExist));
+
+            if (mHandler != null) {
+                mHandler.removeMessages(MSG_CC_TRY_PREFERRED);
+                mHandler.obtainMessage(MSG_CC_TRY_PREFERRED, mCurrentCCExist, 0, this).sendToTarget();
+            }
+        }
+
+        protected void tryPreferredSubtitleContinue(int exist) {
+            synchronized (mSubtitleLock) {
+                if (tryPreferredSubtitle(exist) == -1) {
+                    startSubtitleCCBackground();
+                    notifyTrackSelected(TvTrackInfo.TYPE_SUBTITLE, null);
+                }
+                mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_CC_TRY_PREFERRED, mCurrentCCExist, 0, this),
+                                DELAY_TRY_PREFER_CC);
+            }
+        }
+        protected int tryPreferredSubtitle(int exist) {
+            if (mSystemControlManager != null) {
+                int to =  mSystemControlManager.getPropertyInt(DTV_SUBTITLE_CC_PREFER, -1);
+
+                Log.d(TAG, "ccc tryPrefer, exist["+exist+"] to["+to+"] Enable["+mCurrentCCEnabled+"]");
+
+                if (to != -1) {
+                    startSubtitle();//startSubtitle(s);
+                    notifyTrackSelected(TvTrackInfo.TYPE_SUBTITLE, null);
+                }
+                Log.d(TAG,"tryPreferredSubtitle,return:"+to);
+                return to;
+            }
+            return 0;
+        }
+
+        protected void startSubtitleCCBackground() {
+            Log.d(TAG, "start bg cc for xds");
+            startSubtitle();
+            enableSubtitleShow(false);
+            //mSystemControlManager.setProperty(DTV_SUBTITLE_TRACK_IDX, "-3");
+        }
+
         protected void checkCurrentContentBlockNeeded() {
             Log.d(TAG, "checkCurrentContentBlockNeeded");
             checkContentBlockNeeded(mCurrentChannel);
@@ -437,12 +506,12 @@ public class AV1InputService extends DroidLogicTvInputService {
         }
         private boolean playProgram(ChannelInfo info) {
             Log.d(TAG,"playProgram");
-            startSubtitle(info);
+            startSubtitle();
 
             return true;
         }
 
-        protected void startSubtitle(ChannelInfo channelInfo) {
+        protected void startSubtitle() {
             Log.d(TAG, "start Subtitle:");
             startSubtitleAutoAnalog();
         }
@@ -456,8 +525,9 @@ public class AV1InputService extends DroidLogicTvInputService {
             }
 
             mSubtitleView.stop();
-
-            setSubtitleParam(ChannelInfo.Subtitle.TYPE_ATV_CC, ChannelInfo.Subtitle.CC_CAPTION_CC1, 0, 0, 0);//we need xds data
+            int ccPrefer =  mSystemControlManager.getPropertyInt(DTV_SUBTITLE_CC_PREFER, -1);
+            ccPrefer = ccPrefer > 0 ? ccPrefer : ChannelInfo.Subtitle.CC_CAPTION_CC1 ;
+            setSubtitleParam(ChannelInfo.Subtitle.TYPE_ATV_CC, ccPrefer, 0, 0, 0);//we need xds data
 
             mSubtitleView.setActive(true);
             mSubtitleView.startSub();
@@ -505,6 +575,9 @@ public class AV1InputService extends DroidLogicTvInputService {
         }
 
         public static final int MSG_PARENTAL_CONTROL_AV = 2;
+        public static final int MSG_CC_DATA = 100;
+        public static final int MSG_CC_TRY_PREFERRED = 101;
+
         protected void initWorkThread() {
             if (mHandlerThread == null) {
                 mHandlerThread = new HandlerThread("DtvInputWorker");
@@ -517,6 +590,12 @@ public class AV1InputService extends DroidLogicTvInputService {
                                 case MSG_PARENTAL_CONTROL_AV:
                                     Log.d(TAG,"MSG_PARENTAL_CONTROL_AV,checkContentBlockNeeded:"+mCurrentChannel);
                                     checkContentBlockNeeded(mCurrentChannel);
+                                    break;
+                                case MSG_CC_DATA:
+                                    doCCData(msg.arg1);
+                                    break;
+                                case MSG_CC_TRY_PREFERRED:
+                                    tryPreferredSubtitleContinue(msg.arg1);
                                     break;
                                 default:
                                     break;
