@@ -7,6 +7,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.Xfermode;
 import android.provider.Settings;
@@ -533,22 +534,19 @@ public class CcImplement {
                     * width neither.
                     * The problem is to implement full justification
                     * */
+                    /*
                     for (int i=0; i<json_rows.length(); i++) {
                         rows[i] = new Rows(new JSONObject(json_rows.optString(i)));
                         rows[i].row_number_in_window = i;
                         row_length = rows[i].row_length_on_paint;
                         Log.e(TAG, "Row right most: " + i + " " + row_length);
-                       /* window_width = (window_width > row_length)
-                               ? window_width : row_length; */
-                        //window_width = col_count * caption_screen.max_font_width;
                         window_left_most = rows[i].row_start_x < window_left_most ?
                                 rows[i].row_start_x : window_left_most;
                         double row_max_font_size = rows[i].row_max_font_size;
                         window_max_font_size = (window_max_font_size > row_max_font_size)
                                 ?window_max_font_size:row_max_font_size;
-                    }
-                    if (window_max_font_size == 0)
-                        window_max_font_size = caption_screen.max_font_width * 0.75;
+                    } */
+                    window_max_font_size = caption_screen.max_font_width * 0.9;
                     window_width = col_count * window_max_font_size;
                     /* ugly repeat */
                     for (int i=0; i<json_rows.length(); i++) {
@@ -1035,8 +1033,8 @@ public class CcImplement {
 
                         window_paint.setTypeface(this.font_face);
                         window_paint.setTextSize((float)this.font_size);
-                        string_length_on_paint = window_paint.measureText(data);
                         max_single_font_width = window_paint.measureText("H");
+                        string_length_on_paint = window_paint.measureText(data) + max_single_font_width;
                         /* Convert */
                         Log.e(TAG, "str attr: " +
                                 " use_user_style " + use_caption_manager_style +
@@ -1159,7 +1157,7 @@ public class CcImplement {
                         if (opacity != 0xff)
                             paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC));
 
-                        paint.setAntiAlias(true);
+                        //paint.setAntiAlias(true);
                         paint.setTextSize((float)font_size);
                         if (edge_type == null) {
                             paint.setColor(fg_color);
@@ -1224,8 +1222,9 @@ public class CcImplement {
         {
             /* Windows come in rising queue,
              * so we need to revert the draw sequence */
-            for (int i = windows_count - 1; i >= 0; i--)
+           for (int i = windows_count - 1; i >= 0; i--) {
                 windows[i].draw(canvas);
+            }
         }
     }
 }

@@ -33,6 +33,7 @@ public class DTVSubtitleView extends View {
     private static final String TAG = "DTVSubtitleView";
 
     private static Object lock = new Object();
+    private static Object json_lock = new Object();
     private static final int BUFFER_W = 1920;
     private static final int BUFFER_H = 1080;
 
@@ -110,6 +111,7 @@ public class DTVSubtitleView extends View {
     private int init_count = 0;
     public String cc_json_str;
     CaptioningManager captioningManager;
+    CcImplement.CaptionWindow cw;
     CustomFonts cf;
     CcImplement ci;
 
@@ -272,7 +274,6 @@ public class DTVSubtitleView extends View {
         postInvalidate();
     }
 
-
     private void stopDecoder() {
         synchronized(lock) {
             switch (play_mode) {
@@ -328,6 +329,49 @@ public class DTVSubtitleView extends View {
                     ci = new CcImplement(getContext(), cf);
                 }
                 captioningManager = (CaptioningManager) getContext().getSystemService(Context.CAPTIONING_SERVICE);
+                captioningManager.addCaptioningChangeListener(new CaptioningManager.CaptioningChangeListener() {
+                    @Override
+                    public void onEnabledChanged(boolean enabled) {
+                        super.onEnabledChanged(enabled);
+                        Log.e(TAG, "onenableChange");
+                        ci.cc_setting.is_enabled = captioningManager.isEnabled();
+                    }
+
+                    @Override
+                    public void onFontScaleChanged(float fontScale) {
+                        super.onFontScaleChanged(fontScale);
+                        Log.e(TAG, "onfontscaleChange");
+                        ci.cc_setting.font_scale = captioningManager.getFontScale();
+                    }
+
+                    @Override
+                    public void onLocaleChanged(Locale locale) {
+                        super.onLocaleChanged(locale);
+                        Log.e(TAG, "onlocaleChange");
+                        ci.cc_setting.cc_locale = captioningManager.getLocale();
+                    }
+
+                    @Override
+                    public void onUserStyleChanged(CaptioningManager.CaptionStyle userStyle) {
+                        super.onUserStyleChanged(userStyle);
+                        Log.e(TAG, "onUserStyleChange");
+                        ci.cc_setting.has_foreground_color = userStyle.hasForegroundColor();
+                        ci.cc_setting.has_background_color = userStyle.hasBackgroundColor();
+                        ci.cc_setting.has_window_color = userStyle.hasWindowColor();
+                        ci.cc_setting.has_edge_color = userStyle.hasEdgeColor();
+                        ci.cc_setting.has_edge_type = userStyle.hasEdgeType();
+                        ci.cc_setting.edge_type = userStyle.edgeType;
+                        ci.cc_setting.edge_color = userStyle.edgeColor;
+                        ci.cc_setting.foreground_color = userStyle.foregroundColor;
+                        ci.cc_setting.foreground_opacity = userStyle.foregroundColor >>> 24;
+                        ci.cc_setting.background_color = userStyle.backgroundColor;
+                        ci.cc_setting.background_opacity = userStyle.backgroundColor >>> 24;
+                        ci.cc_setting.window_color = userStyle.windowColor;
+                        ci.cc_setting.window_opacity = userStyle.windowColor >>> 24;
+                        /* Typeface is obsolete, we use local font */
+                        ci.cc_setting.type_face = userStyle.getTypeface();
+                    }
+                });
                 ci.cc_setting.UpdateCcSetting(captioningManager);
                 Log.e(TAG, "subtitle view init");
 
@@ -752,7 +796,6 @@ public class DTVSubtitleView extends View {
     @Override
     public void onDraw(Canvas canvas) {
         Rect sr;
-        Rect dr = new Rect(disp_left, disp_top, getWidth() - disp_right, getHeight() - disp_bottom);
         if (!active || !visible || (play_mode == PLAY_NONE)) {
             /* Clear canvas */
             Paint clear_paint = new Paint();
@@ -761,14 +804,8 @@ public class DTVSubtitleView extends View {
             clear_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC));
             return;
         }
-        if (captioningManager == null) {
-            Log.e(TAG, "captionManager is null!");
+        if(!ci.cc_setting.is_enabled)
             return;
-        }
-        if (captioningManager.isEnabled() == false) {
-            Log.e(TAG, "captionManager is false!");
-            return;
-        }
 
         if (play_mode == PLAY_TT || sub_params.mode == MODE_DTV_TT || sub_params.mode == MODE_ATV_TT) {
             sr = new Rect(0, 0, 12 * 41, 10 * 25);
@@ -779,11 +816,8 @@ public class DTVSubtitleView extends View {
         }
 
         ci.caption_screen.updateCaptionScreen(canvas.getWidth(), canvas.getHeight());
-        ci.cc_setting.UpdateCcSetting(captioningManager);
-        CcImplement.CaptionWindow cw;
-        if (cc_json_str != null) {
-            Log.e(TAG, "json str: " + cc_json_str);
-            cw = ci.new CaptionWindow(cc_json_str);
+        //ci.cc_setting.UpdateCcSetting(captioningManager);
+        synchronized (json_lock) {
             cw.draw(canvas);
         }
 //        native_sub_lock();
@@ -818,6 +852,10 @@ public class DTVSubtitleView extends View {
 
     public void saveJsonStr(String str) {
         this.cc_json_str = str;
+        CcImplement.CaptionWindow new_cw = ci.new CaptionWindow(cc_json_str);
+        synchronized (json_lock) {
+            cw = new_cw;
+        }
     }
 
     public void updateData(String json) {
