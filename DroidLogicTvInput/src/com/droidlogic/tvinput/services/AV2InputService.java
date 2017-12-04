@@ -77,6 +77,7 @@ public class AV2InputService extends DroidLogicTvInputService {
     protected static final int DTV_OPACITY_TRANSLUCENT = 2;
     protected static final int DTV_OPACITY_SOLID = 3;
 
+    private boolean is_subtitle_enable;
 
     protected static final String DTV_SUBTITLE_CC_PREFER = "tv.dtv.cc.prefer";
     protected static final String DTV_SUBTITLE_CAPTION_EXIST = "tv.dtv.caption.exist";
@@ -224,6 +225,16 @@ public class AV2InputService extends DroidLogicTvInputService {
             Log.d(TAG,"isBlockNoRatingEnable:"+isBlockNoRatingEnable+",isUnlockCurrent_NR:"+isUnlockCurrent_NR);
             mCaptioningManager = (CaptioningManager) mContext.getSystemService(Context.CAPTIONING_SERVICE);
             mSystemControlManager = new SystemControlManager(mContext);
+        }
+
+        @Override
+        public void notifyVideoAvailable() {
+            mSubtitleView.setVisible(is_subtitle_enable);
+        }
+
+        @Override
+        public void notifyVideoUnavailable(int reason) {
+            mSubtitleView.setVisible(false);
         }
 
         private boolean getBlockNoRatingEnable() {
@@ -533,6 +544,7 @@ public class AV2InputService extends DroidLogicTvInputService {
         }
 
         protected void enableSubtitleShow(boolean enable) {
+            is_subtitle_enable = enable;
             if (mSubtitleView != null) {
                 mSubtitleView.setVisible(enable);
                 if (enable)

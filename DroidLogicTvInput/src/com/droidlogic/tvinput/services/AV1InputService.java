@@ -77,6 +77,7 @@ public class AV1InputService extends DroidLogicTvInputService {
     protected static final int DTV_OPACITY_TRANSLUCENT = 2;
     protected static final int DTV_OPACITY_SOLID = 3;
 
+    private boolean is_subtitle_enable;
 
     protected static final String DTV_SUBTITLE_CC_PREFER = "tv.dtv.cc.prefer";
     protected static final String DTV_SUBTITLE_CAPTION_EXIST = "tv.dtv.caption.exist";
@@ -230,6 +231,16 @@ public class AV1InputService extends DroidLogicTvInputService {
             int status = Settings.System.getInt(mContext.getContentResolver(), DroidLogicTvUtils.BLOCK_NORATING, 0) ;
             Log.d(TAG,"getBlockNoRatingEnable:"+status);
             return (status == 1) ? true : false;
+        }
+
+        @Override
+        public void notifyVideoAvailable() {
+            mSubtitleView.setVisible(is_subtitle_enable);
+        }
+
+        @Override
+        public void notifyVideoUnavailable(int reason) {
+            mSubtitleView.setVisible(false);
         }
 
         @Override
@@ -535,6 +546,7 @@ public class AV1InputService extends DroidLogicTvInputService {
         }
 
         protected void enableSubtitleShow(boolean enable) {
+            is_subtitle_enable = enable;
             if (mSubtitleView != null) {
                 mSubtitleView.setVisible(enable);
                 if (enable)
