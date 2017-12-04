@@ -1157,7 +1157,7 @@ public class CcImplement {
                         if (opacity != 0xff)
                             paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC));
 
-                        //paint.setAntiAlias(true);
+                        paint.setAntiAlias(true);
                         paint.setTextSize((float)font_size);
                         if (edge_type == null) {
                             paint.setColor(fg_color);
