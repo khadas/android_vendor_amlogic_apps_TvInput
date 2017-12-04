@@ -149,6 +149,8 @@ public class DTVInputService extends DroidLogicTvInputService {
     protected int id = 0;
     protected TvControlManager mTvControlManager;
 
+    public boolean is_subtitle_enabled;
+
     protected Map<Integer, DTVSessionImpl> sessionMap = new HashMap<>();
     protected final BroadcastReceiver mChannelScanStartReceiver = new BroadcastReceiver() {
         @Override
@@ -1104,6 +1106,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             Log.d(TAG, "notifyVideoAvailable "+getSessionId());
             super.notifyVideoAvailable();
             mTvControlManager.SetAudioMuteForTv(TvControlManager.AUDIO_UNMUTE_FOR_TV);
+            mSubtitleView.setVisible(is_subtitle_enabled);
         }
 
         @Override
@@ -1127,6 +1130,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                         mOverlayView.setImage(R.drawable.bg_no_signal);
                         mOverlayView.setImageVisibility(true);
                         mOverlayView.setTextVisibility(true);
+                        mSubtitleView.setVisible(false);
                         break;
                 }
             }
@@ -1938,6 +1942,7 @@ public class DTVInputService extends DroidLogicTvInputService {
         }
 
         protected void enableSubtitleShow(boolean enable) {
+            is_subtitle_enabled = enable;
             if (mSubtitleView != null) {
                 mSubtitleView.setVisible(enable);
                 if (enable)
