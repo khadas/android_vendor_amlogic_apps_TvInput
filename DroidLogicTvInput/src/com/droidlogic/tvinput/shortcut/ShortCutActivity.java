@@ -368,6 +368,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
         @Override
         public void run() {
             try {
+                handler.removeMessages(MSG_LOAD_CHANNELS);
                 loadChannelList();
             } catch (RuntimeException e) {
                 e.printStackTrace();
@@ -379,6 +380,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
         @Override
         public void run() {
             try {
+                handler.removeMessages(MSG_LOAD_DATE);
                 loadDateList();
             } catch (RuntimeException e) {
                 e.printStackTrace();
@@ -390,6 +392,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
         @Override
         public void run() {
             try {
+                handler.removeMessages(MSG_LOAD_PROGRAM);
                 loadProgramList();
             } catch (RuntimeException e) {
                 e.printStackTrace();
@@ -472,6 +475,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
 
     private void showChannelList() {
         Log.d(TAG, "show Channels");
+        handler.removeMessages(MSG_UPDATE_CHANNELS);
 
         ArrayList<ArrayMap<String, Object>> list = new ArrayList<ArrayMap<String, Object>>();
         list.addAll(list_channels);
@@ -538,6 +542,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
     private void showDateList() {
         Log.d(TAG, "show Date");
 
+        handler.removeMessages(MSG_UPDATE_DATE);
         ArrayList<ArrayMap<String, Object>> list = new ArrayList<ArrayMap<String, Object>>();
         list.addAll(list_date);
 
@@ -612,6 +617,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
 
     private void showProgramList() {
         Log.d(TAG, "show Program");
+        handler.removeMessages(MSG_UPDATE_PROGRAM);
 
         ArrayList<ArrayMap<String, Object>> list = new ArrayList<ArrayMap<String, Object>>();
         list.addAll(list_program);

@@ -2121,6 +2121,8 @@ public class DTVInputService extends DroidLogicTvInputService {
 
             private HandlerThread mHandlerThread;
             private Handler mHandler;
+            private HandlerThread mHandlerThreadEPG;
+            private Handler mHandlerEPG;
             private Context mContext;
             private String mInputId;
             private int mMode;
@@ -2233,6 +2235,19 @@ public class DTVInputService extends DroidLogicTvInputService {
                     }
                 };
 
+                mHandlerThreadEPG = new HandlerThread(getClass().getSimpleName()+".epg");
+                mHandlerThreadEPG.start();
+                mHandlerEPG = new Handler(mHandlerThreadEPG.getLooper()) {
+                    @Override
+                    public void handleMessage(Message msg) {
+                        switch (msg.what) {
+                            case MSG_MONITOR_EVENT:
+                                resolveMonitorEvent((DTVEpgScanner.Event)msg.obj);
+                                break;
+                        }
+                    }
+                };
+
                 int scannerMode = 0;
                 if (STD_DVB.equals(standard)) {
                     MODE_Epg = DTVEpgScanner.SCAN_EIT_ALL;
@@ -2259,7 +2274,14 @@ public class DTVInputService extends DroidLogicTvInputService {
 
                 epgScanner = new DTVEpgScanner(scannerMode) {
                     public void onEvent(DTVEpgScanner.Event event) {
-                        mHandler.obtainMessage(MSG_MONITOR_EVENT, event).sendToTarget();
+                        //Log.d(TAG, "send event:" + event.type);
+                        if (event.type == DTVEpgScanner.Event.EVENT_PROGRAM_EVENTS_UPDATE) {
+                            if (mHandlerEPG != null)
+                                mHandlerEPG.obtainMessage(MSG_MONITOR_EVENT, event).sendToTarget();
+                        } else {
+                            if (mHandler != null)
+                                mHandler.obtainMessage(MSG_MONITOR_EVENT, event).sendToTarget();
+                        }
                     }
                 };
                 epgScanner.setDvbTextCoding(coding);
@@ -2344,7 +2366,13 @@ public class DTVInputService extends DroidLogicTvInputService {
                     mHandler.removeMessages(MSG_MONITOR_RESCAN_SERVICE);
                     mHandler.removeMessages(MSG_MONITOR_RESCAN_TIME);
                 }
+                if (mHandlerEPG != null)
+                    mHandlerEPG.removeCallbacksAndMessages(null);
+
                 synchronized (this) {
+                    mTvControlManager.setStorDBListener(null);
+                    mTvControlManager.DtvStopScan();
+
                     if (epgScanner != null) {
                         epgScanner.destroy();
                         epgScanner = null;
@@ -2359,10 +2387,18 @@ public class DTVInputService extends DroidLogicTvInputService {
                         mHandlerThread = null;
                     }
 
-                    mTvControlManager.setStorDBListener(null);
-                    mTvControlManager.DtvStopScan();
-                    mTvDataBaseManager = null;
-                    mTvTime = null;
+                    //mTvDataBaseManager = null;
+                    //mTvTime = null;
+                }
+                synchronized (mEpgUpdateLock) {
+                    if (mHandlerEPG != null) {
+                        mHandlerEPG.removeCallbacksAndMessages(null);
+                        mHandlerEPG = null;
+                    }
+                    if (mHandlerThreadEPG != null) {
+                        mHandlerThreadEPG.quit();
+                        mHandlerThreadEPG = null;
+                    }
                 }
             }
 
@@ -2606,7 +2642,7 @@ public class DTVInputService extends DroidLogicTvInputService {
 
                     if (mTvDataBaseManager != null && programs.size() != 0) {
                         TVTime tvTime = new TVTime(mContext);
-                        boolean updated = mTvDataBaseManager.updatePrograms(c.getId(), programs, tvTime.getTime());
+                        boolean updated = mTvDataBaseManager.updatePrograms(channelUri, programs, tvTime.getTime(), true);
                         if (updated && mCurrentChannel != null && mCurrentChannel.getId() == c.getId()) {
                             Log.d(TAG, "epg eit, program updated for current");
                             checkCurrentContentBlockNeeded();
@@ -2619,16 +2655,18 @@ public class DTVInputService extends DroidLogicTvInputService {
                 Log.d(TAG, "Monitor event: " + event.type + " this:" +this);
                 switch (event.type) {
                     case DTVEpgScanner.Event.EVENT_PROGRAM_EVENTS_UPDATE:
-                        if (isAtscEvent(event.evts[0])) {
-                            updateAtscPrograms(event);
-                        } else {
-                            for (int i = 0; (channelMap != null && i < channelMap.size()); ++i) {
-                                ChannelInfo channel = (ChannelInfo)channelMap.get(i);
-                                Uri channelUri = TvContract.buildChannelUri(channel.getId());
+                        synchronized (mEpgUpdateLock) {
+                            if (isAtscEvent(event.evts[0])) {
+                                updateAtscPrograms(event);
+                            } else {
+                                for (int i = 0; (channelMap != null && i < channelMap.size()); ++i) {
+                                    ChannelInfo channel = (ChannelInfo)channelMap.get(i);
+                                    Uri channelUri = TvContract.buildChannelUri(channel.getId());
 
-                                List<Program> programs = getChannelPrograms(channelUri, channel, event);
-                                if (mTvDataBaseManager != null && programs.size() != 0)
-                                    mTvDataBaseManager.updatePrograms(channelUri, programs, null, isAtscEvent(event.evts[0]));
+                                    List<Program> programs = getChannelPrograms(channelUri, channel, event);
+                                    if (mTvDataBaseManager != null && programs.size() != 0)
+                                        mTvDataBaseManager.updatePrograms(channelUri, programs, null, isAtscEvent(event.evts[0]));
+                                }
                             }
                         }
                         break;
@@ -2662,13 +2700,24 @@ public class DTVInputService extends DroidLogicTvInputService {
                         int oldVersion = mEitVersions[event.eitNumber];
                         mEitVersions[event.eitNumber] = event.dvbVersion;
 
+                        /*pause and remove all epgs in msg queue*/
+                        if (oldVersion != -1) {
+                            epgScanner.stopScan(MODE_Epg);
+                            if (mHandlerEPG != null)
+                                mHandlerEPG.removeMessages(MSG_MONITOR_EVENT);
+                        }
+
+                        /*clear all epgs with old version, and update channel's eit versions*/
+                        /*without Epglock, there may be still chance that programs updating in the EPG handler thread runs after codes below*/
                         if (mTvDataBaseManager != null) {
                             for (Integer c : mVctMap.keySet()) {
-                                Log.d(TAG, "epg eit, clear old programs for channel(id:"+c+") with version: "
-                                                +oldVersion+":"+event.eitNumber);
-                                mTvDataBaseManager.deleteProgram(mVctMap.get(c),
-                                                String.valueOf(mEitVersions[event.eitNumber]),
-                                                String.valueOf(event.eitNumber));
+                                if (oldVersion != -1) {
+                                    Log.d(TAG, "epg eit, clear old programs for channel(id:"+c+") with version: "
+                                                    +oldVersion+":"+event.eitNumber);
+                                    mTvDataBaseManager.deleteProgram(mVctMap.get(c),
+                                                    String.valueOf(mEitVersions[event.eitNumber]),
+                                                    String.valueOf(event.eitNumber));
+                                }
                                 for (ChannelInfo ch : channelMap) {
                                     if (ch.getId() == mVctMap.get(c)) {
                                         Log.d(TAG, "epg eit, update channel(id:"+ch.getId()+" name:"+ch.getDisplayName()+") with new version");
@@ -2677,6 +2726,11 @@ public class DTVInputService extends DroidLogicTvInputService {
                                     }
                                 }
                             }
+                        }
+
+                        /*restart all epg*/
+                        if (oldVersion != -1) {
+                            epgScanner.startScan(MODE_Epg);
                         }
                         }
                         break;
