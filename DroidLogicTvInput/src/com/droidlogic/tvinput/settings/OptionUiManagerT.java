@@ -622,20 +622,21 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
         String type = TvControlManager.TvMode.fromMode(tvMode).toType();
         int size = m_fList.size();
         int the_freq = -1;
-
+/*
         if (type.equals(TvContract.Channels.TYPE_ATSC_T)
             || type.equals(TvContract.Channels.TYPE_ATSC_C))
             pdNumber = pdNumber - 1;
-
+*/
         if (pdNumber < 1)
             pdNumber = 1;
 
         for (int i = 0; i < size; i++) {
-            if (pdNumber == m_fList.get(i).ID) {
+            if (pdNumber == m_fList.get(i).channelNum) {
                 the_freq = m_fList.get(i).freq;
                 break;
             }
         }
+        Log.d(TAG, "pdNumber: " + pdNumber + ", the_freq: " + the_freq);
         return (the_freq < 0)? m_fList.get(0).freq : the_freq;
     }
 
