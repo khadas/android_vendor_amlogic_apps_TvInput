@@ -235,11 +235,13 @@ public class AV1InputService extends DroidLogicTvInputService {
 
         @Override
         public void notifyVideoAvailable() {
+            super.notifyVideoAvailable();
             mSubtitleView.setVisible(is_subtitle_enable);
         }
 
         @Override
         public void notifyVideoUnavailable(int reason) {
+            super.notifyVideoUnavailable(reason);
             mSubtitleView.setVisible(false);
         }
 

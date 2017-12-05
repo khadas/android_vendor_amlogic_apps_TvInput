@@ -227,20 +227,22 @@ public class AV2InputService extends DroidLogicTvInputService {
             mSystemControlManager = new SystemControlManager(mContext);
         }
 
+        private boolean getBlockNoRatingEnable() {
+            int status = Settings.System.getInt(mContext.getContentResolver(), DroidLogicTvUtils.BLOCK_NORATING, 0) ;
+            Log.d(TAG,"getBlockNoRatingEnable:"+status);
+            return (status == 1) ? true : false;
+        }
+
         @Override
         public void notifyVideoAvailable() {
+            super.notifyVideoAvailable();
             mSubtitleView.setVisible(is_subtitle_enable);
         }
 
         @Override
         public void notifyVideoUnavailable(int reason) {
+            super.notifyVideoUnavailable(reason);
             mSubtitleView.setVisible(false);
-        }
-
-        private boolean getBlockNoRatingEnable() {
-            int status = Settings.System.getInt(mContext.getContentResolver(), DroidLogicTvUtils.BLOCK_NORATING, 0) ;
-            Log.d(TAG,"getBlockNoRatingEnable:"+status);
-            return (status == 1) ? true : false;
         }
 
         @Override
@@ -435,10 +437,12 @@ public class AV2InputService extends DroidLogicTvInputService {
                 int to =  mSystemControlManager.getPropertyInt(DTV_SUBTITLE_CC_PREFER, -1);
 
                 Log.d(TAG, "ccc tryPrefer, exist["+exist+"] to["+to+"] Enable["+mCurrentCCEnabled+"]");
+
                 if (to != -1) {
                     startSubtitle();//startSubtitle(s);
                     notifyTrackSelected(TvTrackInfo.TYPE_SUBTITLE, null);
                 }
+                Log.d(TAG,"tryPreferredSubtitle,return:"+to);
                 return to;
             }
             return 0;
