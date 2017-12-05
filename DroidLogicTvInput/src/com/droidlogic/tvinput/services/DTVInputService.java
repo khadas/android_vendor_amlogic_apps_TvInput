@@ -1701,6 +1701,15 @@ public class DTVInputService extends DroidLogicTvInputService {
                     to = ccPrefer;
                 }
 
+                if (to == -1) {
+                    if (mCurrentChannel != null) {
+                        if (!mCurrentChannel.isAnalogChannel() && (csPrefer != -1))
+                            to = csPrefer;
+                        if ((to == -1) && (ccPrefer != -1))
+                            to = ccPrefer;
+                    }
+                }
+
                 Log.d(TAG, "ccc tryPrefer, exist["+exist+"], current["+curr+"] to["+to+"] prefer[cc:"+ccPrefer+" cs:"+csPrefer+"] Enable["+mCurrentCCEnabled+"]");
 
                 if (curr == to)//already show
