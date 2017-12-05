@@ -977,8 +977,11 @@ public class CcImplement {
 
 
                         /* Set parameters */
-                        //TODO If pen size
                         window_paint.setTypeface(font_face);
+                        /* Get a largest metric to get the baseline */
+                        window_paint.setTextSize((float)caption_screen.max_font_height);
+                        fontMetrics = window_paint.getFontMetricsInt();
+                        /* Return to normal */
                         window_paint.setTextSize((float)(font_size * font_scale));
 
                         Log.e(TAG, "str on paint " + string_length_on_paint + " " + data);
@@ -986,7 +989,6 @@ public class CcImplement {
                         if (pensize_window_depend == 0)
                             pensize_window_depend = window_paint.measureText("H");
 
-                        fontMetrics = window_paint.getFontMetricsInt();
                         str_characters_count = data.length();
 
                     }
