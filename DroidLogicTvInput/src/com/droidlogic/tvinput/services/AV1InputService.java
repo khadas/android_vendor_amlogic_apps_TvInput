@@ -407,6 +407,7 @@ public class AV1InputService extends DroidLogicTvInputService {
         }
 
         private int mCurrentCCExist = 0;
+        private int mCurrentCCStyle = -1;
         private boolean mCurrentCCEnabled = false;
         public void doCCData(int mask) {
             Log.d(TAG, "cc data: " + mask);
@@ -425,6 +426,7 @@ public class AV1InputService extends DroidLogicTvInputService {
         protected void tryPreferredSubtitleContinue(int exist) {
             synchronized (mSubtitleLock) {
                 if (tryPreferredSubtitle(exist) == -1) {
+                    Log.d(TAG,"tryPreferredSubtitleContinue,mCurrentCCStyle:"+mCurrentCCStyle);
                     startSubtitleCCBackground();
                     notifyTrackSelected(TvTrackInfo.TYPE_SUBTITLE, null);
                 }
@@ -438,7 +440,8 @@ public class AV1InputService extends DroidLogicTvInputService {
 
                 Log.d(TAG, "ccc tryPrefer, exist["+exist+"] to["+to+"] Enable["+mCurrentCCEnabled+"]");
 
-                if (to != -1) {
+                if (to != -1 && (mCurrentCCStyle != to)) {
+                    mCurrentCCStyle = to;
                     startSubtitle();//startSubtitle(s);
                     notifyTrackSelected(TvTrackInfo.TYPE_SUBTITLE, null);
                 }
@@ -452,6 +455,7 @@ public class AV1InputService extends DroidLogicTvInputService {
             Log.d(TAG, "start bg cc for xds");
             startSubtitle();
             enableSubtitleShow(false);
+            mCurrentCCStyle = -1;
             //mSystemControlManager.setProperty(DTV_SUBTITLE_TRACK_IDX, "-3");
         }
 
@@ -536,11 +540,13 @@ public class AV1InputService extends DroidLogicTvInputService {
                 Log.d(TAG, "subtitle view is null");
                 return;
             }
-
+            Log.d(TAG, "mCurrentCCStyle:"+mCurrentCCStyle);
+            if (mCurrentCCStyle == -1) {
+                int ccPrefer =  mSystemControlManager.getPropertyInt(DTV_SUBTITLE_CC_PREFER, -1);
+                mCurrentCCStyle = ccPrefer > 0 ? ccPrefer : ChannelInfo.Subtitle.CC_CAPTION_CC1 ;
+            }
             mSubtitleView.stop();
-            int ccPrefer =  mSystemControlManager.getPropertyInt(DTV_SUBTITLE_CC_PREFER, -1);
-            ccPrefer = ccPrefer > 0 ? ccPrefer : ChannelInfo.Subtitle.CC_CAPTION_CC1 ;
-            setSubtitleParam(ChannelInfo.Subtitle.TYPE_ATV_CC, ccPrefer, 0, 0, 0);//we need xds data
+            setSubtitleParam(ChannelInfo.Subtitle.TYPE_ATV_CC, mCurrentCCStyle, 0, 0, 0);//we need xds data
 
             mSubtitleView.setActive(true);
             mSubtitleView.startSub();
