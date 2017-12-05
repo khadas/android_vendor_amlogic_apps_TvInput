@@ -186,6 +186,7 @@ public class ADTVInputService extends DTVInputService {
             if (!info.isAnalogChannel())
                 startAudioADByMain(info, audioAuto);
 
+            isTvPlaying = true;
             return true;
         }
 

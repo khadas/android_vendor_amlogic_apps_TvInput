@@ -148,6 +148,7 @@ public class DTVInputService extends DroidLogicTvInputService {
     protected DTVSessionImpl mCurrentSession;
     protected int id = 0;
     protected TvControlManager mTvControlManager;
+    protected boolean isTvPlaying = false;
 
     public boolean is_subtitle_enabled;
 
@@ -464,10 +465,44 @@ public class DTVInputService extends DroidLogicTvInputService {
             return setSurfaceInService(surface,this);
         }
 
+        private boolean isTuning = false;
+        private static final int DELAY_TUNE = 1500;
         @Override
         public boolean onTune(Uri channelUri) {
-            return doTuneInService(channelUri, getSessionId());
+            int delay = 0;
+            if (isTuning == true) {
+                delay = DELAY_TUNE;
+            } else {
+                isTuning = true;
+            }
+            TuneStack.removeMessages(MSG_TUNE);
+            TuneStack.removeMessages(MSG_CLEAN_TUNE);
+
+            Message msg = TuneStack.obtainMessage(MSG_TUNE, channelUri);
+            TuneStack.sendMessageDelayed(msg, delay);
+
+            TuneStack.sendEmptyMessageDelayed(MSG_CLEAN_TUNE, DELAY_TUNE);
+            return false;
         }
+
+        public static final int MSG_TUNE= 0;
+        public static final int MSG_CLEAN_TUNE = 1;
+        /**
+         * [Handler description] We add this handler to avoid switching channel frequently
+         */
+        Handler TuneStack = new Handler(){
+            @Override
+            public void handleMessage(Message msg) {
+                switch (msg.what) {
+                    case MSG_TUNE:
+                        doTuneInService((Uri)msg.obj, getSessionId());
+                        break;
+                    case MSG_CLEAN_TUNE:
+                        isTuning = false;
+                        break;
+                }
+            }
+        };
 
         @Override
         public void doRelease() {
@@ -660,6 +695,8 @@ public class DTVInputService extends DroidLogicTvInputService {
             mChannelBlocked = -1;
             isUnlockCurrent_NR = false;
             stopSubtitle();
+
+            isTvPlaying = false;
 
             subtitleAutoStart = mSystemControlManager.getPropertyBoolean(DTV_SUBTITLE_AUTO_START, false);
             subtitleAutoSave = subtitleAutoStart;
@@ -857,7 +894,9 @@ public class DTVInputService extends DroidLogicTvInputService {
             } else {
                 synchronized(mLock) {
                     if (mCurrentChannel != null) {
-                        playProgram(mCurrentChannel);
+                        if (!isTvPlaying) {
+                            playProgram(mCurrentChannel);
+                        }
                         Log.d(TAG, "notifyAllowed");
                         notifyContentAllowed();
                     }
@@ -997,8 +1036,6 @@ public class DTVInputService extends DroidLogicTvInputService {
                     mUnblockedRatingSet.add(rating);
                     isUnlockCurrent_NR = true;
                 }
-
-                playProgram(mCurrentChannel);
 
                 Log.d(TAG, "notifyContentAllowed");
                 notifyContentAllowed();
