@@ -3631,9 +3631,11 @@ public class DTVInputService extends DroidLogicTvInputService {
 
             String ratingDescription = TVMultilingualText.getTextJ(g.optString("rs"));
             int region = g.optInt("g", -1);
-            if (region == 5) {
+            if (region > DroidContentRatingsParser.FIXED_REGION_lEVEL_2) {//region > 2, search download rrt
                 Log.d(TAG, "parse ratings rrt5 region = " + region + ", title = " + title);
                 rrt5count++;
+            } else {
+                continue;
             }
 
             JSONArray ratings = g.optJSONArray("rx");
@@ -3679,11 +3681,35 @@ public class DTVInputService extends DroidLogicTvInputService {
                 }
             }
             if (rrt5existcount == 0) {
-                Log.d(TAG, "parse ratings add rrt5 rating erro" + ", title = " + title);
+                Log.d(TAG, "parse ratings add rrt5 rating erro and use previous" + ", title = " + title);
                 return ratings;
             }
         }
-        return (RatingList.size() == 0 ? null : RatingList.toArray(new TvContentRating[RatingList.size()]));
+        TvContentRating ratings_vchip[] = DroidLogicTvUtils.parseDRatings(jsonString);
+        TvContentRating ratings_rrt5[] = (RatingList.size() == 0 ? null : RatingList.toArray(new TvContentRating[RatingList.size()]));
+        TvContentRating ratings_all[];
+        if (ratings_vchip != null && ratings_vchip.length > 0 && RatingList != null && RatingList.size() > 0) {
+            ratings_all = new TvContentRating[RatingList.size() + ratings_vchip.length];
+            for (int k = 0; k < ratings_vchip.length; k++) {
+                ratings_all[k] = ratings_vchip[k];
+            }
+            for (int k = ratings_vchip.length; k < ratings_all.length; k++) {
+                ratings_all[k] = RatingList.get(k - ratings_vchip.length);
+            }
+            Log.d(TAG, "parse ratings mixed vchip & rrt5"  + ", title = " + title);
+        } else if (ratings_vchip != null && ratings_vchip.length > 0) {
+            ratings_all = ratings_vchip;
+            Log.d(TAG, "parse ratings vchip only " + ", title = " + title);
+        } else if (RatingList != null && RatingList.size() > 0) {
+            ratings_all = new TvContentRating[RatingList.size()];
+            for (int k = 0; k < ratings_all.length; k++) {
+                ratings_all[k] = RatingList.get(k);
+            }
+            Log.d(TAG, "parse ratings rrt5 only " + ", title = " + title);
+        } else {
+            ratings_all = null;
+            Log.d(TAG, "parse ratings null " + ", title = " + title);
+        }
+        return ratings_all;
     }
-
 }
