@@ -1695,7 +1695,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                 int curr = mCurrentSubtitle == null? -1 : mCurrentSubtitle.mPid;
                 int to = -1;
 
-                if ((to != csPrefer) && ((exist & (1 << csPrefer)) != 0)) {
+                if ((to != csPrefer) && ((exist & (1 << csPrefer)) != 0) && !mCurrentChannel.isAnalogChannel()) {
                     to = csPrefer;
                 } else if ((to != ccPrefer) && ((exist & (1 << ccPrefer)) != 0)) {
                     to = ccPrefer;
