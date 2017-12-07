@@ -145,7 +145,7 @@ public class DTVInputService extends DroidLogicTvInputService {
     public static final int MAX_CACHE_SIZE_DEF = 2 * 1024;  // 2GB
     public static final int MIN_CACHE_SIZE_DEF = 256;  // 256MB
 
-    private static boolean DEBUG = false;
+    private static boolean DEBUG = true;
 
     protected DTVSessionImpl mCurrentSession;
     protected int id = 0;
@@ -2336,7 +2336,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                 if ((mode & MODE_UPDATE_TIME) == MODE_UPDATE_TIME)
                     scannerMode |= MODE_Time;
 
-                Log.d(TAG, "DTVMonitor std["+standard+"] mode["+scannerMode+"]");
+                if (DEBUG) Log.d(TAG, "DTVMonitor std["+standard+"] mode["+scannerMode+"]");
 
                 epgScanner = new DTVEpgScanner(scannerMode) {
                     public void onEvent(DTVEpgScanner.Event event) {
@@ -2564,7 +2564,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             }
 
             public void restartMonitorTime(){
-                Log.d(TAG, "restartMonitorTime["+MODE_Time+"]");
+                if (DEBUG) Log.d(TAG, "restartMonitorTime["+MODE_Time+"]");
                 synchronized (this) {
                     if (epgScanner == null) {
                         if (DEBUG) Log.d(TAG, "monitor may exit, ignore.");
@@ -2603,7 +2603,8 @@ public class DTVInputService extends DroidLogicTvInputService {
                                     .setEndTimeUtcMillis(end * 1000)
                                     .build();
                                 programs.add(p);
-                                Log.d(TAG, "epg: sid[" + evt.srv_id + "]"
+                                
+                                if (DEBUG) Log.d(TAG, "epg: sid[" + evt.srv_id + "]"
                                       + "eid[" + evt.evt_id + "]"
                                       + "{" + p.getTitle() + "}"
                                       + "[" + (p.getStartTimeUtcMillis() == 0 ? 0 : p.getStartTimeUtcMillis() / 1000)
@@ -2633,7 +2634,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                                     .setEndTimeUtcMillis(end * 1000)
                                     .build();
                                 programs.add(p);
-                                Log.d(TAG, "epg: sid/net/ts[" + evt.srv_id + "/" + evt.net_id + "/" + evt.ts_id + "]"
+                                if (DEBUG) Log.d(TAG, "epg: sid/net/ts[" + evt.srv_id + "/" + evt.net_id + "/" + evt.ts_id + "]"
                                       + "{" + p.getTitle() + "}"
                                       + "[" + p.getStartTimeUtcMillis() / 1000
                                       + "-" + p.getEndTimeUtcMillis() / 1000
@@ -2667,15 +2668,16 @@ public class DTVInputService extends DroidLogicTvInputService {
                     }
                     Uri channelUri = TvContract.buildChannelUri(c.getId());
                     List<Program> programs = new ArrayList<>();
-                    Log.d(TAG," program name :"+c.getDisplayNumber());
+                    if (DEBUG) Log.d(TAG," program name :"+c.getDisplayNumber());
 
                     for (DTVEpgScanner.Event.Evt evt : event.evts) {
                         Long cid = mVctMap.get(evt.source_id);
-                        Log.d(TAG, "build VCT map cid " + cid + " c.getId():" + c.getId() + " evt.srv_id" + evt.srv_id + " evt.v:(" + evt.sub_flag + ":" + evt.sub_status +")"+" source_id:"+evt.source_id);
+                        if (DEBUG) Log.d(TAG, "build VCT map cid " + cid + " c.getId():" + c.getId() + " evt.srv_id" + evt.srv_id + " evt.v:(" + evt.sub_flag + ":" + evt.sub_status +")"+" source_id:"+evt.source_id);
                         if (cid == null)
                             continue;
                         if (c.getId() == cid) {
                             try {
+
                                 long start = evt.start;
                                 long end = evt.end;
                                 if (start != 0 && end !=0 && evt.rrt_ratings == null)
@@ -2721,7 +2723,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             }
 
             private void resolveMonitorEvent(DTVEpgScanner.Event event) {
-                Log.d(TAG, "Monitor event: " + event.type + " this:" +this);
+                if (DEBUG) Log.d(TAG, "Monitor event: " + event.type + " this:" +this);
                 switch (event.type) {
                     case DTVEpgScanner.Event.EVENT_PROGRAM_EVENTS_UPDATE:
                         synchronized (mEpgUpdateLock) {
@@ -2863,8 +2865,8 @@ public class DTVInputService extends DroidLogicTvInputService {
                             +" TSID:"+event.services.mTSId
                             +" Version:"+event.services.mVersion);
                         for (DTVEpgScanner.Event.ServiceInfosFromSDT.ServiceInfoFromSDT s : event.services.mServices) {
-                            Log.d(TAG, "\t[Service]: id:" + s.mId + " type:"+s.mType + " name:"+s.mName);
-                            Log.d(TAG, "\t           running:"+s.mRunning + " freeCA:"+s.mFreeCA);
+                            if (DEBUG) Log.d(TAG, "\t[Service]: id:" + s.mId + " type:"+s.mType + " name:"+s.mName);
+                            if (DEBUG) Log.d(TAG, "\t           running:"+s.mRunning + " freeCA:"+s.mFreeCA);
                         }
                         synchronized (this) {
                             if (mTvDataBaseManager == null)
@@ -2896,8 +2898,8 @@ public class DTVInputService extends DroidLogicTvInputService {
                                     }
                                 }
                             }
-                            Log.d(TAG, "found ["+event.services.mServices.size()+"] services in SDT.");
-                            Log.d(TAG, "update ["+count+"] services in DB.");
+                            if (DEBUG) Log.d(TAG, "found ["+event.services.mServices.size()+"] services in SDT.");
+                            if (DEBUG) Log.d(TAG, "update ["+count+"] services in DB.");
                         }
                     }
                     break;
@@ -2905,7 +2907,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                         if (DEBUG) Log.d(TAG, "[TS Update]: TS changed, need autoscan.");
                         synchronized (this) {
                             if (tvservice != null) {
-                                Log.d(TAG, "[TS Update] Freq:" + tvservice.getFrequency());
+                                if (DEBUG) Log.d(TAG, "[TS Update] Freq:" + tvservice.getFrequency());
                                 int mode = new TvControlManager.TvMode(tvservice.getType()).getMode();
                                 int frequency = tvservice.getFrequency();
 
@@ -2942,10 +2944,10 @@ public class DTVInputService extends DroidLogicTvInputService {
                         || ((DroidLogicTvUtils.matchsWhich(uri) == DroidLogicTvUtils.MATCH_CHANNEL_ID)
                             && (DroidLogicTvUtils.getChannelId(uri) > maxChannel_ID))) { //add
                         if (DroidLogicTvUtils.matchsWhich(uri) == DroidLogicTvUtils.MATCH_CHANNEL) {
-                            Log.d(TAG, "channel deleted");
+                            if (DEBUG) Log.d(TAG, "channel deleted");
                         } else if ((DroidLogicTvUtils.matchsWhich(uri) == DroidLogicTvUtils.MATCH_CHANNEL_ID)
                                    && (DroidLogicTvUtils.getChannelId(uri) > maxChannel_ID)) {
-                            Log.d(TAG, "channel added: " + DroidLogicTvUtils.getChannelId(uri) + ">" + maxChannel_ID);
+                            if (DEBUG) Log.d(TAG, "channel added: " + DroidLogicTvUtils.getChannelId(uri) + ">" + maxChannel_ID);
                         }
                         if (epg_auto_reset)
                             reset();
@@ -2983,7 +2985,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                 public void onEnabledChanged(boolean enabled) {
                     //updateCCStyleParams();
                     mCurrentCCEnabled = enabled;
-                    Log.d(TAG, "CCStyleObserver onEnabledChanged: " + enabled);
+                    if (DEBUG) Log.d(TAG, "CCStyleObserver onEnabledChanged: " + enabled);
                 }
 
                 @Override
@@ -3043,40 +3045,40 @@ public class DTVInputService extends DroidLogicTvInputService {
                     }
                     mRecordStartTimeMs = mRecordStartTimeMs_0 + param;
 
-                    Log.d(TAG, "[timeshift] start:"+new Date(mRecordStartTimeMs).toString());
+                    if (DEBUG) Log.d(TAG, "[timeshift] start:"+new Date(mRecordStartTimeMs).toString());
                     break;
                 case TvControlManager.EVENT_AV_TIMESHIFT_CURRENT_TIME_CHANGED:
                     mCurrentTimeMs = mRecordStartTimeMs_0 + param;
                     if (mRecordingId == null) {
-                        Log.d(TAG, "[timeshift] current:"+new Date(mCurrentTimeMs).toString());
-                        Log.d(TAG, "[timeshift] end    :"+new Date().toString());
+                        if (DEBUG) Log.d(TAG, "[timeshift] current:"+new Date(mCurrentTimeMs).toString());
+                        if (DEBUG) Log.d(TAG, "[timeshift] end    :"+new Date().toString());
                     } else {
-                        Log.d(TAG, "[timeshift] current:"+mCurrentTimeMs);
+                        if (DEBUG) Log.d(TAG, "[timeshift] current:"+mCurrentTimeMs);
                     }
                     break;
             }
         }
 
         protected void doTimeShiftPause() {
-            Log.d(TAG, "[timeshift] doTimeShiftPause:");
+            if (DEBUG) Log.d(TAG, "[timeshift] doTimeShiftPause:");
             mTvControlManager.pausePlay("atsc");
         }
 
         protected void doTimeShiftResume() {
-            Log.d(TAG, "[timeshift] doTimeShiftResume:");
+            if (DEBUG) Log.d(TAG, "[timeshift] doTimeShiftResume:");
             //mTvControlManager.setPlayParam("atsc", "{\"speed\":1}");
             mTvControlManager.resumePlay("atsc");
         }
 
         protected void doTimeShiftSeekTo(long timeMs) {
             String para = "{\"offset\":"+ (timeMs - mRecordStartTimeMs) + "}";
-            Log.d(TAG, "[timeshift] doTimeShiftSeekTo:"+"offset:"+(timeMs - mRecordStartTimeMs));
+            if (DEBUG) Log.d(TAG, "[timeshift] doTimeShiftSeekTo:"+"offset:"+(timeMs - mRecordStartTimeMs));
             mTvControlManager.seekPlay("atsc", para);
         }
 
         protected void doTimeShiftSetPlaybackParams(PlaybackParams params) {
             int speed = (int)params.getSpeed();
-            Log.d(TAG, "[timeshift] doTimeShiftSetPlaybackParams:"+speed);
+            if (DEBUG) Log.d(TAG, "[timeshift] doTimeShiftSetPlaybackParams:"+speed);
             String param = "{\"speed\":"+speed+"}";
             mTvControlManager.setPlayParam("atsc", param);
         }
@@ -3092,7 +3094,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                     return result;
                 } else {
                     if (c == null) {
-                        Log.e(TAG, "Unknown query error for " + this);
+                        if (DEBUG) Log.e(TAG, "Unknown query error for " + this);
                     } else {
                         if (DEBUG) {
                             Log.d(TAG, "Canceled query for " + this);
@@ -3117,15 +3119,15 @@ public class DTVInputService extends DroidLogicTvInputService {
         }
 
         protected void doRecPlay(Uri recordUri) {
-            Log.d(TAG, "[timeshift] doRecPlay:"+recordUri);
+            if (DEBUG) Log.d(TAG, "[timeshift] doRecPlay:"+recordUri);
             mRecordingId = parseRecording(recordUri);
             if (mRecordingId == null) {
-                Log.w(TAG, "play failed. Can't find channel for " + recordUri);
+                if (DEBUG) Log.w(TAG, "play failed. Can't find channel for " + recordUri);
                 notifyVideoUnavailable(
                         TvInputManager.VIDEO_UNAVAILABLE_REASON_UNKNOWN);
                 return;
             }
-            Log.d(TAG, "[timeshift] mRecordingId:"+mRecordingId);
+            if (DEBUG) Log.d(TAG, "[timeshift] mRecordingId:"+mRecordingId);
 
             mTvControlManager.SetAVPlaybackListener(this);
             StringBuilder param =
@@ -3150,12 +3152,12 @@ public class DTVInputService extends DroidLogicTvInputService {
         }
 
         public long getStartPosition() {
-            Log.d("ttt", "start:"+new Date(mRecordStartTimeMs).toString());
+            if (DEBUG) Log.d("ttt", "start:"+new Date(mRecordStartTimeMs).toString());
             return mRecordStartTimeMs;
         }
 
         public long getCurrentPosition() {
-            Log.d("ttt", "current:"+new Date(mCurrentTimeMs).toString());
+            if (DEBUG) Log.d("ttt", "current:"+new Date(mCurrentTimeMs).toString());
             return mCurrentTimeMs;
         }
 
@@ -3197,7 +3199,7 @@ public class DTVInputService extends DroidLogicTvInputService {
         @Override
         public void onTimeShiftPlay(Uri recordUri) {
             if (recordUri == null) {
-                Log.w(TAG, "onTimeShiftPlay() is failed due to null channelUri.");
+                if (DEBUG) Log.w(TAG, "onTimeShiftPlay() is failed due to null channelUri.");
                 //stopTune();
                 return;
             }
@@ -3257,7 +3259,7 @@ public class DTVInputService extends DroidLogicTvInputService {
 
             mStorageDir = new File(getCacheStoragePath());
 
-            Log.d(TAG, "DTVRecordingSession:"+inputId);
+            if (DEBUG) Log.d(TAG, "DTVRecordingSession:"+inputId);
         }
 
         @Override
@@ -3268,7 +3270,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                     if (extTune(channelUri)) {
                         onTuned(channelUri);
                     } else {
-                        Log.w(TAG, "Recording session connect failed");
+                        if (DEBUG) Log.w(TAG, "Recording session connect failed");
                         onTuneFailed();
                     }
                     return true;
@@ -3391,10 +3393,10 @@ public class DTVInputService extends DroidLogicTvInputService {
 
             if (mSessionState == STATE_RECORDING) {
                 onRecordUnexpectedlyStopped(TvInputManager.RECORDING_ERROR_UNKNOWN);
-                Log.w(TAG, "Recording failed: " + mChannel == null ? "" : mChannel.getDisplayName());
+                if (DEBUG) Log.w(TAG, "Recording failed: " + mChannel == null ? "" : mChannel.getDisplayName());
                 mTvControlManager.stopRecording("atsc-rec", null);
             } else {
-                Log.e(TAG, "Recording session status abnormal");
+                if (DEBUG) Log.e(TAG, "Recording session status abnormal");
                 mTvControlManager.stopRecording("atsc-rec", null);
                 mSessionState = STATE_IDLE;
             }
@@ -3535,7 +3537,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             if (!TextUtils.equals(ev.Id, "atsc-rec"))
                 return;
 
-            Log.d("rrr", "rec evt status:"+ev.Status+" err:"+ev.Error);
+            if (DEBUG) Log.d("rrr", "rec evt status:"+ev.Status+" err:"+ev.Error);
             switch (ev.Status) {
                 case TvControlManager.RecorderEvent.EVENT_RECORDER_START:
                     break;
