@@ -158,7 +158,6 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
         mAutoATV = (CheckBox) findViewById(R.id.auto_tune_atv);
         mAutoDTV.setChecked(true);
         mAutoATV.setChecked(false);
-        mAutoDTV.setOnClickListener(this);
         if (!(mOptionUiManagerT.getCurentVirtualTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_ADTV)) {
             mManualDTV.setEnabled(false);
             mManualATV.setEnabled(false);
@@ -455,7 +454,7 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
 
     @Override
     public void onClick(View v) {
-         switch (v.getId()) {
+        switch (v.getId()) {
             case R.id.tune_manual:
                 if (ShowNoAtvFrequencyOrChannel()) {
                     sendMessage(MANUAL_START, 0, null);
@@ -471,9 +470,16 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
                 }
                 sendMessage(AUTO_START, 0, null);
                 break;
-             default:
-                 break;
-         }
+            default:
+                break;
+        }
+        //At the moment, if dtv_type_switched is 1 in Settings, make it 0,
+        //otherwise, when searching channel finished, retreat from LiveTv and lunch LiveTv again, or click Menu-->Channel,
+        //it will execute resumeTvIfNeeded and send broadcast to switch channel automatically, so it should be avoid.
+        int isDtvTypeSwitched = Settings.System.getInt(this.getContentResolver(), DroidLogicTvUtils.DTV_TYPE_SWITCHED, 0);
+        if (isDtvTypeSwitched == 1) {
+            Settings.System.putInt(this.getContentResolver(), DroidLogicTvUtils.DTV_TYPE_SWITCHED, 0);
+        }
     }
 
     @Override
