@@ -97,9 +97,9 @@ public class CcImplement {
     {
         int convert_color;
         convert_color = (CcColor&0x3)*85 |
-                (((CcColor&0xc)>>2)*85) << 8 |
-                (((CcColor&0x30)>>4)*85) << 16 |
-                0xff<<24;
+            (((CcColor&0xc)>>2)*85) << 8 |
+            (((CcColor&0x30)>>4)*85) << 16 |
+            0xff<<24;
         return convert_color;
     }
 
@@ -264,9 +264,9 @@ public class CcImplement {
             Log.e(TAG,
                     "anchor relative " + anchor_relative +
                     " vertical density "+anchor_horizon_density +
-                            " v "+anchor_v+
-                            " point " + anchor_point +
-                            " " + height);
+                    " v "+anchor_v+
+                    " point " + anchor_point +
+                    " " + height);
 
             switch (anchor_point)
             {
@@ -330,7 +330,7 @@ public class CcImplement {
                     /* We need to find out the selected fontface name ourself,
                      * and load the face from local area */
                     Log.e(TAG, "typeface name " + Settings.Secure.getString(context.getContentResolver(),
-                            "accessibility_captioning_typeface"));
+                                "accessibility_captioning_typeface"));
                     type_face = cs.getTypeface();
                     has_background_color = cs.hasBackgroundColor();
                     has_edge_color = cs.hasEdgeColor();
@@ -397,20 +397,19 @@ public class CcImplement {
                 ccVersion = ccObj.getString("type");
                 if (ccVersion.matches("cea608"))
                 {
-                   //TODO: how to handle 608
+                    //TODO: how to handle 608
                     windowArr = ccObj.getJSONArray("windows");
                     windows_count = windowArr.length();
-                    Log.e(TAG, "ccType 608" + " window number: " + windows_count);
+                    //Log.e(TAG, "ccType 608" + " window number: " + windows_count);
                     windows = new Window[windows_count+1];
                     for (int i=0; i<windows_count; i++)
                         windows[i] = new Window(windowArr.getJSONObject(i));
-                    Log.e(TAG, "ccType 608");
                 }
                 else if (ccVersion.matches("cea708"))
                 {
                     windowArr = ccObj.getJSONArray("windows");
                     windows_count = windowArr.length();
-                    Log.e(TAG, "ccType 708" + " window number: " + windows_count);
+                    //Log.e(TAG, "ccType 708" + " window number: " + windows_count);
                     windows = new Window[windows_count+1];
                     for (int i=0; i<windows_count; i++)
                         windows[i] = new Window(windowArr.getJSONObject(i));
@@ -528,24 +527,24 @@ public class CcImplement {
                     rows = new Rows[row_count];
 
                     /* Find pensize
-                    * I know this is shit, initialize json two times,
-                    * but i do not know how to get pensize and font size
-                    * the first time, that means i do not know window
-                    * width neither.
-                    * The problem is to implement full justification
-                    * */
+                     * I know this is shit, initialize json two times,
+                     * but i do not know how to get pensize and font size
+                     * the first time, that means i do not know window
+                     * width neither.
+                     * The problem is to implement full justification
+                     * */
                     /*
-                    for (int i=0; i<json_rows.length(); i++) {
-                        rows[i] = new Rows(new JSONObject(json_rows.optString(i)));
-                        rows[i].row_number_in_window = i;
-                        row_length = rows[i].row_length_on_paint;
-                        Log.e(TAG, "Row right most: " + i + " " + row_length);
-                        window_left_most = rows[i].row_start_x < window_left_most ?
-                                rows[i].row_start_x : window_left_most;
-                        double row_max_font_size = rows[i].row_max_font_size;
-                        window_max_font_size = (window_max_font_size > row_max_font_size)
-                                ?window_max_font_size:row_max_font_size;
-                    } */
+                       for (int i=0; i<json_rows.length(); i++) {
+                       rows[i] = new Rows(new JSONObject(json_rows.optString(i)));
+                       rows[i].row_number_in_window = i;
+                       row_length = rows[i].row_length_on_paint;
+                       Log.e(TAG, "Row right most: " + i + " " + row_length);
+                       window_left_most = rows[i].row_start_x < window_left_most ?
+                       rows[i].row_start_x : window_left_most;
+                       double row_max_font_size = rows[i].row_max_font_size;
+                       window_max_font_size = (window_max_font_size > row_max_font_size)
+                       ?window_max_font_size:row_max_font_size;
+                       } */
                     window_max_font_size = caption_screen.max_font_width * 0.9;
                     window_width = col_count * window_max_font_size;
                     /* ugly repeat */
@@ -553,18 +552,18 @@ public class CcImplement {
                         rows[i] = new Rows(new JSONObject(json_rows.optString(i)));
                         rows[i].row_number_in_window = i;
                         row_length = rows[i].row_length_on_paint;
-                        Log.e(TAG, "Row right most: " + i + " " + row_length);
-                       /* window_width = (window_width > row_length)
-                               ? window_width : row_length; */
+                        //Log.e(TAG, "Row right most: " + i + " " + row_length);
+                        /* window_width = (window_width > row_length)
+                           ? window_width : row_length; */
                         //window_width = col_count * caption_screen.max_font_width;
                         window_left_most = rows[i].row_start_x < window_left_most ?
-                                rows[i].row_start_x : window_left_most;
+                            rows[i].row_start_x : window_left_most;
                     }
 
                     //window_left_most *= caption_screen.max_font_width;
                     window_left_most *= pensize_window_depend;
                     //max_row_str_length = col_count * caption_screen.max_font_width;
-                    Log.e(TAG, "Max row length "+ window_width);
+                    //Log.e(TAG, "Max row length "+ window_width);
                     window_start_x = caption_screen.getWindowLeftTopX(anchor_relative, anchor_h, anchor_point, window_width);
 
                     window_start_y = caption_screen.getWindowLeftTopY(anchor_relative, anchor_v, anchor_point, row_count);
@@ -599,7 +598,7 @@ public class CcImplement {
                     /* Draw window */
                     window_paint.setColor(fill_color);
                     window_paint.setAlpha(fill_opacity_int);
-                    Log.e(TAG, "window rect: "+ " color " + fill_color + " opacity "+fill_opacity_int);
+                    //Log.e(TAG, "window rect: "+ " color " + fill_color + " opacity "+fill_opacity_int);
                 }
                 /* This is only for 608 text mode, and the window is background */
                 else {
@@ -616,21 +615,21 @@ public class CcImplement {
                 /* Draw rows */
                 for (int i=0; i<row_count; i++) {
                     if (rows[i].rowArray.length() != 0)
-                       rows[i].draw(canvas);
+                        rows[i].draw(canvas);
                 }
             }
             void draw_border(Canvas canvas, Paint paint, String border_type,
-                             float l, float t, float r, float b,
-                             int border_color)
+                    float l, float t, float r, float b,
+                    int border_color)
             {
                 Paint shadow_paint = new Paint();
                 float gap = (float)(caption_screen.max_font_height/6);
-                Log.e(TAG, "Border type " + border_type + " left " + l + " right " + r + " top " + t + " bottom " + b);
+                //Log.e(TAG, "Border type " + border_type + " left " + l + " right " + r + " top " + t + " bottom " + b);
                 //shadow_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.LIGHTEN));
                 shadow_paint.setColor(Color.GRAY);
                 shadow_paint.setAlpha(0x90);
                 if (border_type.equalsIgnoreCase("none")) {
-                        /* We do nothing?? */
+                    /* We do nothing?? */
                 }
                 if (border_type.equalsIgnoreCase("raised") ||
                         border_type.equalsIgnoreCase("depressed")) {
@@ -698,7 +697,7 @@ public class CcImplement {
                     canvas.drawLine(l,t,l-og,t-og, paint);
                     paint.setColor(Color.BLACK);
                     canvas.drawLine(r,b,r+og,b+og, paint);
-                }
+                        }
                 if (border_type.equalsIgnoreCase("uniform")) {
                     window_paint.setColor(border_color);
                     canvas.drawRect(l-gap, t-gap, r+gap, b+gap, window_paint);
@@ -778,7 +777,7 @@ public class CcImplement {
                             row_length_on_paint += rowStrs[i].string_length_on_paint;
                             double str_max_font_size = rowStrs[i].max_single_font_width;
                             row_max_font_size = (str_max_font_size > row_max_font_size)
-                                    ?str_max_font_size:row_max_font_size;
+                                ?str_max_font_size:row_max_font_size;
                         }
                         character_gap = window_width/row_characters_count;
                     } catch (JSONException e)
@@ -976,7 +975,7 @@ public class CcImplement {
                              * 2. Transparent --> opacity = 0
                              * 3. Translucent --> opacity = 50
                              * 4. flashing --> how to...
-                            * */
+                             * */
                             if (fg_opacity.equalsIgnoreCase("solid")) {
                                 fg_opacity_int = 0xff;
                             } else if (fg_opacity.equalsIgnoreCase("transparent")) {
@@ -1012,7 +1011,7 @@ public class CcImplement {
                         /* Return to normal */
                         window_paint.setTextSize((float)(font_size * font_scale));
 
-                        Log.e(TAG, "str on paint " + string_length_on_paint + " " + data);
+                        //Log.e(TAG, "str on paint " + string_length_on_paint + " " + data);
                         edge_width = font_size/EDGE_SIZE_PERCENT;
                         if (pensize_window_depend == 0)
                             pensize_window_depend = window_paint.measureText("H");
@@ -1021,11 +1020,11 @@ public class CcImplement {
 
                     }
                     void setDrawerConfig(String data, String font_face, double font_size, double font_scale,
-                                         String offset,
-                                         int fg_color, int fg_opacity,
-                                         int bg_color, int bg_opacity,
-                                         int edge_color, double edge_width, String edge_type,
-                                         boolean italics, boolean underline, boolean use_caption_manager_style)
+                            String offset,
+                            int fg_color, int fg_opacity,
+                            int bg_color, int bg_opacity,
+                            int edge_color, double edge_width, String edge_type,
+                            boolean italics, boolean underline, boolean use_caption_manager_style)
                     {
                         this.data = data;
                         /* Convert font scale to a logical range */
@@ -1041,10 +1040,10 @@ public class CcImplement {
                             this.font_face = getTypefaceFromString(font_face, italics);
                         } else {
                             /*
-                            String cm_fontface_name = Settings.Secure.getString(context.getContentResolver(),
-                                    "accessibility_captioning_typeface");
-                            this.font_face = getTypefaceFromString(cm_fontface_name, false);
-                            */
+                               String cm_fontface_name = Settings.Secure.getString(context.getContentResolver(),
+                               "accessibility_captioning_typeface");
+                               this.font_face = getTypefaceFromString(cm_fontface_name, false);
+                               */
                             this.font_face = cc_setting.type_face;
                             if (this.font_face == null)
                                 this.font_face = getTypefaceFromString("default", false);
@@ -1066,22 +1065,24 @@ public class CcImplement {
                         max_single_font_width = window_paint.measureText("H");
                         string_length_on_paint = window_paint.measureText(data) + max_single_font_width;
                         /* Convert */
-                        Log.e(TAG, "str attr: " +
-                                " use_user_style " + use_caption_manager_style +
-                                " max_font_height " + caption_screen.max_font_size +
-                                " font_size " + this.font_size +
-                                " font_scale " + font_scale +
-                                " font_style " + font_face +
-                                " offset " + this.offset +
-                                " italics " + this.italics +
-                                " underline " + this.underline +
-                                " edge_type " + this.edge_type +
-                                " edge_color " + this.edge_color +
-                                " fg_color " + this.fg_color +
-                                " fg_opacity " + this.fg_opacity_int +
-                                " bg_color " + this.bg_color +
-                                " bg_opacity " + this.bg_opacity_int +
-                                " data " + this.data);
+                        /*
+                           Log.e(TAG, "str attr: " +
+                           " use_user_style " + use_caption_manager_style +
+                           " max_font_height " + caption_screen.max_font_size +
+                           " font_size " + this.font_size +
+                           " font_scale " + font_scale +
+                           " font_style " + font_face +
+                           " offset " + this.offset +
+                           " italics " + this.italics +
+                           " underline " + this.underline +
+                           " edge_type " + this.edge_type +
+                           " edge_color " + this.edge_color +
+                           " fg_color " + this.fg_color +
+                           " fg_opacity " + this.fg_opacity_int +
+                           " bg_color " + this.bg_color +
+                           " bg_opacity " + this.bg_opacity_int +
+                           " data " + this.data);
+                           */
                     }
 
                     /* Draw font and background
@@ -1112,11 +1113,13 @@ public class CcImplement {
                             str_left = prior_str_position_for_draw;
                             str_right = str_left + character_gap * str_characters_count;
                             prior_str_position_for_draw = str_right;
-                            Log.e(TAG, "prior " + prior_str_position_for_draw +
-                                    " character_gap " + character_gap +
-                                    " str_count " + str_characters_count +
-                                    " str_left " + str_left +
-                                    " str_right " + str_right);
+                            /*
+                               Log.e(TAG, "prior " + prior_str_position_for_draw +
+                               " character_gap " + character_gap +
+                               " str_count " + str_characters_count +
+                               " str_left " + str_left +
+                               " str_right " + str_right);
+                               */
                         } else if (justify.equalsIgnoreCase("center")) {
                             if (prior_str_position_for_draw == -1)
                                 prior_str_position_for_draw = (window_width - row_length_on_paint)/2 + window_start_x;
@@ -1133,10 +1136,10 @@ public class CcImplement {
                         }
 
 
-                        Log.e(TAG, "str "+str_left + " " + str_top + " "+str_right+" "+str_bottom);
+                        //Log.e(TAG, "str "+str_left + " " + str_top + " "+str_right+" "+str_bottom);
                         /* Dig a empty hole on window */
-//                        window_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_OUT));
-//                        canvas.drawRect(str_left, str_top, str_right, str_bottom, window_paint);
+                        //                        window_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_OUT));
+                        //                        canvas.drawRect(str_left, str_top, str_right, str_bottom, window_paint);
 
                         /* Draw background, a rect, if opacity == 0, skip it */
 
@@ -1169,19 +1172,20 @@ public class CcImplement {
                         }
 
                         /* Draw text */
-                        Log.e(TAG, "Draw str, " + data +
-                                " start x,y: "+(str_start_x+window_start_x) +
-                                " " + (row_start_y+window_start_y));
+                        /*Log.e(TAG, "Draw str, " + data +
+                          " start x,y: "+(str_start_x+window_start_x) +
+                          " " + (row_start_y+window_start_y));
+                          */
                         foreground_paint.reset();
                     }
 
                     void draw_text(Canvas canvas, String data,
-                                   Typeface face, double font_size,
-                                   float left, float bottom, int fg_color, int opacity,
-                                   boolean underline,
-                                   int edge_color, float edge_width, String edge_type) {
+                            Typeface face, double font_size,
+                            float left, float bottom, int fg_color, int opacity,
+                            boolean underline,
+                            int edge_color, float edge_width, String edge_type) {
 
-                        Log.e(TAG, "draw_text "+data + " fg_color: "+ fg_color +" opa:"+ opacity + edge_type + "edge color: "+ edge_color);
+                        //Log.e(TAG, "draw_text "+data + " fg_color: "+ fg_color +" opa:"+ opacity + edge_type + "edge color: "+ edge_color);
                         Paint paint = new Paint();
                         paint.setTypeface(face);
                         if (opacity != 0xff)
@@ -1252,7 +1256,7 @@ public class CcImplement {
         {
             /* Windows come in rising queue,
              * so we need to revert the draw sequence */
-           for (int i = windows_count - 1; i >= 0; i--) {
+            for (int i = windows_count - 1; i >= 0; i--) {
                 windows[i].draw(canvas);
             }
         }
