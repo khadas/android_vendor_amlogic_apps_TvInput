@@ -166,7 +166,7 @@ public class CcImplement {
         } else if (font_face.equalsIgnoreCase("small-capitals")) {
             convert_face = small_capital_tf;
         } else {
-            Log.e(TAG, "============== exception for font face");
+            Log.e(TAG, "font face exception " + font_face);
             if (italics)
                 convert_face = mono_serif_it_tf;
             else
@@ -828,7 +828,7 @@ public class CcImplement {
                     /* below is the actual parameters we used */
                     int fg_opacity_int = 0xff;
                     int bg_opacity_int = 0xff;
-                    double font_scale = 1;
+                    double font_scale = 0.8;
                     Typeface font_face;
                     double edge_width;
                     boolean use_caption_manager_style;
@@ -842,7 +842,7 @@ public class CcImplement {
                             /* Get parameters from Caption manager */
                             /* Retreat font scale: 0.5 1 1.5 2 */
                             //font_scale = (cc_setting.font_scale - 2) / 5 + 1;
-                            font_scale = cc_setting.font_scale/2;
+                            font_scale = cc_setting.font_scale/(2/0.8);
                             font_size = caption_screen.max_font_size;
 
                             /* TODO: set edge type */
@@ -894,32 +894,38 @@ public class CcImplement {
                             use_caption_manager_style = false;
                             try {
                                 /* TODO: convert font face */
-                                if (ccVersion.equalsIgnoreCase("cea708")) {
-                                    pen_size = rowStr.getString("pen_size");
-                                    if (pen_size == null)
-                                        pen_size = "standard";
-                                    font_style = rowStr.getString("font_style");
-                                    if (font_style == null)
-                                        font_style = "default";
-                                    offset = rowStr.getString("offset");
-                                    if (offset == null)
-                                        offset = "normal";
-                                    edge_type = rowStr.getString("edge_type");
-                                    if (edge_type == null)
-                                        edge_type = "none";
-                                    edge_color = rowStr.getInt("edge_color");
+                                pen_size = rowStr.getString("pen_size");
+                            }
+                            catch (Exception e)
+                            {
+                                pen_size = "standard";
+                            }
+                            if (pen_size.equalsIgnoreCase("small")) {
+                                this.font_scale = 0.5;
+                            } else if (pen_size.equalsIgnoreCase("large")) {
+                                this.font_scale = 0.8;
+                            } else if (pen_size.equalsIgnoreCase("standard")) {
+                                this.font_scale = 0.65;
+                            } else {
+                                Log.e(TAG, "Font scale not supported: " + pen_size);
+                                this.font_scale = 0.8;
+                            }
 
-                                    if (pen_size.equalsIgnoreCase("small")) {
-                                        font_scale = 0.5;
-                                    } else if (pen_size.equalsIgnoreCase("large")) {
-                                        font_scale = 0.9;
-                                    } else if (pen_size.equalsIgnoreCase("standard")) {
-                                        font_scale = 0.75;
-                                    } else {
-                                        Log.e(TAG, "Font scale not supported: " + pen_size);
-                                        font_scale = 0.9;
-                                    }
-                                }
+                            try {
+                                font_style = rowStr.getString("font_style");
+                            }catch (Exception e)
+                            {
+                                font_style = "default";
+                            }
+
+                            try {
+                                offset = rowStr.getString("offset");
+                            }catch (Exception e)
+                            {
+                                offset = "normal";
+                            }
+
+                            try {
                                 italics = rowStr.getBoolean("italics");
                                 underline = rowStr.getBoolean("underline");
                                 fg_color = rowStr.getInt("fg_color");
@@ -931,12 +937,34 @@ public class CcImplement {
                                 if (bg_opacity == null)
                                     bg_opacity = "transparent";
                                 data = rowStr.getString("data");
+                            }catch(Exception e)
+                            {
+                                italics = false;
+                                underline = false;
+                                fg_color = 0;
+                                fg_opacity = "transparent";
+                                bg_color = 0;
+                                bg_opacity = "transparent";
+                                data = "";
+                                Log.e(TAG, "Row str exception: " + e.toString());
+                            }
 
-                            } catch (JSONException e) {
-                                Log.e(TAG, "Row exception: " + e.toString());
+                            if (ccVersion.equalsIgnoreCase("cea708")) {
+                                try {
+                                    edge_type = rowStr.getString("edge_type");
+                                } catch (Exception e) {
+                                    edge_type = "none";
+                                }
+
+                                try {
+                                    edge_color = rowStr.getInt("edge_color");
+                                } catch (Exception e) {
+                                    edge_color = 0;
+                                }
                             }
 
                             /* TODO: Judge if font width more than max width after scale */
+
                             font_size = caption_screen.max_font_size;// * font_scale;
                             /* dtvcc pen from libzvbi is 2:2:2, need to convert */
                             fg_color = convertCcColor(fg_color);
