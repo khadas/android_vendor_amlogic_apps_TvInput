@@ -2011,6 +2011,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                 else
                     mSubtitleView.hide();
             }
+            is_subtitle_enabled = enable;
             mSessionHandler.sendMessage(mSessionHandler.obtainMessage(enable ? MSG_SUBTITLE_SHOW : MSG_SUBTITLE_HIDE));
         }
 
