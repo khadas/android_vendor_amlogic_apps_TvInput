@@ -419,6 +419,8 @@ public class DTVInputService extends DroidLogicTvInputService {
         private int mChannelBlocked = -1;
         protected Uri  mCurrentUri;
 
+        private boolean mUpdateTsFlag = false;
+
         protected HandlerThread mHandlerThread = null;
         protected Handler mHandler = null;
 
@@ -628,6 +630,7 @@ public class DTVInputService extends DroidLogicTvInputService {
         public static final int MSG_TIMESHIFT_SET_PLAYBACKPARAMS = 8;
         public static final int MSG_REC_PLAY = 9;
         public static final int MSG_TIMESHIFT_AVAILABLE = 10;
+        public static final int MSG_UPDATETS_PLAY = 11;
 
         protected void initWorkThread() {
             Log.d(TAG, "initWorkThread");
@@ -667,6 +670,13 @@ public class DTVInputService extends DroidLogicTvInputService {
                                     notifyTimeShiftStatusChanged(TvInputManager.TIME_SHIFT_STATUS_AVAILABLE);
                                     Log.d(TAG, "[timeshift] status available");
                                     break;
+                              case MSG_UPDATETS_PLAY:
+                                    Uri channelUriP = TvContract.buildChannelUri(msg.arg1);
+                                    Log.d(TAG, "initWorkThread channelUriT:" + channelUriP + "msg.arg1:" + msg.arg1);
+                                    mUpdateTsFlag = true;
+                                    Message switchMsg = switchSourceInputHandler.obtainMessage(1, channelUriP);
+                                    switchSourceInputHandler.sendMessage(switchMsg);
+                                    break;
                                 default:
                                     break;
                             }
@@ -676,6 +686,13 @@ public class DTVInputService extends DroidLogicTvInputService {
                 });
             }
         }
+
+        protected Handler switchSourceInputHandler = new Handler(Looper.getMainLooper()) {
+            @Override
+                public void handleMessage(Message msg) {
+                    switchToSourceInput((Uri)msg.obj);
+                }
+        };
 
         protected void releaseWorkThread() {
             Log.d(TAG, "releaseWorkThread");
@@ -763,8 +780,9 @@ public class DTVInputService extends DroidLogicTvInputService {
             mCurrentCCContentRatings = null;
 
             if ((mLastChannel != null) && (mCurrentChannel != null)) {
-                if ((mLastChannel.getFrequency() != mCurrentChannel.getFrequency())) {
+                if ((mLastChannel.getFrequency() != mCurrentChannel.getFrequency()) || mUpdateTsFlag) {
                     setMonitor(null);
+                    mUpdateTsFlag = false;
                 }
             }
 
@@ -1646,6 +1664,15 @@ public class DTVInputService extends DroidLogicTvInputService {
             }
         }
 
+        protected void onUpdateTsPlay(long mId) {
+            Log.d(TAG, "onUpdateTsPlay enter");
+            if (mHandler != null) {
+                Message msg = mHandler.obtainMessage(MSG_UPDATETS_PLAY, this);
+                msg.arg1 = (int)mId;
+                msg.sendToTarget();
+            }
+            Log.d(TAG, "onUpdateTsPlay exit");
+        }
 
         private int mCurrentCCExist = 0;
         private boolean mCurrentCCEnabled = false;
@@ -2049,7 +2076,8 @@ public class DTVInputService extends DroidLogicTvInputService {
         protected static final int MONITOR_DMX = 1;
         protected int MONITOR_MODE = DTVMonitor.MODE_UPDATE_SERVICE
                                         | DTVMonitor.MODE_UPDATE_EPG
-                                        | DTVMonitor.MODE_UPDATE_TIME;
+                                        | DTVMonitor.MODE_UPDATE_TIME
+                                        | DTVMonitor.MODE_UPDATE_TS;
         protected static final String EPG_LANGUAGE = "local eng zho chi chs first";
         protected static final String DEF_CODING = "GB2312";//"standard";//force setting for auto-detect fail.
 
@@ -2205,6 +2233,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             private ArrayList<ChannelInfo> channelMap;
             private long maxChannel_ID = 0;
 
+            private int mUpdateFrequency = 0;
             private int fend = 0;
             private int dmx = 0;
             private int src = 0;
@@ -2325,7 +2354,7 @@ public class DTVInputService extends DroidLogicTvInputService {
                     MODE_Epg = DTVEpgScanner.SCAN_PSIP_EIT_ALL;
                     MODE_Service = DTVEpgScanner.SCAN_MGT | DTVEpgScanner.SCAN_VCT;
                     MODE_Time = DTVEpgScanner.SCAN_STT;
-                    MODE_Ts = DTVEpgScanner.SCAN_VCT;
+                    MODE_Ts = DTVEpgScanner.SCAN_PAT;// | DTVEpgScanner.SCAN_VCT;
                 }
 
                 if ((mode & MODE_UPDATE_EPG) == MODE_UPDATE_EPG)
@@ -2910,15 +2939,16 @@ public class DTVInputService extends DroidLogicTvInputService {
                             if (tvservice != null) {
                                 if (DEBUG) Log.d(TAG, "[TS Update] Freq:" + tvservice.getFrequency());
                                 int mode = new TvControlManager.TvMode(tvservice.getType()).getMode();
-                                int frequency = tvservice.getFrequency();
+                                mUpdateFrequency = tvservice.getFrequency();
 
                                 enterServiceLocked(null);
                                 enterChannelLocked(null, true);
                                 stopSubtitle();
                                 releasePlayer();
-
+                                Log.d(TAG, "EVENT_CHANNEL_UPDATE mUpdateFrequency:" + mUpdateFrequency);
                                 mTvControlManager.setStorDBListener(mMonitorStoreManager);
-                                mTvControlManager.DtvManualScan(mode, frequency);
+                                deleteChannelInfoByFreq(mUpdateFrequency);
+                                mTvControlManager.DtvManualScan(mode, mUpdateFrequency);
                             }
                         }
                         break;
@@ -2927,6 +2957,20 @@ public class DTVInputService extends DroidLogicTvInputService {
                 }
             }
 
+            private void deleteChannelInfoByFreq(int Frequency) {
+                ArrayList<ChannelInfo> channelMap = mTvDataBaseManager.getChannelList(mInputId, ChannelInfo.COMMON_PROJECTION, null, null);
+                if (channelMap != null) {
+                    Iterator<ChannelInfo> iter = channelMap.iterator();
+                    while (iter.hasNext()) {
+                        ChannelInfo c = iter.next();
+                        if (c.getFrequency() == Frequency) {
+                            Log.d(TAG, "delete Frequency c.getDisplayNumber()" + c.getDisplayNumber() + "getId:" + c.getId() + "ChannelInfo.getFrequency()" + c.getFrequency());
+                            mTvDataBaseManager.deleteChannel(c);
+                            iter.remove();
+                        }
+                    }
+                }
+            }
 
             private boolean epg_auto_reset = false;
             private void setEpgAutoReset(boolean enable) {
@@ -3011,6 +3055,31 @@ public class DTVInputService extends DroidLogicTvInputService {
                 }
                 public void onScanEnd() {
                     mTvControlManager.DtvStopScan();
+                }
+
+                public void onScanExit() {
+                    if (mUpdateFrequency == 0)
+                    {
+                        Log.d(TAG, "mUpdateFrequency == 0");
+                        return;
+                    }
+
+                    ArrayList<ChannelInfo> channelMap = mTvDataBaseManager.getChannelList(mInputId, ChannelInfo.COMMON_PROJECTION, null, null);
+                    if (channelMap != null) {
+                        for (ChannelInfo c : channelMap)
+                        {
+                             Log.d(TAG, "onScanExit mUpdateFrequency:" + mUpdateFrequency + "ChannelInfo.getFrequency()" + c.getFrequency());
+                             if (mUpdateFrequency == c.getFrequency())
+                             {
+                                 Log.d(TAG, "Will send msg to Session handler");
+                                 synchronized (this) {
+                                     mCurrentSession.onUpdateTsPlay(c.getId());
+                                 }
+                                 break;
+                             }
+                        }
+                        mUpdateFrequency = 0;
+                    }
                 }
 
                 @Override

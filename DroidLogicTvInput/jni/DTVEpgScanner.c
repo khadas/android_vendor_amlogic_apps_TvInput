@@ -95,7 +95,6 @@ struct sdt_service{
 };
 
 EPGChannelData gChannelMonitored = {.valid = 0};
-
 static int epg_conf_get(char *prop, int def) {
     char v[128];
     int val = 0;
@@ -129,6 +128,9 @@ static void epg_on_event(jobject obj, EPGEventData *evt_data)
     (*env)->SetLongField(env,event,(*env)->GetFieldID(env, gEventClass, "time", "J"), evt_data->time);
     (*env)->SetIntField(env,event,(*env)->GetFieldID(env, gEventClass, "dvbVersion", "I"), evt_data->dvbVersion);
     (*env)->SetIntField(env,event,(*env)->GetFieldID(env, gEventClass, "eitNumber", "I"), evt_data->eitNumber);
+    if (evt_data->type == 10)
+        log_info("epg_on_event event==EVENT_TS_UPDATE");
+
     (*env)->CallVoidMethod(env, obj, gOnEventID, event);
 
     if (attached) {
@@ -915,11 +917,11 @@ static int epg_pat_update(AM_EPG_Handle_t handle, int type, void *tables, void *
         return 1;
 
     if (pats->i_ts_id != pch_cur->mTransportStreamId) {
-        log_info("pat tsid now[%d] != tsid[%d]", pats->i_ts_id, pch_cur->mTransportStreamId);
+        log_info(" pat tsid now[%d] != tsid[%d]", pats->i_ts_id, pch_cur->mTransportStreamId);
         pch_cur->mTransportStreamId = pats->i_ts_id;
         epg_evt_callback((long)handle, AM_EPG_EVT_UPDATE_TS, 0, NULL);
-        return 0;
     }
+
     return 0;
 }
 

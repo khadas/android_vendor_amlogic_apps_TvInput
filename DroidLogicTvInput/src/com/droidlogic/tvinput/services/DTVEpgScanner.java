@@ -222,7 +222,7 @@ abstract public class DTVEpgScanner {
 
         native_epg_monitor_service(channel);
         //startScan(SCAN_PAT | SCAN_PMT);
-
+        startScan(SCAN_PAT);
         mChannel = channel;
     }
 
@@ -236,7 +236,7 @@ abstract public class DTVEpgScanner {
 
         Log.d(TAG, "leave Program");
 
-        stopScan(SCAN_PAT | SCAN_PMT);
+        stopScan(SCAN_PAT|SCAN_PMT);
         native_epg_monitor_service(null);
         mChannel = null;
     }
