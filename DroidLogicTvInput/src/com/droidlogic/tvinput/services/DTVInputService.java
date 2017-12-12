@@ -2810,6 +2810,8 @@ public class DTVInputService extends DroidLogicTvInputService {
 
                         /*pause and remove all epgs in msg queue*/
                         if (oldVersion != -1) {
+                            if (epgScanner == null)
+                                break;
                             epgScanner.stopScan(MODE_Epg);
                             if (mHandlerEPG != null)
                                 mHandlerEPG.removeMessages(MSG_MONITOR_EVENT);
@@ -2838,7 +2840,8 @@ public class DTVInputService extends DroidLogicTvInputService {
 
                         /*restart all epg*/
                         if (oldVersion != -1) {
-                            epgScanner.startScan(MODE_Epg);
+                            if (epgScanner != null)
+                                epgScanner.startScan(MODE_Epg);
                         }
                         }
                         break;
