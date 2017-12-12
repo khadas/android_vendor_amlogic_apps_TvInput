@@ -30,6 +30,7 @@ public class ScanEdit implements OnFocusChangeListener , OnClickListener, OnChec
     public static final int CABLE_MODE_STANDARD = 1;
     public static final int CABLE_MODE_LRC = 2;
     public static final int CABLE_MODE_HRC =3;
+    public static final int CABLE_MODE_AUTO = 4;
     private ViewGroup mParentView;
     private TextView dtvText ;
     private TextView atvText;
