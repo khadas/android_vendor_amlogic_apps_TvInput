@@ -504,7 +504,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
 
             long tmp_time = (firstProgramTime) - ((firstProgramTime + time_offset) % DAY_TO_MS);
             int count = 0;
-            while ((tmp_time <= lastProgramTime) && count < 12) {
+            while ((tmp_time <= lastProgramTime) && count < 20) {
                 count++;
                 if (currentDateIndex == -1) {
                     if (mTvTime.getTime() >= tmp_time && mTvTime.getTime() < tmp_time + DAY_TO_MS)
