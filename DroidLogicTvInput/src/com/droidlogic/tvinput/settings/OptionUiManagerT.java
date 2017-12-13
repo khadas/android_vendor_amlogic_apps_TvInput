@@ -162,7 +162,7 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
         mContext = context;
         mResources = mContext.getResources();
         isLiveTvScaning = tvscan;
-	 mSettingsManager = new SettingsManager(mContext, intent);
+        mSettingsManager = new SettingsManager(mContext, intent);
         init();
     }
 
@@ -215,11 +215,16 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
         isSearching = SEARCH_RUNNING;
     }
 
+    private static final int STD = 1;
     private static final int LRC = 2;
     private static final int HRC = 3;
+    private static final int AUTO = 4;
+    private static final int ATSC_T = 5;
+    private static final int ATSC_C_STD_SET = 0;
     private static final int ATSC_C_LRC_SET = 1;
     private static final int ATSC_C_HRC_SET = 2;
-    private static final int DTV_TO_ATV = 4;
+    private static final int ATSC_C_AUTO_SET = 3;
+    private static final int DTV_TO_ATV = 5;
     private static final int SET_TO_MODE = 1;
 
     private void startManualSearchAccordingMode() {
@@ -253,17 +258,24 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
         } else {
             autoscanmode = checkLiveTvAutoScanMode();
         }
+
+        if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_C)) {
+            if (mAtsccMode == ATSC_C_STD_SET) {
+                mode.setList(STD);
+            } else if (mAtsccMode == ATSC_C_LRC_SET) {
+                mode.setList(LRC);
+            } else if (mAtsccMode == ATSC_C_HRC_SET) {
+                mode.setList(HRC);
+            } else {// mAtsccMode == ATSC_C_AUTO_SET
+                mode.setList(AUTO);
+            }
+        } else if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_T)) {
+            mode.setList(ATSC_T);
+        }
+
         switch (autoscanmode) {
         case ManualScanEdit.SCAN_ATV_DTV:
             Log.d(TAG, "MANUAL_SCAN_ATV_DTV");
-            if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_C)) {
-                //mode.setList(1);
-                if (mAtsccMode == ATSC_C_LRC_SET) {
-                    mode.setList(LRC);
-                } else if (mAtsccMode == ATSC_C_HRC_SET) {
-                    mode.setList(HRC);
-                }
-            }
             mode.setExt(mode.getExt() | 1);//mixed adtv
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_MODE, mode.getMode());
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_TYPE_DTV, TvControlManager.ScanType.SCAN_DTV_MANUAL);
@@ -271,16 +283,6 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
         break;
         case ManualScanEdit.SCAN_ONLY_ATV:
             Log.d(TAG, "MANUAL_SCAN_ONLY_ATV");
-            if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_T)) {
-                //mode.setList(4);
-            } else if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_C)) {
-                //mode.setList(5);
-                if (mAtsccMode == ATSC_C_LRC_SET) {
-                    mode.setList(LRC);
-                } else if (mAtsccMode == ATSC_C_HRC_SET) {
-                    mode.setList(HRC);
-                }
-            }
             mode.setExt(mode.getExt() | 1);//mixed adtv
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_MODE, mode.getMode());
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_TYPE_DTV, TvControlManager.ScanType.SCAN_DTV_NONE);
@@ -288,14 +290,6 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
         break;
         case ManualScanEdit.SCAN_ONLY_DTV:
             Log.d(TAG, "MANUAL_SCAN_ONLY_DTV");
-            if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_C)) {
-                //mode.setList(1);
-                if (mAtsccMode == ATSC_C_LRC_SET) {
-                    mode.setList(LRC);
-                } else if (mAtsccMode == ATSC_C_HRC_SET) {
-                    mode.setList(HRC);
-                }
-            }
             mode.setExt(mode.getExt() | 1);//mixed adtv
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_MODE, mode.getMode());
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_TYPE_DTV, TvControlManager.ScanType.SCAN_DTV_MANUAL);
@@ -593,23 +587,25 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
                     case ScanEdit.SCAN_ONLY_DTV:
                     if (isCable) {
                         switch (cableMode) {
-                            case ScanEdit.CABLE_MODE_STANDARD: return 1;
-                            case ScanEdit.CABLE_MODE_LRC:      return 2;
-                            case ScanEdit.CABLE_MODE_HRC:      return 3;
+                            case ScanEdit.CABLE_MODE_STANDARD: return STD;
+                            case ScanEdit.CABLE_MODE_LRC:      return LRC;
+                            case ScanEdit.CABLE_MODE_HRC:      return HRC;
+                            case ScanEdit.CABLE_MODE_AUTO:     return AUTO;
                         }
-                        return 1;
+                        return STD;
                     }
-                    return 0;
+                    return ATSC_T;
                     case ScanEdit.SCAN_ONLY_ATV:
                     if (isCable) {
                          switch (cableMode) {
-                            case ScanEdit.CABLE_MODE_STANDARD: return 5;
-                            case ScanEdit.CABLE_MODE_LRC:      return 6;
-                            case ScanEdit.CABLE_MODE_HRC:      return 7;
+                            case ScanEdit.CABLE_MODE_STANDARD: return (STD + DTV_TO_ATV);
+                            case ScanEdit.CABLE_MODE_LRC:      return (LRC + DTV_TO_ATV);
+                            case ScanEdit.CABLE_MODE_HRC:      return (HRC + DTV_TO_ATV);
+                            case ScanEdit.CABLE_MODE_AUTO:     return (AUTO + DTV_TO_ATV);
                         }
-                        return 5;
+                        return (STD + DTV_TO_ATV);
                     }
-                    return 4;
+                    return (ATSC_T + DTV_TO_ATV);
                 }
             }
         }
@@ -832,22 +828,23 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
                 } else {
                     checkcablemode = mAtsccMode + 1;//mAtsccMode value change from 0~2
                 }
-                if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_C) && mAtsccMode < ATSC_C_HRC_SET + 1) {
+                if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_C)) {
                     if (checkcablemode == ScanEdit.CABLE_MODE_STANDARD) {
-                        mode.setList(1);
-                        bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA5, 5);
+                        mode.setList(STD);
+                        bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA5, (STD + DTV_TO_ATV));
                     } else if (checkcablemode == ScanEdit.CABLE_MODE_LRC) {
-                        mode.setList(2);
-                        bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA5, 6);
+                        mode.setList(LRC);
+                        bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA5, (LRC + DTV_TO_ATV));
                     } else if (checkcablemode == ScanEdit.CABLE_MODE_HRC) {
-                        mode.setList(3);
-                        bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA5, 7);
-                    }// need std only , search auto by sys value
-                } else if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_C)) {
-                    mode.setList(1);
-                    bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA5, 5);
+                        mode.setList(HRC);
+                        bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA5, (HRC + DTV_TO_ATV));
+                    } else {
+                        mode.setList(AUTO);
+                        bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA5, (AUTO + DTV_TO_ATV));
+                    }
                 } else if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_T)) {
-                    bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA5, 4);
+                    mode.setList(ATSC_T);
+                    bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA5, (ATSC_T + DTV_TO_ATV));
                 }
                 mode.setExt(mode.getExt() | 1);//mixed adtv
                 bundle.putInt(DroidLogicTvUtils.PARA_SCAN_MODE, mode.getMode());
@@ -867,18 +864,18 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
                 } else {
                     checkcablemode = mAtsccMode + 1;
                 }
-                if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_C) && mAtsccMode < ATSC_C_HRC_SET + 1) {
+                if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_C)) {
                     if (checkcablemode == ScanEdit.CABLE_MODE_STANDARD) {
-                        bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA5, 5);
+                        bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA5, (STD + DTV_TO_ATV));
                     } else if (checkcablemode == ScanEdit.CABLE_MODE_LRC) {
-                        bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA5, 6);
+                        bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA5, (LRC + DTV_TO_ATV));
                     } else if (checkcablemode == ScanEdit.CABLE_MODE_HRC) {
-                        bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA5, 7);
+                        bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA5, (HRC + DTV_TO_ATV));
+                    } else {
+                        bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA5, (AUTO + DTV_TO_ATV));
                     }
-                } else if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_C)) {
-                    bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA5, 5);
                 } else if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_T)) {
-                    bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA5, 4);
+                    bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA5, (ATSC_T + DTV_TO_ATV));
                 }
 
                 mode.setExt(mode.getExt() | 1);//mixed adtv
@@ -899,16 +896,18 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
                 } else {
                     checkcablemode = mAtsccMode + 1;
                 }
-                if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_C) && mAtsccMode < ATSC_C_HRC_SET + 1) {
+                if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_C)) {
                     if (checkcablemode == ScanEdit.CABLE_MODE_STANDARD) {
-                        mode.setList(1);
+                        mode.setList(STD);
                     } else if (checkcablemode == ScanEdit.CABLE_MODE_LRC) {
-                        mode.setList(2);
+                        mode.setList(LRC);
                     } else if (checkcablemode == ScanEdit.CABLE_MODE_HRC) {
-                        mode.setList(3);
+                        mode.setList(HRC);
+                    } else {
+                        mode.setList(AUTO);
                     }
-                } else if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_C)) {
-                    mode.setList(1);
+                } else if (mSettingsManager.getDtvType().equals(TvContract.Channels.TYPE_ATSC_T)) {
+                    mode.setList(ATSC_T);
                 }
                 mode.setExt(mode.getExt() | 1);//mixed adtv
                 bundle.putInt(DroidLogicTvUtils.PARA_SCAN_MODE, mode.getMode());
