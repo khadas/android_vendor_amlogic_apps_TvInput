@@ -96,7 +96,7 @@ import java.util.Random;
 import com.droidlogic.app.tv.DroidContentRatingsParser;
 import com.droidlogic.app.tv.EasEvent;
 
-public class DTVInputService extends DroidLogicTvInputService {
+public class DTVInputService extends DroidLogicTvInputService implements TvControlManager.EasEventListener {
 
     private static final String TAG = "DTVInputService";
 
@@ -146,7 +146,11 @@ public class DTVInputService extends DroidLogicTvInputService {
     public static final int MAX_CACHE_SIZE_DEF = 2 * 1024;  // 2GB
     public static final int MIN_CACHE_SIZE_DEF = 256;  // 256MB
 
+
+
     private static boolean DEBUG = true;
+    private EASProcessManager mEASProcessManager;
+    private String mEasText = null;
 
     protected DTVSessionImpl mCurrentSession;
     protected int id = 0;
@@ -201,6 +205,9 @@ public class DTVInputService extends DroidLogicTvInputService {
         registerReceiver(mChannelScanStartReceiver, filter);
 
         mTvControlManager = TvControlManager.getInstance();
+        Log.d(TAG,"oncreate:Set EAS listener as TvInput");
+        mEASProcessManager = new EASProcessManager(this);
+        mTvControlManager.setEasListener(this);
     }
 
     @Override
@@ -250,8 +257,13 @@ public class DTVInputService extends DroidLogicTvInputService {
         Log.d(TAG, "doTuneFinish,result:"+result+"sessionId:"+sessionId);
         if (result == ACTION_SUCCESS) {
             DTVSessionImpl session = sessionMap.get(sessionId);
-            if (session != null)
+            if (session != null) {
                 session.switchToSourceInput(uri);
+
+                mEASProcessManager.SetCurDisplayNum(mCurrentSession.mCurrentChannel.getDisplayNumber());
+                mEASProcessManager.SetCurInputId(mCurrentSession.getInputId());
+                mEASProcessManager.SetCurUri(mCurrentSession.mCurrentUri);
+            }
         }
     }
 
@@ -273,6 +285,14 @@ public class DTVInputService extends DroidLogicTvInputService {
                     && mTvControlManager.DtvGetVideoFormatInfo().fps != 0) {
                 Log.d(TAG, "Signal and video look well");
                 mCurrentSession.notifyVideoAvailable();
+
+                if (DEBUG)
+                    Log.d(TAG, "onSigChange" + status.ordinal() + status.toString());
+                Log.d(TAG, "TVIN_SIG_STATUS_STABLE:" + mEASProcessManager.isEasInProgress());
+                if (mEASProcessManager != null && mEASProcessManager.isEasInProgress()) {
+                    if (mCurrentSession != null)
+                        mCurrentSession.showEasText();
+                }
             }
         }
     }
@@ -398,7 +418,7 @@ public class DTVInputService extends DroidLogicTvInputService {
 
 
     public class DTVSessionImpl extends TvInputBaseSession
-            implements TvControlManager.AVPlaybackListener, DTVSubtitleView.SubtitleDataListener, TvControlManager.EasEventListener {
+            implements TvControlManager.AVPlaybackListener, DTVSubtitleView.SubtitleDataListener{
         protected final Context mContext;
         protected TvInputManager mTvInputManager;
         protected TvDataBaseManager mTvDataBaseManager;
@@ -427,7 +447,6 @@ public class DTVInputService extends DroidLogicTvInputService {
 
         private TvContentRating[] mCurrentPmtContentRatings = null;
         private TvContentRating[] mCurrentCCContentRatings = null;
-        private EAEProcessManager mEAEProcessManager;
 
         protected DTVSessionImpl(Context context, String inputId, int deviceId) {
             super(context, inputId, deviceId);
@@ -444,6 +463,7 @@ public class DTVInputService extends DroidLogicTvInputService {
             initWorkThread();
 
             initOverlayView(R.layout.layout_overlay);
+            Log.d(TAG,"init overlay view");
             if (mOverlayView != null) {
                 mOverlayView.setImage(R.drawable.bg_no_signal);
                 mSubtitleView = (DTVSubtitleView)mOverlayView.getSubtitleView();
@@ -458,11 +478,6 @@ public class DTVInputService extends DroidLogicTvInputService {
                 isUnlockCurrent_NR = false;
             }
             Log.d(TAG,"isBlockNoRatingEnable:"+isBlockNoRatingEnable+",isUnlockCurrent_NR:"+isUnlockCurrent_NR);
-
-
-            mTvControlManager.setEasListener(this);
-            Log.d(TAG,"oncreate:Set EAS listener as TvInput");
-            mEAEProcessManager = new EAEProcessManager(mContext);
         }
 
         private boolean getBlockNoRatingEnable() {
@@ -3289,224 +3304,18 @@ public class DTVInputService extends DroidLogicTvInputService {
             mHandler.obtainMessage(MSG_REC_PLAY, recordUri).sendToTarget();
         }
 
-        @Override
-        public void processDetailsChannelAlert(EasEvent easEvent){
-            if (DEBUG) Log.i(TAG,"processDetailsChannelAlert");
-            if (mCurrentSession != null) {
-                mEAEProcessManager.processDetailsChannelAlert(easEvent, mCurrentSession.mCurrentChannel);
+        public void showEasText() {
+            Log.d(TAG,"showEasText:"+mEasText);
+            if (mOverlayView == null) {
+                Log.d(TAG,"showEasText fail,because overlayview is NULL");
+                return;
             }
-        }
-
-        @Override
-        public void processTextAlert(EasEvent easEvent){
-             if (DEBUG) Log.i(TAG,"processTextAlert");
-             if (mCurrentSession != null) {
-                  mEAEProcessManager.processTextAlert(easEvent);
-             }
-        }
-        private  class EAEProcessManager {
-            private Context mContext;
-            private ArrayList<ChannelInfo> channelList;
-
-            private  Handler mHandler = null;
-            private Uri mOriginalChannel = null;
-            public EAEProcessManager(Context context) {
-                mContext = context;
-                mHandler = new Handler();
-            }
-
-            public void processDetailsChannelAlert(EasEvent easEvent, ChannelInfo curChannel) {
-                if (DEBUG) Log.i(TAG,"processDetailsChannelAlert");
-                Toast.makeText(mContext, "processDetailsChannelAlert,remaining time is 15s",
-                    Toast.LENGTH_LONG).show();
-                int majorNum = easEvent.detailsMajorChannelNumber;
-                int minorNum = easEvent.detailsMinorChannelNumber;
-                int timeToOriginalChannel = easEvent.alertMessageTimeRemaining;
-                Log.i(TAG,"majorNum:"+majorNum+",minorNum:"+minorNum);
-                //List<Channel> channels = mChannelDataManager.getBrowsableChannelList();
-                String mCurruntInputId = mCurrentSession.getInputId();
-                channelList = mTvDataBaseManager.getChannelList(mCurrentSession.getInputId(), ChannelInfo.COMMON_PROJECTION, null, null);
-
-                //Channel curChannel = getCurrentChannel();
-                Log.i(TAG,"curChannel:"+curChannel);
-                ChannelNumber channelNum = new ChannelNumber();
-                ChannelNumber curChannelNumber = channelNum.parseChannelNumber(curChannel.getDisplayNumber());
-                Log.i(TAG,"curChannelNumber:"+curChannelNumber);
-                int curChannelMajorNum = Integer.parseInt(curChannelNumber.majorNumber);
-                int curChannelMinorNum = Integer.parseInt(curChannelNumber.minorNumber);
-                if (DEBUG) Log.i(TAG,"curChannelMajorNum = "+String.valueOf(curChannelMajorNum)+
-                    "\ncurChannelMinorNum = "+String.valueOf(curChannelMinorNum));
-                if (mOriginalChannel == null || curChannelMajorNum != majorNum ||
-                    curChannelMinorNum != minorNum) {
-                 mOriginalChannel = mCurrentUri;
-                }
-                mHandler.removeCallbacks(mTuneToOriginalChannelRunnable);
-                mHandler.removeCallbacks(mCancelEasAlertTextDisplayRunnable);
-                mHandler.post(mCancelEasAlertTextDisplayRunnable);
-                if ((curChannelMajorNum != majorNum || curChannelMinorNum != minorNum )
-                    && channelList != null) {
-                    for (ChannelInfo singlechannel : channelList) {
-                        channelNum = new ChannelNumber();
-                        ChannelNumber chNumber = channelNum.parseChannelNumber(singlechannel.getDisplayNumber());
-                        int chMajorNum = Integer.parseInt(chNumber.majorNumber);
-                        int chMinorNum = Integer.parseInt(chNumber.minorNumber);
-                        Log.i(TAG,"chMajorNum:"+chMajorNum+",minorNum:"+chMinorNum);
-                        if (chMajorNum == majorNum && chMinorNum == minorNum) {
-                            if (timeToOriginalChannel != 0) {
-                                mHandler.postDelayed(mTuneToOriginalChannelRunnable,15*1000);
-                            }
-                            //tune to eas channel.
-                            //mChannelTuner.moveToSpecficBrowsableChannel(singlechannel);
-                            Uri channelUri = TvContract.buildChannelUri(singlechannel.getId());
-                            launchLiveTv(channelUri);
-                            break;
-                        }
-                    }
-                }
-            }
-
-            public void processTextAlert(EasEvent easEvent) {
-                if (DEBUG) Log.i(TAG,"process Text alert");
-                int mesgRemainingTime = easEvent.alertMessageTimeRemaining;
-                Toast.makeText(mContext, "processTextAlert,time ="+mesgRemainingTime,
-                        Toast.LENGTH_LONG).show();
-                mHandler.removeCallbacks(mCancelEasAlertTextDisplayRunnable);
-                mHandler.removeCallbacks(mTuneToOriginalChannelRunnable);
-                if (mOriginalChannel != null) {
-                    mHandler.post(mTuneToOriginalChannelRunnable);
-                }
-
-                //mHandler.post(mCancelEasAlertTextDisplayRunnable);
-                if (easEvent.multiTextCount != 0) {
-                    if (DEBUG) Log.i(TAG,"easEvent.multiTextCount = "+easEvent.multiTextCount);
-                    String easText = "";
-                    for (EasEvent.MultiStr multiStr:easEvent.multiText) {
-                        if (DEBUG) Log.i(TAG,"new nultiText");
-                        for (int ch:multiStr.compressedStr) {
-                            if (ch >= 0 && ch <= 255) {
-                                easText += Character.toString((char)ch);
-                            }
-                        }
-                    }
-                    if (DEBUG) Log.i(TAG,"easText = "+easText);
-                    /*mEasTextView.setVisibility(View.VISIBLE);
-                    mEasTextView.setText(easText);*/
-                    mOverlayView.setImageVisibility(false);
-                    mOverlayView.setText(easText);
-                    mOverlayView.setTextVisibility(true);
-                    if (mesgRemainingTime != 0) {
-                        mHandler.postDelayed(mCancelEasAlertTextDisplayRunnable,mesgRemainingTime*1000);
-                    }
-                }
-            }
-
-            private final Runnable mTuneToOriginalChannelRunnable =
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            if (DEBUG) Log.i(TAG,"mTuneToOriginalChannelRunnable");
-                            launchLiveTv(mOriginalChannel);
-                        }
-                    };
-
-            private final Runnable mCancelEasAlertTextDisplayRunnable =
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            if (DEBUG) Log.i(TAG,"mCancelEasAlertTextDisplayRunnable");
-                            if (mOverlayView != null)
-                                mOverlayView.setTextVisibility(false);
-                        }
-                    };
-
-
-            private void launchLiveTv(Uri uri)    {
-               if (DEBUG) Log.d(TAG, "launchLiveTv="+uri);
-
-                   Intent intent = new Intent(Intent.ACTION_VIEW);
-                   intent.setData(uri);
-                   mContext.startActivity(intent);
-           }
-
-            public  class ChannelNumber {
-                public   String PRIMARY_CHANNEL_DELIMITER = "-";
-                public  String[] CHANNEL_DELIMITERS = {"-", ".", " "};
-
-
-                public String majorNumber;
-                public boolean hasDelimiter;
-                public String minorNumber;
-
-                public ChannelNumber() {
-                    reset();
-                }
-
-                public ChannelNumber(String major, boolean hasDelimiter, String minor) {
-                    setChannelNumber(major, hasDelimiter, minor);
-                }
-
-                public void reset() {
-                    setChannelNumber("", false, "");
-                }
-
-                public void setChannelNumber(String majorNumber, boolean hasDelimiter, String minorNumber) {
-                    this.majorNumber = majorNumber;
-                    this.hasDelimiter = hasDelimiter;
-                    this.minorNumber = minorNumber;
-                }
-
-                @Override
-                public String toString() {
-                    if (hasDelimiter) {
-                        return majorNumber + PRIMARY_CHANNEL_DELIMITER + minorNumber;
-                    }
-                    return majorNumber;
-                }
-
-                public  ChannelNumber parseChannelNumber(String number) {
-                    Log.i(TAG,"parseChannelNumber:"+number);
-                    if (number == null) {
-                        return null;
-                    }
-                    ChannelNumber ret = new ChannelNumber();
-                    int indexOfDelimiter = -1;
-                    for (String delimiter : CHANNEL_DELIMITERS) {
-                        indexOfDelimiter = number.indexOf(delimiter);
-                        if (indexOfDelimiter >= 0) {
-                        break;
-                        }
-                    }
-                    if (indexOfDelimiter == 0 || indexOfDelimiter == number.length() - 1) {
-                        return null;
-                    }
-                    if (indexOfDelimiter < 0) {
-                        ret.majorNumber = number;
-                        if (!isInteger(ret.majorNumber)) {
-                            return null;
-                        }
-                    } else {
-                        ret.hasDelimiter = true;
-                        ret.majorNumber = number.substring(0, indexOfDelimiter);
-                        ret.minorNumber = number.substring(indexOfDelimiter + 1);
-                        if (!isInteger(ret.majorNumber) || !isInteger(ret.minorNumber)) {
-                            return null;
-                        }
-                    }
-                    return ret;
-                }
-
-                public  boolean isInteger(String string) {
-                    try {
-                        Integer.parseInt(string);
-                    } catch(NumberFormatException e) {
-                        return false;
-                    } catch(NullPointerException e) {
-                        return false;
-                    }
-                    return true;
-                }
-            }
-
+            if (mEasText != null ) {
+                mOverlayView.setImageVisibility(false);
+                mOverlayView.setTextForEas(mEasText);
+                mOverlayView.setEasTextVisibility(true);
+            } else
+                mOverlayView.setEasTextVisibility(false);
         }
     }
 
@@ -4020,4 +3829,35 @@ public class DTVInputService extends DroidLogicTvInputService {
     }
 
 
+    @Override
+    public void processDetailsChannelAlert(EasEvent easEvent){
+          if (DEBUG) Log.d(TAG,"processDetailsChannelAlert");
+          if (mCurrentSession != null) {
+              mEASProcessManager.SetCurDisplayNum(mCurrentSession.mCurrentChannel.getDisplayNumber());
+              mEASProcessManager.SetCurInputId(mCurrentSession.getInputId());
+              mEASProcessManager.SetCurUri(mCurrentSession.mCurrentUri);
+              mEASProcessManager.setCallback(mCallback);
+              mEASProcessManager.processDetailsChannelAlert(easEvent);
+          }
+    }
+    private final EASProcessManager.EasProcessCallback mCallback =
+            new EASProcessManager.EasProcessCallback() {
+                @Override
+                public void onEasStart() {
+                    if (DEBUG) Log.d(TAG,"onEasStart:");
+                    notifyAppEasStatus(true);
+                }
+                @Override
+                public void onEasEnd() {
+                    if (DEBUG) Log.d(TAG,"onEasEnd:");
+                   notifyAppEasStatus(false);
+                }
+                @Override
+                public void onUpdateEasText(String text) {
+                    if (DEBUG) Log.d(TAG,"onUpdateEasText:"+text);
+                        mEasText = text;
+                    if (mCurrentSession != null)
+                        mCurrentSession.showEasText();
+                }
+    };
 }

@@ -34,5 +34,23 @@
             android:visibility="gone"
             />
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/msg_text_eas"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:gravity="center"
+        android:text="@string/nosignal"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/white"
+        android:background="@android:color/black"
+        android:visibility="gone"
+        android:ellipsize="marquee"
+        android:singleLine="true"
+        android:focusable="true"
+        android:marqueeRepeatLimit="marquee_forever"
+        />
 </com.droidlogic.tvinput.widget.OverlayView>
 
