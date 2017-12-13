@@ -109,10 +109,10 @@ public class DTVSubtitleView extends View {
     public static final int CC_COLOR_CYAN = 8;
 
     private int init_count = 0;
-    CaptioningManager captioningManager;
-    CcImplement.CaptionWindow cw;
-    CustomFonts cf;
-    CcImplement ci;
+    private CaptioningManager captioningManager = null;
+    private CcImplement.CaptionWindow cw = null;
+    private CustomFonts cf = null;
+    private CcImplement ci = null;
 
     private native int native_sub_init();
     private native int native_sub_destroy();
@@ -851,7 +851,9 @@ public class DTVSubtitleView extends View {
     private SubtitleDataListener mSubtitleDataListener = null;
 
     public void saveJsonStr(String str) {
-        if (str != null) {
+        if (activeView != this)
+            return;
+        if (ci != null && str != null) {
             CcImplement.CaptionWindow new_cw = ci.new CaptionWindow(str);
             synchronized (json_lock) {
                 cw = new_cw;

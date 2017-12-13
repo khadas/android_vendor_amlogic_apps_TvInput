@@ -257,13 +257,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         Log.d(TAG, "doTuneFinish,result:"+result+"sessionId:"+sessionId);
         if (result == ACTION_SUCCESS) {
             DTVSessionImpl session = sessionMap.get(sessionId);
-            if (session != null) {
+            if (session != null)
                 session.switchToSourceInput(uri);
-
-                mEASProcessManager.SetCurDisplayNum(mCurrentSession.mCurrentChannel.getDisplayNumber());
-                mEASProcessManager.SetCurInputId(mCurrentSession.getInputId());
-                mEASProcessManager.SetCurUri(mCurrentSession.mCurrentUri);
-            }
         }
     }
 
@@ -641,11 +636,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         }
 
         public static final int MSG_PARENTAL_CONTROL = 1;
-        public static final int MSG_CC_DATA = 12;
-        public static final int MSG_CC_TRY_PREFERRED = 14;
-
-        /*public static final int MSG_DTVCC_NODATA = 12;
-        public static final int MSG_DTVCC_FOUND = 13;*/
+        public static final int MSG_PLAY = 2;
         public static final int MSG_TIMESHIFT_PAUSE = 5;
         public static final int MSG_TIMESHIFT_RESUME = 6;
         public static final int MSG_TIMESHIFT_SEEK_TO = 7;
@@ -653,6 +644,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         public static final int MSG_REC_PLAY = 9;
         public static final int MSG_TIMESHIFT_AVAILABLE = 10;
         public static final int MSG_UPDATETS_PLAY = 11;
+        public static final int MSG_CC_DATA = 12;
+        public static final int MSG_CC_TRY_PREFERRED = 14;
 
         protected void initWorkThread() {
             Log.d(TAG, "initWorkThread");
@@ -664,6 +657,9 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                     public boolean handleMessage(Message msg) {
                         /*if (mCurrentSession == msg.obj) why?*/ {
                             switch (msg.what) {
+                                case MSG_PLAY:
+                                    doPlay((Uri)msg.obj);
+                                    break;
                                 case MSG_PARENTAL_CONTROL:
                                     checkContentBlockNeeded(mCurrentChannel);
                                     break;
@@ -696,8 +692,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                                     Uri channelUriP = TvContract.buildChannelUri(msg.arg1);
                                     Log.d(TAG, "initWorkThread channelUriT:" + channelUriP + "msg.arg1:" + msg.arg1);
                                     mUpdateTsFlag = true;
-                                    Message switchMsg = switchSourceInputHandler.obtainMessage(1, channelUriP);
-                                    switchSourceInputHandler.sendMessage(switchMsg);
+                                    switchToSourceInput(channelUriP);
                                     break;
                                 default:
                                     break;
@@ -708,13 +703,6 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 });
             }
         }
-
-        protected Handler switchSourceInputHandler = new Handler(Looper.getMainLooper()) {
-            @Override
-                public void handleMessage(Message msg) {
-                    switchToSourceInput((Uri)msg.obj);
-                }
-        };
 
         protected void releaseWorkThread() {
             Log.d(TAG, "releaseWorkThread");
@@ -729,13 +717,28 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             }
         }
 
+        protected void resetWorkThread() {
+            if (mHandler != null)
+                mHandler.removeCallbacksAndMessages(null);
+        }
+
         protected void switchToSourceInput(Uri uri) {
+            if (mHandler != null)
+                mHandler.obtainMessage(MSG_PLAY, uri).sendToTarget();
+        }
+
+        protected void doPlay(Uri uri) {
+            if (mHandler != null)
+                mHandler.removeMessages(MSG_PLAY);
+
             mCurrentUri = uri;
+
+            stopSubtitle();
+            resetWorkThread();
 
             mUnblockedRatingSet.clear();
             mChannelBlocked = -1;
             isUnlockCurrent_NR = false;
-            stopSubtitle();
 
             isTvPlaying = false;
 
@@ -746,8 +749,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
             if (Utils.getChannelId(uri) < 0) {
                 if (false)
-                mTvControlManager.PlayDTVProgram(
-                    new TvControlManager.TvMode(mDtvType).getMode(), 470000000, 0, 0, 0, 0, -1, -1, 0, 0, false);
+                    mTvControlManager.PlayDTVProgram(
+                        new TvControlManager.TvMode(mDtvType).getMode(), 470000000, 0, 0, 0, 0, -1, -1, 0, 0, false);
                 else {
                     TvControlManager.FEParas fe = new TvControlManager.FEParas();
                     fe.setMode(new TvControlManager.TvMode(mDtvType))
@@ -780,6 +783,10 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 Log.w(TAG, "Failed to get channel info for " + uri);
                 mTvControlManager.SetAVPlaybackListener(null);
             }
+
+            mEASProcessManager.SetCurDisplayNum(mCurrentChannel.getDisplayNumber());
+            mEASProcessManager.SetCurInputId(getInputId());
+            mEASProcessManager.SetCurUri(mCurrentUri);
         }
 
         protected void prepareChannelInfo(ChannelInfo channel) {
