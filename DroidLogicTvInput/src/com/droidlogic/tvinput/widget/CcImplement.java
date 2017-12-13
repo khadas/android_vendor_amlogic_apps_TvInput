@@ -391,7 +391,7 @@ public class CcImplement {
             style_use_broadcast = isStyle_use_broadcast();
             init_flag = false;
             try {
-                if (!jsonStr.isEmpty())
+                if (jsonStr != null && !jsonStr.isEmpty())
                     ccObj = new JSONObject(jsonStr);
                 else {
                     return;

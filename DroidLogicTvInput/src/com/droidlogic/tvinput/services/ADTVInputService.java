@@ -107,7 +107,7 @@ public class ADTVInputService extends DTVInputService {
 
             int audioAuto = getAudioAuto(info);
             ChannelInfo.Audio audio = null;
-            if (mCurrentAudios != null && audioAuto >= 0)
+            if (mCurrentAudios != null && mCurrentAudios.size() > 0 && audioAuto >= 0)
                 audio = mCurrentAudios.get(audioAuto);
 
             if (info.isAnalogChannel()) {
