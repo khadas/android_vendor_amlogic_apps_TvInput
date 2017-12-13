@@ -901,7 +901,7 @@ public class DTVInputService extends DroidLogicTvInputService {
 
             mChannelBlocked = (needChannelBlock ? 1 : 0);
             if (needChannelBlock) {
-                stopSubtitleBlock(channelInfo);
+                //stopSubtitleBlock(channelInfo);
                 //releasePlayerBlock();
                 if (contentRating != null) {
                     Log.d(TAG, "notifyBlock:"+contentRating.flattenToString());
@@ -911,6 +911,9 @@ public class DTVInputService extends DroidLogicTvInputService {
                     notifyContentBlocked(tcr);
                 }
                 mLastBlockedRating = contentRating;
+                if (!isTvPlaying) {
+                    playProgram(mCurrentChannel);//play after notifyContentBlocked to avoid paly after unblock
+                }
             } else {
                 synchronized(mLock) {
                     if (mCurrentChannel != null) {
