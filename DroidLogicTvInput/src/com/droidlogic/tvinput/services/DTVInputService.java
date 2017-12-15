@@ -3025,18 +3025,20 @@ public class DTVInputService extends DroidLogicTvInputService {
                 }
 
                 private void updateCCStyleParams() {
-                    if (DEBUG) Log.d(TAG, "CCStyleObserver updateCCStyleParams.");
-                    CCStyleParams ccParam = getCaptionStyle();
-                    DTVSubtitleView.DTVCCParams params = new DTVSubtitleView.DTVCCParams(
-                            0,
-                            ccParam.fg_color,
-                            ccParam.fg_opacity,
-                            ccParam.bg_color,
-                            ccParam.bg_opacity,
-                            ccParam.font_style,
-                            ccParam.font_size);
-                    if (mSubtitleView != null)
-                        mSubtitleView.setSubParams(params);
+                    /*
+                       if (DEBUG) Log.d(TAG, "CCStyleObserver updateCCStyleParams.");
+                       CCStyleParams ccParam = getCaptionStyle();
+                       DTVSubtitleView.DTVCCParams params = new DTVSubtitleView.DTVCCParams(
+                       0,
+                       ccParam.fg_color,
+                       ccParam.fg_opacity,
+                       ccParam.bg_color,
+                       ccParam.bg_opacity,
+                       ccParam.font_style,
+                       ccParam.font_size);
+                       if (mSubtitleView != null)
+                       mSubtitleView.setSubParams(params);
+                       */
                 }
 
                 @Override
@@ -3048,17 +3050,17 @@ public class DTVInputService extends DroidLogicTvInputService {
 
                 @Override
                 public void onUserStyleChanged(CaptionStyle userStyle) {
-                    updateCCStyleParams();
+                    //updateCCStyleParams();
                 }
 
                 @Override
                 public void onLocaleChanged(Locale locale) {
-                    updateCCStyleParams();
+                    //updateCCStyleParams();
                 }
 
                 @Override
                 public void onFontScaleChanged(float fontScale) {
-                    updateCCStyleParams();
+                    //updateCCStyleParams();
                 }
             }
 
