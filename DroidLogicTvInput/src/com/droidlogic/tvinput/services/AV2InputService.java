@@ -242,6 +242,9 @@ public class AV2InputService extends DroidLogicTvInputService {
         @Override
         public void notifyVideoUnavailable(int reason) {
             super.notifyVideoUnavailable(reason);
+            if (mOverlayView != null) {
+                mOverlayView.setTextVisibility(true);
+            }
             mSubtitleView.setVisible(false);
         }
 
