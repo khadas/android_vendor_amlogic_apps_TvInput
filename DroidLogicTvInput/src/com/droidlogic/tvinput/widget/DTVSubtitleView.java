@@ -858,7 +858,7 @@ public class DTVSubtitleView extends View {
 
     public void saveJsonStr(String str) {
         this.cc_json_str = str;
-        if (cc_json_str != null) {
+        if (ci != null && cc_json_str != null) {
             CcImplement.CaptionWindow new_cw = ci.new CaptionWindow(cc_json_str);
             synchronized (json_lock) {
                 cw = new_cw;
