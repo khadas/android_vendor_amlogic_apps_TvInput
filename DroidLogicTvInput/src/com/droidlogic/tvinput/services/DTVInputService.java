@@ -113,8 +113,8 @@ public class DTVInputService extends DroidLogicTvInputService {
     protected static final String DTV_SUBTITLE_AUTO_START = "tv.dtv.subtitle.autostart";
     protected static final String DTV_SUBTITLE_DTV_XDS = "tv.dtv.subtitle.xds";
 
-    protected static final String DTV_SUBTITLE_CS_PREFER = "tv.dtv.cs.prefer";
-    protected static final String DTV_SUBTITLE_CC_PREFER = "tv.dtv.cc.prefer";
+    protected static final String DTV_SUBTITLE_CS_PREFER = "persist.sys.cs.prefer";
+    protected static final String DTV_SUBTITLE_CC_PREFER = "persist.sys.cc.prefer";
 
     protected static final String DTV_SUBTITLE_CAPTION_EXIST = "tv.dtv.caption.exist";
 

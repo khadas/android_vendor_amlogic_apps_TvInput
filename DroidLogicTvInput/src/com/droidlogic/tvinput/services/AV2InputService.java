@@ -79,7 +79,7 @@ public class AV2InputService extends DroidLogicTvInputService {
 
     private boolean is_subtitle_enable;
 
-    protected static final String DTV_SUBTITLE_CC_PREFER = "tv.dtv.cc.prefer";
+    protected static final String DTV_SUBTITLE_CC_PREFER = "persist.sys.cc.prefer";
     protected static final String DTV_SUBTITLE_CAPTION_EXIST = "tv.dtv.caption.exist";
     protected final Object mSubtitleLock = new Object();
 
