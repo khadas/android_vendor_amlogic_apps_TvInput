@@ -236,8 +236,6 @@ public class AV2InputService extends DroidLogicTvInputService {
         @Override
         public void notifyVideoAvailable() {
             super.notifyVideoAvailable();
-            stopSubtitle();
-            startSubtitleAutoAnalog();
             mSubtitleView.setVisible(is_subtitle_enable);
         }
 
