@@ -190,6 +190,7 @@ public class CcImplement {
         double max_font_height;
         double max_font_width;
         double max_font_size;
+        double fixed_char_width;
         final int cc_row_count = 15;
         final int cc_col_count = 32;
 
@@ -202,6 +203,7 @@ public class CcImplement {
             max_font_height = safe_title_height / cc_row_count;
             max_font_width = max_font_height * 0.8;
             max_font_size = max_font_height;
+            fixed_char_width = safe_title_width / (cc_col_count + 1);
             h_v_rate = (double)width/(double)height;
             anchor_horizon = (h_v_rate>1.7)?210:160; //16:9 or 4:3
             anchor_vertical = 75;
@@ -769,10 +771,11 @@ public class CcImplement {
                         str_count = rowArray.length();
                         rowStrs = new RowStr[str_count];
                         double row_str_edge = 0;
+                        double single_char_width = ccVersion.matches("cea708") ? window_max_font_size : caption_screen.fixed_char_width;
                         for (int i=0; i<str_count; i++) {
                             rowStrs[i] = new RowStr(rowArray.getJSONObject(i));
                             //Every string starts at prior string's tail
-                            rowStrs[i].str_start_x = row_length_on_paint + row_start_x * window_max_font_size;
+                            rowStrs[i].str_start_x = row_length_on_paint + row_start_x * single_char_width;
                             row_characters_count += rowStrs[i].str_characters_count;
                             row_length_on_paint += rowStrs[i].string_length_on_paint;
                             double str_max_font_size = rowStrs[i].max_single_font_width;
@@ -1063,7 +1066,11 @@ public class CcImplement {
                         window_paint.setTypeface(this.font_face);
                         window_paint.setTextSize((float)this.font_size);
                         max_single_font_width = window_paint.measureText("H");
-                        string_length_on_paint = window_paint.measureText(data) + max_single_font_width;
+                        if (ccVersion.matches("cea708")) {
+                            string_length_on_paint = window_paint.measureText(data) + max_single_font_width;
+                        } else {
+                            string_length_on_paint = data.length() * caption_screen.fixed_char_width;
+                        }
                         /* Convert */
                         /*
                            Log.e(TAG, "str attr: " +
@@ -1179,6 +1186,22 @@ public class CcImplement {
                         foreground_paint.reset();
                     }
 
+                    void draw_str(Canvas canvas, String str, float left, float bottom, Paint paint)
+                    {
+                        if (ccVersion.matches("cea708")) {
+                            canvas.drawText(str, left, bottom, paint);
+                        } else {
+                            int i, l = str.length();
+                            float x = left;
+
+                            for (i = 0; i < l; i++) {
+                                String sub = str.substring(i, i + 1);
+                                canvas.drawText(sub, x, bottom, paint);
+                                x += caption_screen.fixed_char_width;
+                            }
+                        }
+                    }
+
                     void draw_text(Canvas canvas, String data,
                             Typeface face, double font_size,
                             float left, float bottom, int fg_color, int opacity,
@@ -1196,27 +1219,27 @@ public class CcImplement {
                         if (edge_type == null) {
                             paint.setColor(fg_color);
                             paint.setAlpha(opacity);
-                            canvas.drawText(data, left, bottom, paint);
+                            draw_str(canvas, data, left, bottom, paint);
                         } else if (edge_type.equalsIgnoreCase("uniform")) {
                             paint.setStrokeJoin(Paint.Join.ROUND);
                             paint.setStrokeWidth((float)edge_width);
                             paint.setColor(edge_color);
                             paint.setStyle(Paint.Style.FILL_AND_STROKE);
-                            canvas.drawText(data, left, bottom, paint);
+                            draw_str(canvas, data, left, bottom, paint);
                             paint.setColor(fg_color);
                             paint.setAlpha(opacity);
                             paint.setStyle(Paint.Style.FILL);
-                            canvas.drawText(data, left, bottom, paint);
+                            draw_str(canvas, data, left, bottom, paint);
                         } else if (edge_type.equalsIgnoreCase("shadow_right")) {
                             paint.setShadowLayer((float)edge_width, (float) edge_width, (float) edge_width, edge_color);
                             paint.setColor(fg_color);
                             paint.setAlpha(opacity);
-                            canvas.drawText(data, left, bottom, paint);
+                            draw_str(canvas, data, left, bottom, paint);
                         } else if (edge_type.equalsIgnoreCase("shadow_left")) {
                             paint.setShadowLayer((float)edge_width, (float) -edge_width, (float) -edge_width, edge_color);
                             paint.setColor(fg_color);
                             paint.setAlpha(opacity);
-                            canvas.drawText(data, left, bottom, paint);
+                            draw_str(canvas, data, left, bottom, paint);
                         } else if (edge_type.equalsIgnoreCase("raised") ||
                                 edge_type.equalsIgnoreCase("depressed")) {
 
@@ -1231,13 +1254,13 @@ public class CcImplement {
                             paint.setColor(fg_color);
                             paint.setStyle(Paint.Style.FILL);
                             paint.setShadowLayer(edge_width, -offset, -offset, colorUp);
-                            canvas.drawText(data, left, bottom, paint);
+                            draw_str(canvas, data, left, bottom, paint);
                             paint.setShadowLayer(edge_width, offset, offset, colorDown);
-                            canvas.drawText(data, left, bottom, paint);
+                            draw_str(canvas, data, left, bottom, paint);
                         } else if (edge_type.equalsIgnoreCase("none")) {
                             paint.setColor(fg_color);
                             paint.setAlpha(opacity);
-                            canvas.drawText(data, left, bottom, paint);
+                            draw_str(canvas, data, left, bottom, paint);
                         }
                         paint.reset();
                         if (underline) {
