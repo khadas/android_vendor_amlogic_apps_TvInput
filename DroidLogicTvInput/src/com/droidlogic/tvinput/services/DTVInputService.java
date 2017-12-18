@@ -148,7 +148,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
 
 
-    private static boolean DEBUG = true;
+    private static boolean DEBUG = false;
     private EASProcessManager mEASProcessManager;
     private String mEasText = null;
 
@@ -1051,10 +1051,10 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                         mNextProgram = mTvDataBaseManager.getProgram(TvContract.buildChannelUri(channelInfo.getId()), mCurrentProgram.getEndTimeUtcMillis() + 1);
                     mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_PARENTAL_CONTROL, this),
                         (mNextProgram == null ? mParentControlDelay : mNextProgram.getStartTimeUtcMillis() - tvTime.getTime()));
-                    if (DEBUG) Log.d(TAG, "doPC next:"+(mNextProgram == null ? mParentControlDelay : mNextProgram.getStartTimeUtcMillis() - tvTime.getTime())+"ms");
+                    Log.d(TAG, "doPC next:"+(mNextProgram == null ? mParentControlDelay : mNextProgram.getStartTimeUtcMillis() - tvTime.getTime())+"ms");
                 } else {
                     mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_PARENTAL_CONTROL, this), mParentControlDelay);
-                    if (DEBUG) Log.d(TAG, "doPC next:"+mParentControlDelay);
+                    Log.d(TAG, "doPC next:"+mParentControlDelay);
                 }
             }
         }
@@ -1089,7 +1089,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
         @Override
         public void onEvent(int msgType, int programID) {
-            if (DEBUG) Log.d(TAG, "AV evt:" + msgType);
+            Log.d(TAG, "AV evt:" + msgType);
             switch (msgType) {
                 case TvControlManager.EVENT_AV_SCRAMBLED:
                     notifySessionEvent(DroidLogicTvUtils.AV_SIG_SCRAMBLED, null);
@@ -1130,7 +1130,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
         @Override
         public boolean onSelectTrack(int type, String trackId) {
-            if (DEBUG) Log.d(TAG, "onSelectTrack: [type:" + type + "] [id:" + trackId + "]");
+            Log.d(TAG, "onSelectTrack: [type:" + type + "] [id:" + trackId + "]");
 
             if (mCurrentChannel == null)
                 return false;
@@ -1143,7 +1143,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                     index = -2;
                 } else {
                     String oldId = mSystemControlManager.getProperty(DTV_AUDIO_TRACK_ID);
-                    if (DEBUG) Log.d(TAG, "oldId:"+oldId);
+                    Log.d(TAG, "oldId:"+oldId);
                     if (!trackId.equals(oldId)) {
                         ChannelInfo.Audio audio = parseAudioIdString(trackId);
                         stopAudioAD();
@@ -1152,7 +1152,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                         mSystemControlManager.setProperty(DTV_AUDIO_TRACK_ID, trackId);
                         startAudioADByMain(mCurrentChannel, audio.id);
                     } else {
-                        if (DEBUG) Log.d(TAG, "same audio track");
+                        Log.d(TAG, "same audio track");
                     }
                 }
 
@@ -1160,7 +1160,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
                 if (audioAutoSave) {
                     if (mCurrentChannel != null) {
-                        if (DEBUG) Log.d(TAG, "audioAutoSave: idx=" + index);
+                        Log.d(TAG, "audioAutoSave: idx=" + index);
                         mCurrentChannel.setAudioTrackIndex(index);
                         mTvDataBaseManager.updateChannelInfo(mCurrentChannel);
                     }
@@ -1197,7 +1197,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
         @Override
         public void notifyVideoAvailable() {
-            if (DEBUG) Log.d(TAG, "notifyVideoAvailable "+getSessionId());
+            Log.d(TAG, "notifyVideoAvailable "+getSessionId());
             super.notifyVideoAvailable();
             mTvControlManager.SetAudioMuteForTv(TvControlManager.AUDIO_UNMUTE_FOR_TV);
             mSubtitleView.setVisible(is_subtitle_enabled);
@@ -1205,7 +1205,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
         @Override
         public void notifyVideoUnavailable(int reason) {
-            if (DEBUG) Log.d(TAG, "notifyVideoUnavailable: "+reason+", "+getSessionId());
+            Log.d(TAG, "notifyVideoUnavailable: "+reason+", "+getSessionId());
             super.notifyVideoUnavailable(reason);
 
             if (mOverlayView != null) {
@@ -1268,7 +1268,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             if (mCurrentAudios == null || mCurrentAudios.size() == 0)
                 return null;
 
-            if (DEBUG) Log.d(TAG, "add audio tracks["+mCurrentAudios.size()+"]");
+            Log.d(TAG, "add audio tracks["+mCurrentAudios.size()+"]");
 
             int auto = getAudioAuto(ch);
             Iterator<ChannelInfo.Audio> iter = mCurrentAudios.iterator();
@@ -1282,9 +1282,9 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                         .build();
                 tracks.add(AudioTrack);
 
-                if (DEBUG) Log.d(TAG, "\t" + ((auto==a.id)? ("*"+a.id+":[") : (""+a.id+": [")) + a.mLang + "]"
+                Log.d(TAG, "\t" + ((auto==a.id)? ("*"+a.id+":[") : (""+a.id+": [")) + a.mLang + "]"
                     + " [pid:" + a.mPid + "] [fmt:" + a.mFormat + "]");
-                if (DEBUG) Log.d(TAG, "\t" + "   [ext:" + Integer.toHexString(a.mExt) + "]");
+                Log.d(TAG, "\t" + "   [ext:" + Integer.toHexString(a.mExt) + "]");
             }
 
             if (auto >= 0)
@@ -1296,8 +1296,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         protected List<ChannelInfo.Subtitle> getChannelProgramCaptions(ChannelInfo channelInfo) {
             TVTime tvTime = new TVTime(mContext);
             Program mCurrentProgram = mTvDataBaseManager.getProgram(TvContract.buildChannelUri(channelInfo.getId()), tvTime.getTime());
-            if (DEBUG) Log.d(TAG, "TvTime:"+getDateAndTime(tvTime.getTime()));
-            if (DEBUG) Log.d(TAG, "caption:"+(mCurrentProgram==null?"null":mCurrentProgram.getInternalProviderData()));
+            Log.d(TAG, "TvTime:"+getDateAndTime(tvTime.getTime()));
+            Log.d(TAG, "caption:"+(mCurrentProgram==null?"null":mCurrentProgram.getInternalProviderData()));
             return DroidLogicTvUtils.parseAtscCaptions(mCurrentProgram == null ? null : mCurrentProgram.getInternalProviderData());
         }
 
@@ -1372,9 +1372,9 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             List<ChannelInfo.Subtitle> channelSubs = getChannelSubtitles(channel);
             List<ChannelInfo.Subtitle> programSubs = getChannelProgramCaptions(channel);
 
-            if (DEBUG) Log.d(TAG, "cc fixedSubs:"+ (fixedSubs==null? "null" : fixedSubs.size()));
-            if (DEBUG) Log.d(TAG, "cc channelSubs:"+(channelSubs==null? "null" : channelSubs.size()));
-            if (DEBUG) Log.d(TAG, "cc programSubs:"+(programSubs==null? "null" : programSubs.size()));
+            Log.d(TAG, "cc fixedSubs:"+ (fixedSubs==null? "null" : fixedSubs.size()));
+            Log.d(TAG, "cc channelSubs:"+(channelSubs==null? "null" : channelSubs.size()));
+            Log.d(TAG, "cc programSubs:"+(programSubs==null? "null" : programSubs.size()));
 
             Iterator<ChannelInfo.Subtitle> iter = fixedSubs.iterator();
             while (iter.hasNext()) {
@@ -1411,7 +1411,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                         || (defaultSub.mStype == ChannelInfo.Subtitle.TYPE_ATV_CC
                             && s.mStype == ChannelInfo.Subtitle.TYPE_DTV_CC )) {
                         defaultSub = s;
-                        if (DEBUG) Log.d(TAG, "cc default to pid:"+s.mPid+" in program");
+                        Log.d(TAG, "cc default to pid:"+s.mPid+" in program");
                     }
                 }
             }
@@ -1423,7 +1423,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                         || (defaultSub.mStype == ChannelInfo.Subtitle.TYPE_ATV_CC
                             && s.mStype == ChannelInfo.Subtitle.TYPE_DTV_CC )) {
                         defaultSub = s;
-                        if (DEBUG) Log.d(TAG, "cc default to pid:"+s.mPid+" in channel");
+                        Log.d(TAG, "cc default to pid:"+s.mPid+" in channel");
                     }
                 }
             }
@@ -1435,7 +1435,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                         || (defaultSub.mStype == ChannelInfo.Subtitle.TYPE_ATV_CC
                             && s.mStype == ChannelInfo.Subtitle.TYPE_DTV_CC )) {
                         defaultSub = s;
-                        if (DEBUG) Log.d(TAG, "cc default to pid:"+s.mPid+" in fixed");
+                        Log.d(TAG, "cc default to pid:"+s.mPid+" in fixed");
                     }
                 }
             }
@@ -1449,7 +1449,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                     && s.mType == defaultSub.mType)
                     return s.id;
             }
-            if (DEBUG) Log.d(TAG, "cc FATAL, not found default");
+            Log.d(TAG, "cc FATAL, not found default");
             return 0;
         }
         public boolean isAtscForcedStandard() {
@@ -1500,7 +1500,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             if (mCurrentSubtitles == null || mCurrentSubtitles.size() == 0)
                 return null;
 
-            if (DEBUG) Log.d(TAG, "add subtitle tracks["+mCurrentSubtitles.size()+"]");
+            Log.d(TAG, "add subtitle tracks["+mCurrentSubtitles.size()+"]");
 
             int auto = (subtitleAutoStart? getSubtitleAuto(ch) : -1);
             Iterator<ChannelInfo.Subtitle> iter = mCurrentSubtitles.iterator();
@@ -1513,9 +1513,9 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                         .build();
                 tracks.add(SubtitleTrack);
 
-                if (DEBUG) Log.d(TAG, "\t" + ((subtitleAutoStart && (auto==s.id))? ("*"+s.id+":[") : (""+s.id+": [")) + s.mLang + "]"
+                Log.d(TAG, "\t" + ((subtitleAutoStart && (auto==s.id))? ("*"+s.id+":[") : (""+s.id+": [")) + s.mLang + "]"
                     + " [pid:" + s.mPid + "] [type:" + s.mType + "]");
-                if (DEBUG) Log.d(TAG, "\t" + "   [id1:" + s.mId1 + "] [id2:" + s.mId2 + "] [stype:" + s.mStype + "]");
+                Log.d(TAG, "\t" + "   [id1:" + s.mId1 + "] [id2:" + s.mId2 + "] [stype:" + s.mStype + "]");
             }
 
             if (auto >= 0)
@@ -1533,14 +1533,14 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             SubSelectedId = addSubtitleTracks(tracks, ch);
 
             if (tracks != null) {
-                if (DEBUG) Log.d(TAG, "notify Tracks["+tracks.size()+"]");
+                Log.d(TAG, "notify Tracks["+tracks.size()+"]");
                 notifyTracksChanged(tracks);
             }
 
-            if (DEBUG) Log.d(TAG, "\tAuto Aud: [" + AudioSelectedId + "]");
+            Log.d(TAG, "\tAuto Aud: [" + AudioSelectedId + "]");
             notifyTrackSelected(TvTrackInfo.TYPE_AUDIO, AudioSelectedId);
 
-            if (DEBUG) Log.d(TAG, "\tAuto Sub: [" + SubSelectedId + "]");
+            Log.d(TAG, "\tAuto Sub: [" + SubSelectedId + "]");
             notifyTrackSelected(TvTrackInfo.TYPE_SUBTITLE, SubSelectedId);
         }
 
@@ -1631,7 +1631,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         }
 
         protected void startSubtitleCCBackground(ChannelInfo channel) {
-            if (DEBUG) Log.d(TAG, "start bg cc for xds");
+            Log.d(TAG, "start bg cc for xds");
             mCurrentSubtitle = null;
             if (channel == null)
                 return;
@@ -1656,17 +1656,17 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             }
 
             if (i >= supportedRegions.length) {
-                if (DEBUG) Log.d(TAG, "Teletext defaut region " + ttxRegionName +
+                Log.d(TAG, "Teletext defaut region " + ttxRegionName +
                       " not found, using 'English' as default!");
                 i = 0;
             }
 
-            if (DEBUG) Log.d(TAG, "Teletext default region id: " + regionIDMaps[i]);
+            Log.d(TAG, "Teletext default region id: " + regionIDMaps[i]);
             return regionIDMaps[i];
         }
 
         public void onSubtitleData(String json) {
-            if (DEBUG) Log.d(TAG, "onSubtitleData("+json+")"+
+            Log.d(TAG, "onSubtitleData("+json+")"+
                 " channel:("+(mCurrentChannel == null? "null" : mCurrentChannel.getDisplayName())+")");
             if (mCurrentChannel != null) {
                 int mask = DroidLogicTvUtils.getObjectValueInt(json, "cc", "data", -1);
@@ -1676,7 +1676,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                         msg.arg1 = mask;
                         msg.sendToTarget();
                     }
-                    if (DEBUG) Log.d(TAG, "ccc send data");
+                    Log.d(TAG, "ccc send data");
                     return;
                 }
 
@@ -1704,7 +1704,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
         /*When CC data changed.*/
         public void doCCData(int mask) {
-            if (DEBUG) Log.d(TAG, "cc data " + mask);
+            Log.d(TAG, "cc data " + mask);
 
             /*Check XDS data*/
             if ((mask & (1 << 15)) == 0) {
@@ -1765,7 +1765,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                     }
                 }
 
-                if (DEBUG) Log.d(TAG, "ccc tryPrefer, exist["+exist+"], current["+curr+"] to["+to+"] prefer[cc:"+ccPrefer+" cs:"+csPrefer+"] Enable["+mCurrentCCEnabled+"]");
+                Log.d(TAG, "ccc tryPrefer, exist["+exist+"], current["+curr+"] to["+to+"] prefer[cc:"+ccPrefer+" cs:"+csPrefer+"] Enable["+mCurrentCCEnabled+"]");
 
                 if (curr == to)//already show
                     return 0;
@@ -1829,7 +1829,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                         ccParam.font_size);
                 mSubtitleView.setSubParams(params);
                 mSubtitleView.setMargin(225, 128, 225, 128);
-                if (DEBUG) Log.d(TAG, "DTV CC pid="+pid+",fg_color="+ccParam.fg_color+", fg_op="+ccParam.fg_opacity+", bg_color="+ccParam.bg_color+", bg_op="+ccParam.bg_opacity);
+                Log.d(TAG, "DTV CC pid="+pid+",fg_color="+ccParam.fg_color+", fg_op="+ccParam.fg_opacity+", bg_color="+ccParam.bg_color+", bg_op="+ccParam.bg_opacity);
 
             } else if (type == ChannelInfo.Subtitle.TYPE_ATV_CC) {
                 CCStyleParams ccParam = getCaptionStyle();
@@ -1844,7 +1844,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
                 mSubtitleView.setSubParams(params);
                 mSubtitleView.setMargin(225, 128, 225, 128);
-                if (DEBUG) Log.d(TAG, "ATV CC pid="+pid+",fg_color="+ccParam.fg_color+", fg_op="+ccParam.fg_opacity+", bg_color="+ccParam.bg_color+", bg_op="+ccParam.bg_opacity);
+                Log.d(TAG, "ATV CC pid="+pid+",fg_color="+ccParam.fg_color+", fg_op="+ccParam.fg_opacity+", bg_color="+ccParam.bg_color+", bg_op="+ccParam.bg_opacity);
             }
         }
 
@@ -1873,7 +1873,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         }
         protected int getOpacity(int opacity)
         {
-            if (DEBUG) Log.d(TAG, ">> opacity:"+Integer.toHexString(opacity));
+            Log.d(TAG, ">> opacity:"+Integer.toHexString(opacity));
             switch (opacity)
             {
                 case 0:
@@ -1931,7 +1931,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                     break;
                 }
             }
-            if (DEBUG) Log.d(TAG, "get style: " + style + ", fontStyle" + fontStyle + ", typeface: " + userStyle.mRawTypeface);
+            Log.d(TAG, "get style: " + style + ", fontStyle" + fontStyle + ", typeface: " + userStyle.mRawTypeface);
 
             int fg = userStyle.foregroundColor;
             int bg = userStyle.backgroundColor;
@@ -1941,7 +1941,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             int convert_bg_color = USE_NEW_CCVIEW? bg_color : getColor(bg_color);
             int convert_bg_opacity = USE_NEW_CCVIEW? bg_opacity : getOpacity(bg_opacity);
             float convert_font_size = USE_NEW_CCVIEW? textSize: getFontSize(textSize);
-            if (DEBUG) Log.d(TAG, "Caption font size:"+convert_font_size+" ,fg_color:"+Integer.toHexString(fg)+
+            Log.d(TAG, "Caption font size:"+convert_font_size+" ,fg_color:"+Integer.toHexString(fg)+
                 ", fg_opacity:"+Integer.toHexString(fg_opacity)+
                 " ,bg_color:"+Integer.toHexString(bg)+", @fg_color:"+convert_fg_color+", @bg_color:"+
                 convert_bg_color+", @fg_opacity:"+convert_fg_opacity+", @bg_opacity:"+convert_bg_opacity);
@@ -1997,7 +1997,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         }
 
         protected void startSubtitle(int type, int pid, int stype, int id1, int id2) {
-            if (DEBUG) Log.d(TAG, "start Subtitle ["+type+" "+pid+" "+stype+" "+id1+" "+id2+"]");
+            Log.d(TAG, "start Subtitle ["+type+" "+pid+" "+stype+" "+id1+" "+id2+"]");
             if (mSubtitleView == null) {
                 Log.d(TAG, "subtitle view is null");
                 return;
@@ -2020,7 +2020,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         }
 
         protected void stopSubtitle(boolean stopRetry) {
-            if (DEBUG) Log.d(TAG, "stop Subtitle[stopRetry:"+stopRetry+"]");
+            Log.d(TAG, "stop Subtitle[stopRetry:"+stopRetry+"]");
 
             synchronized (mSubtitleLock) {
 
@@ -2073,13 +2073,13 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 return ;
 
             int[] idxs = DroidLogicTvUtils.getAudioADTracks(channelInfo, mainAudioTrackIndex);
-            if (DEBUG) Log.d(TAG, "startAudioAD mainAudioTrackIndex["+mainAudioTrackIndex+"], AudioADTrackIndex["+Arrays.toString(idxs)+"]");
+            Log.d(TAG, "startAudioAD mainAudioTrackIndex["+mainAudioTrackIndex+"], AudioADTrackIndex["+Arrays.toString(idxs)+"]");
 
             startAudioAD(channelInfo, ((idxs == null)? -1 : idxs[0]));
         }
 
         protected void startAudioAD(ChannelInfo channelInfo, int adAudioTrackIndex) {
-            if (DEBUG) Log.d(TAG, "startAudioAD idx["+adAudioTrackIndex+"]");
+            Log.d(TAG, "startAudioAD idx["+adAudioTrackIndex+"]");
             if (adAudioTrackIndex >= 0 && adAudioTrackIndex < channelInfo.getAudioPids().length) {
                 mTvControlManager.DtvSetAudioAD(1,
                                 channelInfo.getAudioPids()[adAudioTrackIndex],
@@ -2116,10 +2116,10 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             @Override
             public void run() {
                 synchronized (mLock) {
-                    if (DEBUG) Log.d(TAG, "monitor ch: " + mChannel.getDisplayNumber() + "-" + mChannel.getDisplayName());
+                    Log.d(TAG, "monitor ch: " + mChannel.getDisplayNumber() + "-" + mChannel.getDisplayName());
                     String standard = (mChannel.isAtscChannel() ? "atsc" : "dvb");
                     String forceStandard = mSystemControlManager.getProperty(DTV_STANDARD_FORCE);
-                    if (DEBUG) Log.d(TAG, "std:"+standard + " forcestd:"+forceStandard);
+                    Log.d(TAG, "std:"+standard + " forcestd:"+forceStandard);
                     if (forceStandard != null && forceStandard.length() != 0)
                         standard = forceStandard;
                     if (monitor != null && !monitor.getStandard().equals(standard)) {
@@ -2127,7 +2127,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                         monitor=null;
                     }
                     int forceMode = mSystemControlManager.getPropertyInt(DTV_MONITOR_MODE_FORCE, MONITOR_MODE);
-                    if (DEBUG) Log.d(TAG, "monitor:"+MONITOR_MODE+" force:"+forceMode);
+                    Log.d(TAG, "monitor:"+MONITOR_MODE+" force:"+forceMode);
                     MONITOR_MODE = forceMode;
                     if (monitor == null) {
                         monitor = new DTVMonitor(mContext, getInputId(), DEF_CODING, MONITOR_MODE, standard);
@@ -2174,13 +2174,13 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 if (mHandler != null)
                     mHandler.removeCallbacks(mMonitorCurrentProgramRunnable);
                 if (channel != null) {
-                    if (DEBUG) Log.d(TAG, "startMonitor");
+                    Log.d(TAG, "startMonitor");
                     if (mHandler != null) {
                         mMonitorCurrentProgramRunnable = new DTVMonitorCurrentProgramRunnable(channel);
                         mHandler.post(mMonitorCurrentProgramRunnable);
                     }
                 } else {
-                    if (DEBUG) Log.d(TAG, "stopMonitor");
+                    Log.d(TAG, "stopMonitor");
                     if (monitor != null) {
                         monitor.destroy();
                         monitor = null;
@@ -2191,7 +2191,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
         protected void restartMonitorTime() {
             synchronized (mLock) {
-                if (DEBUG) Log.d(TAG, "restartMonitorTime");
+                Log.d(TAG, "restartMonitorTime");
                 if (monitor != null)
                     monitor.restartMonitorTime();
             }
@@ -2277,14 +2277,14 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
             private void buildVct () {
                 if (mVct == null || channelMap == null) {
-                    if (DEBUG) Log.d(TAG, "build VCT map vct null:");
+                    Log.d(TAG, "build VCT map vct null:");
                     return;
                 } else {
-                    if (DEBUG) Log.d(TAG, "build VCT map vct :" + mVct);
+                    //if (DEBUG) Log.d(TAG, "build VCT map vct :" + mVct);
                 }
                 String items[] = mVct.split(",");
                 if (items == null) {
-                    if (DEBUG) Log.d(TAG, "build VCT map items null");
+                    Log.d(TAG, "build VCT map items null");
                     return;
                 }
 
@@ -2300,7 +2300,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                     p2 = item.indexOf('-', p1);
                     if (p2 == -1)
                         continue;
-                    if (DEBUG) Log.d(TAG, "build VCT map id :"+item.substring(0, p1)+" maj:" + item.substring(p1 + 1, p2)+" min:" + item.substring(p2 + 1));
+                    //if (DEBUG) Log.d(TAG, "build VCT map id :"+item.substring(0, p1)+" maj:" + item.substring(p1 + 1, p2)+" min:" + item.substring(p2 + 1));
                     srcId = Integer.parseInt(item.substring(0, p1));
                     major = Integer.parseInt(item.substring(p1 + 1, p2));
                     minor = Integer.parseInt(item.substring(p2 + 1));
@@ -2317,7 +2317,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
                     mVctMap.put(srcId, chan.getId());
                 }
-                if (DEBUG) Log.d(TAG, "build VCT map end");
+                Log.d(TAG, "build VCT map end");
             }
 
             public DTVMonitor(Context context, String inputId, String coding, int mode, String standard) {
@@ -2391,7 +2391,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 if ((mode & MODE_UPDATE_TIME) == MODE_UPDATE_TIME)
                     scannerMode |= MODE_Time;
 
-                if (DEBUG) Log.d(TAG, "DTVMonitor std["+standard+"] mode["+scannerMode+"]");
+                Log.d(TAG, "DTVMonitor std["+standard+"] mode["+scannerMode+"]");
 
                 epgScanner = new DTVEpgScanner(scannerMode) {
                     public void onEvent(DTVEpgScanner.Event event) {
@@ -2414,8 +2414,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 }
 
                 if (mCCObserver == null) {
-                    if (DEBUG) Log.d(TAG, "new cc style observer");
-                    if (DEBUG) Log.d(TAG, "CONTENT_URI: "+TvContract.Channels.CONTENT_URI);
+                    Log.d(TAG, "new cc style observer");
+                    Log.d(TAG, "CONTENT_URI: "+TvContract.Channels.CONTENT_URI);
                     mCCObserver = new CCStyleObserver();
                     mCaptioningManager.addCaptioningChangeListener((CaptioningChangeListener) mCCObserver);
                 }
@@ -2424,7 +2424,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             private void clearChannelProgram(ChannelInfo channel) {
                 if (mTvDataBaseManager != null && channel != null) {
                     int count = mTvDataBaseManager.deleteProgram(channel);
-                    if (DEBUG) Log.d(TAG, "epg delete "+count+" programs");
+                    Log.d(TAG, "epg delete "+count+" programs");
                 }
             }
 
@@ -2439,7 +2439,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             }
 
             public void reset(int fend, int dmx, int src, String textLanguages) {
-                if (DEBUG) Log.d(TAG, "monitor reset all.");
+                Log.d(TAG, "monitor reset all.");
                 if ((mMode & MODE_UPDATE_EPG) == MODE_UPDATE_EPG)
                     refreshChannelMap();
 
@@ -2457,10 +2457,10 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             }
 
             public void reset() {
-                if (DEBUG) Log.d(TAG, "monitor reset.");
+                Log.d(TAG, "monitor reset.");
 
                 if (epgScanner == null) {
-                    if (DEBUG) Log.d(TAG, "monitor may exit, ignore.");
+                    Log.d(TAG, "monitor may exit, ignore.");
                     return;
                 }
 
@@ -2567,22 +2567,22 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 if (auto_rescan_service == AUTO_RESCAN_NONE)
                     return;
 
-                if (DEBUG) Log.d(TAG, "rescanService:" + on);
+                Log.d(TAG, "rescanService:" + on);
                 synchronized (this) {
                     if (epgScanner == null) {
-                        if (DEBUG) Log.d(TAG, "monitor may exit, ignore.");
+                        Log.d(TAG, "monitor may exit, ignore.");
                         return;
                     }
                     if (mHandler != null) {
                         mHandler.removeMessages(MSG_MONITOR_RESCAN_SERVICE);
                         if (on && (auto_rescan_service == AUTO_RESCAN_CONTINUOUS)) {
-                            if (DEBUG) Log.d(TAG, "rescanServiceLater");
+                            Log.d(TAG, "rescanServiceLater");
                             mHandler.sendEmptyMessageDelayed(MSG_MONITOR_RESCAN_SERVICE, AUTO_RESCAN_SERVICE_INTERVAL);
                         }
                     }
                     if (on) {
                         if (tvservice != null) {
-                            if (DEBUG) Log.d(TAG, "rescanService["+MODE_Service+"]");
+                            Log.d(TAG, "rescanService["+MODE_Service+"]");
                             epgScanner.stopScan(MODE_Service);
                             epgScanner.startScan(MODE_Service);
                         }
@@ -2597,21 +2597,21 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 if (auto_rescan_time == AUTO_RESCAN_NONE)
                     return;
 
-                if (DEBUG) Log.d(TAG, "rescanTime:" + on);
+                Log.d(TAG, "rescanTime:" + on);
                 synchronized (this) {
                     if (epgScanner == null) {
-                        if (DEBUG) Log.d(TAG, "monitor may exit, ignore.");
+                        Log.d(TAG, "monitor may exit, ignore.");
                         return;
                     }
                     if (mHandler != null) {
                         mHandler.removeMessages(MSG_MONITOR_RESCAN_TIME);
                         if (on && (auto_rescan_time == AUTO_RESCAN_CONTINUOUS)) {
-                            if (DEBUG) Log.d(TAG, "rescanTimeLater");
+                            Log.d(TAG, "rescanTimeLater");
                             mHandler.sendEmptyMessageDelayed(MSG_MONITOR_RESCAN_TIME, AUTO_RESCAN_TIME_INTERVAL);
                         }
                     }
                     if (on) {
-                        if (DEBUG) Log.d(TAG, "rescanTime["+MODE_Time+"]");
+                        Log.d(TAG, "rescanTime["+MODE_Time+"]");
                         epgScanner.stopScan(MODE_Time);
                         epgScanner.startScan(MODE_Time);
                     }
@@ -2619,10 +2619,10 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             }
 
             public void restartMonitorTime(){
-                if (DEBUG) Log.d(TAG, "restartMonitorTime["+MODE_Time+"]");
+                Log.d(TAG, "restartMonitorTime["+MODE_Time+"]");
                 synchronized (this) {
                     if (epgScanner == null) {
-                        if (DEBUG) Log.d(TAG, "monitor may exit, ignore.");
+                        Log.d(TAG, "monitor may exit, ignore.");
                         return;
                     }
                     epgScanner.stopScan(MODE_Time);
@@ -2640,7 +2640,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 for (DTVEpgScanner.Event.Evt evt : event.evts) {
                     if (isAtscEvent(evt)) {//atsc
                         if (channel.getSourceId() == evt.srv_id) {
-                            if (DEBUG) Log.d(TAG, "evt srv_id:"+evt.srv_id+" channel src_id:"+channel.getSourceId()+",rrt_ratings:"+evt.rrt_ratings);
+                            //if (DEBUG) Log.d(TAG, "evt srv_id:"+evt.srv_id+" channel src_id:"+channel.getSourceId()+",rrt_ratings:"+evt.rrt_ratings);
                             try {
                                 long start = evt.start;
                                 long end = evt.end;
@@ -2723,11 +2723,11 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                     }
                     Uri channelUri = TvContract.buildChannelUri(c.getId());
                     List<Program> programs = new ArrayList<>();
-                    if (DEBUG) Log.d(TAG," program name :"+c.getDisplayNumber());
+                    //if (DEBUG) Log.d(TAG," program name :"+c.getDisplayNumber());
 
                     for (DTVEpgScanner.Event.Evt evt : event.evts) {
                         Long cid = mVctMap.get(evt.source_id);
-                        if (DEBUG) Log.d(TAG, "build VCT map cid " + cid + " c.getId():" + c.getId() + " evt.srv_id" + evt.srv_id + " evt.v:(" + evt.sub_flag + ":" + evt.sub_status +")"+" source_id:"+evt.source_id);
+                        //if (DEBUG) Log.d(TAG, "build VCT map cid " + cid + " c.getId():" + c.getId() + " evt.srv_id" + evt.srv_id + " evt.v:(" + evt.sub_flag + ":" + evt.sub_status +")"+" source_id:"+evt.source_id);
                         if (cid == null)
                             continue;
                         if (c.getId() == cid) {
@@ -2753,7 +2753,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                                     .setEitExt(String.valueOf(evt.sub_status))
                                     .build();
                                 programs.add(p);
-                                if (DEBUG) Log.d(TAG, "build VCT map epg: sid[" + evt.srv_id + "]"
+                                if (DEBUG) Log.v(TAG, "epg: sid[" + evt.srv_id + "]"
                                       + "eid[" + evt.evt_id + "]"
                                       + "ver[" + evt.sub_flag + ":" +evt.sub_status + "]"
                                       + "{" + p.getTitle() + "}"
@@ -2778,7 +2778,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             }
 
             private void resolveMonitorEvent(DTVEpgScanner.Event event) {
-                if (DEBUG) Log.d(TAG, "Monitor event: " + event.type + " this:" +this);
+                //if (DEBUG) Log.d(TAG, "Monitor event: " + event.type + " this:" +this);
                 switch (event.type) {
                     case DTVEpgScanner.Event.EVENT_PROGRAM_EVENTS_UPDATE:
                         synchronized (mEpgUpdateLock) {
@@ -2864,13 +2864,13 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                         }
                         break;
                     case DTVEpgScanner.Event.EVENT_TDT_END:
-                        if (DEBUG) Log.d(TAG, "[Time Update]:" + event.time);
-                        if (DEBUG) Log.d(TAG, "[Time]:"+getDateAndTime(event.time*1000));
+                        Log.d(TAG, "[Time Update]:" + event.time);
+                        Log.d(TAG, "[Time]:"+getDateAndTime(event.time*1000));
                         if (mTvTime != null)
                             mTvTime.setTime(event.time * 1000);
                         break;
                     case DTVEpgScanner.Event.EVENT_PROGRAM_AV_UPDATE: {
-                        if (DEBUG) Log.d(TAG, "[AV Update]: ServiceId:" + event.channel.getServiceId()
+                        Log.d(TAG, "[AV Update]: ServiceId:" + event.channel.getServiceId()
                               + " Vid:" + event.channel.getVideoPid()
                               + " Pcr:" + event.channel.getPcrPid()
                               + " Aids:" + Arrays.toString(event.channel.getAudioPids())
@@ -2908,7 +2908,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                         }
                         if (updated) {
                             if (auto_retune_service) {
-                                if (DEBUG) Log.d(TAG, "Retune Current Uri");
+                                Log.d(TAG, "Retune Current Uri");
                                 if (mCurrentUri != null)
                                     switchToSourceInput(mCurrentUri);
                             }
@@ -2916,15 +2916,15 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                     }
                     break;
                     case DTVEpgScanner.Event.EVENT_PROGRAM_NAME_UPDATE: {
-                        if (DEBUG) Log.d(TAG, "[NAME Update]: current: ONID:"+event.channel.getOriginalNetworkId()
+                        Log.d(TAG, "[NAME Update]: current: ONID:"+event.channel.getOriginalNetworkId()
                             +" Version:"+event.channel.getSdtVersion());
-                        if (DEBUG) Log.d(TAG, "\t[Service]: id:"+event.channel.getServiceId() + " name:"+event.channel.getDisplayName());
-                        if (DEBUG) Log.d(TAG, "[NAME Update]: ONID:"+event.services.mNetworkId
+                        Log.d(TAG, "\t[Service]: id:"+event.channel.getServiceId() + " name:"+event.channel.getDisplayName());
+                        Log.d(TAG, "[NAME Update]: ONID:"+event.services.mNetworkId
                             +" TSID:"+event.services.mTSId
                             +" Version:"+event.services.mVersion);
                         for (DTVEpgScanner.Event.ServiceInfosFromSDT.ServiceInfoFromSDT s : event.services.mServices) {
-                            if (DEBUG) Log.d(TAG, "\t[Service]: id:" + s.mId + " type:"+s.mType + " name:"+s.mName);
-                            if (DEBUG) Log.d(TAG, "\t           running:"+s.mRunning + " freeCA:"+s.mFreeCA);
+                            Log.d(TAG, "\t[Service]: id:" + s.mId + " type:"+s.mType + " name:"+s.mName);
+                            Log.d(TAG, "\t           running:"+s.mRunning + " freeCA:"+s.mFreeCA);
                         }
                         synchronized (this) {
                             if (mTvDataBaseManager == null)
@@ -2956,16 +2956,16 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                                     }
                                 }
                             }
-                            if (DEBUG) Log.d(TAG, "found ["+event.services.mServices.size()+"] services in SDT.");
-                            if (DEBUG) Log.d(TAG, "update ["+count+"] services in DB.");
+                            Log.d(TAG, "found ["+event.services.mServices.size()+"] services in SDT.");
+                            Log.d(TAG, "update ["+count+"] services in DB.");
                         }
                     }
                     break;
                     case DTVEpgScanner.Event.EVENT_CHANNEL_UPDATE:
-                        if (DEBUG) Log.d(TAG, "[TS Update]: TS changed, need autoscan.");
+                        Log.d(TAG, "[TS Update]: TS changed, need autoscan.");
                         synchronized (this) {
                             if (tvservice != null) {
-                                if (DEBUG) Log.d(TAG, "[TS Update] Freq:" + tvservice.getFrequency());
+                                Log.d(TAG, "[TS Update] Freq:" + tvservice.getFrequency());
                                 int mode = new TvControlManager.TvMode(tvservice.getType()).getMode();
                                 mUpdateFrequency = tvservice.getFrequency();
 
@@ -3012,15 +3012,15 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
                 @Override
                 public void onChange(boolean selfChange, Uri uri) {
-                    if (DEBUG) Log.d(TAG, "channel changed: selfchange:" + selfChange + " uri:" + uri);
+                    Log.d(TAG, "channel changed: selfchange:" + selfChange + " uri:" + uri);
                     if ((DroidLogicTvUtils.matchsWhich(uri) == DroidLogicTvUtils.MATCH_CHANNEL)//delete
                         || ((DroidLogicTvUtils.matchsWhich(uri) == DroidLogicTvUtils.MATCH_CHANNEL_ID)
                             && (DroidLogicTvUtils.getChannelId(uri) > maxChannel_ID))) { //add
                         if (DroidLogicTvUtils.matchsWhich(uri) == DroidLogicTvUtils.MATCH_CHANNEL) {
-                            if (DEBUG) Log.d(TAG, "channel deleted");
+                            Log.d(TAG, "channel deleted");
                         } else if ((DroidLogicTvUtils.matchsWhich(uri) == DroidLogicTvUtils.MATCH_CHANNEL_ID)
                                    && (DroidLogicTvUtils.getChannelId(uri) > maxChannel_ID)) {
-                            if (DEBUG) Log.d(TAG, "channel added: " + DroidLogicTvUtils.getChannelId(uri) + ">" + maxChannel_ID);
+                            Log.d(TAG, "channel added: " + DroidLogicTvUtils.getChannelId(uri) + ">" + maxChannel_ID);
                         }
                         if (epg_auto_reset)
                             reset();
@@ -3041,7 +3041,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
                 private void updateCCStyleParams() {
                     /*
-                       if (DEBUG) Log.d(TAG, "CCStyleObserver updateCCStyleParams.");
+                       Log.d(TAG, "CCStyleObserver updateCCStyleParams.");
                        CCStyleParams ccParam = getCaptionStyle();
                        DTVSubtitleView.DTVCCParams params = new DTVSubtitleView.DTVCCParams(
                        0,
@@ -3060,7 +3060,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 public void onEnabledChanged(boolean enabled) {
                     //updateCCStyleParams();
                     mCurrentCCEnabled = enabled;
-                    if (DEBUG) Log.d(TAG, "CCStyleObserver onEnabledChanged: " + enabled);
+                    Log.d(TAG, "CCStyleObserver onEnabledChanged: " + enabled);
                 }
 
                 @Override
@@ -3145,40 +3145,40 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                     }
                     mRecordStartTimeMs = mRecordStartTimeMs_0 + param;
 
-                    if (DEBUG) Log.d(TAG, "[timeshift] start:"+new Date(mRecordStartTimeMs).toString());
+                    Log.d(TAG, "[timeshift] start:"+new Date(mRecordStartTimeMs).toString());
                     break;
                 case TvControlManager.EVENT_AV_TIMESHIFT_CURRENT_TIME_CHANGED:
                     mCurrentTimeMs = mRecordStartTimeMs_0 + param;
                     if (mRecordingId == null) {
-                        if (DEBUG) Log.d(TAG, "[timeshift] current:"+new Date(mCurrentTimeMs).toString());
-                        if (DEBUG) Log.d(TAG, "[timeshift] end    :"+new Date().toString());
+                        Log.d(TAG, "[timeshift] current:"+new Date(mCurrentTimeMs).toString());
+                        Log.d(TAG, "[timeshift] end    :"+new Date().toString());
                     } else {
-                        if (DEBUG) Log.d(TAG, "[timeshift] current:"+mCurrentTimeMs);
+                        Log.d(TAG, "[timeshift] current:"+mCurrentTimeMs);
                     }
                     break;
             }
         }
 
         protected void doTimeShiftPause() {
-            if (DEBUG) Log.d(TAG, "[timeshift] doTimeShiftPause:");
+            Log.d(TAG, "[timeshift] doTimeShiftPause:");
             mTvControlManager.pausePlay("atsc");
         }
 
         protected void doTimeShiftResume() {
-            if (DEBUG) Log.d(TAG, "[timeshift] doTimeShiftResume:");
+            Log.d(TAG, "[timeshift] doTimeShiftResume:");
             //mTvControlManager.setPlayParam("atsc", "{\"speed\":1}");
             mTvControlManager.resumePlay("atsc");
         }
 
         protected void doTimeShiftSeekTo(long timeMs) {
             String para = "{\"offset\":"+ (timeMs - mRecordStartTimeMs) + "}";
-            if (DEBUG) Log.d(TAG, "[timeshift] doTimeShiftSeekTo:"+"offset:"+(timeMs - mRecordStartTimeMs));
+            Log.d(TAG, "[timeshift] doTimeShiftSeekTo:"+"offset:"+(timeMs - mRecordStartTimeMs));
             mTvControlManager.seekPlay("atsc", para);
         }
 
         protected void doTimeShiftSetPlaybackParams(PlaybackParams params) {
             int speed = (int)params.getSpeed();
-            if (DEBUG) Log.d(TAG, "[timeshift] doTimeShiftSetPlaybackParams:"+speed);
+            Log.d(TAG, "[timeshift] doTimeShiftSetPlaybackParams:"+speed);
             String param = "{\"speed\":"+speed+"}";
             mTvControlManager.setPlayParam("atsc", param);
         }
@@ -3194,7 +3194,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                     return result;
                 } else {
                     if (c == null) {
-                        if (DEBUG) Log.e(TAG, "Unknown query error for " + this);
+                        Log.e(TAG, "Unknown query error for " + this);
                     } else {
                         if (DEBUG) {
                             Log.d(TAG, "Canceled query for " + this);
@@ -3219,15 +3219,15 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         }
 
         protected void doRecPlay(Uri recordUri) {
-            if (DEBUG) Log.d(TAG, "[timeshift] doRecPlay:"+recordUri);
+            Log.d(TAG, "[timeshift] doRecPlay:"+recordUri);
             mRecordingId = parseRecording(recordUri);
             if (mRecordingId == null) {
-                if (DEBUG) Log.w(TAG, "play failed. Can't find channel for " + recordUri);
+                Log.w(TAG, "play failed. Can't find channel for " + recordUri);
                 notifyVideoUnavailable(
                         TvInputManager.VIDEO_UNAVAILABLE_REASON_UNKNOWN);
                 return;
             }
-            if (DEBUG) Log.d(TAG, "[timeshift] mRecordingId:"+mRecordingId);
+            Log.d(TAG, "[timeshift] mRecordingId:"+mRecordingId);
 
             mTvControlManager.SetAVPlaybackListener(this);
             StringBuilder param =
@@ -3299,7 +3299,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         @Override
         public void onTimeShiftPlay(Uri recordUri) {
             if (recordUri == null) {
-                if (DEBUG) Log.w(TAG, "onTimeShiftPlay() is failed due to null channelUri.");
+                Log.w(TAG, "onTimeShiftPlay() is failed due to null channelUri.");
                 //stopTune();
                 return;
             }
@@ -3720,7 +3720,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
     public TvContentRating[] parseDRatingsT(String jsonString, int programid, TvDataBaseManager tvdatamanager, String title) {
         String RatingDomain = DroidContentRatingsParser.DOMAIN_RRT_RATINGS;
         int rrt5count = 0;
-        if (DEBUG) Log.d(TAG, "parse ratings parseDRatings:"+jsonString + ", title = " + title);
+        //Log.d(TAG, "parse ratings parseDRatings:"+jsonString + ", title = " + title);
         if (jsonString == null || jsonString.isEmpty())
             return null;
 
@@ -3791,7 +3791,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                             if (RatingDomain.equals(ratings[ii].getDomain())) {
                                 RatingList.add(ratings[ii]);
                                 rrt5existcount++;
-                                if (DEBUG) Log.d(TAG, "parse ratings add exist rrt5 rating:"+ratings[ii].flattenToString() + ", title = " + title);
+                                Log.d(TAG, "parse ratings add exist rrt5 rating:"+ratings[ii].flattenToString() + ", title = " + title);
                             }
                         }
                     }
@@ -3813,19 +3813,19 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             for (int k = ratings_vchip.length; k < ratings_all.length; k++) {
                 ratings_all[k] = RatingList.get(k - ratings_vchip.length);
             }
-            Log.d(TAG, "parse ratings mixed vchip & rrt5"  + ", title = " + title);
+            Log.v(TAG, "parse ratings mixed vchip & rrt5"  + ", title = " + title);
         } else if (ratings_vchip != null && ratings_vchip.length > 0) {
             ratings_all = ratings_vchip;
-            Log.d(TAG, "parse ratings vchip only " + ", title = " + title);
+            Log.v(TAG, "parse ratings vchip only " + ", title = " + title);
         } else if (RatingList != null && RatingList.size() > 0) {
             ratings_all = new TvContentRating[RatingList.size()];
             for (int k = 0; k < ratings_all.length; k++) {
                 ratings_all[k] = RatingList.get(k);
             }
-            Log.d(TAG, "parse ratings rrt5 only " + ", title = " + title);
+            Log.v(TAG, "parse ratings rrt5 only " + ", title = " + title);
         } else {
             ratings_all = null;
-            Log.d(TAG, "parse ratings null " + ", title = " + title);
+            Log.v(TAG, "parse ratings null " + ", title = " + title);
         }
         return ratings_all;
     }

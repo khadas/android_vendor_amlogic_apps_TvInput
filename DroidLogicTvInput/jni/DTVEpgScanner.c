@@ -96,12 +96,11 @@ struct sdt_service{
 
 EPGChannelData gChannelMonitored = {.valid = 0};
 static int epg_conf_get(char *prop, int def) {
-    char v[128];
-    int val = 0;
-    property_get(prop, v, "0");
-    if (sscanf(v, "%d", &val) != 1)
-        val = def;
-    return val;
+    return property_get_int32(prop, def);
+}
+
+static void setDvbDebugLoglevel() {
+    AM_DebugSetLogLevel(property_get_int32("tv.dvb.loglevel", 1));
 }
 
 static void epg_on_event(jobject obj, EPGEventData *evt_data)
@@ -994,6 +993,9 @@ static void epg_create(JNIEnv* env, jobject obj, jint fend_id, jint dmx_id, jint
         log_error("malloc failed");
         return;
     }
+
+    setDvbDebugLoglevel();
+
     data->dmx_id = dmx_id;
     log_info("Opening demux%d ...", dmx_id);
     memset(&dmx_para, 0, sizeof(dmx_para));
@@ -1072,6 +1074,8 @@ static void epg_change_mode(JNIEnv* env, jobject obj, jint op, jint mode)
 {
     EPGData *data;
     AM_ErrorCode_t ret;
+
+    setDvbDebugLoglevel();
 
     data = (EPGData*)(long)((*env)->GetLongField(env, obj, gHandleID));
 

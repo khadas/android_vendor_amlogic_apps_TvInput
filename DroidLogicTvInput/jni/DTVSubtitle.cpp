@@ -355,21 +355,30 @@ error:
         return data->sub_h;
     }
 
-    unsigned long getSDKVersion()
-    {
-        char prop_value[PROPERTY_VALUE_MAX];
-        const char *strDelimit = ".";
-        unsigned long version = 0;
+unsigned long sub_config_get(char *config, unsigned long def)
+{
+    char prop_value[PROPERTY_VALUE_MAX], tmp[32];
 
-        memset(prop_value, '\0', PROPERTY_VALUE_MAX);
-        property_get("ro.build.version.sdk", prop_value, "SDK_VERSION_ERR");
-        LOGE("VERSION_NUM %s", prop_value);
-        if (strcmp(prop_value, "\0") != 0) {
-            version = strtol(prop_value, NULL, 10);
-            LOGE("VERSION_NUM --- %ld", version);
-        }
-        return version;
+    memset(tmp, 0, sizeof(tmp));
+    snprintf(tmp, sizeof(tmp)-1, "%d", def);
+    memset(prop_value, '\0', PROPERTY_VALUE_MAX);
+    property_get(config, prop_value, "");
+    if (strcmp(prop_value, "\0") != 0) {
+        def = strtol(prop_value, NULL, 10);
     }
+    return def;
+}
+
+static void setDvbDebugLogLevel() {
+    AM_DebugSetLogLevel(property_get_int32("tv.dvb.loglevel", 1));
+}
+
+unsigned long getSDKVersion()
+{
+    unsigned long version = sub_config_get("ro.build.version.sdk", 0);
+    LOGE("VERSION_NUM --- %ld", version);
+    return version;
+}
 
     static jint sub_init(JNIEnv *env, jobject obj)
     {
@@ -390,6 +399,7 @@ error:
         data->sub_w = 720;
         data->sub_h = 576;
 
+        setDvbDebugLogLevel();
         return 0;
     }
 
@@ -448,6 +458,8 @@ error:
         AM_SUB2_Para_t subp;
         int ret;
 
+        setDvbDebugLogLevel();
+
         memset(&pesp, 0, sizeof(pesp));
         pesp.packet    = pes_sub_cb;
         pesp.user_data = data;
@@ -492,6 +504,8 @@ error:
         AM_PES_Para_t pesp;
         AM_TT2_Para_t ttp;
         int ret;
+
+        setDvbDebugLogLevel();
 
         if (!data->tt_handle) {
             memset(&ttp, 0, sizeof(ttp));
@@ -637,6 +651,8 @@ error:
         AM_CC_StartPara_t spara;
         int ret;
 
+        setDvbDebugLogLevel();
+
         LOGI("start cc: caption %d, fgc %d, bgc %d, fgo %d, bgo %d, fsize %d, fstyle %d",
                 caption, fg_color, bg_color, fg_opacity, bg_opacity, font_size, font_style);
 
@@ -714,6 +730,8 @@ error:
     {
         TVSubtitleData *data = sub_get_data(env, obj);
         AM_CC_UserOptions_t param;
+
+        setDvbDebugLogLevel();
 
         memset(&param, 0, sizeof(AM_CC_UserOptions_t));
         param.bg_color    = (AM_CC_Color_t)bg_color;
