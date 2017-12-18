@@ -454,6 +454,11 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
 
     @Override
     public void onClick(View v) {
+        //At the moment, if dtv_type_switched is 1 in Settings, make it 0,
+        //otherwise, when searching channel finished, retreat from LiveTv and lunch LiveTv again, or click Menu-->Channel,
+        //it will execute resumeTvIfNeeded and send broadcast to switch channel automatically, so it should be avoid.
+        resetDTVTypeSwitched();
+
         switch (v.getId()) {
             case R.id.tune_manual:
                 if (ShowNoAtvFrequencyOrChannel()) {
@@ -472,13 +477,6 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
                 break;
             default:
                 break;
-        }
-        //At the moment, if dtv_type_switched is 1 in Settings, make it 0,
-        //otherwise, when searching channel finished, retreat from LiveTv and lunch LiveTv again, or click Menu-->Channel,
-        //it will execute resumeTvIfNeeded and send broadcast to switch channel automatically, so it should be avoid.
-        int isDtvTypeSwitched = Settings.System.getInt(this.getContentResolver(), DroidLogicTvUtils.DTV_TYPE_SWITCHED, 0);
-        if (isDtvTypeSwitched == 1) {
-            Settings.System.putInt(this.getContentResolver(), DroidLogicTvUtils.DTV_TYPE_SWITCHED, 0);
         }
     }
 
@@ -542,12 +540,24 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
         }
     };
 
+    public void resetDTVTypeSwitched() {
+        int isDtvTypeSwitched = Settings.System.getInt(this.getContentResolver(), DroidLogicTvUtils.DTV_TYPE_SWITCHED, 0);
+        if (isDtvTypeSwitched == 1) {
+            Settings.System.putInt(this.getContentResolver(), DroidLogicTvUtils.DTV_TYPE_SWITCHED, 0);
+        }
+    }
+
     public OptionUiManagerT getOptionUiManager () {
         return mOptionUiManagerT;
     }
 
     @Override
     public void finish() {
+        //At the moment, if dtv_type_switched is 1 in Settings, make it 0,
+        //otherwise, when switch DTV Type in ChannelSearchActivity, but don't search channel and push the EXIT key to return to LiveTv,
+        //it will do resumeTvIfNeeded and the current channel will be switched to next one, so this can't happen.
+        resetDTVTypeSwitched();
+
         isFinished = true;
 
         if (!mPowerManager.isScreenOn()) {
