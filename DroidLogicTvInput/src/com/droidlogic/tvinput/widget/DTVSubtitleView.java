@@ -109,7 +109,6 @@ public class DTVSubtitleView extends View {
     public static final int CC_COLOR_CYAN = 8;
 
     private int init_count = 0;
-    public String cc_json_str;
     CaptioningManager captioningManager;
     CcImplement.CaptionWindow cw;
     CustomFonts cf;
@@ -846,20 +845,14 @@ public class DTVSubtitleView extends View {
 
     public void setVisible(boolean value) {
         Log.d(TAG, "force set visible to:" + value);
-        if (!value) {
-            synchronized (json_lock) {
-                cc_json_str = new String("");
-            }
-        }
         visible = value;
     }
 
     private SubtitleDataListener mSubtitleDataListener = null;
 
     public void saveJsonStr(String str) {
-        this.cc_json_str = str;
-        if (ci != null && cc_json_str != null) {
-            CcImplement.CaptionWindow new_cw = ci.new CaptionWindow(cc_json_str);
+        if (str != null) {
+            CcImplement.CaptionWindow new_cw = ci.new CaptionWindow(str);
             synchronized (json_lock) {
                 cw = new_cw;
             }
