@@ -114,6 +114,8 @@ public class DTVSubtitleView extends View {
     CustomFonts cf;
     CcImplement ci;
 
+    private boolean isPreWindowMode = false;
+
     private native int native_sub_init();
     private native int native_sub_destroy();
     private native int native_sub_lock();
@@ -270,7 +272,8 @@ public class DTVSubtitleView extends View {
     private static DTVSubtitleView activeView = null;
     private void update() {
         //Log.e(TAG, "update");
-        postInvalidate();
+        if (!isPreWindowMode)
+            postInvalidate();
     }
 
     private void stopDecoder() {
@@ -430,7 +433,8 @@ public class DTVSubtitleView extends View {
                 /*}else if (activeView == this){
                   activeView = null;*/
                 }
-        postInvalidate();
+            if (!isPreWindowMode)
+                postInvalidate();
         }
     }
 
@@ -792,6 +796,16 @@ public class DTVSubtitleView extends View {
             native_sub_tt_search_next(-1);
         }
     }
+
+
+    /**
+     * set the flag to indecate the preview window mode
+     * @param flag [description]
+     */
+    public void setPreviewWindowMode(boolean flag) {
+        isPreWindowMode = flag;
+    }
+
     @Override
     public void onDraw(Canvas canvas) {
         Rect sr;

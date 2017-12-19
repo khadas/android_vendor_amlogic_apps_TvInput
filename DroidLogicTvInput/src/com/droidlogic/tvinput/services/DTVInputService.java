@@ -491,6 +491,16 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             return setSurfaceInService(surface,this);
         }
 
+         @Override
+        public void onOverlayViewSizeChanged(int width, int height) {
+            Log.d(TAG, "onOverlayViewSizeChanged: "+width+","+height);
+            if (width < 720 || height < 480) {
+                mSubtitleView.setPreviewWindowMode(true);
+            } else {
+                mSubtitleView.setPreviewWindowMode(false);
+            }
+        }
+
         private boolean isTuning = false;
         private static final int DELAY_TUNE = 1500;
         @Override
