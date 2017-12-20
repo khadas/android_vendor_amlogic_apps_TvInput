@@ -179,6 +179,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 if (action.equals(TvInputManager.ACTION_BLOCKED_RATINGS_CHANGED)
                     || action.equals(TvInputManager.ACTION_PARENTAL_CONTROLS_ENABLED_CHANGED)) {
                     Log.d(TAG, "BLOCKED_RATINGS_CHANGED");
+                    mCurrentSession.checkIsNeedClearUnblockRating();
                     mCurrentSession.checkCurrentContentBlockNeeded();
                 } else if (action.equals(Intent.ACTION_TIME_CHANGED)) {
                     Log.d(TAG, "SysTime changed.");
@@ -724,6 +725,20 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 mHandlerThread.quit();
                 mHandlerThread = null;
                 mHandler = null;
+            }
+        }
+
+        protected void checkIsNeedClearUnblockRating() {
+            boolean isParentControlEnabled = mTvInputManager.isParentalControlsEnabled();
+            Log.d(TAG, "checkIsNeedClearUnblockRating  isParentControlEnabled = " + isParentControlEnabled);
+            if (isParentControlEnabled) {
+                Iterator<TvContentRating> rateIter = mUnblockedRatingSet.iterator();
+                while (rateIter.hasNext()) {
+                    TvContentRating rating = rateIter.next();
+                    if (mTvInputManager.isRatingBlocked(rating)) {
+                        mUnblockedRatingSet.remove(rating);
+                    }
+                }
             }
         }
 
