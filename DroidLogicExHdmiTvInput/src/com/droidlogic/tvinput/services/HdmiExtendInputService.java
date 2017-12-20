@@ -1,4 +1,4 @@
-package com.droidlogic.tvinput.services;
+package com.droidlogic.DroidLogicExHdmiTvInput.services;
 
 import java.io.IOException;
 import java.util.List;
@@ -31,7 +31,7 @@ import com.droidlogic.app.tv.DroidLogicTvUtils;
 
 import android.view.View;
 import android.view.LayoutInflater;
-import com.droidlogic.tvinput.R;
+import com.droidlogic.DroidLogicExHdmiTvInput.R;
 
 public class HdmiExtendInputService extends TvInputService {
     private static final String TAG = "HdmiExtendInputService";
