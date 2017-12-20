@@ -808,10 +808,11 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 Log.w(TAG, "Failed to get channel info for " + uri);
                 mTvControlManager.SetAVPlaybackListener(null);
             }
-
-            mEASProcessManager.SetCurDisplayNum(mCurrentChannel.getDisplayNumber());
-            mEASProcessManager.SetCurInputId(getInputId());
-            mEASProcessManager.SetCurUri(mCurrentUri);
+            if (mCurrentChannel != null) {
+                mEASProcessManager.SetCurDisplayNum(mCurrentChannel.getDisplayNumber());
+                mEASProcessManager.SetCurInputId(getInputId());
+                mEASProcessManager.SetCurUri(mCurrentUri);
+            }
         }
 
         protected void prepareChannelInfo(ChannelInfo channel) {
@@ -3866,7 +3867,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
     @Override
     public void processDetailsChannelAlert(EasEvent easEvent){
           if (DEBUG) Log.d(TAG,"processDetailsChannelAlert");
-          if (mCurrentSession != null) {
+          if (mCurrentSession != null && mCurrentSession.mCurrentChannel != null) {
               mEASProcessManager.SetCurDisplayNum(mCurrentSession.mCurrentChannel.getDisplayNumber());
               mEASProcessManager.SetCurInputId(mCurrentSession.getInputId());
               mEASProcessManager.SetCurUri(mCurrentSession.mCurrentUri);

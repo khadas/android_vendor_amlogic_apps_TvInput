@@ -16,11 +16,12 @@ import com.droidlogic.app.tv.EasEvent;
 
 public class EASProcessManager{
     private static final String TAG = "EASProcessManager";
-
+    private static final int CHANNEL_NUMBER_IS_INVALID = 0;
     private Context mContext;
     private ArrayList<ChannelInfo> channelList;
     private  Handler mHandler = null;
     private Uri mOriginalChannel = null;
+    private String mOriginalDispNum = null;
     private boolean isEasInProgress = false;
     private static boolean DEBUG = true;
     private static final String MAJOR_NUM = "majorNum";
@@ -54,28 +55,42 @@ public class EASProcessManager{
     public boolean isEasInProgress() {
         return isEasInProgress;
     }
-    //private HashMap<String,Integer> getChanelMajorAndMinorNumber(ChannelInfo channel){
+
     private HashMap<String,Integer> getChanelMajorAndMinorNumber(String dispNum){
-        HashMap<String,Integer> channelMajorAndMinorNum = new HashMap<>();
-        ChannelNumber channelNum = new ChannelNumber();
-        //ChannelNumber channelNumber = channelNum.parseChannelNumber(channel.getDisplayNumber());
-        ChannelNumber channelNumber = channelNum.parseChannelNumber(dispNum);
-        channelMajorAndMinorNum.put(MAJOR_NUM,Integer.parseInt(channelNumber.majorNumber));
-        channelMajorAndMinorNum.put(MINOR_NUM,Integer.parseInt(channelNumber.minorNumber));
-        return channelMajorAndMinorNum;
+        try {
+            HashMap<String,Integer> channelMajorAndMinorNum = new HashMap<>();
+            ChannelNumber channelNum = new ChannelNumber();
+            ChannelNumber channelNumber = channelNum.parseChannelNumber(dispNum);
+            channelMajorAndMinorNum.put(MAJOR_NUM,parseChannelNumberToInt(channelNumber.majorNumber));
+            channelMajorAndMinorNum.put(MINOR_NUM,parseChannelNumberToInt(channelNumber.minorNumber));
+            return channelMajorAndMinorNum;
+        } catch (Exception e) {
+            Log.i(TAG,"getChanelMajorAndMinorNumber,dispNum = "+dispNum,e);
+            return null;
+        }
+    }
+
+    private int parseChannelNumberToInt(String num){
+        if (num == null || num.equals("")) {
+            return CHANNEL_NUMBER_IS_INVALID;
+        }else {
+            return Integer.parseInt(num);
+        }
     }
 
     private void setOriginalChannel(){
         if (!isEasInProgress) {
             mOriginalChannel = mCurrentUri;
-            if (DEBUG) Log.d(TAG,"setOriginalChannel = "+mOriginalChannel);
+            mOriginalDispNum = mCurDispNum;
+            if (DEBUG) Log.d(TAG,"setOriginalChannel = "+mOriginalChannel+",setOriginalDispNum ="+mOriginalDispNum);
         }
     }
 
     private boolean isAlreadyTuneToDetailsChannel(int majorNum, int minorNum){
         if (DEBUG) Log.d(TAG,"isAlreadyTuneToDetailsChannel,mCurDispNum = "+mCurDispNum);
         HashMap<String,Integer> curChannelNum = getChanelMajorAndMinorNumber(mCurDispNum);
-        //HashMap<String,Integer> curChannelNum = getChanelMajorAndMinorNumber(mCurrentSession.mCurrentChannel);
+        if (curChannelNum == null)
+            return false;
         if (DEBUG) Log.d(TAG,"curChannelNum.major = "+curChannelNum.get(MAJOR_NUM)+", majr num = "+majorNum);
         if (curChannelNum.get(MAJOR_NUM) == majorNum && curChannelNum.get(MINOR_NUM) == minorNum)
             return true;
@@ -87,10 +102,9 @@ public class EASProcessManager{
         channelList = mTvDataBaseManager.getChannelList(mInputId, ChannelInfo.COMMON_PROJECTION, null, null);
         if (channelList != null) {
             for (ChannelInfo singleChannel : channelList) {
-                //HashMap<String,Integer> singleChannelNum = getChanelMajorAndMinorNumber(singleChannel);
-                String curDispNum = null;
-                if (singleChannel != null)
-                    curDispNum = singleChannel.getDisplayNumber();
+                if (singleChannel == null)
+                    continue;
+                String curDispNum = singleChannel.getDisplayNumber();
                 if (DEBUG) Log.d(TAG,"getDetailsChannel,curDispNum = "+curDispNum);
                 HashMap<String,Integer> singleChannelNum = getChanelMajorAndMinorNumber(curDispNum);
                 if (singleChannelNum.get(MAJOR_NUM) == majorNum && singleChannelNum.get(MINOR_NUM) == minorNum) {
@@ -99,6 +113,18 @@ public class EASProcessManager{
             }
         }
         return null;
+    }
+
+    private boolean isChannelExists(String dispNum){
+        channelList = mTvDataBaseManager.getChannelList(mInputId, ChannelInfo.COMMON_PROJECTION, null, null);
+        if (channelList != null) {
+            for (ChannelInfo singleChannel : channelList) {
+                if (singleChannel != null && singleChannel.getDisplayNumber().equals(dispNum)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private String getAlertText(EasEvent easEvent){
@@ -139,8 +165,8 @@ public class EASProcessManager{
                 Uri channelUri = TvContract.buildChannelUri(detailChannel.getId());
                 launchLiveTv(channelUri);
             }else {
-                if (DEBUG)
-                    if (DEBUG) Log.d(TAG,"detail channel is unavailable");
+                if (DEBUG) Log.d(TAG,"detail channel is unavailable");
+                return;
             }
         }
         showAlertText(getAlertText(easEvent));
@@ -156,8 +182,10 @@ public class EASProcessManager{
                 public void run() {
                     if (DEBUG) Log.d(TAG,"mTuneToOriginalChannelRunnable");
                     isEasInProgress = false;
-                        mCallback.onEasEnd();
-                    launchLiveTv(mOriginalChannel);
+                    mCallback.onEasEnd();
+                    if (isChannelExists(mOriginalDispNum)) {
+                        launchLiveTv(mOriginalChannel);
+                    }
                 }
             };
 
@@ -173,12 +201,11 @@ public class EASProcessManager{
             };
 
 
-    private void launchLiveTv(Uri uri)    {
-       if (DEBUG) Log.d(TAG, "launchLiveTv="+uri);
-
-           Intent intent = new Intent(Intent.ACTION_VIEW);
-           intent.setData(uri);
-           mContext.startActivity(intent);
+    private void launchLiveTv(Uri uri) {
+        if (DEBUG) Log.d(TAG, "launchLiveTv="+uri);
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(uri);
+        mContext.startActivity(intent);
    }
 
     public  class ChannelNumber {
