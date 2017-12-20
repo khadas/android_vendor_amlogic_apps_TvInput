@@ -815,6 +815,7 @@ public class DTVSubtitleView extends View {
             clear_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
             canvas.drawPaint(clear_paint);
             clear_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC));
+            cw = null;
             return;
         }
         if (!ci.cc_setting.is_enabled)
