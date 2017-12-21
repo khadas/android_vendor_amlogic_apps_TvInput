@@ -443,6 +443,9 @@ public class AV1InputService extends DroidLogicTvInputService {
 
                 Log.d(TAG, "ccc tryPrefer, exist["+exist+"] to["+to+"] Enable["+mCurrentCCEnabled+"]");
 
+                if (mCurrentCCStyle == to)//already show
+                    return 0;
+
                 if (to != -1 && (mCurrentCCStyle != to)) {
                     mCurrentCCStyle = to;
                     startSubtitle();//startSubtitle(s);
@@ -458,7 +461,7 @@ public class AV1InputService extends DroidLogicTvInputService {
             Log.d(TAG, "start bg cc for xds");
             startSubtitle();
             enableSubtitleShow(false);
-            mCurrentCCStyle = -1;
+            //mCurrentCCStyle = -1;
             //mSystemControlManager.setProperty(DTV_SUBTITLE_TRACK_IDX, "-3");
         }
 
@@ -544,12 +547,13 @@ public class AV1InputService extends DroidLogicTvInputService {
                 return;
             }
             Log.d(TAG, "mCurrentCCStyle:"+mCurrentCCStyle);
-            if (mCurrentCCStyle == -1) {
+            int temp = mCurrentCCStyle;
+            if (temp == -1) {
                 int ccPrefer =  mSystemControlManager.getPropertyInt(DTV_SUBTITLE_CC_PREFER, -1);
-                mCurrentCCStyle = ccPrefer > 0 ? ccPrefer : ChannelInfo.Subtitle.CC_CAPTION_CC1 ;
+                temp = ccPrefer > 0 ? ccPrefer : ChannelInfo.Subtitle.CC_CAPTION_VCHIP_ONLY;//parse xds vchip only
             }
             mSubtitleView.stop();
-            setSubtitleParam(ChannelInfo.Subtitle.TYPE_ATV_CC, mCurrentCCStyle, 0, 0, 0);//we need xds data
+            setSubtitleParam(ChannelInfo.Subtitle.TYPE_ATV_CC, mCurrentCCStyle == -1 ? temp : mCurrentCCStyle, 0, 0, 0);//we need xds data
 
             mSubtitleView.setActive(true);
             mSubtitleView.startSub();
