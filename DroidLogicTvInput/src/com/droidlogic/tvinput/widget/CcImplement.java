@@ -1188,6 +1188,20 @@ public class CcImplement {
 
                     void draw_str(Canvas canvas, String str, float left, float bottom, Paint paint)
                     {
+                        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+                        if (ccVersion.matches("cea708")) {
+                            canvas.drawText(str, left, bottom, paint);
+                        } else {
+                            int i, l = str.length();
+                            float x = left;
+
+                            for (i = 0; i < l; i++) {
+                                String sub = str.substring(i, i + 1);
+                                canvas.drawText(sub, x, bottom, paint);
+                                x += caption_screen.fixed_char_width;
+                            }
+                        }
+                        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.ADD));
                         if (ccVersion.matches("cea708")) {
                             canvas.drawText(str, left, bottom, paint);
                         } else {
