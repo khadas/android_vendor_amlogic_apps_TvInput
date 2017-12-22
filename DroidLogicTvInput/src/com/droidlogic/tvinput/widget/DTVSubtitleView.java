@@ -324,7 +324,8 @@ public class DTVSubtitleView extends View {
 
                 if (native_sub_init() < 0) {
                 }
-                setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+
+                //setLayerType(View.LAYER_TYPE_SOFTWARE, null);
 
                 cf = new CustomFonts(getContext());
                 if (ci == null) {
