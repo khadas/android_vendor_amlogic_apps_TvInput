@@ -191,6 +191,7 @@ public class CcImplement {
         double max_font_width;
         double max_font_size;
         double fixed_char_width;
+        float window_border_width;
         final int cc_row_count = 15;
         final int cc_col_count = 32;
 
@@ -209,6 +210,7 @@ public class CcImplement {
             anchor_vertical = 75;
             anchor_horizon_density = safe_title_width / anchor_horizon;
             anchor_vertical_density = safe_title_height / anchor_vertical;
+            window_border_width = (float)(max_font_height/6);
         }
 
         double getWindowLeftTopX(boolean anchor_relative, int anchor_h, int anchor_point, double row_length)
@@ -224,10 +226,10 @@ public class CcImplement {
             else
                 /* anchor_h is percentage */
                 anchor_x = safe_title_width * anchor_h / 100 + safe_title_to_top_screen_edge;
-            Log.e(TAG,
-                    "anchor relative " + anchor_relative +
-                    " horizon density " + anchor_horizon_density
-                    + " h " + anchor_h + " point " + anchor_point + " " + width + " safe width " + safe_title_width);
+            // Log.e(TAG,
+            //        "anchor relative " + anchor_relative +
+            //        " horizon density " + anchor_horizon_density
+            //        + " h " + anchor_h + " point " + anchor_point + " " + width + " safe width " + safe_title_width);
             switch (anchor_point)
             {
                 case 0:
@@ -263,12 +265,12 @@ public class CcImplement {
                 /* anchor_v is percentage */
                 anchor_y = safe_title_height * anchor_v / 100 + safe_title_to_left_screen_edge;
 
-            Log.e(TAG,
-                    "anchor relative " + anchor_relative +
-                    " vertical density "+anchor_horizon_density +
-                    " v "+anchor_v+
-                    " point " + anchor_point +
-                    " " + height);
+            // Log.e(TAG,
+            //        "anchor relative " + anchor_relative +
+            //        " vertical density "+anchor_horizon_density +
+            //        " v "+anchor_v+
+            //        " point " + anchor_point +
+            //        " " + height);
 
             switch (anchor_point)
             {
@@ -324,15 +326,15 @@ public class CcImplement {
                     cc_locale = cm.getLocale();
                     font_scale = cm.getFontScale();
                     is_enabled = cm.isEnabled();
-                    Log.e(TAG, "Caption manager enable: " + is_enabled);
+                    // Log.e(TAG, "Caption manager enable: " + is_enabled);
                     stroke_width = 0;
                     /* When use preset setting of cc, such as black on white,
                      * font face will be null */
                     //type_face = cs.getTypeface();
                     /* We need to find out the selected fontface name ourself,
                      * and load the face from local area */
-                    Log.e(TAG, "typeface name " + Settings.Secure.getString(context.getContentResolver(),
-                                "accessibility_captioning_typeface"));
+                    // Log.e(TAG, "typeface name " + Settings.Secure.getString(context.getContentResolver(),
+                    //            "accessibility_captioning_typeface"));
                     type_face = cs.getTypeface();
                     has_background_color = cs.hasBackgroundColor();
                     has_edge_color = cs.hasEdgeColor();
@@ -349,7 +351,7 @@ public class CcImplement {
                     edge_type = cs.edgeType;
                 }
             }
-            dump();
+            // dump();
         }
         void dump()
         {
@@ -441,14 +443,17 @@ public class CcImplement {
             String print_direction;
             String scroll_direction;
             boolean wordwrap;
-            String display_effect;
-            String effect_direction;
             int effect_speed;
             String fill_opacity;
             int fill_color;
             String border_type;
             int border_color;
             double pensize_window_depend;
+
+            String display_effect;
+            String effect_direction;
+            String effect_status;
+            int effect_percent;
 
             final double window_edge_rate = 0.15;
             double window_edge_width;
@@ -500,6 +505,8 @@ public class CcImplement {
                         fill_opacity_int = cc_setting.window_opacity;
                         fill_color = cc_setting.window_color;
                         border_type = "none";
+                        effect_percent = windowStr.getInt("effect_percent");
+                        effect_status = windowStr.getString("effect_status");
                     }
                     else {
                         fill_opacity = windowStr.getString("fill_opacity");
@@ -612,6 +619,7 @@ public class CcImplement {
                     window_paint.setAlpha(fill_opacity_int);
                 }
                 canvas.drawRect((float) window_left, (float) window_top, (float) window_right, (float) window_bottom, window_paint);
+                // Log.e(TAG, "window rect " + window_left + " " + window_right + " " + window_top + " " + window_bottom);
 
 
                 /* Draw rows */
@@ -619,13 +627,67 @@ public class CcImplement {
                     if (rows[i].rowArray.length() != 0)
                         rows[i].draw(canvas);
                 }
+
+                if (ccVersion.equalsIgnoreCase("cea708")) {
+                    double rect_left, rect_right, rect_top, rect_bottom;
+                    if (display_effect.equalsIgnoreCase("fade")) {
+                        float border = caption_screen.window_border_width;
+                        Paint fade_paint = new Paint();
+                        fade_paint.setColor(Color.WHITE);
+                        fade_paint.setAlpha(effect_percent*255/100);
+                        fade_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SCREEN));
+                        canvas.drawRect((float)window_left - border,
+                                (float)window_top - border,
+                                (float)window_right + border,
+                                (float)window_bottom + border,
+                                fade_paint);
+
+                    } else if (display_effect.equalsIgnoreCase("wipe")) {
+                        float border = caption_screen.window_border_width;
+                        if (effect_direction.equalsIgnoreCase("left_right")) {
+                            rect_left = window_start_x - border;
+                            rect_right = window_start_x + window_width * effect_percent /100 + border;
+                            rect_top = window_top - border;
+                            rect_bottom = window_bottom + border;
+                        } else if (effect_direction.equalsIgnoreCase("right_left")) {
+                            rect_left = window_start_x + window_width * (100 - effect_percent)/100 - border;
+                            rect_right = window_start_x + window_width + border;
+                            rect_top = window_top - border;
+                            rect_bottom = window_bottom + border;
+                        } else if (effect_direction.equalsIgnoreCase("top_bottom")) {
+                            rect_left = window_start_x - border;
+                            rect_right = window_start_x + window_width + border;
+                            rect_top = window_top - border;
+                            rect_bottom = window_top + (window_bottom - window_top) * effect_percent/100 + border;
+                        } else if (effect_direction.equalsIgnoreCase("bottom_top")) {
+                            rect_left = window_start_x - border;
+                            rect_right = window_start_x + window_width + border;
+                            rect_top = window_top + (window_bottom - window_top) * (100 - effect_percent)/100 - border;
+                            rect_bottom = window_bottom + border;
+                        } else {
+                            rect_left = 0;
+                            rect_bottom = 0;
+                            rect_top = 0;
+                            rect_right = 0;
+                        }
+                        Paint wipe_paint = new Paint();
+                        wipe_paint.setColor(Color.WHITE);
+                        wipe_paint.setAlpha(0);
+                        wipe_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+                        canvas.drawRect((float)rect_left,
+                                (float)rect_top,
+                                (float)rect_right,
+                                (float)rect_bottom,
+                                wipe_paint);
+                    }
+                }
             }
             void draw_border(Canvas canvas, Paint paint, String border_type,
                     float l, float t, float r, float b,
                     int border_color)
             {
                 Paint shadow_paint = new Paint();
-                float gap = (float)(caption_screen.max_font_height/6);
+                float gap = (float)(caption_screen.window_border_width);
                 //Log.e(TAG, "Border type " + border_type + " left " + l + " right " + r + " top " + t + " bottom " + b);
                 //shadow_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.LIGHTEN));
                 shadow_paint.setColor(Color.GRAY);

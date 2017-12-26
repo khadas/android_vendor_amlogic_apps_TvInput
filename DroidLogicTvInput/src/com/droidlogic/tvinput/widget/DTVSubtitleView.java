@@ -113,6 +113,7 @@ public class DTVSubtitleView extends View {
     private CcImplement.CaptionWindow cw = null;
     private CustomFonts cf = null;
     private CcImplement ci = null;
+    private String json_str;
 
     private boolean isPreWindowMode = false;
 
@@ -810,6 +811,7 @@ public class DTVSubtitleView extends View {
     @Override
     public void onDraw(Canvas canvas) {
         Rect sr;
+        String json_data;
         if (!active || !visible || (play_mode == PLAY_NONE)) {
             /* Clear canvas */
             Paint clear_paint = new Paint();
@@ -832,10 +834,19 @@ public class DTVSubtitleView extends View {
 
         ci.caption_screen.updateCaptionScreen(canvas.getWidth(), canvas.getHeight());
         //ci.cc_setting.UpdateCcSetting(captioningManager);
-        synchronized (json_lock) {
-            if (cw != null)
-                cw.draw(canvas);
+        Paint clear_paint = new Paint();
+        clear_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+        canvas.drawPaint(clear_paint);
+        if (!json_str.isEmpty()) {
+            synchronized (json_lock) {
+                json_data = new String(json_str);
+            }
+            if (!json_data.isEmpty() && ci != null) {
+                CcImplement.CaptionWindow captionWindow = ci.new CaptionWindow(json_data);
+                captionWindow.draw(canvas);
+            }
         }
+
         //        native_sub_lock();
         //        native_sub_unlock();
     }
@@ -869,14 +880,11 @@ public class DTVSubtitleView extends View {
     public void saveJsonStr(String str) {
         if (activeView != this)
             return;
-        if (ci != null && str != null) {
-            CcImplement.CaptionWindow new_cw = ci.new CaptionWindow(str);
+        if (!str.isEmpty()) {
             synchronized (json_lock) {
-                cw = new_cw;
+                json_str = new String(str);
             }
         }
-        else
-            cw = null;
     }
 
     public void updateData(String json) {
