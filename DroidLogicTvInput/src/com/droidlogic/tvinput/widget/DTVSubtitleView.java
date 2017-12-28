@@ -108,12 +108,12 @@ public class DTVSubtitleView extends View {
     public static final int CC_COLOR_MAGENTA = 7;
     public static final int CC_COLOR_CYAN = 8;
 
-    private int init_count = 0;
-    private CaptioningManager captioningManager = null;
-    private CcImplement.CaptionWindow cw = null;
-    private CustomFonts cf = null;
-    private CcImplement ci = null;
-    private String json_str;
+    private static int init_count = 0;
+    private static CaptioningManager captioningManager = null;
+    private static CcImplement.CaptionWindow cw = null;
+    private static CustomFonts cf = null;
+    private static CcImplement ci = null;
+    private static String json_str;
 
     private boolean isPreWindowMode = false;
 
@@ -268,8 +268,8 @@ public class DTVSubtitleView extends View {
     private static SubParams sub_params;
     private static TTParams  tt_params;
     private static int       play_mode;
-    private static boolean   visible;
-    private static boolean   destroy;
+    private boolean   visible;
+    private boolean   destroy;
     private static DTVSubtitleView activeView = null;
     private void update() {
         //Log.e(TAG, "update");
@@ -380,7 +380,7 @@ public class DTVSubtitleView extends View {
                 Log.e(TAG, "subtitle view init");
 
             }
-            init_count++;
+            init_count = 1;
         }
     }
 
@@ -427,14 +427,18 @@ public class DTVSubtitleView extends View {
      * @param active 活跃/不活跃
      */
     public void setActive(boolean active) {
-        synchronized(lock) {
+        synchronized (lock) {
+            if (active && (activeView != this) && (activeView != null)) {
+                activeView.stopDecoder();
+                activeView.active = false;
+            }
             native_sub_set_active(active);
             this.active = active;
             if (active) {
                 activeView = this;
                 /*}else if (activeView == this){
                   activeView = null;*/
-                }
+            }
             if (!isPreWindowMode)
                 postInvalidate();
         }
@@ -519,7 +523,7 @@ public class DTVSubtitleView extends View {
         }
     }
 
-    public static void setCaptionParams(DTVCCParams params) {
+    public void setCaptionParams(DTVCCParams params) {
         synchronized(lock) {
             sub_params.dtv_cc = params;
             native_sub_set_atsc_cc_options(
@@ -854,7 +858,6 @@ public class DTVSubtitleView extends View {
     public void dispose() {
         synchronized(lock) {
             if (!destroy) {
-                init_count--;
                 destroy = true;
                 if (init_count == 0) {
                     stopDecoder();
@@ -882,7 +885,7 @@ public class DTVSubtitleView extends View {
             return;
         if (!str.isEmpty()) {
             synchronized (json_lock) {
-                json_str = new String(str);
+                json_str = str;
             }
         }
     }
