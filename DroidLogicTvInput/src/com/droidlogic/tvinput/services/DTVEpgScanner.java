@@ -49,7 +49,8 @@ abstract public class DTVEpgScanner {
         public static final int EVENT_PROGRAM_NAME_UPDATE   = 8;
         public static final int EVENT_PROGRAM_EVENTS_UPDATE = 9;
         public static final int EVENT_CHANNEL_UPDATE        = 10;
-		public static final int EVENT_EIT_CHANGED           = 11;
+        public static final int EVENT_EIT_CHANGED           = 11;
+        public static final int EVENT_PMT_RATING            = 12;
 
         public int type;
         public int channelID;
@@ -64,7 +65,7 @@ abstract public class DTVEpgScanner {
         public ChannelInfo channel;
         public ServiceInfosFromSDT services;
         public int eitNumber;//atsc:eit-(k),dvb:0
-
+        public byte[] pmt_rrt_ratings;
         public class Evt {
             int src;
             int srv_id;
@@ -221,8 +222,8 @@ abstract public class DTVEpgScanner {
         Log.d(TAG, "\tapid:["+Arrays.toString(channel.getAudioPids())+"] spid:["+Arrays.toString(channel.getSubtitlePids())+"]");
 
         native_epg_monitor_service(channel);
-        //startScan(SCAN_PAT | SCAN_PMT);
-        startScan(SCAN_PAT);
+        startScan(SCAN_PAT | SCAN_PMT);
+        //startScan(SCAN_PAT);
         mChannel = channel;
     }
 
