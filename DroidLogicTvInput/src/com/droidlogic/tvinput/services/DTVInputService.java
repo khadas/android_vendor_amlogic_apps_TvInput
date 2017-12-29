@@ -1131,7 +1131,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                     break;
                 case TvControlManager.EVENT_AV_PLAYBACK_RESUME:
                     if (mCurrentChannel != null && ChannelInfo.isRadioChannel(mCurrentChannel)) {
-                        mTvControlManager.SetAudioMuteForTv(TvControlManager.AUDIO_UNMUTE_FOR_TV);
+                        mTvControlManager.setAmAudioPreMute(TvControlManager.AUDIO_UNMUTE_FOR_TV);
                         notifyVideoUnavailable(TvInputManager.VIDEO_UNAVAILABLE_REASON_AUDIO_ONLY);
                     }
                     break;
@@ -1232,7 +1232,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         public void notifyVideoAvailable() {
             Log.d(TAG, "notifyVideoAvailable "+getSessionId());
             super.notifyVideoAvailable();
-            mTvControlManager.SetAudioMuteForTv(TvControlManager.AUDIO_UNMUTE_FOR_TV);
+            mTvControlManager.setAmAudioPreMute(TvControlManager.AUDIO_UNMUTE_FOR_TV);
             mSubtitleView.setVisible(is_subtitle_enabled);
         }
 
@@ -1244,7 +1244,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             if (mOverlayView != null) {
                 switch (reason) {
                     case TvInputManager.VIDEO_UNAVAILABLE_REASON_AUDIO_ONLY:
-                        mTvControlManager.SetAudioMuteForTv(TvControlManager.AUDIO_UNMUTE_FOR_TV);
+                        mTvControlManager.setAmAudioPreMute(TvControlManager.AUDIO_UNMUTE_FOR_TV);
                         mOverlayView.setImage(R.drawable.bg_radio);
                         mSystemControlManager.writeSysFs("/sys/class/video/disable_video",
                                 "2");
@@ -1254,7 +1254,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                     case TvInputManager.VIDEO_UNAVAILABLE_REASON_WEAK_SIGNAL:
                     case TvInputManager.VIDEO_UNAVAILABLE_REASON_UNKNOWN:
                     default:
-                        mTvControlManager.SetAudioMuteForTv(TvControlManager.AUDIO_MUTE_FOR_TV);
+                        mTvControlManager.setAmAudioPreMute(TvControlManager.AUDIO_MUTE_FOR_TV);
                         mOverlayView.setImage(R.drawable.bg_no_signal);
                         mOverlayView.setImageVisibility(true);
                         mOverlayView.setTextVisibility(true);

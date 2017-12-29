@@ -1377,7 +1377,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     }
     private void startManualSearchAccordingMode() {
         Log.d(TAG, "startManualSearchAccordingMode");
-        mTvControlManager.SetAudioMuteForTv(TvControlManager.AUDIO_MUTE_FOR_TV);
+        mTvControlManager.setAmAudioPreMute(TvControlManager.AUDIO_MUTE_FOR_TV);
         ViewGroup parent = (ViewGroup) ((TvSettingsActivity) mContext).mOptionLayout.getChildAt(0);
         OptionEditText edit = (OptionEditText) parent.findViewById(R.id.manual_search_dtv_channel_manual);
         String channel = edit.getText().toString();
@@ -1473,7 +1473,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     private void startManualSearch() {
         Log.d(TAG, "startManualSearch");
         ViewGroup parent = (ViewGroup) ((TvSettingsActivity) mContext).mOptionLayout.getChildAt(0);
-        mTvControlManager.SetAudioMuteForTv(TvControlManager.AUDIO_MUTE_FOR_TV);
+        mTvControlManager.setAmAudioPreMute(TvControlManager.AUDIO_MUTE_FOR_TV);
         if (mSettingsManager.getCurentVirtualTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_ADTV) {
             Log.d(TAG, "ADTV");
             OptionEditText edit = (OptionEditText) parent.findViewById(R.id.manual_search_dtv_channel);
@@ -1814,7 +1814,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
     private void startAutosearch() {
         Log.d(TAG, "startAutoSearch");
         TvControlManager.TvMode mode = new TvControlManager.TvMode(mSettingsManager.getDtvType());
-        mTvControlManager.SetAudioMuteForTv(TvControlManager.AUDIO_MUTE_FOR_TV);
+        mTvControlManager.setAmAudioPreMute(TvControlManager.AUDIO_MUTE_FOR_TV);
         //mSettingsManager.sendBroadcastToTvapp("search_channel");
         if (mSettingsManager.getCurentVirtualTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_ADTV) {
             Log.d(TAG, "ADTV");
@@ -1893,7 +1893,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
 
         bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA3, TvControlManager.ATV_VIDEO_STD_AUTO);
         bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA4, TvControlManager.ATV_AUDIO_STD_AUTO);
-        mTvControlManager.SetAudioMuteForTv(TvControlManager.AUDIO_MUTE_FOR_TV);
+        mTvControlManager.setAmAudioPreMute(TvControlManager.AUDIO_MUTE_FOR_TV);
         switch (((TvSettingsActivity)mContext).mScanEdit.checkAutoScanMode()) {
             case ScanEdit.SCAN_ATV_DTV:
                 Log.d(TAG, "ADTV");
