@@ -31,6 +31,7 @@ public class EASProcessManager{
     private Uri mCurrentUri = null;
     private EasProcessCallback mCallback;
     private TvDataBaseManager mTvDataBaseManager = null;
+    private Uri easChannelUri = null;
 
     public EASProcessManager(Context context) {
         Log.d(TAG,"***** eas process manager *****");
@@ -147,6 +148,14 @@ public class EASProcessManager{
         mCallback.onUpdateEasText(easText);
     }
 
+    public Uri getEasChannelUri() {
+        return easChannelUri;
+    }
+
+    public void setEasChannelUri(Uri mUri) {
+        easChannelUri = mUri;
+    }
+
     public void processDetailsChannelAlert(EasEvent easEvent){
         if (DEBUG) Log.d(TAG,"processDetailsChannelAlert,time = "+easEvent.alertMessageTimeRemaining+
             ",isEasInProgress = "+isEasInProgress);
@@ -155,7 +164,7 @@ public class EASProcessManager{
         int timeToOriginalChannelInMillis = easEvent.alertMessageTimeRemaining * 1000;
         setOriginalChannel();
         isEasInProgress = true;
-        mCallback.onEasEnd();
+        mCallback.onEasStart();
         mHandler.removeCallbacks(mTuneToOriginalChannelRunnable);
         mHandler.removeCallbacks(mCancelEasAlertTextDisplayRunnable);
         if (!isAlreadyTuneToDetailsChannel(majorNum, minorNum)) {
@@ -163,6 +172,7 @@ public class EASProcessManager{
             if (detailChannel != null) {
                 if (DEBUG) Log.d(TAG,"tune to detail channel");
                 Uri channelUri = TvContract.buildChannelUri(detailChannel.getId());
+                setEasChannelUri(channelUri);
                 launchLiveTv(channelUri);
             }else {
                 if (DEBUG) Log.d(TAG,"detail channel is unavailable");
@@ -207,6 +217,7 @@ public class EASProcessManager{
         intent.setData(uri);
         mContext.startActivity(intent);
    }
+
 
     public  class ChannelNumber {
         public   String PRIMARY_CHANNEL_DELIMITER = "-";

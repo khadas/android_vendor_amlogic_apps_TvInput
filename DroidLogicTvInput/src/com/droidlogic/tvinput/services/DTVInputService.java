@@ -1234,13 +1234,23 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             super.notifyVideoAvailable();
             mTvControlManager.setAmAudioPreMute(TvControlManager.AUDIO_UNMUTE_FOR_TV);
             mSubtitleView.setVisible(is_subtitle_enabled);
+            Log.i(TAG,"mCurrentUri = "+mCurrentUri+",mEasprocessManager = "+mEASProcessManager);
+            if (mEASProcessManager != null &&
+                    mEASProcessManager.isEasInProgress() &&
+                    mEASProcessManager.getEasChannelUri().equals(mCurrentUri)) {
+                notifyAppEasStatus(true);
+                showEasText();
+            }
         }
 
         @Override
         public void notifyVideoUnavailable(int reason) {
             Log.d(TAG, "notifyVideoUnavailable: "+reason+", "+getSessionId());
             super.notifyVideoUnavailable(reason);
-
+            Log.i(TAG,"measprocessManager = "+mEASProcessManager);
+            if (mEASProcessManager != null && mEASProcessManager.isEasInProgress()) {
+                notifyAppEasStatus(false);
+            }
             if (mOverlayView != null) {
                 switch (reason) {
                     case TvInputManager.VIDEO_UNAVAILABLE_REASON_AUDIO_ONLY:
@@ -1258,6 +1268,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                         mOverlayView.setImage(R.drawable.bg_no_signal);
                         mOverlayView.setImageVisibility(true);
                         mOverlayView.setTextVisibility(true);
+                        mOverlayView.setEasTextVisibility(false);
                         mSubtitleView.setVisible(false);
                         break;
                 }
@@ -3349,8 +3360,9 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 mOverlayView.setImageVisibility(false);
                 mOverlayView.setTextForEas(mEasText);
                 mOverlayView.setEasTextVisibility(true);
-            } else
+            } else {
                 mOverlayView.setEasTextVisibility(false);
+            }
         }
     }
 
