@@ -424,7 +424,10 @@ public class CcImplement {
                 }
             }
             catch (JSONException e)
-            {}
+            {
+                Log.e(TAG, "Window init failed, exception: " + e.toString());
+                init_flag = false;
+            }
             init_flag = true;
         }
 
@@ -471,6 +474,7 @@ public class CcImplement {
 
             double window_max_font_size;
 
+            JSONArray json_rows;
             int fill_opacity_int;
 
             Rows rows[];
@@ -489,7 +493,6 @@ public class CcImplement {
                     anchor_relative = windowStr.getBoolean("anchor_relative");
                     row_count = windowStr.getInt("row_count") ;
                     col_count = windowStr.getInt("column_count");
-
                     row_lock = windowStr.getBoolean("row_lock");
                     column_lock = windowStr.getBoolean("column_lock");
                     justify = windowStr.getString("justify");
@@ -499,41 +502,61 @@ public class CcImplement {
                     display_effect = windowStr.getString("display_effect");
                     effect_direction = windowStr.getString("effect_direction");
                     effect_speed = windowStr.getInt("effect_speed");
+                }
+                catch (Exception e) {
+                    Log.e(TAG, "window property exception " + e.toString());
+                    init_flag = false;
+                }
 
-                    if (!style_use_broadcast && ccVersion.matches("cea708"))
-                    {
-                        fill_opacity_int = cc_setting.window_opacity;
-                        fill_color = cc_setting.window_color;
-                        border_type = "none";
+                if (!style_use_broadcast && ccVersion.matches("cea708"))
+                {
+                    fill_opacity_int = cc_setting.window_opacity;
+                    fill_color = cc_setting.window_color;
+                    border_type = "none";
+                    try {
                         effect_percent = windowStr.getInt("effect_percent");
                         effect_status = windowStr.getString("effect_status");
+                    } catch (Exception e) {
+                        effect_percent = 100;
+                        effect_status = null;
+                        Log.e(TAG, "window effect attr exception: " + e.toString());
                     }
-                    else {
+
+                }
+                else {
+                    try {
                         fill_opacity = windowStr.getString("fill_opacity");
                         fill_color = windowStr.getInt("fill_color");
                         border_type = windowStr.getString("border_type");
                         border_color = windowStr.getInt("border_color");
-
-                        /* Value from stream need to be converted */
-                        fill_color = convertCcColor(fill_color);
-                        border_color = convertCcColor(border_color);
-
-                        if (fill_opacity.equalsIgnoreCase("solid"))
-                        {
-                            fill_opacity_int = 0xff;
-                        } else if (fill_opacity.equalsIgnoreCase("transparent")){
-                            fill_opacity_int = 0;
-                        } else if (fill_opacity.equalsIgnoreCase("translucent")){
-                            fill_opacity_int = 0x80;
-                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "window style exception " + e.toString());
                     }
 
-                    JSONArray json_rows = windowStr.getJSONArray("rows");
-                    //Log.e(TAG, "json_rows: " + json_rows.toString());
+                        /* Value from stream need to be converted */
+                    fill_color = convertCcColor(fill_color);
+                    border_color = convertCcColor(border_color);
 
-                    if (row_count > json_rows.length())
-                        Log.e(TAG, "window loses "+ (row_count - json_rows.length()) + " rows");
-                    rows = new Rows[row_count];
+                    if (fill_opacity.equalsIgnoreCase("solid")) {
+                        fill_opacity_int = 0xff;
+                    } else if (fill_opacity.equalsIgnoreCase("transparent")){
+                        fill_opacity_int = 0;
+                    } else if (fill_opacity.equalsIgnoreCase("translucent")){
+                        fill_opacity_int = 0x80;
+                    } else
+                        fill_opacity_int = 0xff;
+                }
+                try {
+                    json_rows = windowStr.getJSONArray("rows");
+                } catch (Exception e) {
+                    Log.e(TAG, "json fatal exception "+ e.toString());
+                    init_flag = false;
+                }
+                //Log.e(TAG, "json_rows: " + json_rows.toString());
+
+                if (row_count > json_rows.length())
+                    Log.e(TAG, "window loses "+ (row_count - json_rows.length()) + " rows");
+                rows = new Rows[row_count];
 
                     /* Find pensize
                      * I know this is shit, initialize json two times,
@@ -557,8 +580,13 @@ public class CcImplement {
                     window_max_font_size = caption_screen.max_font_width * 0.9;
                     window_width = col_count * window_max_font_size;
                     /* ugly repeat */
-                    for (int i=0; i<json_rows.length(); i++) {
-                        rows[i] = new Rows(new JSONObject(json_rows.optString(i)));
+                    for (int i=0; i<row_count; i++) {
+                        try {
+                            rows[i] = new Rows(new JSONObject(json_rows.optString(i)));
+                        } catch (Exception e) {
+                            Log.e(TAG, "json rows construct exception " + e.toString());
+                            init_flag = false;
+                        }
                         rows[i].row_number_in_window = i;
                         row_length = rows[i].row_length_on_paint;
                         //Log.e(TAG, "Row right most: " + i + " " + row_length);
@@ -577,11 +605,7 @@ public class CcImplement {
 
                     window_start_y = caption_screen.getWindowLeftTopY(anchor_relative, anchor_v, anchor_point, row_count);
 
-                } catch (JSONException e)
-                {
-                    Log.e(TAG, "Window exception: " + e.toString());
-                }
-                dump();
+                // dump();
             }
 
             void draw(Canvas canvas)
@@ -845,10 +869,11 @@ public class CcImplement {
                                 ?str_max_font_size:row_max_font_size;
                         }
                         character_gap = window_width/row_characters_count;
-                    } catch (JSONException e)
-                    {
+                    } catch (JSONException e) {
                         Log.e(TAG, "Str exception: " + e.toString());
                         row_length_on_paint = 0;
+                        init_flag = false;
+                        return;
                     }
                 }
 
@@ -857,9 +882,7 @@ public class CcImplement {
                     if (row_length_on_paint == 0 || str_count == 0)
                         return;
                     for (int i=0; i<str_count; i++)
-                    {
                         rowStrs[i].draw(canvas);
-                    }
                 }
 
                 class RowStr{
@@ -944,9 +967,10 @@ public class CcImplement {
 
                             try {
                                 data = rowStr.getString("data");
-                            }catch (JSONException e)
-                            {
+                            } catch (JSONException e) {
                                 Log.e(TAG, "Get string failed: " + e.toString());
+                                init_flag = false;
+                                return;
                             }
                             setDrawerConfig(data, null, font_size, font_scale,
                                     offset,
@@ -959,9 +983,7 @@ public class CcImplement {
                             try {
                                 /* TODO: convert font face */
                                 pen_size = rowStr.getString("pen_size");
-                            }
-                            catch (Exception e)
-                            {
+                            } catch (Exception e) {
                                 pen_size = "standard";
                             }
                             if (pen_size.equalsIgnoreCase("small")) {
@@ -977,15 +999,13 @@ public class CcImplement {
 
                             try {
                                 font_style = rowStr.getString("font_style");
-                            }catch (Exception e)
-                            {
+                            } catch (Exception e) {
                                 font_style = "default";
                             }
 
                             try {
                                 offset = rowStr.getString("offset");
-                            }catch (Exception e)
-                            {
+                            } catch (Exception e) {
                                 offset = "normal";
                             }
 
@@ -994,15 +1014,10 @@ public class CcImplement {
                                 underline = rowStr.getBoolean("underline");
                                 fg_color = rowStr.getInt("fg_color");
                                 fg_opacity = rowStr.getString("fg_opacity");
-                                if (fg_opacity == null)
-                                    fg_opacity = "transparent";
                                 bg_color = rowStr.getInt("bg_color");
                                 bg_opacity = rowStr.getString("bg_opacity");
-                                if (bg_opacity == null)
-                                    bg_opacity = "transparent";
                                 data = rowStr.getString("data");
-                            }catch(Exception e)
-                            {
+                            } catch (Exception e) {
                                 italics = false;
                                 underline = false;
                                 fg_color = 0;
@@ -1027,10 +1042,8 @@ public class CcImplement {
                                 }
                             }
 
-                            /* TODO: Judge if font width more than max width after scale */
-
                             font_size = caption_screen.max_font_size;// * font_scale;
-                            /* dtvcc pen from libzvbi is 2:2:2, need to convert */
+
                             fg_color = convertCcColor(fg_color);
                             bg_color = convertCcColor(bg_color);
                             edge_color = convertCcColor(edge_color);
@@ -1104,14 +1117,11 @@ public class CcImplement {
                         if (!use_caption_manager_style) {
                             this.font_face = getTypefaceFromString(font_face, italics);
                         } else {
-                            /*
-                               String cm_fontface_name = Settings.Secure.getString(context.getContentResolver(),
-                               "accessibility_captioning_typeface");
-                               this.font_face = getTypefaceFromString(cm_fontface_name, false);
-                               */
-                            this.font_face = cc_setting.type_face;
-                            if (this.font_face == null)
-                                this.font_face = getTypefaceFromString("default", false);
+                            String cm_fontface_name = Settings.Secure.getString(context.getContentResolver(),
+                                    "accessibility_captioning_typeface");
+                            if (cm_fontface_name == null)
+                                cm_fontface_name = "not set";
+                            this.font_face = getTypefaceFromString(cm_fontface_name, false);
                         }
 
                         this.fg_color = fg_color;
@@ -1355,9 +1365,12 @@ public class CcImplement {
         {
             /* Windows come in rising queue,
              * so we need to revert the draw sequence */
-            for (int i = windows_count - 1; i >= 0; i--) {
-                windows[i].draw(canvas);
+            if (!init_flag) {
+                Log.e(TAG, "Init failed, skip draw");
+                return;
             }
+            for (int i = windows_count - 1; i >= 0; i--)
+                windows[i].draw(canvas);
         }
     }
 }
