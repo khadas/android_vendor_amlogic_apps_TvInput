@@ -869,7 +869,8 @@ public class DTVSubtitleView extends View {
     }
 
     protected void finalize() throws Throwable {
-        dispose();
+        // Resource may not be available during gc process
+        // dispose();
         super.finalize();
     }
 
