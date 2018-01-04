@@ -79,6 +79,7 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
     private Spinner mManualSpinner;
     private Spinner mAutoSpinner;
     private Spinner mAtscOption;
+    private Spinner mAtscSearchTypeOption;
 
     private TvInputInfo mTvInputInfo;
 
@@ -93,6 +94,7 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
     //number search  key "numbersearch" true or false, "number" 2~135
     public static final String NUMBERSEARCH = "numbersearch";
     public static final String NUMBER = "number";
+    public static final String ATSC_TV_SEARCH_SYS = "atsc_tv_search_sys";
     public static final boolean NUMBERSEARCHDEFAULT = false;
     public static final int NUMBERDEFAULT = -1;
     private ProgressDialog mProDia;
@@ -154,10 +156,12 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
         mManualATV = (CheckBox) findViewById(R.id.manual_tune_atv);
         mManualDTV.setChecked(true);
         mManualATV.setChecked(false);
+        mManualATV.setOnClickListener(this);
         mAutoDTV = (CheckBox) findViewById(R.id.auto_tune_dtv);
         mAutoATV = (CheckBox) findViewById(R.id.auto_tune_atv);
         mAutoDTV.setChecked(true);
         mAutoATV.setChecked(false);
+        mAutoATV.setOnClickListener(this);
         if (!(mOptionUiManagerT.getCurentVirtualTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_ADTV)) {
             mManualDTV.setEnabled(false);
             mManualATV.setEnabled(false);
@@ -194,21 +198,29 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
     private List<String> data_list;
     private ArrayAdapter<String> arr_adapter_atsc_c;
     private List<String> data_list_atsc_c;
+    private ArrayAdapter<String> arr_adapter_atsc_tv_search_type;
+    private List<String> data_list_atsc_tv_search_type;
 
     private void initSpinner() {
         data_list = new ArrayList<String>();
         data_list_atsc_c = new ArrayList<String>();
+        data_list_atsc_tv_search_type = new ArrayList<String>();
         final int[] type = {R.string.dtmb, R.string.dvbc, R.string.dvbt, R.string.dvbt2, R.string.atsc_t, R.string.atsc_c, R.string.isdb_t};
         final int[] type_atsc_c = {R.string.ut_tune_atsc_c_auto, R.string.ut_tune_atsc_c_standard, R.string.ut_tune_atsc_c_lrc, R.string.hrc};
+        final int[] type_tv_search = {R.string.tv_search_sys_auto, R.string.tv_search_sys_pal, R.string.tv_search_sys_ntsc, R.string.tv_search_sys_secam};
         for (int i = 0; i < type.length; i++) {
             data_list.add(getString(type[i]));
         }
         for (int i = 0; i < type_atsc_c.length; i++) {
             data_list_atsc_c.add(getString(type_atsc_c[i]));
         }
+        for (int i = 0; i < type_tv_search.length; i++) {
+            data_list_atsc_tv_search_type.add(getString(type_tv_search[i]));
+        }
         mManualSpinner = (Spinner) findViewById(R.id.manual_spinner);
         mAutoSpinner = (Spinner) findViewById(R.id.auto_spinner);
         mAtscOption = (Spinner) findViewById(R.id.atsc_c_spinner);
+        mAtscSearchTypeOption = (Spinner) findViewById(R.id.atsc_tv_search_sys);
         arr_adapter = new ArrayAdapter<String>(ChannelSearchActivity.this, android.R.layout.simple_spinner_item, data_list);
         arr_adapter.setDropDownViewResource(android.R.layout.simple_list_item_single_choice );
         mManualSpinner.setAdapter(arr_adapter);
@@ -218,6 +230,9 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
         arr_adapter_atsc_c = new ArrayAdapter<String>(ChannelSearchActivity.this, android.R.layout.simple_spinner_item, data_list_atsc_c);
         arr_adapter_atsc_c.setDropDownViewResource(android.R.layout.simple_list_item_single_choice );
         mAtscOption.setAdapter(arr_adapter_atsc_c);
+        arr_adapter_atsc_tv_search_type = new ArrayAdapter<String>(ChannelSearchActivity.this, android.R.layout.simple_spinner_item, data_list_atsc_tv_search_type);
+        arr_adapter_atsc_tv_search_type.setDropDownViewResource(android.R.layout.simple_list_item_single_choice );
+        mAtscSearchTypeOption.setAdapter(arr_adapter_atsc_tv_search_type);
         //mAtscOption.setSelection(ATSCC_OPTION_DEFAULT);
         if (getAtsccListMode() > HRC) {
             mAtscOption.setSelection(STANDARD);//display the first item
@@ -226,6 +241,16 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
         }
         if (mOptionUiManagerT.getDtvTypeStatus() != OptionUiManagerT.SET_ATSC_C) {
             mAtscOption.setEnabled(false);
+        }
+        if (getTvSearchTypeSys() == -1) {
+            mAtscSearchTypeOption.setSelection(TV_SEARCH_SYS_AUTO);
+        } else {
+            mAtscSearchTypeOption.setSelection(getTvSearchTypeSys());
+        }
+        if (mManualATV.isChecked() || mAutoATV.isChecked()) {
+            mAtscSearchTypeOption.setEnabled(true);
+        } else {
+            mAtscSearchTypeOption.setEnabled(false);
         }
 
         mManualSpinner.setOnItemSelectedListener(new OnItemSelectedListener() {
@@ -291,6 +316,21 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
                         mOptionUiManagerT.setAtsccSearchSys(AUTO);
                         setAtsccListMode(AUTO);
                     }
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // TODO Auto-generated method stub
+            }
+        });
+        mAtscSearchTypeOption.setOnItemSelectedListener(new OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (position >= 0 && position <= 3) {
+                    setTvSearchTypeSys(position);
+                } else {
+                    setTvSearchTypeSys(TV_SEARCH_SYS_AUTO);
                 }
             }
 
@@ -474,6 +514,14 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
                     mAutoScanButton.setText(R.string.ut_auto_scan);
                 }
                 sendMessage(AUTO_START, 0, null);
+                break;
+            case R.id.manual_tune_atv:
+            case R.id.auto_tune_atv:
+                if (mManualATV.isChecked() || mAutoATV.isChecked()) {
+                    mAtscSearchTypeOption.setEnabled(true);
+                } else {
+                    mAtscSearchTypeOption.setEnabled(false);
+                }
                 break;
             default:
                 break;
@@ -683,6 +731,12 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
     final int HRC = 2;
     final int AUTO = 3;
 
+    final int TV_SEARCH_SYS_AUTO = 0;
+    final int TV_SEARCH_SYS_PAL = 1;
+    final int TV_SEARCH_SYS_NTSC = 2;
+    final int TV_SEARCH_SYS_SECAM = 3;
+
+
     private void setAtsccListMode(int mode) {
         Log.d(TAG, "setAtsccListMode = " + mode);
         Settings.System.putInt(ChannelSearchActivity.this.getContentResolver(), "atsc_c_list_mode", mode);
@@ -691,6 +745,16 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
     private int getAtsccListMode() {
         Log.d(TAG, "getAtsccListMode = " + Settings.System.getInt(ChannelSearchActivity.this.getContentResolver(), "atsc_c_list_mode", STANDARD));
         return Settings.System.getInt(ChannelSearchActivity.this.getContentResolver(), "atsc_c_list_mode", STANDARD);
+    }
+
+    private void setTvSearchTypeSys(int mode) {
+        Log.d(TAG, "setTvSearchTypeSys = " + mode);
+        Settings.System.putInt(ChannelSearchActivity.this.getContentResolver(), ATSC_TV_SEARCH_SYS, mode);
+    }
+
+    private int getTvSearchTypeSys() {
+        Log.d(TAG, "getTvSearchTypeSys = " + Settings.System.getInt(ChannelSearchActivity.this.getContentResolver(), ATSC_TV_SEARCH_SYS, TV_SEARCH_SYS_AUTO));
+        return Settings.System.getInt(ChannelSearchActivity.this.getContentResolver(), ATSC_TV_SEARCH_SYS, -1);
     }
 
      //30s timeout, stop scan
