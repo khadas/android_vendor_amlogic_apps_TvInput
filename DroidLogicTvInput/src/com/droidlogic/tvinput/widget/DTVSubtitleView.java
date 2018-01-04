@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.KeyEvent;
 import android.view.View;
@@ -841,11 +842,11 @@ public class DTVSubtitleView extends View {
         Paint clear_paint = new Paint();
         clear_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
         canvas.drawPaint(clear_paint);
-        if (!json_str.isEmpty()) {
+        if (!TextUtils.isEmpty(json_str)) {
             synchronized (json_lock) {
                 json_data = new String(json_str);
             }
-            if (!json_data.isEmpty() && ci != null) {
+            if (!TextUtils.isEmpty(json_data) && ci != null) {
                 CcImplement.CaptionWindow captionWindow = ci.new CaptionWindow(json_data);
                 captionWindow.draw(canvas);
             }
@@ -884,7 +885,7 @@ public class DTVSubtitleView extends View {
     public void saveJsonStr(String str) {
         if (activeView != this)
             return;
-        if (!str.isEmpty()) {
+        if (!TextUtils.isEmpty(str)) {
             synchronized (json_lock) {
                 json_str = str;
             }

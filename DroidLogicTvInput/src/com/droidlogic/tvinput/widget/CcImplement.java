@@ -11,6 +11,7 @@ import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.Xfermode;
 import android.provider.Settings;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.accessibility.CaptioningManager;
@@ -393,7 +394,7 @@ public class CcImplement {
             style_use_broadcast = isStyle_use_broadcast();
             init_flag = false;
             try {
-                if (jsonStr != null && !jsonStr.isEmpty())
+                if (!TextUtils.isEmpty(jsonStr))
                     ccObj = new JSONObject(jsonStr);
                 else {
                     return;
