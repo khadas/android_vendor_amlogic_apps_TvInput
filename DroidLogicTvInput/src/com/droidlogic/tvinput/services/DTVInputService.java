@@ -995,9 +995,9 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 if ((mCurrentPmtContentRatings != null) && (mCurrentPmtContentRatings.length > 0)) {
                     rstr = mCurrentPmtContentRatings[0].flattenToString();
                 }
-                if (!TextUtils.equals(rstr, mCurrentChannel.getContentRatings())) {
+                if (!TextUtils.equals(rstr == null ? "" : rstr, mCurrentChannel.getContentRatings() == null ? "" : mCurrentChannel.getContentRatings())) {
                     Log.d(TAG, "rating:updateChannel:"+rstr);
-                    mCurrentChannel.setContentRatings(rstr);
+                    mCurrentChannel.setContentRatings(rstr == null ? "" : rstr);
                     mTvDataBaseManager.updateChannelInfo(mCurrentChannel);
                 }
             }
@@ -1025,9 +1025,10 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             }
 
             /*pmt ratings 2nd*/
-            if (ratings == null)
+            if (ratings == null) {
                 ratings = mCurrentPmtContentRatings;
-
+                saveCurrentChannelRatings();
+            }
             /*cc ratings 3rd*/
             if (ratings == null) {
                 ratings = mCurrentCCContentRatings;
@@ -1756,7 +1757,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             if ((mCurrentChannel.isAtscChannel() || isAtscForcedStandard())) {
                 //Log.d(TAG, "PMT get mCurrentPmtContentRatings");
                 mCurrentPmtContentRatings = DroidLogicTvUtils.parseDRatings(json);
-                //Log.d(TAG, "PMT save mCurrentPmtContentRatings");
+                if (DEBUG) Log.d(TAG, "PMT save mCurrentPmtContentRatings = " + Program.contentRatingsToString(mCurrentPmtContentRatings));
                 saveCurrentChannelRatings();
                 if (mHandler != null)
                     mHandler.sendMessage(mHandler.obtainMessage(MSG_PARENTAL_CONTROL, this));
@@ -2333,6 +2334,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
             private String mVct = null;
             private Map<Integer, Long> mVctMap = null;
+            private int mFrequency = 0;
 
 
             private void buildVct () {
@@ -2367,8 +2369,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
                     for (ChannelInfo c : channelMap) {
                         if ((c.getMajorChannelNumber() == major) && (c.getMinorChannelNumber() == minor)) {
-                            chan = c;
-                            break;
+                            if (chan == null || c.getFrequency() == mFrequency)
+                                chan = c;
                         }
                     }
 
@@ -2391,8 +2393,10 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 int channel_number_start = mSystemControlManager.getPropertyInt(DTV_CHANNEL_NUMBER_START, 1);
                 mMonitorStoreManager = new MonitorStoreManager(mInputId, channel_number_start);
 
-                if (mCurrentChannel != null)
+                if (mCurrentChannel != null) {
                     mVct = mCurrentChannel.getVct();
+                    mFrequency = mCurrentChannel.getFrequency();
+                }
 
                 mHandlerThread = new HandlerThread(getClass().getSimpleName());
                 mHandlerThread.start();
@@ -3795,6 +3799,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
     public TvContentRating[] parseDRatingsT(String jsonString, int programid, TvDataBaseManager tvdatamanager, String title) {
         String RatingDomain = DroidContentRatingsParser.DOMAIN_RRT_RATINGS;
         int rrt5count = 0;
+        int nonerrt5count = 0;
         //Log.d(TAG, "parse ratings parseDRatings:"+jsonString + ", title = " + title);
         if (jsonString == null || jsonString.isEmpty())
             return null;
@@ -3827,6 +3832,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 Log.d(TAG, "parse ratings rrt5 region = " + region + ", title = " + title);
                 rrt5count++;
             } else {
+                nonerrt5count ++;
                 continue;
             }
 
@@ -3854,30 +3860,10 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
             }
         }
-        if (rrt5count > 0 && !(RatingList != null && RatingList.size() > 0)) {
-            int rrt5existcount = 0;
-            TvContentRating[] ratings = null;
-            if (tvdatamanager != null) {
-                Program program = tvdatamanager.getProgram(programid);
-                if (program != null) {
-                    ratings = program.getContentRatings();
-                    if (ratings != null) {
-                        for (int ii = 0; ii < ratings.length; ii++) {
-                            if (RatingDomain.equals(ratings[ii].getDomain())) {
-                                RatingList.add(ratings[ii]);
-                                rrt5existcount++;
-                                Log.d(TAG, "parse ratings add exist rrt5 rating:"+ratings[ii].flattenToString() + ", title = " + title);
-                            }
-                        }
-                    }
-                }
-            }
-            if (rrt5existcount == 0) {
-                Log.d(TAG, "parse ratings add rrt5 rating erro and use previous" + ", title = " + title);
-                return ratings;
-            }
-        }
-        TvContentRating ratings_vchip[] = DroidLogicTvUtils.parseDRatings(jsonString);
+
+        TvContentRating ratings_vchip[] = null;
+        if (nonerrt5count > 0)
+            ratings_vchip = DroidLogicTvUtils.parseDRatings(jsonString);
         TvContentRating ratings_rrt5[] = (RatingList.size() == 0 ? null : RatingList.toArray(new TvContentRating[RatingList.size()]));
         TvContentRating ratings_all[];
         if (ratings_vchip != null && ratings_vchip.length > 0 && RatingList != null && RatingList.size() > 0) {
