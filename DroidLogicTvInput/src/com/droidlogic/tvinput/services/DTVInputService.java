@@ -3035,7 +3035,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                                 releasePlayer();
                                 Log.d(TAG, "EVENT_CHANNEL_UPDATE mUpdateFrequency:" + mUpdateFrequency);
                                 mTvControlManager.setStorDBListener(mMonitorStoreManager);
-                                deleteChannelInfoByFreq(mUpdateFrequency);
+                                setEpgAutoReset(false);
                                 mTvControlManager.DtvManualScan(mode, mUpdateFrequency);
                             }
                         }
@@ -3058,7 +3058,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                         if (c.getFrequency() == Frequency) {
                             Log.d(TAG, "delete Frequency c.getDisplayNumber()" + c.getDisplayNumber() + "getId:" + c.getId() + "ChannelInfo.getFrequency()" + c.getFrequency());
                             mTvDataBaseManager.deleteChannel(c);
-                            iter.remove();
+
                         }
                     }
                 }
@@ -3151,13 +3151,23 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                     mTvControlManager.DtvStopScan();
                 }
 
-                public void onScanExit() {
-                    if (mUpdateFrequency == 0)
+                public void onScanEndBeforeStore(int freg) {
+                    //delete channel before store
+                    if (mUpdateFrequency == 0 || mUpdateFrequency != freg)
                     {
-                        Log.d(TAG, "mUpdateFrequency == 0");
+                        Log.d(TAG, "[onScanEndBeforeStore] mUpdateFrequency:" + mUpdateFrequency + ", freg:" + freg);
                         return;
                     }
+                    deleteChannelInfoByFreq(mUpdateFrequency);
+                }
 
+                public void onScanExit(int freg) {
+                    setEpgAutoReset(true);
+                    if (mUpdateFrequency == 0 || mUpdateFrequency != freg)
+                    {
+                        Log.d(TAG, "[onScanExit]  mUpdateFrequency:" + mUpdateFrequency + ", freg:" + freg);
+                        return;
+                    }
                     ArrayList<ChannelInfo> channelMap = mTvDataBaseManager.getChannelList(mInputId, ChannelInfo.COMMON_PROJECTION, null, null);
                     if (channelMap != null) {
                         for (ChannelInfo c : channelMap)
