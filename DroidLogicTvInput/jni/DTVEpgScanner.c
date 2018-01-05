@@ -20,6 +20,8 @@
 #define EVENT_PROGRAM_EVENTS_UPDATE  9
 #define EVENT_TS_UPDATE              10
 #define EVENT_EIT_CHANGED            11
+#define EVENT_PMT_RATING             12
+
 
 static JavaVM   *gJavaVM = NULL;
 static jclass    gEventClass;
@@ -52,6 +54,7 @@ typedef struct {
     long time;
     int dvbVersion;
     int eitNumber;
+    char pmt_rating[1024];
 }EPGEventData;
 
 struct sdt_service;
@@ -95,6 +98,8 @@ struct sdt_service{
 };
 
 EPGChannelData gChannelMonitored = {.valid = 0};
+static jbyteArray get_byte_array(JNIEnv* env, const char *str);
+
 static int epg_conf_get(char *prop, int def) {
     return property_get_int32(prop, def);
 }
@@ -127,6 +132,8 @@ static void epg_on_event(jobject obj, EPGEventData *evt_data)
     (*env)->SetLongField(env,event,(*env)->GetFieldID(env, gEventClass, "time", "J"), evt_data->time);
     (*env)->SetIntField(env,event,(*env)->GetFieldID(env, gEventClass, "dvbVersion", "I"), evt_data->dvbVersion);
     (*env)->SetIntField(env,event,(*env)->GetFieldID(env, gEventClass, "eitNumber", "I"), evt_data->eitNumber);
+    (*env)->SetIntField(env,event,(*env)->GetFieldID(env, gEventClass, "eitNumber", "I"), evt_data->eitNumber);
+    (*env)->SetObjectField(env,event, (*env)->GetFieldID(env, gEventClass, "pmt_rrt_ratings", "[B"), get_byte_array(env, evt_data->pmt_rating));
     if (evt_data->type == 10)
         log_info("epg_on_event event==EVENT_TS_UPDATE");
 
@@ -190,6 +197,14 @@ static void epg_evt_callback(long dev_no, int event_type, void *param, void *use
             edata.type = EVENT_EIT_CHANGED;
             edata.eitNumber = (int)(long)param;
             edata.dvbVersion = (int)(long)user_data;
+            epg_on_event(priv_data->obj, &edata);
+            break;
+        case AM_EPG_EVT_PMT_RATING:
+            //send pmt rating info
+            log_info("evt PMT RATING callback %d\n", AM_EPG_EVT_PMT_RATING);
+            edata.type = EVENT_PMT_RATING;
+            edata.dvbServiceID = ((AM_EPG_PmtRating_t *)(long)param)->i_program_number;
+            memcpy(edata.pmt_rating, ((AM_EPG_PmtRating_t *)(long)param)->rating, sizeof(edata.pmt_rating));
             epg_on_event(priv_data->obj, &edata);
             break;
         default:
@@ -1031,6 +1046,7 @@ static void epg_create(JNIEnv* env, jobject obj, jint fend_id, jint dmx_id, jint
     AM_EVT_Subscribe((long)data->handle,AM_EPG_EVT_UPDATE_PROGRAM_AV,epg_evt_callback,NULL);
     AM_EVT_Subscribe((long)data->handle,AM_EPG_EVT_UPDATE_PROGRAM_NAME,epg_evt_callback,NULL);
     AM_EVT_Subscribe((long)data->handle,AM_EPG_EVT_UPDATE_TS,epg_evt_callback,NULL);
+    AM_EVT_Subscribe((long)data->handle,AM_EPG_EVT_PMT_RATING,epg_evt_callback,NULL);
     AM_EPG_SetUserData(data->handle, (void*)data);
 
     /*handle epg events*/

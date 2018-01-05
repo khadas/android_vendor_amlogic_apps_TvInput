@@ -990,7 +990,11 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 if ((mCurrentCCContentRatings != null) && (mCurrentCCContentRatings.length > 0)) {
                     rstr = mCurrentCCContentRatings[0].flattenToString();
                 }
-
+                //first used eit ratings, if eit rating is not exist, used pmt ratings,
+                //if both eit and pmt rating not exist, used cc ratings.
+                if ((mCurrentPmtContentRatings != null) && (mCurrentPmtContentRatings.length > 0)) {
+                    rstr = mCurrentPmtContentRatings[0].flattenToString();
+                }
                 if (!TextUtils.equals(rstr, mCurrentChannel.getContentRatings())) {
                     Log.d(TAG, "rating:updateChannel:"+rstr);
                     mCurrentChannel.setContentRatings(rstr);
@@ -1021,8 +1025,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             }
 
             /*pmt ratings 2nd*/
-            /*if (ratings == null)
-                ratings = mCurrentPmtContentRatings;*/
+            if (ratings == null)
+                ratings = mCurrentPmtContentRatings;
 
             /*cc ratings 3rd*/
             if (ratings == null) {
@@ -1746,6 +1750,18 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         private int mCurrentCCExist = 0;
         private boolean mCurrentCCEnabled = false;
 
+        public void check_program_pmt_rating_block(int ServiceId, String json)
+        {
+            //Log.d(TAG, "check_program_pmt_rating_block cur channel: " + mCurrentChannel.getServiceId() +" PMT ServiceId:" + ServiceId + " ratings:" + json);
+            if ((mCurrentChannel.isAtscChannel() || isAtscForcedStandard())) {
+                //Log.d(TAG, "PMT get mCurrentPmtContentRatings");
+                mCurrentPmtContentRatings = DroidLogicTvUtils.parseDRatings(json);
+                //Log.d(TAG, "PMT save mCurrentPmtContentRatings");
+                saveCurrentChannelRatings();
+                if (mHandler != null)
+                    mHandler.sendMessage(mHandler.obtainMessage(MSG_PARENTAL_CONTROL, this));
+            }
+        }
         /*When CC data changed.*/
         public void doCCData(int mask) {
             Log.d(TAG, "cc data " + mask);
@@ -2421,7 +2437,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                     MODE_Ts = DTVEpgScanner.SCAN_NIT;
                 } else {// (std == ATSC) {
                     MODE_Epg = DTVEpgScanner.SCAN_PSIP_EIT_ALL;
-                    MODE_Service = DTVEpgScanner.SCAN_MGT | DTVEpgScanner.SCAN_VCT;
+                    MODE_Service = DTVEpgScanner.SCAN_MGT | DTVEpgScanner.SCAN_VCT | DTVEpgScanner.SCAN_PMT;
                     MODE_Time = DTVEpgScanner.SCAN_STT;
                     MODE_Ts = DTVEpgScanner.SCAN_PAT;// | DTVEpgScanner.SCAN_VCT;
                 }
@@ -3023,6 +3039,10 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                                 mTvControlManager.DtvManualScan(mode, mUpdateFrequency);
                             }
                         }
+                        break;
+                    case DTVEpgScanner.Event.EVENT_PMT_RATING:
+                        Log.d(TAG, "[PMT dvbServiceID]:" + event.dvbServiceID + " RATING:" + new String(event.pmt_rrt_ratings));
+                        check_program_pmt_rating_block(event.dvbServiceID, new String(event.pmt_rrt_ratings));
                         break;
                     default:
                         break;
