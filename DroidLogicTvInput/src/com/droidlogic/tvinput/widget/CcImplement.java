@@ -31,8 +31,11 @@ public class CcImplement {
     CaptionScreen caption_screen;
     CcSetting cc_setting;
     Paint background_paint;
-    Paint str_paint;
+    Paint text_paint;
     Paint window_paint;
+    Paint fade_paint;
+    Paint wipe_paint;
+    Paint shadow_paint;
     final int EDGE_SIZE_PERCENT = 15;
     Context context;
 
@@ -60,9 +63,12 @@ public class CcImplement {
         this.context = context;
         cc_setting = new CcSetting();
         caption_screen = new CaptionScreen();
-        background_paint = new Paint();
         window_paint = new Paint();
-        str_paint = new Paint();
+        background_paint = new Paint();
+        text_paint = new Paint();
+        fade_paint = new Paint();
+        wipe_paint = new Paint();
+        shadow_paint = new Paint();
 
         if (cf != null)
         {
@@ -82,8 +88,7 @@ public class CcImplement {
         int style_setting = 0;
         try {
             style_setting = Settings.Secure.getInt(context.getContentResolver(), "accessibility_captioning_style_enabled");
-        } catch (Settings.SettingNotFoundException e)
-        {
+        } catch (Settings.SettingNotFoundException e) {
             Log.e(TAG, e.toString());
             style_setting = 0;
         }
@@ -175,6 +180,48 @@ public class CcImplement {
         }
         return convert_face;
     }
+
+
+    boolean isFontfaceMono(String font_face) {
+        if (font_face.equalsIgnoreCase("default")) {
+            return true;
+        } else if (font_face.equalsIgnoreCase("mono_serif")) {
+            return true;
+        } else if (font_face.equalsIgnoreCase("prop_serif")) {
+            return true;
+        } else if (font_face.equalsIgnoreCase("mono_sans")) {
+            return true;
+        } else if (font_face.equalsIgnoreCase("prop_sans")) {
+            return false;
+        } else if (font_face.equalsIgnoreCase("casual")) {
+            return false;
+        } else if (font_face.equalsIgnoreCase("cursive")) {
+            return false;
+        } else if (font_face.equalsIgnoreCase("small_caps")) {
+            return false;
+        }
+        /* For caption manager convert */
+        else if (font_face.equalsIgnoreCase("sans-serif")) {
+            return false;
+        } else if (font_face.equalsIgnoreCase("sans-serif-condensed")) {
+            return false;
+        } else if (font_face.equalsIgnoreCase("sans-serif-monospace")) {
+            return true;
+        } else if (font_face.equalsIgnoreCase("serif")) {
+            return false;
+        } else if (font_face.equalsIgnoreCase("serif-monospace")) {
+            return true;
+        } else if (font_face.equalsIgnoreCase("casual")) {
+            return false;
+        } else if (font_face.equalsIgnoreCase("cursive")) {
+            return true;
+        } else if (font_face.equalsIgnoreCase("small-capitals")) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
 
     class CaptionScreen
     {
@@ -384,13 +431,11 @@ public class CcImplement {
         String ccVersion;
         int windows_count;
         Window windows[];
-        Paint captionWindow_paint;
         boolean init_flag;
         boolean style_use_broadcast;
 
         CaptionWindow(String jsonStr)
         {
-            captionWindow_paint = new Paint();
             style_use_broadcast = isStyle_use_broadcast();
             init_flag = false;
             try {
@@ -503,8 +548,7 @@ public class CcImplement {
                     display_effect = windowStr.getString("display_effect");
                     effect_direction = windowStr.getString("effect_direction");
                     effect_speed = windowStr.getInt("effect_speed");
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     Log.e(TAG, "window property exception " + e.toString());
                     init_flag = false;
                 }
@@ -523,8 +567,7 @@ public class CcImplement {
                         Log.e(TAG, "window effect attr exception: " + e.toString());
                     }
 
-                }
-                else {
+                } else {
                     try {
                         fill_opacity = windowStr.getString("fill_opacity");
                         fill_color = windowStr.getInt("fill_color");
@@ -625,7 +668,7 @@ public class CcImplement {
                     window_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC));
                     /* Draw border */
                     /* Draw border color */
-                    draw_border(canvas, window_paint, border_type,
+                    draw_border(canvas, window_paint, shadow_paint, border_type,
                             (float)window_left, (float)window_top, (float)window_right, (float)window_bottom,
                             border_color);
 
@@ -657,7 +700,6 @@ public class CcImplement {
                     double rect_left, rect_right, rect_top, rect_bottom;
                     if (display_effect.equalsIgnoreCase("fade")) {
                         float border = caption_screen.window_border_width;
-                        Paint fade_paint = new Paint();
                         fade_paint.setColor(Color.WHITE);
                         fade_paint.setAlpha(effect_percent*255/100);
                         fade_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SCREEN));
@@ -695,7 +737,6 @@ public class CcImplement {
                             rect_top = 0;
                             rect_right = 0;
                         }
-                        Paint wipe_paint = new Paint();
                         wipe_paint.setColor(Color.WHITE);
                         wipe_paint.setAlpha(0);
                         wipe_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
@@ -707,11 +748,10 @@ public class CcImplement {
                     }
                 }
             }
-            void draw_border(Canvas canvas, Paint paint, String border_type,
-                    float l, float t, float r, float b,
-                    int border_color)
+            void draw_border(Canvas canvas, Paint border_paint, Paint shadow_paint, String border_type,
+                             float l, float t, float r, float b,
+                             int border_color)
             {
-                Paint shadow_paint = new Paint();
                 float gap = (float)(caption_screen.window_border_width);
                 //Log.e(TAG, "Border type " + border_type + " left " + l + " right " + r + " top " + t + " bottom " + b);
                 //shadow_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.LIGHTEN));
@@ -729,17 +769,17 @@ public class CcImplement {
                     Path path2 = new Path();
                     Path path3 = new Path();
                     Path path4 = new Path();
-                    paint.setStyle(Paint.Style.FILL);
+                    border_paint.setStyle(Paint.Style.FILL);
 
                     /********Left top********/
-                    paint.setColor(border_color);
+                    border_paint.setColor(border_color);
                     /* left */
                     path1.moveTo(l-og,t-og);
                     path1.lineTo(r+og,t-og);
                     path1.lineTo(r,t);
                     path1.lineTo(l,t);
                     path1.close();
-                    canvas.drawPath(path1,paint);
+                    canvas.drawPath(path1,border_paint);
                     if (border_type.equalsIgnoreCase("raised"))
                     {
                         canvas.drawPath(path1,shadow_paint);
@@ -750,21 +790,21 @@ public class CcImplement {
                     path2.lineTo(r+og,b+og);
                     path2.lineTo(r,b);
                     path2.close();
-                    canvas.drawPath(path2,paint);
+                    canvas.drawPath(path2,border_paint);
                     if (border_type.equalsIgnoreCase("raised"))
                     {
                         canvas.drawPath(path2,shadow_paint);
                     }
 
                     /********Right bottom********/
-                    paint.setColor(border_color);
+                    border_paint.setColor(border_color);
                     /* Right */
                     path3.moveTo(r,b);
                     path3.lineTo(r+og,b+og);
                     path3.lineTo(l-og,b+og);
                     path3.lineTo(l,b);
                     path3.close();
-                    canvas.drawPath(path3,paint);
+                    canvas.drawPath(path3,border_paint);
                     if (border_type.equalsIgnoreCase("depressed"))
                     {
                         canvas.drawPath(path3,shadow_paint);
@@ -775,18 +815,18 @@ public class CcImplement {
                     path4.lineTo(l-og,t-og);
                     path4.lineTo(l,t);
                     path4.close();
-                    canvas.drawPath(path4,paint);
+                    canvas.drawPath(path4,border_paint);
                     if (border_type.equalsIgnoreCase("depressed"))
                     {
                         canvas.drawPath(path4,shadow_paint);
                     }
 
                     /* Opposite line */
-                    paint.setColor(Color.BLACK);
-                    canvas.drawLine(l,t,l-og,t-og, paint);
-                    paint.setColor(Color.BLACK);
-                    canvas.drawLine(r,b,r+og,b+og, paint);
-                        }
+                    border_paint.setColor(Color.BLACK);
+                    canvas.drawLine(l,t,l-og,t-og, border_paint);
+                    border_paint.setColor(Color.BLACK);
+                    canvas.drawLine(r,b,r+og,b+og, border_paint);
+                }
                 if (border_type.equalsIgnoreCase("uniform")) {
                     window_paint.setColor(border_color);
                     canvas.drawRect(l-gap, t-gap, r+gap, b+gap, window_paint);
@@ -1108,6 +1148,7 @@ public class CcImplement {
                         this.data = data;
                         /* Convert font scale to a logical range */
                         this.font_size = font_size * font_scale;
+                        boolean is_monospace = false;
 
                         if (font_face == null)
                             font_face = "not set";
@@ -1117,12 +1158,14 @@ public class CcImplement {
                          */
                         if (!use_caption_manager_style) {
                             this.font_face = getTypefaceFromString(font_face, italics);
+                            is_monospace = isFontfaceMono(font_face);
                         } else {
                             String cm_fontface_name = Settings.Secure.getString(context.getContentResolver(),
                                     "accessibility_captioning_typeface");
                             if (cm_fontface_name == null)
                                 cm_fontface_name = "not set";
                             this.font_face = getTypefaceFromString(cm_fontface_name, false);
+                            is_monospace = isFontfaceMono(cm_fontface_name);
                         }
 
                         this.fg_color = fg_color;
@@ -1138,9 +1181,14 @@ public class CcImplement {
 
                         window_paint.setTypeface(this.font_face);
                         window_paint.setTextSize((float)this.font_size);
-                        max_single_font_width = window_paint.measureText("H");
+                        // window_paint.setLetterSpacing((float) 0.05);
+                        max_single_font_width = window_paint.measureText("_");
                         if (ccVersion.matches("cea708")) {
-                            string_length_on_paint = window_paint.measureText(data) + max_single_font_width;
+                            if (is_monospace)
+                                string_length_on_paint = (data.length() + 1) * max_single_font_width;
+                            else
+                                string_length_on_paint = window_paint.measureText(data) + max_single_font_width;
+                            // string_length_on_paint = (data.length()+1) * max_single_font_width;
                         } else {
                             string_length_on_paint = data.length() * caption_screen.fixed_char_width;
                         }
@@ -1170,8 +1218,6 @@ public class CcImplement {
                      * */
                     void draw(Canvas canvas)
                     {
-                        Paint background_paint = new Paint();
-                        Paint foreground_paint = new Paint();
                         str_top = window_start_y + row_number_in_window * caption_screen.max_font_height;
                         str_bottom = window_start_y + (row_number_in_window + 1) * caption_screen.max_font_height;
                         /* Handle justify here */
@@ -1229,7 +1275,6 @@ public class CcImplement {
                             if (fill_opacity_int != 0xff)
                                 background_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC));
                             canvas.drawRect((float) str_left, (float) str_top, (float) str_right, (float) str_bottom, background_paint);
-                            background_paint.reset();
                         }
 
                         if (!justify.equalsIgnoreCase("full")) {
@@ -1237,7 +1282,7 @@ public class CcImplement {
                                     (float) str_left, (float) (str_bottom - fontMetrics.descent),
                                     fg_color, fg_opacity_int,
                                     underline,
-                                    edge_color, (float) edge_width, edge_type);
+                                    edge_color, (float) edge_width, edge_type, text_paint);
                         } else {
                             double prior_character_position = str_left;
                             for (int i=0; i<data.length(); i++) {
@@ -1245,7 +1290,7 @@ public class CcImplement {
                                         (float) prior_character_position, (float) (str_bottom - fontMetrics.descent),
                                         fg_color, fg_opacity_int,
                                         underline,
-                                        edge_color, (float) edge_width, edge_type);
+                                        edge_color, (float) edge_width, edge_type, text_paint);
 
                                 prior_character_position += character_gap;
                             }
@@ -1256,7 +1301,6 @@ public class CcImplement {
                           " start x,y: "+(str_start_x+window_start_x) +
                           " " + (row_start_y+window_start_y));
                           */
-                        foreground_paint.reset();
                     }
 
                     void draw_str(Canvas canvas, String str, float left, float bottom, Paint paint)
@@ -1290,13 +1334,14 @@ public class CcImplement {
                     }
 
                     void draw_text(Canvas canvas, String data,
-                            Typeface face, double font_size,
-                            float left, float bottom, int fg_color, int opacity,
-                            boolean underline,
-                            int edge_color, float edge_width, String edge_type) {
+                                   Typeface face, double font_size,
+                                   float left, float bottom, int fg_color, int opacity,
+                                   boolean underline,
+                                   int edge_color, float edge_width, String edge_type, Paint paint) {
 
                         //Log.e(TAG, "draw_text "+data + " fg_color: "+ fg_color +" opa:"+ opacity + edge_type + "edge color: "+ edge_color);
-                        Paint paint = new Paint();
+
+                        paint.setSubpixelText(true);
                         paint.setTypeface(face);
                         if (opacity != 0xff)
                             paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC));
@@ -1349,7 +1394,6 @@ public class CcImplement {
                             paint.setAlpha(opacity);
                             draw_str(canvas, data, left, bottom, paint);
                         }
-                        paint.reset();
                         if (underline) {
                             paint.setColor(fg_color);
                             paint.setStrokeWidth((float) font_size/10);
