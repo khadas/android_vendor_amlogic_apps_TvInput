@@ -2799,8 +2799,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
                                 long start = evt.start;
                                 long end = evt.end;
-                                if (start != 0 && end !=0 && evt.rrt_ratings == null)
-                                    throw new Exception("Receive EIT data,but rating is NULL!!!");
+                                //if (start != 0 && end !=0 && evt.rrt_ratings == null)
+                                //    throw new Exception("Receive EIT data,but rating is NULL!!!");
                                 Program p = new Program.Builder()
                                     .setProgramId(evt.evt_id)
                                     .setChannelId(cid)
