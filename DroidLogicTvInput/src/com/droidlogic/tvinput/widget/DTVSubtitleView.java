@@ -1,9 +1,12 @@
 package com.droidlogic.tvinput.widget;
 
 import android.content.Context;
+import android.os.Handler;
 import android.content.res.Resources;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
+import android.os.Handler;
+import android.os.Message;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.KeyEvent;
@@ -108,6 +111,8 @@ public class DTVSubtitleView extends View {
     public static final int CC_COLOR_YELLOW = 6;
     public static final int CC_COLOR_MAGENTA = 7;
     public static final int CC_COLOR_CYAN = 8;
+
+    public static final int JSON_MSG_NORMAL = 0;
 
     private static int init_count = 0;
     private static CaptioningManager captioningManager = null;
@@ -274,8 +279,8 @@ public class DTVSubtitleView extends View {
     private static DTVSubtitleView activeView = null;
     private void update() {
         //Log.e(TAG, "update");
-        if (!isPreWindowMode)
-            postInvalidate();
+        // if (!isPreWindowMode)
+        //     postInvalidate();
     }
 
     private void stopDecoder() {
@@ -819,10 +824,11 @@ public class DTVSubtitleView extends View {
         String json_data;
         if (!active || !visible || (play_mode == PLAY_NONE)) {
             /* Clear canvas */
-            Paint clear_paint = new Paint();
-            clear_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
-            canvas.drawPaint(clear_paint);
-            clear_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC));
+            if (ci == null)
+                return;
+            ci.window_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+            canvas.drawPaint(ci.window_paint);
+            ci.window_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC));
             cw = null;
             return;
         }
@@ -838,20 +844,10 @@ public class DTVSubtitleView extends View {
         }
 
         ci.caption_screen.updateCaptionScreen(canvas.getWidth(), canvas.getHeight());
-        //ci.cc_setting.UpdateCcSetting(captioningManager);
-        Paint clear_paint = new Paint();
-        clear_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
-        canvas.drawPaint(clear_paint);
-        if (!TextUtils.isEmpty(json_str)) {
-            synchronized (json_lock) {
-                json_data = new String(json_str);
-            }
-            if (!TextUtils.isEmpty(json_data) && ci != null) {
-                CcImplement.CaptionWindow captionWindow = ci.new CaptionWindow(json_data);
-                captionWindow.draw(canvas);
-            }
-        }
 
+        cw = ci.new CaptionWindow(json_str);
+        if (cw != null)
+            cw.draw(canvas);
         //        native_sub_lock();
         //        native_sub_unlock();
     }
@@ -881,14 +877,24 @@ public class DTVSubtitleView extends View {
     }
 
     private SubtitleDataListener mSubtitleDataListener = null;
+    Handler handler = new Handler()
+    {
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case JSON_MSG_NORMAL:
+                    json_str = (String)msg.obj;
+                    postInvalidate();
+                    break;
+            }
+        }
+    };
 
     public void saveJsonStr(String str) {
         if (activeView != this)
             return;
+
         if (!TextUtils.isEmpty(str)) {
-            synchronized (json_lock) {
-                json_str = str;
-            }
+            handler.obtainMessage(JSON_MSG_NORMAL, str).sendToTarget();
         }
     }
 
