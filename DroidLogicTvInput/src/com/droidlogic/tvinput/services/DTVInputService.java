@@ -3182,6 +3182,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                                  Log.d(TAG, "Will send msg to Session handler");
                                  synchronized (this) {
                                      mCurrentSession.onUpdateTsPlay(c.getId());
+                                     notifyChannelRetuned(c.getUri());
                                  }
                                  break;
                              }
