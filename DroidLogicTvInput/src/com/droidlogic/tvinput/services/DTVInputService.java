@@ -435,6 +435,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
         private int mChannelBlocked = -1;
         protected Uri  mCurrentUri;
+        private boolean mIsBlocked = false;
 
         private boolean mUpdateTsFlag = false;
 
@@ -961,9 +962,11 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 if (contentRating != null) {
                     Log.d(TAG, "notifyBlock:"+contentRating.flattenToString());
                     notifyContentBlocked(contentRating);
+                    mIsBlocked = true;
                 } else if (isBlockNoRatingEnable) {
                     Log.d(TAG, "notifyBlock because of block_norating:"+tcr.flattenToString());
                     notifyContentBlocked(tcr);
+                    mIsBlocked = true;
                 }
                 mLastBlockedRating = contentRating;
                 if (!isTvPlaying) {
@@ -977,6 +980,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                         }
                         Log.d(TAG, "notifyAllowed");
                         notifyContentAllowed();
+                        mIsBlocked = false;
                     }
                 }
             }
@@ -1237,7 +1241,11 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         public void notifyVideoAvailable() {
             Log.d(TAG, "notifyVideoAvailable "+getSessionId());
             super.notifyVideoAvailable();
-            mTvControlManager.setAmAudioPreMute(TvControlManager.AUDIO_UNMUTE_FOR_TV);
+            if (mIsBlocked || (mCurrentChannel != null && mCurrentChannel.isLocked())) {
+                mTvControlManager.setAmAudioPreMute(TvControlManager.AUDIO_MUTE_FOR_TV);
+            } else {
+                mTvControlManager.setAmAudioPreMute(TvControlManager.AUDIO_UNMUTE_FOR_TV);
+            }
             mSubtitleView.setVisible(is_subtitle_enabled);
             Log.i(TAG,"mCurrentUri = "+mCurrentUri+",mEasprocessManager = "+mEASProcessManager);
             if (mEASProcessManager != null &&
