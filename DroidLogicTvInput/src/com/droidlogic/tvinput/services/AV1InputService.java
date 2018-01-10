@@ -156,6 +156,8 @@ public class AV1InputService extends DroidLogicTvInputService {
         protected CaptioningManager mCaptioningManager = null;
         protected SystemControlManager mSystemControlManager;
         private static final int DELAY_TRY_PREFER_CC = 2000;
+        // void receiving vbi too late when switching to this source
+        private boolean needRestartCC = false;
 
         private class CCStyleParams {
              protected int fg_color;
@@ -236,9 +238,15 @@ public class AV1InputService extends DroidLogicTvInputService {
         @Override
         public void notifyVideoAvailable() {
             super.notifyVideoAvailable();
-            stopSubtitle();
-            startSubtitleAutoAnalog();
-            mSubtitleView.setVisible(is_subtitle_enable);
+            if (needRestartCC) {
+                stopSubtitle();
+                startSubtitleAutoAnalog();
+            }
+            needRestartCC = true;
+
+            if (mSubtitleView != null) {
+                mSubtitleView.setVisible(is_subtitle_enable);
+            }
         }
 
         @Override
@@ -246,8 +254,8 @@ public class AV1InputService extends DroidLogicTvInputService {
             super.notifyVideoUnavailable(reason);
             if (mOverlayView != null) {
                 mOverlayView.setTextVisibility(true);
+                mSubtitleView.setVisible(false);
             }
-            mSubtitleView.setVisible(false);
         }
 
         @Override
