@@ -411,8 +411,10 @@ unsigned long getSDKVersion()
             sub_clear(env, obj);
 
             if (data->obj) {
+                pthread_mutex_lock(&data->lock);
                 env->DeleteGlobalRef(data->obj);
                 data->obj = NULL;
+                pthread_mutex_unlock(&data->lock);
             }
 
             pthread_mutex_destroy(&data->lock);
@@ -554,7 +556,10 @@ error:
         close_dmx(data);
         AM_SUB2_Destroy(data->sub_handle);
         AM_PES_Destroy(data->pes_handle);
-        sub_update(data->obj);
+        pthread_mutex_lock(&data->lock);
+        if (data->obj)
+            sub_update(data->obj);
+        pthread_mutex_unlock(&data->lock);
 
         data->sub_handle = NULL;
         data->pes_handle = NULL;
@@ -571,7 +576,10 @@ error:
         data->pes_handle = NULL;
         AM_TT2_Stop(data->tt_handle);
 
-        sub_update(data->obj);
+        pthread_mutex_lock(&data->lock);
+        if (data->obj)
+            sub_update(data->obj);
+        pthread_mutex_unlock(&data->lock);
 
         return 0;
     }
@@ -718,7 +726,10 @@ error:
 
         LOGI("stop cc");
         AM_CC_Destroy(data->cc_handle);
-        sub_update(data->obj);
+        pthread_mutex_lock(&data->lock);
+        if (data->obj)
+            sub_update(data->obj);
+        pthread_mutex_unlock(&data->lock);
 
         data->cc_handle = NULL;
 
@@ -751,15 +762,19 @@ error:
 
         if (active) {
             if (data->obj) {
+                pthread_mutex_lock(&data->lock);
                 env->DeleteGlobalRef(data->obj);
                 data->obj = NULL;
+                pthread_mutex_unlock(&data->lock);
             }
 
             data->obj = env->NewGlobalRef(obj);
         } else {
             if (env->IsSameObject(data->obj, obj)) {
+                pthread_mutex_lock(&data->lock);
                 env->DeleteGlobalRef(data->obj);
                 data->obj = NULL;
+                pthread_mutex_unlock(&data->lock);
             }
         }
 
