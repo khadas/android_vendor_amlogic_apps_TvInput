@@ -250,7 +250,7 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
         bundle.putInt(DroidLogicTvUtils.PARA_MANUAL_SCAN, frequency);
         bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA1, atvfrequency);
         bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA2, atvfrequency);
-        bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA3, TvControlManager.ATV_VIDEO_STD_AUTO);
+        bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA3, mSettingsManager.getTvSearchTypeSys());
         bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA4, TvControlManager.ATV_AUDIO_STD_AUTO);
         int autoscanmode;
         if (!isLiveTvScaning) {
@@ -316,10 +316,10 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
             int atvFreq1 = (bundle == null ? 0 : bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA1, 0));
             int atvFreq2 = (bundle == null ? 0 : bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA2, 0));
             int dtvFreq = (bundle == null ? 0 : bundle.getInt(DroidLogicTvUtils.PARA_MANUAL_SCAN, 0));
-            int atvVideoStd = (bundle == null ? TvControlManager.ATV_VIDEO_STD_PAL
-                    : bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA3, TvControlManager.ATV_VIDEO_STD_PAL));
-            int atvAudioStd = (bundle == null ? TvControlManager.ATV_AUDIO_STD_DK
-                    : bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA4, TvControlManager.ATV_AUDIO_STD_DK));
+            int atvVideoStd = (bundle == null ? TvControlManager.ATV_VIDEO_STD_AUTO
+                    : bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA3, mSettingsManager.getTvSearchTypeSys()));
+            int atvAudioStd = (bundle == null ? TvControlManager.ATV_AUDIO_STD_AUTO
+                    : bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA4, TvControlManager.ATV_AUDIO_STD_AUTO));
             TvControlManager.FEParas fe = new TvControlManager.FEParas();
             fe.setMode(tvMode);
             fe.setVideoStd(atvVideoStd);
@@ -330,8 +330,11 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
                 //atvFreq2 = dtvFreq;// + 5250000;
                 scan.setAtvFrequency1(atvFreq1);
                 scan.setAtvFrequency2(atvFreq2);
+                scan.setMode(TvControlManager.ScanParas.MODE_ATV_DTV);
+            } else {
+                scan.setMode(TvControlManager.ScanParas.MODE_DTV_ATV);
             }
-            scan.setMode(TvControlManager.ScanParas.MODE_DTV_ATV);
+
             scan.setAtvMode(atvScanType);
             scan.setDtvMode(dtvScanType);
             scan.setDtvFrequency1(dtvFreq);
@@ -373,7 +376,7 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_TYPE_ATV, TvControlManager.ScanType.SCAN_ATV_MANUAL);
             //bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA1, 0);
             //bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA2, 0);
-            bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA3, TvControlManager.ATV_VIDEO_STD_AUTO);
+            bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA3, mSettingsManager.getTvSearchTypeSys());
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA4, TvControlManager.ATV_AUDIO_STD_AUTO);
             bundle.putString(TvInputInfo.EXTRA_INPUT_ID,mSettingsManager.getInputId());
             mSettingsManager.sendBroadcastToTvapp(DroidLogicTvUtils.ACTION_DTV_MANUAL_SCAN, bundle);
@@ -411,7 +414,7 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
                 mSettingsManager.setManualSearchProgress(0);
                 mSettingsManager.setManualSearchSearchedNumber(0);
                 //int ret = mTvControlManager.AtvManualScan(from * 1000, to * 1000,
-                //                                TvControlManager.ATV_VIDEO_STD_PAL, TvControlManager.ATV_AUDIO_STD_DK);
+                //                                mSettingsManager.getTvSearchTypeSys(), TvControlManager.ATV_AUDIO_STD_AUTO);
                 //Log.d(TAG, "mTvControlManager.AtvManualScan return " + ret);
                 //if (ret < 0) {
                 //    showToast(mResources.getString(R.string.error_atv_startSearch));
@@ -420,8 +423,8 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
                 Bundle bundle = new Bundle();
                 bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA1, from * 1000);
                 bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA2, to * 1000);
-                bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA3, TvControlManager.ATV_VIDEO_STD_PAL);
-                bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA4, TvControlManager.ATV_AUDIO_STD_DK);
+                bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA3, mSettingsManager.getTvSearchTypeSys());
+                bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA4, TvControlManager.ATV_AUDIO_STD_AUTO);
                 bundle.putString(TvInputInfo.EXTRA_INPUT_ID,mSettingsManager.getInputId());
                 mSettingsManager.sendBroadcastToTvapp(DroidLogicTvUtils.ACTION_ATV_MANUAL_SCAN, bundle);
                 doScanCmd(DroidLogicTvUtils.ACTION_ATV_MANUAL_SCAN, bundle); //ww
@@ -746,7 +749,7 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_TYPE_ATV, TvControlManager.ScanType.SCAN_ATV_AUTO);
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA1, freqPair[0]);
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA2, freqPair[1]);
-            bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA3, TvControlManager.ATV_VIDEO_STD_AUTO);
+            bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA3, mSettingsManager.getTvSearchTypeSys());
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA4, TvControlManager.ATV_AUDIO_STD_AUTO);
             bundle.putString(TvInputInfo.EXTRA_INPUT_ID,mSettingsManager.getInputId());
             mSettingsManager.sendBroadcastToTvapp(DroidLogicTvUtils.ACTION_DTV_AUTO_SCAN, bundle);
@@ -760,8 +763,8 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
             Bundle bundle = new Bundle();
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA1, 0);
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA2, 0);
-            bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA3, TvControlManager.ATV_VIDEO_STD_PAL);
-            bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA4, TvControlManager.ATV_AUDIO_STD_I);
+            bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA3, mSettingsManager.getTvSearchTypeSys());
+            bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA4, TvControlManager.ATV_AUDIO_STD_AUTO);
             bundle.putString(TvInputInfo.EXTRA_INPUT_ID,mSettingsManager.getInputId());
             mSettingsManager.sendBroadcastToTvapp(DroidLogicTvUtils.ACTION_ATV_AUTO_SCAN, bundle);
             doScanCmd(DroidLogicTvUtils.ACTION_ATV_AUTO_SCAN, bundle);
@@ -807,7 +810,7 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
         bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA1, freqPair[0]);
         bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA2, freqPair[1]);
 
-        bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA3, TvControlManager.ATV_VIDEO_STD_AUTO);
+        bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA3, mSettingsManager.getTvSearchTypeSys());
         bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA4, TvControlManager.ATV_AUDIO_STD_AUTO);
         mTvControlManager.setAmAudioPreMute(TvControlManager.AUDIO_MUTE_FOR_TV);
         int autoscanmode;
@@ -930,10 +933,10 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
             //ww//
             mTvControlManager.OpenDevForScan(DroidLogicTvUtils.OPEN_DEV_FOR_SCAN_ATV);
             mTvControlManager.AtvAutoScan(
-                (bundle == null ? TvControlManager.ATV_VIDEO_STD_PAL
-                    : bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA1, TvControlManager.ATV_VIDEO_STD_PAL)),
-                (bundle == null ? TvControlManager.ATV_AUDIO_STD_DK
-                    : bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA2, TvControlManager.ATV_AUDIO_STD_DK)),
+                (bundle == null ? TvControlManager.ATV_VIDEO_STD_AUTO
+                    : bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA1, mSettingsManager.getTvSearchTypeSys())),
+                (bundle == null ? TvControlManager.ATV_AUDIO_STD_AUTO
+                    : bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA2, TvControlManager.ATV_AUDIO_STD_AUTO)),
                 (bundle == null ? 0 : bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA3, 0)),
                 (bundle == null ? 1 : bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA4, 1)));
         } else if (DroidLogicTvUtils.ACTION_ATV_MANUAL_SCAN.equals(action)) {
@@ -943,8 +946,8 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
                 mTvControlManager.AtvManualScan(
                     bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA1, 0),
                     bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA2, 0),
-                    bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA3, TvControlManager.ATV_VIDEO_STD_PAL),
-                    bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA4, TvControlManager.ATV_AUDIO_STD_DK));
+                    bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA3, mSettingsManager.getTvSearchTypeSys()),
+                    bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA4, TvControlManager.ATV_AUDIO_STD_AUTO));
             }
         } else if (DroidLogicTvUtils.ACTION_DTV_AUTO_SCAN.equals(action)) {
             mTvControlManager.DtvSetTextCoding("GB2312");
@@ -959,10 +962,10 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
                 int atvFreq1 = (bundle == null ? 0 : bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA1, 0));
                 int atvFreq2 = (bundle == null ? 0 : bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA2, 0));
                 int dtvFreq = (bundle == null ? 0 : bundle.getInt(DroidLogicTvUtils.PARA_MANUAL_SCAN, 0));
-                int atvVideoStd = (bundle == null ? TvControlManager.ATV_VIDEO_STD_PAL
-                        : bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA3, TvControlManager.ATV_VIDEO_STD_PAL));
-                int atvAudioStd = (bundle == null ? TvControlManager.ATV_AUDIO_STD_DK
-                        : bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA4, TvControlManager.ATV_AUDIO_STD_DK));
+                int atvVideoStd = (bundle == null ? TvControlManager.ATV_VIDEO_STD_AUTO
+                        : bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA3, mSettingsManager.getTvSearchTypeSys()));
+                int atvAudioStd = (bundle == null ? TvControlManager.ATV_AUDIO_STD_AUTO
+                        : bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA4, TvControlManager.ATV_AUDIO_STD_AUTO));
                 int atvList = (bundle == null ? tvMode.getList()
                         : bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA5, tvMode.getList()));
                 TvControlManager.FEParas fe = new TvControlManager.FEParas();
@@ -970,7 +973,11 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
                 fe.setVideoStd(atvVideoStd);
                 fe.setAudioStd(atvAudioStd);
                 TvControlManager.ScanParas scan = new TvControlManager.ScanParas();
-                scan.setMode(TvControlManager.ScanParas.MODE_DTV_ATV);
+                if (atvScanType != TvControlManager.ScanType.SCAN_ATV_NONE) {
+                    scan.setMode(TvControlManager.ScanParas.MODE_ATV_DTV);
+                } else {
+                    scan.setMode(TvControlManager.ScanParas.MODE_DTV_ATV);
+                }
                 scan.setAtvMode(atvScanType);
                 scan.setDtvMode(dtvScanType);
                 scan.setAtvFrequency1(atvFreq1);
@@ -1000,10 +1007,10 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
                 int atvFreq1 = (bundle == null ? 0 : bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA1, 0));
                 int atvFreq2 = (bundle == null ? 0 : bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA2, 0));
                 int dtvFreq = (bundle == null ? 0 : bundle.getInt(DroidLogicTvUtils.PARA_MANUAL_SCAN, 0));
-                int atvVideoStd = (bundle == null ? TvControlManager.ATV_VIDEO_STD_PAL
-                        : bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA3, TvControlManager.ATV_VIDEO_STD_PAL));
-                int atvAudioStd = (bundle == null ? TvControlManager.ATV_AUDIO_STD_DK
-                        : bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA4, TvControlManager.ATV_AUDIO_STD_DK));
+                int atvVideoStd = (bundle == null ? TvControlManager.ATV_VIDEO_STD_AUTO
+                        : bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA3, mSettingsManager.getTvSearchTypeSys()));
+                int atvAudioStd = (bundle == null ? TvControlManager.ATV_AUDIO_STD_AUTO
+                        : bundle.getInt(DroidLogicTvUtils.PARA_SCAN_PARA4, TvControlManager.ATV_AUDIO_STD_AUTO));
 
                 if (atvScanType != TvControlManager.ScanType.SCAN_ATV_NONE) {
                     atvFreq1 = dtvFreq - 9750000;
@@ -1014,7 +1021,11 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
                 fe.setVideoStd(atvVideoStd);
                 fe.setAudioStd(atvAudioStd);
                 TvControlManager.ScanParas scan = new TvControlManager.ScanParas();
-                scan.setMode(TvControlManager.ScanParas.MODE_DTV_ATV);
+                if (atvScanType != TvControlManager.ScanType.SCAN_ATV_NONE) {
+                    scan.setMode(TvControlManager.ScanParas.MODE_ATV_DTV);
+                } else {
+                    scan.setMode(TvControlManager.ScanParas.MODE_DTV_ATV);
+                }
                 scan.setAtvMode(atvScanType);
                 scan.setDtvMode(dtvScanType);
                 scan.setAtvFrequency1(atvFreq1);
