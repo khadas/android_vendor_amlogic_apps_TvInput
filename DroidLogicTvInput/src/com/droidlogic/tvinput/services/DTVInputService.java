@@ -1754,7 +1754,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         public void check_program_pmt_rating_block(int ServiceId, String json)
         {
             //Log.d(TAG, "check_program_pmt_rating_block cur channel: " + mCurrentChannel.getServiceId() +" PMT ServiceId:" + ServiceId + " ratings:" + json);
-            if ((mCurrentChannel.isAtscChannel() || isAtscForcedStandard())) {
+            if ((mCurrentChannel != null && mCurrentChannel.isAtscChannel()) || isAtscForcedStandard()) {
                 //Log.d(TAG, "PMT get mCurrentPmtContentRatings");
                 mCurrentPmtContentRatings = DroidLogicTvUtils.parseDRatings(json);
                 if (DEBUG) Log.d(TAG, "PMT save mCurrentPmtContentRatings = " + Program.contentRatingsToString(mCurrentPmtContentRatings));
