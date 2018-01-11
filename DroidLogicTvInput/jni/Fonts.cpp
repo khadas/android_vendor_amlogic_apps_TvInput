@@ -3,7 +3,7 @@
 #include "vendor_font_util.h"
 #include "Fonts.h"
 #include <utils/Log.h>
-#include <nativehelper/jni.h>
+#include <jni.h>
 #include <nativehelper/JNIHelp.h>
 #include <android_runtime/AndroidRuntime.h>
 

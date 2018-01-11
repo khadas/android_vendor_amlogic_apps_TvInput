@@ -80,7 +80,11 @@ LOCAL_MODULE    := libjnifont
 LOCAL_MODULE_TAGS := optional
 LOCAL_SRC_FILES := Fonts.cpp
 LOCAL_ARM_MODE := arm
-LOCAL_C_INCLUDES := $(JNI_H_INCLUDE)
+LOCAL_C_INCLUDES := \
+    $(JNI_H_INCLUDE) \
+    libnativehelper/include_jni \
+    libnativehelper/include/nativehelper
+
 LOCAL_SHARED_LIBRARIES += libvendorfont liblog libnativehelper libandroid_runtime libcutils
 
 LOCAL_PRELINK_MODULE := false
