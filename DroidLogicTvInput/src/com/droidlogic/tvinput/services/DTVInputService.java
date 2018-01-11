@@ -572,6 +572,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             if (sessionMap.containsKey(getSessionId())) {
                 sessionMap.remove(getSessionId());
             }
+            if (mCurrentSession.getSessionId() == getSessionId())
+                mCurrentSession = null;
         }
 
         @Override
