@@ -2,7 +2,13 @@ LOCAL_PATH := $(call my-dir)
 
 DVB_PATH := $(wildcard external/dvb)
 ifeq ($(DVB_PATH), )
+	DVB_PATH := $(wildcard $(BOARD_AML_VENDOR_PATH)/external/dvb)
+endif
+ifeq ($(DVB_PATH), )
 	DVB_PATH := $(wildcard vendor/amlogic/external/dvb)
+endif
+ifeq ($(DVB_PATH), )
+	DVB_PATH := $(wildcard $(BOARD_AML_VENDOR_PATH)/dvb)
 endif
 ifeq ($(DVB_PATH), )
 	DVB_PATH := $(wildcard vendor/amlogic/dvb)
@@ -22,7 +28,8 @@ LOCAL_C_INCLUDES := external/libzvbi/src \
 	bionic/libc/include \
 	external/skia/include\
 	$(DVB_PATH)/android/ndk/include \
-	vendor/amlogic/external/libzvbi/src
+	vendor/amlogic/external/libzvbi/src \
+	$(BOARD_AML_VENDOR_PATH)/external/libzvbi/src
 
 LOCAL_SHARED_LIBRARIES += libjnigraphics libzvbi libam_mw libam_adp libskia liblog libcutils
 
