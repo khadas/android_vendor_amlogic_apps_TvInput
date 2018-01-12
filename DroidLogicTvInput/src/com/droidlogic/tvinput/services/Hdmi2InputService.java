@@ -64,7 +64,13 @@ public class Hdmi2InputService extends DroidLogicTvInputService {
         }
     }
 
-
+    @Override
+    public void doReleaseFinish(int sessionId) {
+        Utils.logd(TAG, "doReleaseFinish,sessionId:"+sessionId);
+        Hdmi2InputSession session = sessionMap.get(sessionId);
+        if (session != null)
+            session.performDoReleaseSession();
+    }
     public class Hdmi2InputSession extends TvInputBaseSession {
         public Hdmi2InputSession(Context context, String inputId, int deviceId) {
             super(context, inputId, deviceId);
@@ -79,15 +85,24 @@ public class Hdmi2InputService extends DroidLogicTvInputService {
         public boolean onSetSurface(Surface surface) {
             return setSurfaceInService(surface,this);
         }
-
+        @Override
+        public void onRelease() {
+            //doRelease();
+            Utils.logd(TAG, "onRelease,session:"+this);
+            doReleaseInService(getSessionId());
+        }
         @Override
         public boolean onTune(Uri channelUri) {
             return doTuneInService(channelUri, getSessionId());
         }
 
-        @Override
-        public void doRelease() {
-            super.doRelease();
+
+        public void performDoReleaseSession() {
+            super.performDoReleaseSession();
+            if (mCurrentSession != null && mCurrentSession.getSessionId() == getSessionId()) {
+                mCurrentSession = null;
+                registerInputSession(null);
+            }
         }
 
         @Override

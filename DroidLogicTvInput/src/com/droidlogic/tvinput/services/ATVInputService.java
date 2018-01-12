@@ -99,6 +99,13 @@ public class ATVInputService extends DroidLogicTvInputService {
         }
     }
 
+    @Override
+    public void doReleaseFinish(int sessionId) {
+        Utils.logd(TAG, "doReleaseFinish,sessionId:"+sessionId);
+        ATVSessionImpl session = sessionMap.get(sessionId);
+        if (session != null)
+            session.performDoReleaseSession();
+    }
 
     public class ATVSessionImpl extends TvInputBaseSession {
         private final Context mContext;
@@ -127,15 +134,24 @@ public class ATVInputService extends DroidLogicTvInputService {
         public boolean onSetSurface(Surface surface) {
             return setSurfaceInService(surface,this);
         }
-
+        @Override
+        public void onRelease() {
+            //doRelease();
+            Log.d(TAG, "onRelease,session:"+this);
+            doReleaseInService(getSessionId());
+        }
         @Override
         public boolean onTune(Uri channelUri) {
             return doTuneInService(channelUri, getSessionId());
         }
 
-        @Override
-        public void doRelease() {
-            super.doRelease();
+
+        public void performDoReleaseSession() {
+            super.performDoReleaseSession();
+            if (mCurrentSession != null && mCurrentSession.getSessionId() == getSessionId()) {
+                mCurrentSession = null;
+                registerInputSession(null);
+            }
         }
 
         @Override

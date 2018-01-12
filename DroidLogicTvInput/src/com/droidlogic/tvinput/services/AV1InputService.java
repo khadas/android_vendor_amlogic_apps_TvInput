@@ -141,6 +141,14 @@ public class AV1InputService extends DroidLogicTvInputService {
         }
     }
 
+    @Override
+    public void doReleaseFinish(int sessionId) {
+        Utils.logd(TAG, "doReleaseFinish,sessionId:"+sessionId);
+        AV1InputSession session = sessionMap.get(sessionId);
+        if (session != null)
+            session.performDoReleaseSession();
+    }
+
     public class AV1InputSession extends TvInputBaseSession  implements DTVSubtitleView.SubtitleDataListener{
         private TvInputManager mTvInputManager;
         private final Context mContext;
@@ -263,6 +271,12 @@ public class AV1InputService extends DroidLogicTvInputService {
             return setSurfaceInService(surface,this);
         }
         @Override
+        public void onRelease() {
+            //doRelease();
+            Log.d(TAG, "onRelease,session:"+this);
+            doReleaseInService(getSessionId());
+        }
+        @Override
         public boolean onTune(Uri channelUri) {
             isUnlockCurrent_NR = false;
             mUnblockedRatingSet.clear();
@@ -285,9 +299,9 @@ public class AV1InputService extends DroidLogicTvInputService {
               }
             }
         }
-        @Override
-        public void doRelease() {
-            super.doRelease();
+
+        public void performDoReleaseSession() {
+            super.performDoReleaseSession();
             mUnblockedRatingSet.clear();
             stopSubtitle();
             releaseWorkThread();
@@ -301,7 +315,10 @@ public class AV1InputService extends DroidLogicTvInputService {
             if (sessionMap.containsKey(getSessionId())) {
                 sessionMap.remove(getSessionId());
             }
-
+            if (mCurrentSession != null && mCurrentSession.getSessionId() == getSessionId()) {
+                mCurrentSession = null;
+                registerInputSession(null);
+            }
             mSubtitleView = null;
 
         }

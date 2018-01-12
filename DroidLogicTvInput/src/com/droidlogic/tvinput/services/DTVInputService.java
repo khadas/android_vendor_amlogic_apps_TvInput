@@ -166,7 +166,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 String action = intent.getAction();
                   Log.d(TAG, "-----onReceive:"+action);
                   if (mCurrentSession != null)
-                      mCurrentSession.doRelease();
+                      mCurrentSession.performDoReleaseSession();
                   resetScanStoreListener();
             }
     };
@@ -261,6 +261,14 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             if (session != null)
                 session.switchToSourceInput(uri);
         }
+    }
+
+    @Override
+    public void doReleaseFinish(int sessionId) {
+        Utils.logd(TAG, "doReleaseFinish,sessionId:"+sessionId);
+        DTVSessionImpl session = sessionMap.get(sessionId);
+        if (session != null)
+            session.performDoReleaseSession();
     }
 
     @Override
@@ -485,9 +493,15 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
         @Override
         public boolean onSetSurface(Surface surface) {
+            Log.d(TAG,"onSetSurface:"+surface);
             return setSurfaceInService(surface,this);
         }
-
+        @Override
+        public void onRelease() {
+            //doRelease();
+            Log.d(TAG, "onRelease,session:"+this);
+            doReleaseInService(getSessionId());
+        }
          @Override
         public void onOverlayViewSizeChanged(int width, int height) {
             Log.d(TAG, "onOverlayViewSizeChanged: "+width+","+height);
@@ -537,10 +551,10 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             }
         };
 
-        @Override
-        public void doRelease() {
-            Log.d(TAG, "release:"+this);
-            super.doRelease();
+
+        public void performDoReleaseSession() {
+            Log.d(TAG, "performDoReleaseSession:"+this);
+            super.performDoReleaseSession();
             cancelAllMessagesInQuene();
             if (mSystemControlManager.getPropertyBoolean("persist.sys.getdtvtime.isneed", false)) {
                 int autoTimeValue = Settings.Global.getInt(mContext.getContentResolver(), Settings.Global.AUTO_TIME, 0);
@@ -573,8 +587,10 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             if (sessionMap.containsKey(getSessionId())) {
                 sessionMap.remove(getSessionId());
             }
-            if (mCurrentSession.getSessionId() == getSessionId())
+            if (mCurrentSession != null && mCurrentSession.getSessionId() == getSessionId()) {
                 mCurrentSession = null;
+                registerInputSession(null);
+            }
         }
 
         @Override
@@ -673,6 +689,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                         /*if (mCurrentSession == msg.obj) why?*/ {
                             switch (msg.what) {
                                 case MSG_PLAY:
+                                    Log.d(TAG, "MSG_PLAY");
                                     doPlay((Uri)msg.obj);
                                     break;
                                 case MSG_PARENTAL_CONTROL:
@@ -754,7 +771,9 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         }
 
         protected void switchToSourceInput(Uri uri) {
+            Log.d(TAG, "switchToSourceInput  uri=" + uri + " this:"+ this);
             if (mHandler != null) {
+                Log.d(TAG, "--remove msg_play and start a new one");
                 mHandler.removeMessages(MSG_PLAY);
                 resetWorkThread();
                 mHandler.obtainMessage(MSG_PLAY, uri).sendToTarget();
@@ -2328,7 +2347,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             private boolean auto_retune_service = true;
 
             private HandlerThread mHandlerThread;
-            private Handler mHandler;
+            private Handler mMonitorHandler;
             private HandlerThread mHandlerThreadEPG;
             private Handler mHandlerEPG;
             private Context mContext;
@@ -2427,7 +2446,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
                 mHandlerThread = new HandlerThread(getClass().getSimpleName());
                 mHandlerThread.start();
-                mHandler = new Handler(mHandlerThread.getLooper()) {
+                mMonitorHandler = new Handler(mHandlerThread.getLooper()) {
                     @Override
                     public void handleMessage(Message msg) {
                         switch (msg.what) {
@@ -2491,8 +2510,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                             if (mHandlerEPG != null)
                                 mHandlerEPG.obtainMessage(MSG_MONITOR_EVENT, event).sendToTarget();
                         } else {
-                            if (mHandler != null)
-                                mHandler.obtainMessage(MSG_MONITOR_EVENT, event).sendToTarget();
+                            if (mMonitorHandler != null)
+                                mMonitorHandler.obtainMessage(MSG_MONITOR_EVENT, event).sendToTarget();
                         }
                     }
                 };
@@ -2574,13 +2593,12 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                     mCCObserver = null;
                 }
 
-                if (mHandler != null) {/*take care of rescan befor epgScanner=null*/
-                    mHandler.removeMessages(MSG_MONITOR_RESCAN_SERVICE);
-                    mHandler.removeMessages(MSG_MONITOR_RESCAN_TIME);
+                if (mMonitorHandler != null) {/*take care of rescan befor epgScanner=null*/
+                    mMonitorHandler.removeMessages(MSG_MONITOR_RESCAN_SERVICE);
+                    mMonitorHandler.removeMessages(MSG_MONITOR_RESCAN_TIME);
                 }
                 if (mHandlerEPG != null)
                     mHandlerEPG.removeCallbacksAndMessages(null);
-
                 synchronized (this) {
                     mTvControlManager.setStorDBListener(null);
                     mTvControlManager.DtvStopScan();
@@ -2589,9 +2607,9 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                         epgScanner.destroy();
                         epgScanner = null;
                     }
-                    if (mHandler != null) {
-                        mHandler.removeCallbacksAndMessages(null);
-                        mHandler = null;
+                    if (mMonitorHandler != null) {
+                        mMonitorHandler.removeCallbacksAndMessages(null);
+                        mMonitorHandler = null;
                     }
 
                     if (mHandlerThread != null) {
@@ -2664,11 +2682,11 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                         Log.d(TAG, "monitor may exit, ignore.");
                         return;
                     }
-                    if (mHandler != null) {
-                        mHandler.removeMessages(MSG_MONITOR_RESCAN_SERVICE);
+                    if (mMonitorHandler != null) {
+                        mMonitorHandler.removeMessages(MSG_MONITOR_RESCAN_SERVICE);
                         if (on && (auto_rescan_service == AUTO_RESCAN_CONTINUOUS)) {
                             Log.d(TAG, "rescanServiceLater");
-                            mHandler.sendEmptyMessageDelayed(MSG_MONITOR_RESCAN_SERVICE, AUTO_RESCAN_SERVICE_INTERVAL);
+                            mMonitorHandler.sendEmptyMessageDelayed(MSG_MONITOR_RESCAN_SERVICE, AUTO_RESCAN_SERVICE_INTERVAL);
                         }
                     }
                     if (on) {
@@ -2695,10 +2713,10 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                         return;
                     }
                     if (mHandler != null) {
-                        mHandler.removeMessages(MSG_MONITOR_RESCAN_TIME);
+                        mMonitorHandler.removeMessages(MSG_MONITOR_RESCAN_TIME);
                         if (on && (auto_rescan_time == AUTO_RESCAN_CONTINUOUS)) {
                             Log.d(TAG, "rescanTimeLater");
-                            mHandler.sendEmptyMessageDelayed(MSG_MONITOR_RESCAN_TIME, AUTO_RESCAN_TIME_INTERVAL);
+                            mMonitorHandler.sendEmptyMessageDelayed(MSG_MONITOR_RESCAN_TIME, AUTO_RESCAN_TIME_INTERVAL);
                         }
                     }
                     if (on) {
@@ -3438,7 +3456,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         private final String mInputId;
         private final Context mContext;
 
-        private final Handler mHandler;
+        private final Handler mRecordingHandler;
         private final Random mRandom = new Random();
 
         private static final int MSG_TUNE = 1;
@@ -3476,7 +3494,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
             HandlerThread handlerThread = new HandlerThread(TAG);
             handlerThread.start();
-            mHandler = new Handler(handlerThread.getLooper(), this);
+            mRecordingHandler = new Handler(handlerThread.getLooper(), this);
 
             mStorageDir = new File(getCacheStoragePath());
 
@@ -3627,7 +3645,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         private void exeRelease() {
             // Current recording will be canceled.
             mTvControlManager.stopRecording("atsc-rec", null);
-            mHandler.getLooper().quitSafely();
+            mRecordingHandler.getLooper().quitSafely();
         }
 
         private final String SORT_BY_TIME = TvContract.Programs.COLUMN_START_TIME_UTC_MILLIS
@@ -3696,8 +3714,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             if (DEBUG) {
                 Log.d(TAG, "Requesting recording session tune: " + channelUri);
             }
-            mHandler.removeCallbacksAndMessages(null);
-            mHandler.obtainMessage(MSG_TUNE, channelUri).sendToTarget();
+            mRecordingHandler.removeCallbacksAndMessages(null);
+            mRecordingHandler.obtainMessage(MSG_TUNE, channelUri).sendToTarget();
         }
 
         @Override
@@ -3705,8 +3723,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             if (DEBUG) {
                 Log.d(TAG, "Requesting recording session release.");
             }
-            mHandler.removeCallbacksAndMessages(null);
-            mHandler.sendEmptyMessage(MSG_RELEASE);
+            mRecordingHandler.removeCallbacksAndMessages(null);
+            mRecordingHandler.sendEmptyMessage(MSG_RELEASE);
         }
 
         @Override
@@ -3714,7 +3732,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             if (DEBUG) {
                 Log.d(TAG, "Requesting start recording.");
             }
-            mHandler.sendEmptyMessage(MSG_START_RECORDING);
+            mRecordingHandler.sendEmptyMessage(MSG_START_RECORDING);
         }
 
         @Override
@@ -3722,7 +3740,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             if (DEBUG) {
                 Log.d(TAG, "Requesting stop recording.");
             }
-            mHandler.sendEmptyMessage(MSG_STOP_RECORDING);
+            mRecordingHandler.sendEmptyMessage(MSG_STOP_RECORDING);
         }
 
 
@@ -3763,7 +3781,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 case TvControlManager.RecorderEvent.EVENT_RECORDER_START:
                     break;
                 case TvControlManager.RecorderEvent.EVENT_RECORDER_STOP:
-                    mHandler.obtainMessage(MSG_RECORDING_RESULT, ev.Error == 0).sendToTarget();
+                    mRecordingHandler.obtainMessage(MSG_RECORDING_RESULT, ev.Error == 0).sendToTarget();
                     break;
             }
         }

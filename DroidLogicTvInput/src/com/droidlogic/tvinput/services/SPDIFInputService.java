@@ -52,6 +52,14 @@ public class SPDIFInputService extends DroidLogicTvInputService {
         }
     }
 
+    @Override
+    public void doReleaseFinish(int sessionId) {
+        Utils.logd(TAG, "doReleaseFinish,sessionId:"+sessionId);
+        SPDIFInputSession session = sessionMap.get(sessionId);
+        if (session != null)
+            session.performDoReleaseSession();
+    }
+
     public class SPDIFInputSession extends TvInputBaseSession {
         public SPDIFInputSession(Context context, String inputId, int deviceId) {
             super(context, inputId, deviceId);
@@ -66,15 +74,24 @@ public class SPDIFInputService extends DroidLogicTvInputService {
         public boolean onSetSurface(Surface surface) {
             return setSurfaceInService(surface,this);
         }
-
+        @Override
+        public void onRelease() {
+            //doRelease();
+            Utils.logd(TAG, "onRelease,session:"+this);
+            doReleaseInService(getSessionId());
+        }
         @Override
         public boolean onTune(Uri channelUri) {
             return doTuneInService(channelUri, getSessionId());
         }
 
-        @Override
-        public void doRelease() {
-            super.doRelease();
+
+        public void performDoReleaseSession() {
+            super.performDoReleaseSession();
+            if (mCurrentSession != null && mCurrentSession.getSessionId() == getSessionId()) {
+                mCurrentSession = null;
+                registerInputSession(null);
+            }
         }
 
         @Override
