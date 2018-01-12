@@ -857,6 +857,9 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 mSystemControlManager.setProperty(DTV_SUBTITLE_CAPTION_EXIST, String.valueOf(mCurrentCCExist));
                 startSubtitleCCBackground(info);
                 mCurrentCCEnabled = mCaptioningManager == null? false : mCaptioningManager.isEnabled();
+            } else {
+                mCurrentCCExist = 0;
+                mSystemControlManager.setProperty(DTV_SUBTITLE_CAPTION_EXIST, String.valueOf(mCurrentCCExist));
             }
 
             if (subtitleAutoStart)
