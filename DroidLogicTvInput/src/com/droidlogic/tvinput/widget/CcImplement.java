@@ -229,6 +229,10 @@ public class CcImplement {
         int height;
         double safe_title_width;
         double safe_title_height;
+        double top_left_point_x;
+        double top_left_point_y;
+        double bottom_right_point_x;
+        double bottom_right_point_y;
         final double safe_title_percent = 0.85;
         double h_v_rate;
         int anchor_vertical;
@@ -249,6 +253,10 @@ public class CcImplement {
             height = h;
             safe_title_height = height * safe_title_percent;
             safe_title_width = width * safe_title_percent;
+            top_left_point_x = (width - safe_title_width) / 2;
+            top_left_point_y = (height - safe_title_height) / 2;
+            bottom_right_point_x = safe_title_width + top_left_point_x;
+            bottom_right_point_y = safe_title_height + top_left_point_y;
             max_font_height = safe_title_height / cc_row_count;
             max_font_width = max_font_height * 0.8;
             max_font_size = max_font_height;
@@ -897,8 +905,8 @@ public class CcImplement {
                         row_start_x = rows.optInt("row_start");
                         str_count = rowArray.length();
                         rowStrs = new RowStr[str_count];
-                        double row_str_edge = 0;
-                        double single_char_width = ccVersion.matches("cea708") ? window_max_font_size : caption_screen.fixed_char_width;
+                        double single_char_width = ccVersion.matches("cea708") ?
+                                window_max_font_size : caption_screen.fixed_char_width;
                         for (int i=0; i<str_count; i++) {
                             rowStrs[i] = new RowStr(rowArray.getJSONObject(i));
                             //Every string starts at prior string's tail
@@ -1268,7 +1276,10 @@ public class CcImplement {
                         //                        canvas.drawRect(str_left, str_top, str_right, str_bottom, window_paint);
 
                         /* Draw background, a rect, if opacity == 0, skip it */
-
+                        if (str_bottom < caption_screen.top_left_point_y + caption_screen.max_font_height)
+                            str_bottom = caption_screen.top_left_point_y + caption_screen.max_font_height;
+                        if (str_top < caption_screen.top_left_point_y)
+                            str_top = caption_screen.top_left_point_y;
                         if (bg_opacity_int != 0) {
                             background_paint.setColor(bg_color);
                             background_paint.setAlpha(bg_opacity_int);
@@ -1348,6 +1359,7 @@ public class CcImplement {
 
                         paint.setAntiAlias(true);
                         paint.setTextSize((float)font_size);
+
                         if (edge_type == null) {
                             paint.setColor(fg_color);
                             paint.setAlpha(opacity);
