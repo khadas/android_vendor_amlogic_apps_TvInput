@@ -307,6 +307,9 @@ public class AV2InputService extends DroidLogicTvInputService {
         }
 
         protected void releaseWorkThread() {
+            if (mHandler != null) {
+                mHandler.removeCallbacksAndMessages(null);
+            }
             if (mHandlerThread != null) {
                 mHandlerThread.quit();
                 mHandlerThread = null;

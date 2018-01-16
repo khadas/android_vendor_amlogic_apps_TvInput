@@ -541,6 +541,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         public void doRelease() {
             Log.d(TAG, "release:"+this);
             super.doRelease();
+            cancelAllMessagesInQuene();
             if (mSystemControlManager.getPropertyBoolean("persist.sys.getdtvtime.isneed", false)) {
                 int autoTimeValue = Settings.Global.getInt(mContext.getContentResolver(), Settings.Global.AUTO_TIME, 0);
                 NtpTrustedTime mTime = NtpTrustedTime.getInstance(mContext);
@@ -718,12 +719,14 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             }
         }
 
-        protected void releaseWorkThread() {
-            Log.d(TAG, "releaseWorkThread");
+        protected void cancelAllMessagesInQuene() {
             if (mHandler != null) {
                 mHandler.removeCallbacksAndMessages(null);
             }
+        }
 
+        protected void releaseWorkThread() {
+            Log.d(TAG, "releaseWorkThread")
             if (mHandlerThread != null) {
                 mHandlerThread.quit();
                 mHandlerThread = null;
@@ -751,18 +754,17 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         }
 
         protected void switchToSourceInput(Uri uri) {
-            if (mHandler != null)
+            if (mHandler != null) {
+                mHandler.removeMessages(MSG_PLAY);
+                resetWorkThread();
                 mHandler.obtainMessage(MSG_PLAY, uri).sendToTarget();
+            }
         }
 
         protected void doPlay(Uri uri) {
-            if (mHandler != null)
-                mHandler.removeMessages(MSG_PLAY);
-
             mCurrentUri = uri;
-
+            Log.d(TAG, "doPlay  uri=" + uri + " this:"+ this);
             stopSubtitle();
-            resetWorkThread();
 
             mUnblockedRatingSet.clear();
             mChannelBlocked = -1;
@@ -2094,7 +2096,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         }
 
         protected void stopSubtitle(boolean stopRetry) {
-            Log.d(TAG, "stop Subtitle[stopRetry:"+stopRetry+"]");
+            Log.d(TAG, "stop Subtitle[stopRetry:"+stopRetry+"],session:"+this);
 
             synchronized (mSubtitleLock) {
 
@@ -3194,7 +3196,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                              {
                                  Log.d(TAG, "Will send msg to Session handler");
                                  synchronized (this) {
-                                     mCurrentSession.onUpdateTsPlay(c.getId());
+                                     if (mCurrentSession != null)
+                                         mCurrentSession.onUpdateTsPlay(c.getId());
                                      notifyChannelRetuned(c.getUri());
                                  }
                                  break;
