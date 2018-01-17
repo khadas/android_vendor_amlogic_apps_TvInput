@@ -837,7 +837,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         protected boolean tryPlayProgram(ChannelInfo info) {
             mCurrentChannel = info;
             mCurrentPmtContentRatings = null;
-            mCurrentCCContentRatings = null;
+            mCurrentCCContentRatings = Program.stringToContentRatings(info.getContentRatings());
 
             if ((mLastChannel != null) && (mCurrentChannel != null)) {
                 if ((mLastChannel.getFrequency() != mCurrentChannel.getFrequency()) || mUpdateTsFlag) {
@@ -923,7 +923,6 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             notifyTracks(info);
 
             tryStartSubtitle(info);
-
             startAudioADByMain(info, audioAuto);
             isUnlockCurrent_NR = false;
             return true;
@@ -978,6 +977,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 mLastBlockedRating = contentRating;
                 if (!isTvPlaying) {
                     playProgram(mCurrentChannel);//play after notifyContentBlocked to avoid paly after unblock
+                    mTvControlManager.setAmAudioPreMute(TvControlManager.AUDIO_MUTE_FOR_TV);//need mute immediately
                 }
             } else {
                 synchronized(mLock) {
@@ -1038,12 +1038,24 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             /*pmt ratings 2nd*/
             if (ratings == null) {
                 ratings = mCurrentPmtContentRatings;
-                saveCurrentChannelRatings();
+                if (ratings != null && ratings.length > 0) {
+                    if (DEBUG) Log.d(TAG, "mCurrentPmtContentRatings = " + Program.contentRatingsToString(ratings));
+                    saveCurrentChannelRatings();
+                }
             }
             /*cc ratings 3rd*/
             if (ratings == null) {
                 ratings = mCurrentCCContentRatings;
-                saveCurrentChannelRatings();
+                if (ratings != null && ratings.length > 0) {
+                    if (DEBUG) Log.d(TAG, "mCurrentCCContentRatings = " + Program.contentRatingsToString(ratings));
+                    saveCurrentChannelRatings();
+                }
+            }
+            if (ratings == null && mCurrentChannel != null) {
+                ratings = Program.stringToContentRatings(mCurrentChannel.getContentRatings());
+                if (ratings != null && ratings.length > 0) {
+                    if (DEBUG) Log.d(TAG, "mCurrentChannel = " + Program.contentRatingsToString(ratings));
+                }
             }
 
             return ratings;
