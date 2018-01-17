@@ -726,7 +726,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         }
 
         protected void releaseWorkThread() {
-            Log.d(TAG, "releaseWorkThread")
+            Log.d(TAG, "releaseWorkThread");
             if (mHandlerThread != null) {
                 mHandlerThread.quit();
                 mHandlerThread = null;
