@@ -2190,7 +2190,6 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 if ((event.mode == TVChannelParams.MODE_ANALOG) && (optionTag == OPTION_MANUAL_SEARCH)
                     && event.precent == 100)
                     stopSearch();
-
                 break;
 
             case TvControlManager.EVENT_STORE_BEGIN:
@@ -2200,19 +2199,15 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             case TvControlManager.EVENT_STORE_END:
                 Log.d(TAG, "onEvent:Store end");
                 String prompt = mResources.getString(R.string.searched);
-                int sumNumber = 0;
                 if (channelNumber != 0) {
-                    sumNumber += channelNumber;
                     prompt += " " + channelNumber + " " + mResources.getString(R.string.tv_channel);
                     if (radioNumber != 0) {
                         prompt += ",";
                     }
                 }
                 if (radioNumber != 0) {
-                    sumNumber += radioNumber;
                     prompt += " " + radioNumber + " " + mResources.getString(R.string.radio_channel);
                 }
-                Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.ALL_CHANNELS_NUMBER, sumNumber);
                 showToast(prompt);
                 break;
 
@@ -2230,8 +2225,6 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                 if (channelNumber == 0 && radioNumber == 0) {
                     showToast(mResources.getString(R.string.searched) + " 0 " + mResources.getString(R.string.channel));
                 }
-                int sumNumber1 = channelNumber + radioNumber;
-                Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.ALL_CHANNELS_NUMBER, sumNumber1);
                 break;
             default:
                 break;
