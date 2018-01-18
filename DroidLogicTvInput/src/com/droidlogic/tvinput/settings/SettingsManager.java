@@ -140,6 +140,8 @@ public class SettingsManager {
     public static final String STRING_NAME                          = "name";
     public static final String STRING_STATUS                        = "status";
     public static final String STRING_PRIVATE                       = "private";
+
+    public static final String ATSC_TV_SEARCH_SYS                   = "atsc_tv_search_sys";
     public static String currentTag = null;
 
     private Context mContext;
@@ -951,6 +953,14 @@ public class SettingsManager {
         }
     }
 
+    public int getTvSearchTypeSys() {
+        int mode = Settings.System.getInt(mContext.getContentResolver(), ATSC_TV_SEARCH_SYS, -1);
+        if (mode == -1) {
+            mode = 0;
+        }
+        return mode;
+    }
+
     public String getDtvTypeStatus(String type) {
         String ret = "";
         if (TextUtils.equals(type, TvContract.Channels.TYPE_DTMB)) {
@@ -1504,6 +1514,10 @@ public class SettingsManager {
 
     public void setDtvType(String type) {
         Settings.System.putString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DTV_TYPE, type);
+    }
+
+    public void setTvSearchTypeSys(int mode) {
+        Settings.System.putInt(mContext.getContentResolver(), ATSC_TV_SEARCH_SYS, mode);
     }
 
     public void setSleepTimer (int mode) {

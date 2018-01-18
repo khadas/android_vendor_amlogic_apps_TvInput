@@ -196,6 +196,11 @@
     <string name="lrc">LRC</string>
     <string name="hrc">HRC</string>
 
+    <string name="tv_search_sys_auto">AUTO</string>
+    <string name="tv_search_sys_pal">PAL</string>
+    <string name="tv_search_sys_ntsc">NTSC</string>
+    <string name="tv_search_sys_secam">SECAM</string>
+
     <string name="nosignal">No Signal</string>
 
     <!-- for scan ui -->

@@ -257,6 +257,17 @@
                 android:textSize="@dimen/ut_scan_description_text_size"
                 android:layout_below="@id/auto_tune_dtv"
                 android:layout_toRightOf="@id/tune_icon" />
+            <Spinner
+                android:id="@+id/atsc_tv_search_sys"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/ut_scan_description_margin_top"
+                android:layout_marginLeft="@dimen/ut_scan_icon_margin_right"
+                android:fontFamily="sans-serif"
+                android:textColor="@color/ut_scan_description_text"
+                android:textSize="@dimen/ut_scan_description_text_size"
+                android:layout_below="@id/auto_tune_atv"
+                android:layout_toRightOf="@id/atsc_c_spinner" />
             <Button
                 android:id="@+id/tune_auto"
                 android:layout_width="wrap_content"
