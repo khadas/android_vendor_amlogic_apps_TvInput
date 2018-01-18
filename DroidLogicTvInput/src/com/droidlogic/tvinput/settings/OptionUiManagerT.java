@@ -1159,19 +1159,15 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
             case TvControlManager.EVENT_STORE_END:
                 Log.d(TAG, "onEvent:Store end");
                 String prompt = mResources.getString(R.string.searched);
-                int sumNumber = 0;
                 if (channelNumber != 0) {
-                    sumNumber += channelNumber;
                     prompt += " " + channelNumber + " " + mResources.getString(R.string.tv_channel);
                     if (radioNumber != 0) {
                         prompt += ",";
                     }
                 }
                 if (radioNumber != 0) {
-                    sumNumber += radioNumber;
                     prompt += " " + radioNumber + " " + mResources.getString(R.string.radio_channel);
                 }
-                Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.ALL_CHANNELS_NUMBER, sumNumber);
                 showToast(prompt);
                 break;
 
@@ -1196,8 +1192,6 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
                     }
                 }
                 if (channelNumber == 0 && radioNumber == 0) {
-                    int sumNumber1 = channelNumber + radioNumber;
-                    Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.ALL_CHANNELS_NUMBER, sumNumber1);
                     showToast(mResources.getString(R.string.searched) + " 0 " + mResources.getString(R.string.channel));
                 }
                 break;
