@@ -14,6 +14,10 @@ LOCAL_PROGUARD_ENABLED := disabled
 LOCAL_JAVA_LIBRARIES := droidlogic droidlogic-tv
 LOCAL_JNI_SHARED_LIBRARIES := libjnidtvsubtitle libjnidtvepgscanner libjnifont
 
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26 && echo OK),OK)
+LOCAL_PROPRIETARY_MODULE := true
+endif
+
 include $(BUILD_PACKAGE)
 
 include $(call all-makefiles-under,$(LOCAL_PATH))

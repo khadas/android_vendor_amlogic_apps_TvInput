@@ -35,6 +35,10 @@ LOCAL_SHARED_LIBRARIES += libjnigraphics libzvbi libam_mw libam_adp libskia libl
 
 LOCAL_PRELINK_MODULE := false
 
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26 && echo OK),OK)
+LOCAL_PROPRIETARY_MODULE := true
+endif
+
 include $(BUILD_SHARED_LIBRARY)
 
 #######################################################################
@@ -56,27 +60,34 @@ LOCAL_SHARED_LIBRARIES += libzvbi libam_mw libam_adp libskia liblog libcutils
 
 LOCAL_PRELINK_MODULE := false
 
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26 && echo OK),OK)
+LOCAL_PROPRIETARY_MODULE := true
+endif
+
 include $(BUILD_SHARED_LIBRARY)
 #######################################################################
 
 include $(CLEAR_VARS)
 
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26 && echo OK),OK)
+MULTI_FONT_PATH_32 := $(TARGET_OUT_VENDOR)/lib/
+MULTI_FONT_PATH_64 := $(TARGET_OUT_VENDOR)/lib64/
+else
+MULTI_FONT_PATH_32 := $(TARGET_OUT)/lib/
+MULTI_FONT_PATH_64 := $(TARGET_OUT)/lib64/
+endif
+
 LOCAL_MODULE    := libvendorfont
-LOCAL_PRELINK_MODULE := false
-LOCAL_MODULE_CLASS := SHARED_LIBRARIES
+LOCAL_MULTILIB := both
 LOCAL_MODULE_SUFFIX := .so
 LOCAL_MODULE_TAGS := optional
+LOCAL_MODULE_CLASS := SHARED_LIBRARIES
 
-ifdef TARGET_2ND_ARCH
-LOCAL_MULTILIB := both
-LOCAL_MODULE_PATH_64 := $(TARGET_OUT)/lib64
-LOCAL_SRC_FILES_64 := arm64/libvendorfont.so
-LOCAL_MODULE_PATH_32 := $(TARGET_OUT)/lib
-LOCAL_SRC_FILES_32 := arm/libvendorfont.so
-else
-LOCAL_MODULE_PATH := $(TARGET_OUT)/lib
-LOCAL_SRC_FILES := arm/libvendorfont.so
-endif
+LOCAL_MODULE_PATH_32 := $(MULTI_FONT_PATH_32)
+LOCAL_MODULE_PATH_64 := $(MULTI_FONT_PATH_64)
+LOCAL_SRC_FILES_arm := arm/$(LOCAL_MODULE)$(LOCAL_MODULE_SUFFIX)
+LOCAL_SRC_FILES_arm64 := arm64/$(LOCAL_MODULE)$(LOCAL_MODULE_SUFFIX)
+
 include $(BUILD_PREBUILT)
 
 #######################################################################
@@ -95,6 +106,10 @@ LOCAL_C_INCLUDES := \
 LOCAL_SHARED_LIBRARIES += libvendorfont liblog libnativehelper libandroid_runtime libcutils
 
 LOCAL_PRELINK_MODULE := false
+
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26 && echo OK),OK)
+LOCAL_PROPRIETARY_MODULE := true
+endif
 
 include $(BUILD_SHARED_LIBRARY)
 

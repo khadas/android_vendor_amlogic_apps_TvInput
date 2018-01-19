@@ -23,6 +23,8 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen">
+        <uses-library android:name="droidlogic.software.core" />
+        <uses-library android:name="droidlogic.tv.software.core" />
         <activity
             android:name=".DroidLogicTv"
             android:launchMode="singleInstance"
@@ -34,10 +36,10 @@
             </intent-filter>
         </activity>
 
-	    <receiver android:name=".AppointedProgramReceiver" >
+	<receiver android:name=".AppointedProgramReceiver" >
             <intent-filter>
                 <action android:name="android.intent.action.tv_appointed_program" />
             </intent-filter>
-	    </receiver>
+	</receiver>
     </application>
 </manifest>

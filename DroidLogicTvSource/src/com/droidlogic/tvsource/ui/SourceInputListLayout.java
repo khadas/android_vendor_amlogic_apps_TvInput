@@ -218,10 +218,11 @@ public class SourceInputListLayout extends LinearLayout implements OnSourceClick
             return;
 
         TvControlManager tcm = TvControlManager.getInstance();
-        String prop_ids = tcm.GetSourceInputList();
+        String prop_ids = tcm.getSupportInputDevices();
         if (TextUtils.equals(prop_ids, "null")) {
             throw new IllegalArgumentException("source input ids is not set.");
         }
+
         mSourceInputIds = prop_ids.split(",");
         if (mSourceInputIds == null || mSourceInputIds.length <= 0) {
             throw new NullPointerException("source input ids is empth...");

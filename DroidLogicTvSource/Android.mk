@@ -13,4 +13,8 @@ LOCAL_PROGUARD_ENABLED := disabled
 
 LOCAL_JAVA_LIBRARIES := droidlogic droidlogic-tv
 
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26 && echo OK),OK)
+LOCAL_PROPRIETARY_MODULE := true
+endif
+
 include $(BUILD_PACKAGE)

@@ -33,6 +33,8 @@
         android:defaultToDeviceProtectedStorage="true"
         android:directBootAware="true">
 
+        <uses-library android:name="droidlogic.software.core" />
+        <uses-library android:name="droidlogic.tv.software.core" />
         <service
             android:name=".services.Hdmi1InputService"
             android:permission="android.permission.BIND_TV_INPUT" >
