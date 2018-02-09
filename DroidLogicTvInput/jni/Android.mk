@@ -23,8 +23,10 @@ LOCAL_MODULE_TAGS := optional
 LOCAL_SRC_FILES := DTVSubtitle.cpp
 LOCAL_ARM_MODE := arm
 LOCAL_C_INCLUDES := \
-	bionic/libc/include \
-	external/skia/include
+  bionic/libc/include \
+  external/skia/include\
+  external/skia/include/core \
+  external/skia/include/config
 
 #DVB define
 ifeq ($(BOARD_HAS_ADTV),true)
@@ -46,9 +48,10 @@ endif
 
 LOCAL_SHARED_LIBRARIES += \
   libjnigraphics \
-  libskia \
   liblog \
   libcutils
+
+LOCAL_STATIC_LIBRARIES := libskia
 
 LOCAL_PRELINK_MODULE := false
 
@@ -68,12 +71,16 @@ LOCAL_SRC_FILES := DTVEpgScanner.c
 LOCAL_ARM_MODE := arm
 LOCAL_C_INCLUDES := \
 	external/sqlite/dist \
+	external/skia/include\
+	external/skia/include/core \
+	external/skia/include/config \
 	bionic/libc/include
 
 LOCAL_SHARED_LIBRARIES += \
-  libskia \
   liblog \
   libcutils
+
+LOCAL_STATIC_LIBRARIES := libskia
 
 LOCAL_PRELINK_MODULE := false
 
