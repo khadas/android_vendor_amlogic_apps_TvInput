@@ -612,9 +612,9 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
         isMenuShowing = true;
         TvInputInfo info = mSourceInput.getTvInputInfo();
         Intent intent = info.createSetupIntent();
-        //actually, we don't need to setClassName().But we need this activity to be compared,so fix it.
-        intent.setClassName("com.droidlogic.tvinput", "com.droidlogic.tvinput.settings.TvSettingsActivity");
         if (intent != null) {
+            //actually, we don't need to setClassName().But we need this activity to be compared,so fix it.
+            intent.setClassName("com.droidlogic.tvinput", "com.droidlogic.tvinput.settings.TvSettingsActivity");
             intent.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_DEVICE_ID, mSourceInput.getDeviceId());
             intent.putExtra(DroidLogicTvUtils.EXTRA_CHANNEL_NUMBER, (int)mSourceInput.getChannelId());
             intent.putExtra(DroidLogicTvUtils.EXTRA_IS_RADIO_CHANNEL, mSourceInput.isRadioChannel());
@@ -1774,7 +1774,8 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             return;
         mNoSignalShutdownCount = 300;//5min
         no_signal_handler.removeCallbacks(no_signal_runnable);
-        no_signal_handler.postDelayed(no_signal_runnable, 0);
+        //tmp disable countdown
+        //no_signal_handler.postDelayed(no_signal_runnable, 0);
     }
 
     private void remove_nosignal_time() {
