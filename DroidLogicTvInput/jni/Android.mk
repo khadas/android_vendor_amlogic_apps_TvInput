@@ -22,16 +22,33 @@ LOCAL_MODULE    := libjnidtvsubtitle
 LOCAL_MODULE_TAGS := optional
 LOCAL_SRC_FILES := DTVSubtitle.cpp
 LOCAL_ARM_MODE := arm
-LOCAL_C_INCLUDES := external/libzvbi/src \
+LOCAL_C_INCLUDES := \
+	bionic/libc/include \
+	external/skia/include
+
+#DVB define
+ifeq ($(BOARD_HAS_ADTV),true)
+LOCAL_CFLAGS += -DSUPPORT_ADTV
+
+LOCAL_C_INCLUDES += \
+  external/libzvbi/src \
 	$(DVB_PATH)/include/am_mw \
 	$(DVB_PATH)/include/am_adp \
-	bionic/libc/include \
-	external/skia/include\
 	$(DVB_PATH)/android/ndk/include \
 	vendor/amlogic/external/libzvbi/src \
 	$(BOARD_AML_VENDOR_PATH)/external/libzvbi/src
 
-LOCAL_SHARED_LIBRARIES += libjnigraphics libzvbi libam_mw libam_adp libskia liblog libcutils
+LOCAL_SHARED_LIBRARIES += \
+  libzvbi \
+  libam_mw \
+  libam_adp
+endif
+
+LOCAL_SHARED_LIBRARIES += \
+  libjnigraphics \
+  libskia \
+  liblog \
+  libcutils
 
 LOCAL_PRELINK_MODULE := false
 
@@ -49,16 +66,32 @@ LOCAL_MODULE    := libjnidtvepgscanner
 LOCAL_MODULE_TAGS := optional
 LOCAL_SRC_FILES := DTVEpgScanner.c
 LOCAL_ARM_MODE := arm
-LOCAL_C_INCLUDES := external/libzvbi/src \
+LOCAL_C_INCLUDES := \
 	external/sqlite/dist \
-	bionic/libc/include \
-	$(DVB_PATH)/include/am_mw \
-	$(DVB_PATH)/include/am_adp \
-	$(DVB_PATH)/android/ndk/include
+	bionic/libc/include
 
-LOCAL_SHARED_LIBRARIES += libzvbi libam_mw libam_adp libskia liblog libcutils
+LOCAL_SHARED_LIBRARIES += \
+  libskia \
+  liblog \
+  libcutils
 
 LOCAL_PRELINK_MODULE := false
+
+#DVB define
+ifeq ($(BOARD_HAS_ADTV),true)
+LOCAL_CFLAGS += -DSUPPORT_ADTV
+
+LOCAL_C_INCLUDES += \
+  external/libzvbi/src \
+	$(DVB_PATH)/include/am_mw \
+	$(DVB_PATH)/include/am_adp \
+	$(DVB_PATH)/android/ndk/include \
+
+LOCAL_SHARED_LIBRARIES += \
+  libzvbi \
+  libam_mw \
+  libam_adp
+endif
 
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26 && echo OK),OK)
 LOCAL_PROPRIETARY_MODULE := true
