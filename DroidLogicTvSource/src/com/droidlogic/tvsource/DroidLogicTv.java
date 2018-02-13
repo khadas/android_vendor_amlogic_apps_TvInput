@@ -15,9 +15,9 @@ import com.droidlogic.app.tv.DroidLogicHdmiCecManager;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.app.tv.TvDataBaseManager;
 import com.droidlogic.app.tv.ChannelInfo;
-import com.droidlogic.app.tv.TVInSignalInfo;
+import com.droidlogic.app.tv.TvInSignalInfo;
 import com.droidlogic.app.tv.TvControlManager;
-import com.droidlogic.app.tv.TVTime;
+import com.droidlogic.app.tv.TvTime;
 import com.droidlogic.app.tv.Program;
 
 import com.droidlogic.tvsource.ui.ChannelListLayout;
@@ -147,7 +147,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     private TextView mDtvInfoAge;
     private TextView mDtvInfoProgramSegment;
     private TextView mDtvInfoDescribe;
-    private TVTime mTvTime = null;
+    private TvTime mTvTime = null;
     //thread
     private HandlerThread mHandlerThread;
     private static final String mThreadName = TAG;
@@ -411,7 +411,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_HDMI2 ||
             mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_HDMI3 ||
             mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_HDMI4 ) {
-            TVInSignalInfo si = mTvControlManager.GetCurrentSignalInfo();
+            TvInSignalInfo si = mTvControlManager.GetCurrentSignalInfo();
             String[] strings = si.sigFmt.toString().split("_");
             if (strings != null && strings.length <= 4)
                 mSourceInput.setChannelVideoFormat(" ");
@@ -424,7 +424,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             }
         }else if (mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_AV1 ||
             mSourceInput.getSourceType() == DroidLogicTvUtils.SOURCE_TYPE_AV2) {
-            TVInSignalInfo si = mTvControlManager.GetCurrentSignalInfo();
+            TvInSignalInfo si = mTvControlManager.GetCurrentSignalInfo();
             String[] strings = si.sigFmt.toString().split("_");
             if (strings != null && strings.length <= 4)
                 mSourceInput.setAVType("");
@@ -1233,7 +1233,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
     }
 
     private void initDtvInfo() {
-        mTvTime = new TVTime(this);
+        mTvTime = new TvTime(this);
         String[] dateAndTime = getDateAndTime(mTvTime.getTime());
         String currentTime = dateAndTime[0] + "." + dateAndTime[1] + "." + dateAndTime[2] + "   " + dateAndTime[3] + ":"
                   + dateAndTime[4];

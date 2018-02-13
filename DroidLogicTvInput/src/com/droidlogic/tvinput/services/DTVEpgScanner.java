@@ -4,7 +4,7 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import com.droidlogic.app.tv.TVChannelParams;
+import com.droidlogic.app.tv.TvChannelParams;
 import com.droidlogic.app.tv.ChannelInfo;
 
 abstract public class DTVEpgScanner {
@@ -183,7 +183,7 @@ abstract public class DTVEpgScanner {
 
         startScan(mode);
 /*
-        if (fend_type == TVChannelParams.MODE_ATSC) {
+        if (fend_type == TvChannelParams.MODE_ATSC) {
             startScan(SCAN_PSIP_EIT | SCAN_MGT | SCAN_VCT | SCAN_RRT | SCAN_STT);
         } else {
             startScan(SCAN_EIT_ALL | SCAN_TDT | SCAN_SDT);//SCAN_NIT|SCAN_CAT

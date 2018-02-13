@@ -30,13 +30,13 @@ import com.droidlogic.tvinput.Utils;
 
 import com.droidlogic.app.tv.DroidLogicTvInputService;
 import com.droidlogic.app.tv.TvDataBaseManager;
-import com.droidlogic.app.tv.TVChannelParams;
+import com.droidlogic.app.tv.TvChannelParams;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.app.tv.ChannelInfo;
 import com.droidlogic.app.tv.TvInputBaseSession;
 import com.droidlogic.app.tv.Program;
-import com.droidlogic.app.tv.TVMultilingualText;
-import com.droidlogic.app.tv.TVTime;
+import com.droidlogic.app.tv.TvMultilingualText;
+import com.droidlogic.app.tv.TvTime;
 import com.droidlogic.app.tv.TvStoreManager;
 import com.droidlogic.app.SystemControlManager;
 

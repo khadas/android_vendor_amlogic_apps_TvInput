@@ -39,15 +39,15 @@ import com.droidlogic.tvinput.Utils;
 
 import com.droidlogic.app.tv.DroidLogicTvInputService;
 import com.droidlogic.app.tv.TvDataBaseManager;
-import com.droidlogic.app.tv.TVChannelParams;
+import com.droidlogic.app.tv.TvChannelParams;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.app.tv.ChannelInfo;
 import com.droidlogic.app.tv.TvInputBaseSession;
 import com.droidlogic.app.tv.Program;
-import com.droidlogic.app.tv.TVMultilingualText;
-import com.droidlogic.app.tv.TVTime;
+import com.droidlogic.app.tv.TvMultilingualText;
+import com.droidlogic.app.tv.TvTime;
 import com.droidlogic.app.tv.TvStoreManager;
-import com.droidlogic.app.tv.TVInSignalInfo;
+import com.droidlogic.app.tv.TvInSignalInfo;
 import com.droidlogic.app.SystemControlManager;
 import com.droidlogic.tvinput.widget.DTVSubtitleView;
 
@@ -272,17 +272,17 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
     }
 
     @Override
-    public void onSigChanged(TVInSignalInfo signal_info) {
+    public void onSigChanged(TvInSignalInfo signal_info) {
         if (mTvControlManager.GetCurrentSourceInput() == DroidLogicTvUtils.DEVICE_ID_DTV
             || mTvControlManager.GetCurrentVirtualSourceInput() == DroidLogicTvUtils.DEVICE_ID_ADTV) {
 
-            TVInSignalInfo.SignalStatus status = signal_info.sigStatus;
+            TvInSignalInfo.SignalStatus status = signal_info.sigStatus;
 
             Log.d(TAG, "onSigChanged status: id["+status.ordinal()+"]["+status.toString()+"]");
 
             //if a/v runs well, notify
             Log.d(TAG, "video fps:"+mTvControlManager.DtvGetVideoFormatInfo().fps);
-            if (status == TVInSignalInfo.SignalStatus.TVIN_SIG_STATUS_STABLE
+            if (status == TvInSignalInfo.SignalStatus.TVIN_SIG_STATUS_STABLE
                     && mCurrentSession != null
                     && mCurrentSession.mCurrentChannel != null
                     && !mCurrentSession.mCurrentChannel.isAnalogChannel()
@@ -1034,11 +1034,11 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         }
 
         protected TvContentRating[] getContentRatingsOfCurrentProgram(ChannelInfo channelInfo) {
-            TVTime tvTime = new TVTime(mContext);
+            TvTime TvTime = new TvTime(mContext);
             if (channelInfo == null)
                 return null;
-            Program mCurrentProgram = mTvDataBaseManager.getProgram(TvContract.buildChannelUri(channelInfo.getId()), tvTime.getTime());
-            Log.d(TAG, "TvTime:"+getDateAndTime(tvTime.getTime())+" ("+tvTime.getTime()+")");
+            Program mCurrentProgram = mTvDataBaseManager.getProgram(TvContract.buildChannelUri(channelInfo.getId()), TvTime.getTime());
+            Log.d(TAG, "TvTime:"+getDateAndTime(TvTime.getTime())+" ("+TvTime.getTime()+")");
 
             TvContentRating[] ratings = mCurrentProgram == null ? null : mCurrentProgram.getContentRatings();
             TvContentRating[] newparseratings = null;
@@ -1124,14 +1124,14 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
             if (mHandler != null) {
                 if (false) {
-                    TVTime tvTime = new TVTime(mContext);
-                    Program mCurrentProgram = mTvDataBaseManager.getProgram(TvContract.buildChannelUri(channelInfo.getId()), tvTime.getTime());
+                    TvTime TvTime = new TvTime(mContext);
+                    Program mCurrentProgram = mTvDataBaseManager.getProgram(TvContract.buildChannelUri(channelInfo.getId()), TvTime.getTime());
                     Program mNextProgram = null;
                     if (mCurrentProgram != null)
                         mNextProgram = mTvDataBaseManager.getProgram(TvContract.buildChannelUri(channelInfo.getId()), mCurrentProgram.getEndTimeUtcMillis() + 1);
                     mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_PARENTAL_CONTROL, this),
-                        (mNextProgram == null ? mParentControlDelay : mNextProgram.getStartTimeUtcMillis() - tvTime.getTime()));
-                    Log.d(TAG, "doPC next:"+(mNextProgram == null ? mParentControlDelay : mNextProgram.getStartTimeUtcMillis() - tvTime.getTime())+"ms");
+                        (mNextProgram == null ? mParentControlDelay : mNextProgram.getStartTimeUtcMillis() - TvTime.getTime()));
+                    Log.d(TAG, "doPC next:"+(mNextProgram == null ? mParentControlDelay : mNextProgram.getStartTimeUtcMillis() - TvTime.getTime())+"ms");
                 } else {
                     mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_PARENTAL_CONTROL, this), mParentControlDelay);
                     Log.d(TAG, "doPC next:"+mParentControlDelay);
@@ -1389,9 +1389,9 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         }
 
         protected List<ChannelInfo.Subtitle> getChannelProgramCaptions(ChannelInfo channelInfo) {
-            TVTime tvTime = new TVTime(mContext);
-            Program mCurrentProgram = mTvDataBaseManager.getProgram(TvContract.buildChannelUri(channelInfo.getId()), tvTime.getTime());
-            Log.d(TAG, "TvTime:"+getDateAndTime(tvTime.getTime()));
+            TvTime TvTime = new TvTime(mContext);
+            Program mCurrentProgram = mTvDataBaseManager.getProgram(TvContract.buildChannelUri(channelInfo.getId()), TvTime.getTime());
+            Log.d(TAG, "TvTime:"+getDateAndTime(TvTime.getTime()));
             Log.d(TAG, "caption:"+(mCurrentProgram==null?"null":mCurrentProgram.getInternalProviderData()));
             return DroidLogicTvUtils.parseAtscCaptions(mCurrentProgram == null ? null : mCurrentProgram.getInternalProviderData());
         }
@@ -1658,7 +1658,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             /*default language track*/
             String defaultLanguage = Settings.System.getString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DEFAULT_LANGUAGE);
             if (defaultLanguage == null)/*system language track*/
-                defaultLanguage = TVMultilingualText.getLocalLang();
+                defaultLanguage = TvMultilingualText.getLocalLang();
 
             Iterator<ChannelInfo.Audio> iter = mCurrentAudios.iterator();
             while (iter.hasNext()) {
@@ -1689,7 +1689,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
             String defaultLanguage = Settings.System.getString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DEFAULT_LANGUAGE);
             if (defaultLanguage == null)
-                defaultLanguage = TVMultilingualText.getLocalLang();
+                defaultLanguage = TvMultilingualText.getLocalLang();
 
             Iterator<ChannelInfo.Subtitle> iter = mCurrentSubtitles.iterator();
             while (iter.hasNext()) {
@@ -2240,7 +2240,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                         monitor = new DTVMonitor(mContext, getInputId(), DEF_CODING, MONITOR_MODE, standard);
                         monitor.reset(MONITOR_FEND, MONITOR_DMX,
                                   new TvControlManager.TvMode(mChannel.getType()).getBase(),
-                                  EPG_LANGUAGE.replaceAll("local", TVMultilingualText.getLocalLang()));
+                                  EPG_LANGUAGE.replaceAll("local", TvMultilingualText.getLocalLang()));
                     }
 
                     monitor.enterChannel(getTVChannelParams(mChannel), false);
@@ -2251,28 +2251,28 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             }
         }
 
-        protected TVChannelParams getTVChannelParams(ChannelInfo channel) {
-            TVChannelParams params = null;
+        protected TvChannelParams getTVChannelParams(ChannelInfo channel) {
+            TvChannelParams params = null;
             String type = channel.getType();
             if (TextUtils.equals(type, TvContract.Channels.TYPE_DTMB))
-                params = TVChannelParams.dtmbParams(channel.getFrequency(), channel.getBandwidth());
+                params = TvChannelParams.dtmbParams(channel.getFrequency(), channel.getBandwidth());
             else if (TextUtils.equals(type, TvContract.Channels.TYPE_DVB_C))
-                params = TVChannelParams.dvbcParams(channel.getFrequency(), channel.getModulation(), channel.getSymbolRate());
+                params = TvChannelParams.dvbcParams(channel.getFrequency(), channel.getModulation(), channel.getSymbolRate());
             else if (TextUtils.equals(type, TvContract.Channels.TYPE_DVB_T))
-                params = TVChannelParams.dvbtParams(channel.getFrequency(), channel.getBandwidth());
+                params = TvChannelParams.dvbtParams(channel.getFrequency(), channel.getBandwidth());
             /*else if (TextUtils.equals(type, TvContract.Channels.TYPE_DVB_S))
-                params = TVChannelParams.dvbsParams(channel.getFrequency(), channel.getModulation(), channel.getSymbolRate());*/
+                params = TvChannelParams.dvbsParams(channel.getFrequency(), channel.getModulation(), channel.getSymbolRate());*/
             else if (TextUtils.equals(type, TvContract.Channels.TYPE_DVB_C2))
-                params = TVChannelParams.dvbcParams(channel.getFrequency(), channel.getModulation(), channel.getSymbolRate());
+                params = TvChannelParams.dvbcParams(channel.getFrequency(), channel.getModulation(), channel.getSymbolRate());
             else if (TextUtils.equals(type, TvContract.Channels.TYPE_DVB_T2))
-                params = TVChannelParams.dvbt2Params(channel.getFrequency(), channel.getBandwidth());
+                params = TvChannelParams.dvbt2Params(channel.getFrequency(), channel.getBandwidth());
             /*else if (TextUtils.equals(type, TvContract.Channels.TYPE_DVB_S2))
-                params = TVChannelParams.dvbsParams(channel.getFrequency(), channel.getModulation(), channel.getSymbolRate());*/
+                params = TvChannelParams.dvbsParams(channel.getFrequency(), channel.getModulation(), channel.getSymbolRate());*/
             else if (TextUtils.equals(type, TvContract.Channels.TYPE_ATSC_T)
                 ||TextUtils.equals(type, TvContract.Channels.TYPE_ATSC_C))
-                params = TVChannelParams.atscParams(channel.getFrequency(), channel.getModulation());
+                params = TvChannelParams.atscParams(channel.getFrequency(), channel.getModulation());
             else if (TextUtils.equals(type, TvContract.Channels.TYPE_ISDB_T))
-                params = TVChannelParams.isdbtParams(channel.getFrequency(), channel.getBandwidth());
+                params = TvChannelParams.isdbtParams(channel.getFrequency(), channel.getBandwidth());
            return params;
         }
 
@@ -2355,10 +2355,10 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             private int mMode;
             private String mStandard;
             private DTVEpgScanner epgScanner;
-            private TVChannelParams tvchan = null;
+            private TvChannelParams tvchan = null;
             private ChannelInfo tvservice = null;
             private TvDataBaseManager mTvDataBaseManager = null;
-            private TVTime mTvTime = null;
+            private TvTime mTvTime = null;
 
             private ChannelObserver mChannelObserver;
             private CCStyleObserver mCCObserver;
@@ -2434,7 +2434,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 mMode = mode;
                 mStandard = standard;
                 mTvDataBaseManager = new TvDataBaseManager(mContext);
-                mTvTime = new TVTime(mContext);
+                mTvTime = new TvTime(mContext);
 
                 int channel_number_start = mSystemControlManager.getPropertyInt(DTV_CHANNEL_NUMBER_START, 1);
                 mMonitorStoreManager = new MonitorStoreManager(mInputId, channel_number_start);
@@ -2574,7 +2574,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                     return;
                 }
 
-                reset(fend, dmx, src, EPG_LANGUAGE.replaceAll("local", TVMultilingualText.getLocalLang()));
+                reset(fend, dmx, src, EPG_LANGUAGE.replaceAll("local", TvMultilingualText.getLocalLang()));
 
                 enterChannel(tvchan, true);
                 enterService(tvservice);
@@ -2632,7 +2632,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 }
             }
 
-            public void enterChannel(TVChannelParams chan, boolean force) {
+            public void enterChannel(TvChannelParams chan, boolean force) {
                 synchronized (this) {
                     enterChannelLocked(chan, force);
                 }
@@ -2644,7 +2644,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 }
             }
 
-            private void enterChannelLocked(TVChannelParams chan, boolean force) {
+            private void enterChannelLocked(TvChannelParams chan, boolean force) {
                     if (epgScanner == null)
                         return;
                     if (chan == null)
@@ -2756,8 +2756,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                                 Program p = new Program.Builder()
                                     .setProgramId(evt.evt_id)
                                     .setChannelId(ContentUris.parseId(channelUri))
-                                    .setTitle(TVMultilingualText.getText((evt.name == null ? null : new String(evt.name)), languages))
-                                    .setDescription(TVMultilingualText.getText((evt.ext_descr == null ? null : new String(evt.ext_descr)), languages))
+                                    .setTitle(TvMultilingualText.getText((evt.name == null ? null : new String(evt.name)), languages))
+                                    .setDescription(TvMultilingualText.getText((evt.ext_descr == null ? null : new String(evt.ext_descr)), languages))
                                     .setContentRatings(evt.rrt_ratings == null ? null : parseDRatingsT(new String(evt.rrt_ratings), evt.evt_id, mTvDataBaseManager, (evt.name == null ? null : new String(evt.name))))
                                     //.setContentRatings(evt.rrt_ratings == null ? null : DroidLogicTvUtils.parseDRatings(new String(evt.rrt_ratings)))
                                     //.setCanonicalGenres(programInfo.genres)
@@ -2787,8 +2787,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                                 Program p = new Program.Builder()
                                     .setProgramId(evt.evt_id)
                                     .setChannelId(ContentUris.parseId(channelUri))
-                                    .setTitle(TVMultilingualText.getText(new String(evt.name), languages))
-                                    .setDescription(TVMultilingualText.getText(new String(evt.desc), languages))
+                                    .setTitle(TvMultilingualText.getText(new String(evt.name), languages))
+                                    .setDescription(TvMultilingualText.getText(new String(evt.desc), languages))
                                     //.setContentRatings(programInfo.contentRatings)
                                     //.setCanonicalGenres(programInfo.genres)
                                     //.setPosterArtUri(programInfo.posterArtUri)
@@ -2849,8 +2849,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                                 Program p = new Program.Builder()
                                     .setProgramId(evt.evt_id)
                                     .setChannelId(cid)
-                                    .setTitle(TVMultilingualText.getText((evt.name == null ? null : new String(evt.name)), languages))
-                                    .setDescription(TVMultilingualText.getText((evt.ext_descr == null ? null : new String(evt.ext_descr)), languages))
+                                    .setTitle(TvMultilingualText.getText((evt.name == null ? null : new String(evt.name)), languages))
+                                    .setDescription(TvMultilingualText.getText((evt.ext_descr == null ? null : new String(evt.ext_descr)), languages))
                                     .setContentRatings(evt.rrt_ratings == null ? null : parseDRatingsT(new String(evt.rrt_ratings), evt.evt_id, mTvDataBaseManager, (evt.name == null ? null : new String(evt.name))))
                                     //.setContentRatings(evt.rrt_ratings == null ? null : DroidLogicTvUtils.parseDRatings(new String(evt.rrt_ratings)))
                                     //.setCanonicalGenres(programInfo.genres)
@@ -2876,8 +2876,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                     }
 
                     if (mTvDataBaseManager != null && programs.size() != 0) {
-                        TVTime tvTime = new TVTime(mContext);
-                        boolean updated = mTvDataBaseManager.updatePrograms(channelUri, programs, tvTime.getTime(), true);
+                        TvTime TvTime = new TvTime(mContext);
+                        boolean updated = mTvDataBaseManager.updatePrograms(channelUri, programs, TvTime.getTime(), true);
                         if (updated && mCurrentChannel != null && mCurrentChannel.getId() == c.getId()) {
                             if (DEBUG) Log.d(TAG, "epg eit, program updated for current");
                             checkCurrentContentBlockNeeded();
@@ -3057,7 +3057,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                                 for (DTVEpgScanner.Event.ServiceInfosFromSDT.ServiceInfoFromSDT sn : event.services.mServices) {
                                     if (co.getServiceId() == sn.mId) {
                                         co.setOriginalNetworkId(event.services.mNetworkId);
-                                        co.setDisplayName(TVMultilingualText.getText(sn.mName));
+                                        co.setDisplayName(TvMultilingualText.getText(sn.mName));
                                         co.setDisplayNameMulti(sn.mName);
                                         co.setSdtVersion(event.services.mVersion);
                                         mTvDataBaseManager.updateChannelInfo(co);
@@ -3873,7 +3873,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             if (g == null)
                 continue;
 
-            String ratingDescription = TVMultilingualText.getTextJ(g.optString("rs"));
+            String ratingDescription = TvMultilingualText.getTextJ(g.optString("rs"));
             int region = g.optInt("g", -1);
             if (region > DroidContentRatingsParser.FIXED_REGION_lEVEL_2) {//region > 2, search download rrt
                 Log.d(TAG, "parse ratings rrt5 region = " + region + ", title = " + title);

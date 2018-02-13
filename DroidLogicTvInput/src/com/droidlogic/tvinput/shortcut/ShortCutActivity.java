@@ -8,7 +8,7 @@ import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.app.tv.ChannelInfo;
 import com.droidlogic.app.tv.Program;
 import com.droidlogic.app.tv.TvDataBaseManager;
-import com.droidlogic.app.tv.TVTime;
+import com.droidlogic.app.tv.TvTime;
 import com.droidlogic.app.tv.TvControlManager;
 import com.droidlogic.tvinput.settings.SettingsManager;
 import com.droidlogic.tvinput.shortcut.GuideListView.ListItemSelectedListener;
@@ -94,7 +94,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
     private int currentChannelIndex = -1;
     private int currentDateIndex = -1;
     private int currentProgramIndex = -1;
-    private TVTime mTvTime = null;
+    private TvTime mTvTime = null;
     private TextView toast_title;
     private TextView toast_status;
     private LinearLayout mToast;
@@ -401,7 +401,7 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
     };
 
     private void setGuideView() {
-        mTvTime = new TVTime(this);
+        mTvTime = new TvTime(this);
 
         loadDateTime();
 

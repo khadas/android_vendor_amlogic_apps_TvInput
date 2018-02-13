@@ -14,7 +14,7 @@ import com.droidlogic.app.tv.TvControlManager.SourceInput_Type;
 import com.droidlogic.app.tv.TvControlManager.SourceInput;
 import com.droidlogic.app.tv.TvControlManager.noline_params_t;
 import com.droidlogic.app.tv.TvControlManager.tvin_cutwin_t;
-import com.droidlogic.app.tv.TVInSignalInfo;
+import com.droidlogic.app.tv.TvInSignalInfo;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
 import android.content.Context;
@@ -211,13 +211,13 @@ public class ShowSubView {
         map.put("sub_name", context.getString(Constant.FACUI_CHONGXIAN_PORT));
         map.put("sub_value", context.getString(Constant.FACUI_PICMODE_PORT_TV));
         mListSubMenuData.add(map);
-        setTiming(SourceInput.TV, TVInSignalInfo.SignalFmt.TVIN_SIG_FMT_CVBS_NTSC_M,
-                  TVInSignalInfo.TransFmt.TVIN_TFMT_2D);
+        setTiming(SourceInput.TV, TvInSignalInfo.SignalFmt.TVIN_SIG_FMT_CVBS_NTSC_M,
+                  TvInSignalInfo.TransFmt.TVIN_TFMT_2D);
         FactoryMainActivity.mPage = Constant.PAGE_OVERSCAN;
     }
 
     /* set reShow rate's all parameter */
-    public void setTiming(SourceInput source, TVInSignalInfo.SignalFmt fmt, TVInSignalInfo.TransFmt trans_fmt) {
+    public void setTiming(SourceInput source, TvInSignalInfo.SignalFmt fmt, TvInSignalInfo.TransFmt trans_fmt) {
         Map<String, String> map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_CHONGXIAN_TIMING));
         map.put("sub_value", fmt + "");
@@ -234,7 +234,7 @@ public class ShowSubView {
     }
 
     /* set reShow rate's parameter except Timing,TVIN_3D_STATUS,TVIN_TRANS_FMT */
-    public void setElse(SourceInput source, TVInSignalInfo.SignalFmt fmt, TVInSignalInfo.TransFmt trans_fmt) {
+    public void setElse(SourceInput source, TvInSignalInfo.SignalFmt fmt, TvInSignalInfo.TransFmt trans_fmt) {
         tvin_cutwin_t cutwin_t;
         cutwin_t = tv.FactoryGetOverscanParams(source, fmt, trans_fmt);
         Map<String, String> map = new HashMap<String, String>();

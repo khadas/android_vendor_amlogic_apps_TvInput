@@ -397,14 +397,14 @@ public class AV2InputService extends DroidLogicTvInputService {
 
            if (mHandler != null) {
                 if (false) {
-                   /* TVTime tvTime = new TVTime(mContext);
-                    Program mCurrentProgram = mTvDataBaseManager.getProgram(TvContract.buildChannelUri(channelInfo.getId()), tvTime.getTime());
+                   /* TvTime TvTime = new TvTime(mContext);
+                    Program mCurrentProgram = mTvDataBaseManager.getProgram(TvContract.buildChannelUri(channelInfo.getId()), TvTime.getTime());
                     Program mNextProgram = null;
                     if (mCurrentProgram != null)
                         mNextProgram = mTvDataBaseManager.getProgram(TvContract.buildChannelUri(channelInfo.getId()), mCurrentProgram.getEndTimeUtcMillis() + 1);
                     mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_PARENTAL_CONTROL_AV, this),
-                        (mNextProgram == null ? mParentControlDelay : mNextProgram.getStartTimeUtcMillis() - tvTime.getTime()));*/
-                    //Log.d(TAG, "doPC next:"+(mNextProgram == null ? mParentControlDelay : mNextProgram.getStartTimeUtcMillis() - tvTime.getTime())+"ms");
+                        (mNextProgram == null ? mParentControlDelay : mNextProgram.getStartTimeUtcMillis() - TvTime.getTime()));*/
+                    //Log.d(TAG, "doPC next:"+(mNextProgram == null ? mParentControlDelay : mNextProgram.getStartTimeUtcMillis() - TvTime.getTime())+"ms");
                     Log.d(TAG, "doPC next");
                 } else {
                     mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_PARENTAL_CONTROL_AV, this), mParentControlDelay);
