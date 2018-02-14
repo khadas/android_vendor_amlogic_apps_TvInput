@@ -56,6 +56,4 @@
     <string name="dtv_program_segment">program segment:</string>
     <string name="dtv_describe">describe:</string>
     <string name="minute">Minute</string>
-
-    <string name="open_hdmi_20">HDMI 2.0</string>
 </resources>
