@@ -1,11 +1,13 @@
 #include <pthread.h>
 #include <core/SkBitmap.h>
+#ifdef SUPPORT_ADTV
 #include <am_sub2.h>
 #include <am_tt2.h>
 #include <am_dmx.h>
 #include <am_pes.h>
 #include <am_misc.h>
 #include <am_cc.h>
+#endif
 #include <stdlib.h>
 #include <pthread.h>
 #include <jni.h>
@@ -19,10 +21,12 @@ extern "C" {
 
     typedef struct {
         pthread_mutex_t  lock;
-        AM_SUB2_Handle_t sub_handle;
+        void * sub_handle;
+    #ifdef SUPPORT_ADTV
         AM_PES_Handle_t  pes_handle;
         AM_TT2_Handle_t  tt_handle;
         AM_CC_Handle_t   cc_handle;
+    #endif
         int              dmx_id;
         int              filter_handle;
         jobject          obj;
@@ -63,6 +67,7 @@ extern "C" {
     {
     }
 
+#ifdef SUPPORT_ADTV
     static void draw_begin_cb(AM_TT2_Handle_t handle)
     {
         TVSubtitleData *sub = (TVSubtitleData *)AM_TT2_GetUserData(handle);
@@ -170,7 +175,7 @@ extern "C" {
         AM_SUB2_Decode(sub->sub_handle, buf, size);
     }
 
-    static void show_sub_cb(AM_SUB2_Handle_t handle, AM_SUB2_Picture_t *pic)
+    static void show_sub_cb(void * handle, AM_SUB2_Picture_t *pic)
     {
         TVSubtitleData *sub = (TVSubtitleData *)AM_SUB2_GetUserData(handle);
 
@@ -343,18 +348,6 @@ error:
         }
     }
 
-    static jint get_subtitle_piture_width(JNIEnv *env, jobject obj)
-    {
-        TVSubtitleData *data = sub_get_data(env, obj);
-        return data->sub_w;
-    }
-
-    static jint get_subtitle_piture_height(JNIEnv *env, jobject obj)
-    {
-        TVSubtitleData *data = sub_get_data(env, obj);
-        return data->sub_h;
-    }
-
 unsigned long sub_config_get(char *config, unsigned long def)
 {
     char prop_value[PROPERTY_VALUE_MAX], tmp[32];
@@ -379,9 +372,11 @@ unsigned long getSDKVersion()
     LOGE("VERSION_NUM --- %ld", version);
     return version;
 }
+#endif
 
     static jint sub_init(JNIEnv *env, jobject obj)
     {
+    #ifdef SUPPORT_ADTV
         TVSubtitleData *data;
         jclass bmp_clazz;
         jfieldID fid;
@@ -400,11 +395,13 @@ unsigned long getSDKVersion()
         data->sub_h = 576;
 
         setDvbDebugLogLevel();
+    #endif
         return 0;
     }
 
     static jint sub_destroy(JNIEnv *env, jobject obj)
     {
+    #ifdef SUPPORT_ADTV
         TVSubtitleData *data = sub_get_data(env, obj);
 
         if (data) {
@@ -419,42 +416,46 @@ unsigned long getSDKVersion()
 
             pthread_mutex_destroy(&data->lock);
         }
-
+    #endif
         return 0;
     }
 
     static jint sub_lock(JNIEnv *env, jobject obj)
     {
+    #ifdef SUPPORT_ADTV
         TVSubtitleData *data = sub_get_data(env, obj);
 
         pthread_mutex_lock(&data->lock);
-
+    #endif
         return 0;
     }
 
     static jint sub_unlock(JNIEnv *env, jobject obj)
     {
+    #ifdef SUPPORT_ADTV
         TVSubtitleData *data = sub_get_data(env, obj);
 
         pthread_mutex_unlock(&data->lock);
-
+    #endif
         return 0;
     }
 
     static jint sub_clear(JNIEnv *env, jobject obj)
     {
+    #ifdef SUPPORT_ADTV
         TVSubtitleData *data = sub_get_data(env, obj);
 
         if (data->tt_handle) {
             AM_TT2_Destroy(data->tt_handle);
             data->tt_handle = NULL;
         }
-
+    #endif
         return 0;
     }
 
     static jint sub_start_dvb_sub(JNIEnv *env, jobject obj, jint dmx_id, jint pid, jint page_id, jint anc_page_id)
     {
+    #ifdef SUPPORT_ADTV
         TVSubtitleData *data = sub_get_data(env, obj);
         AM_PES_Para_t pesp;
         AM_SUB2_Para_t subp;
@@ -497,11 +498,13 @@ error:
             AM_PES_Destroy(data->pes_handle);
             data->pes_handle = NULL;
         }
+    #endif
         return -1;
     }
 
     static jint sub_start_dtv_tt(JNIEnv *env, jobject obj, jint dmx_id, jint region_id, jint pid, jint page, jint sub_page, jboolean is_sub)
     {
+    #ifdef SUPPORT_ADTV
         TVSubtitleData *data = sub_get_data(env, obj);
         AM_PES_Para_t pesp;
         AM_TT2_Para_t ttp;
@@ -546,11 +549,13 @@ error:
             AM_PES_Destroy(data->pes_handle);
             data->pes_handle = NULL;
         }
+    #endif
         return -1;
     }
 
     static jint sub_stop_dvb_sub(JNIEnv *env, jobject obj)
     {
+    #ifdef SUPPORT_ADTV
         TVSubtitleData *data = sub_get_data(env, obj);
 
         close_dmx(data);
@@ -563,12 +568,13 @@ error:
 
         data->sub_handle = NULL;
         data->pes_handle = NULL;
-
+    #endif
         return 0;
     }
 
     static jint sub_stop_dtv_tt(JNIEnv *env, jobject obj)
     {
+    #ifdef SUPPORT_ADTV
         TVSubtitleData *data = sub_get_data(env, obj);
 
         close_dmx(data);
@@ -580,45 +586,53 @@ error:
         if (data->obj)
             sub_update(data->obj);
         pthread_mutex_unlock(&data->lock);
-
+    #endif
         return 0;
     }
 
     static jint sub_tt_goto(JNIEnv *env, jobject obj, jint page)
     {
+    #ifdef SUPPORT_ADTV
         TVSubtitleData *data = sub_get_data(env, obj);
 
         AM_TT2_GotoPage(data->tt_handle, page, AM_TT2_ANY_SUBNO);
+    #endif
         return 0;
     }
 
     static jint sub_tt_color_link(JNIEnv *env, jobject obj, jint color)
     {
+    #ifdef SUPPORT_ADTV
         TVSubtitleData *data = sub_get_data(env, obj);
 
         AM_TT2_ColorLink(data->tt_handle, (AM_TT2_Color_t)color);
+    #endif
         return 0;
     }
 
     static jint sub_tt_home_link(JNIEnv *env, jobject obj)
     {
+    #ifdef SUPPORT_ADTV
         TVSubtitleData *data = sub_get_data(env, obj);
 
         AM_TT2_GoHome(data->tt_handle);
+    #endif
         return 0;
     }
 
     static jint sub_tt_next(JNIEnv *env, jobject obj, jint dir)
     {
+    #ifdef SUPPORT_ADTV
         TVSubtitleData *data = sub_get_data(env, obj);
 
         AM_TT2_NextPage(data->tt_handle, dir);
-
+    #endif
         return 0;
     }
 
     static jint sub_tt_set_search_pattern(JNIEnv *env, jobject obj, jstring pattern, jboolean casefold)
     {
+    #ifdef SUPPORT_ADTV
         TVSubtitleData *data = sub_get_data(env, obj);
         jclass clsstring = env->FindClass("java/lang/String");
         jstring strencode = env->NewStringUTF("utf-16");
@@ -639,21 +653,24 @@ error:
         free(buf);
         env->DeleteLocalRef(strencode);
         env->ReleaseByteArrayElements(barr, ba, 0);
+    #endif
         return 0;
     }
 
     static jint sub_tt_search(JNIEnv *env, jobject obj, jint dir)
     {
+    #ifdef SUPPORT_ADTV
         TVSubtitleData *data = sub_get_data(env, obj);
 
         AM_TT2_Search(data->tt_handle, dir);
-
+    #endif
         return 0;
     }
 
     static jint sub_start_atsc_cc(JNIEnv *env, jobject obj, jint source, jint caption, jint fg_color,
             jint fg_opacity, jint bg_color, jint bg_opacity, jint font_style, jint font_size)
     {
+    #ifdef SUPPORT_ADTV
         TVSubtitleData *data = sub_get_data(env, obj);
         AM_CC_CreatePara_t cc_para;
         AM_CC_StartPara_t spara;
@@ -702,26 +719,56 @@ error:
         if (data->cc_handle != NULL) {
             AM_CC_Destroy(data->cc_handle);
         }
+    #endif
         LOGI("start cc failed!");
         return -1;
+    }
+
+    static jint get_subtitle_piture_width(JNIEnv *env, jobject obj)
+    {
+    #ifdef SUPPORT_ADTV
+        TVSubtitleData *data = sub_get_data(env, obj);
+        return data->sub_w;
+    #else
+        return -1;
+    #endif
+    }
+
+    static jint get_subtitle_piture_height(JNIEnv *env, jobject obj)
+    {
+    #ifdef SUPPORT_ADTV
+        TVSubtitleData *data = sub_get_data(env, obj);
+        return data->sub_h;
+    #else
+        return -1;
+    #endif
     }
 
     static jint sub_start_atsc_dtvcc(JNIEnv *env, jobject obj, jint caption, jint fg_color,
             jint fg_opacity, jint bg_color, jint bg_opacity, jint font_style, jint font_size)
     {
+    #ifdef SUPPORT_ADTV
         return sub_start_atsc_cc(env, obj, AM_CC_INPUT_USERDATA, caption, fg_color,
                 fg_opacity, bg_color, bg_opacity, font_style, font_size);
+    #else
+        return -1;
+    #endif
     }
 
     static jint sub_start_atsc_atvcc(JNIEnv *env, jobject obj, jint caption, jint fg_color,
             jint fg_opacity, jint bg_color, jint bg_opacity, jint font_style, jint font_size)
     {
+    #ifdef SUPPORT_ADTV
         return sub_start_atsc_cc(env, obj, AM_CC_INPUT_VBI, caption, fg_color,
                 fg_opacity, bg_color, bg_opacity, font_style, font_size);
+    #else
+        return -1;
+    #endif
     }
 
     static jint sub_stop_atsc_cc(JNIEnv *env, jobject obj)
     {
+    #ifdef SUPPORT_ADTV
         TVSubtitleData *data = sub_get_data(env, obj);
 
         LOGI("stop cc");
@@ -732,13 +779,14 @@ error:
         pthread_mutex_unlock(&data->lock);
 
         data->cc_handle = NULL;
-
+    #endif
         return 0;
     }
 
     static jint sub_set_atsc_cc_options(JNIEnv *env, jobject obj, jint fg_color,
             jint fg_opacity, jint bg_color, jint bg_opacity, jint font_style, jint font_size)
     {
+    #ifdef SUPPORT_ADTV
         TVSubtitleData *data = sub_get_data(env, obj);
         AM_CC_UserOptions_t param;
 
@@ -753,11 +801,13 @@ error:
         param.font_style  = (AM_CC_FontStyle_t)font_style;
 
         AM_CC_SetUserOptions(data->cc_handle, &param);
+    #endif
         return 0;
     }
 
     static jint sub_set_active(JNIEnv *env, jobject obj, jboolean active)
     {
+    #ifdef SUPPORT_ADTV
         TVSubtitleData *data = sub_get_data(env, obj);
 
         if (active) {
@@ -777,7 +827,7 @@ error:
                 pthread_mutex_unlock(&data->lock);
             }
         }
-
+    #endif
         return 0;
     }
 

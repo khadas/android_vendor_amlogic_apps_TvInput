@@ -1,4 +1,6 @@
+#ifdef SUPPORT_ADTV
 #include <am_epg.h>
+#endif
 #include <jni.h>
 #include <android/log.h>
 
@@ -40,7 +42,7 @@ static jmethodID gServiceInfoFromSDTInitID;
 typedef struct{
     int dmx_id;
     int fend_id;
-    AM_EPG_Handle_t handle;
+    void * handle;
     jobject obj;
 }EPGData;
 
@@ -79,9 +81,11 @@ typedef struct {
     int mFEMisc;
     int mVideoPID;
     int mVideoFormat;
+#ifdef SUPPORT_ADTV
     AM_SI_AudioInfo_t mAudioInfo;
     AM_SI_SubtitleInfo_t mSubtitleInfo;
     AM_SI_TeletextInfo_t mTeletextInfo;
+#endif
     int mPcrPID;
     int mSdtVersion;
     sdt_service_t *services;
@@ -97,6 +101,7 @@ struct sdt_service{
     sdt_service_t *next;
 };
 
+#ifdef SUPPORT_ADTV
 EPGChannelData gChannelMonitored = {.valid = 0};
 static jbyteArray get_byte_array(JNIEnv* env, const char *str);
 
@@ -151,7 +156,7 @@ static void epg_evt_callback(long dev_no, int event_type, void *param, void *use
 
     log_info("evt callback %d\n", event_type);
 
-    AM_EPG_GetUserData((AM_EPG_Handle_t)dev_no, (void**)&priv_data);
+    AM_EPG_GetUserData((void *)dev_no, (void**)&priv_data);
     if (!priv_data)
         return;
     memset(&edata, 0, sizeof(edata));
@@ -225,7 +230,7 @@ static jbyteArray get_byte_array(JNIEnv* env, const char *str)
 }
 
 
-void Events_Update(AM_EPG_Handle_t handle, int event_count, AM_EPG_Event_t *pevents)
+void Events_Update(void * handle, int event_count, AM_EPG_Event_t *pevents)
 {
     int i;
     AM_EPG_Event_t *pevt;
@@ -561,7 +566,7 @@ FUNC_get_int_array(sid1s, sub_t, sub_count, subs, id1);
 FUNC_get_int_array(sid2s, sub_t, sub_count, subs, id2);
 FUNC_get_string_array(slangs, sub_t, sub_count, subs, lang);
 
-static void PMT_Update(AM_EPG_Handle_t handle, dvbpsi_pmt_t *pmts)
+static void PMT_Update(void * handle, dvbpsi_pmt_t *pmts)
 {
     dvbpsi_pmt_t *pmt;
     dvbpsi_pmt_es_t *es;
@@ -780,7 +785,7 @@ static int sdt_get_services(dvbpsi_sdt_t *sdts, EPGChannelData *pch_cur) {
     return 0;
 }
 
-static void SDT_Update(AM_EPG_Handle_t handle, EPGChannelData *pch) {
+static void SDT_Update(void * handle, EPGChannelData *pch) {
     JNIEnv *env;
     int ret;
     int attached = 0;
@@ -863,7 +868,7 @@ static void SDT_Update(AM_EPG_Handle_t handle, EPGChannelData *pch) {
     }
 }
 
-static int epg_sdt_update(AM_EPG_Handle_t handle, int type, void *tables, void *user_data)
+static int epg_sdt_update(void * handle, int type, void *tables, void *user_data)
 {
     dvbpsi_sdt_t *sdts = (dvbpsi_sdt_t*)tables;
     EPGChannelData *pch_cur = &gChannelMonitored;
@@ -918,7 +923,7 @@ static int epg_sdt_update(AM_EPG_Handle_t handle, int type, void *tables, void *
     return 0;
 }
 
-static int epg_pat_update(AM_EPG_Handle_t handle, int type, void *tables, void *user_data)
+static int epg_pat_update(void * handle, int type, void *tables, void *user_data)
 {
     dvbpsi_pat_t *pats = (dvbpsi_pat_t*)tables;
     EPGChannelData *pch_cur = &gChannelMonitored;
@@ -939,7 +944,7 @@ static int epg_pat_update(AM_EPG_Handle_t handle, int type, void *tables, void *
     return 0;
 }
 
-static int epg_mgt_update(AM_EPG_Handle_t handle, int type, void *tables, void *user_data)
+static int epg_mgt_update(void * handle, int type, void *tables, void *user_data)
 {
     dvbpsi_atsc_mgt_t *mgts = (dvbpsi_atsc_mgt_t*)tables;
     EPGChannelData *pch_cur = &gChannelMonitored;
@@ -975,7 +980,7 @@ static int epg_mgt_update(AM_EPG_Handle_t handle, int type, void *tables, void *
     return 0;
 }
 
-static void epg_table_callback(AM_EPG_Handle_t handle, int type, void *tables, void *user_data)
+static void epg_table_callback(void * handle, int type, void *tables, void *user_data)
 {
     if (!tables)
         return;
@@ -994,9 +999,11 @@ static void epg_table_callback(AM_EPG_Handle_t handle, int type, void *tables, v
         break;
     }
 }
+#endif
 
 static void epg_create(JNIEnv* env, jobject obj, jint fend_id, jint dmx_id, jint src, jstring ordered_text_langs)
 {
+#ifdef SUPPORT_ADTV
     AM_EPG_CreatePara_t para;
     EPGData *data;
     AM_ErrorCode_t ret;
@@ -1060,10 +1067,12 @@ static void epg_create(JNIEnv* env, jobject obj, jint fend_id, jint dmx_id, jint
     if (!epg_conf_get("tv.dtv.tsupdate.pat.disable", 0))
         AM_EPG_SetTablesCallback(data->handle, AM_EPG_TAB_PAT, epg_table_callback, NULL);
     AM_EPG_SetTablesCallback(data->handle, AM_EPG_TAB_MGT, epg_table_callback, NULL);
+#endif
 }
 
 static void epg_destroy(JNIEnv* env, jobject obj)
 {
+#ifdef SUPPORT_ADTV
     EPGData *data;
 
     data = (EPGData*)(long)((*env)->GetLongField(env, obj, gHandleID));
@@ -1084,10 +1093,12 @@ static void epg_destroy(JNIEnv* env, jobject obj)
             (*env)->DeleteGlobalRef(env, data->obj);
         free(data);
     }
+#endif
 }
 
 static void epg_change_mode(JNIEnv* env, jobject obj, jint op, jint mode)
 {
+#ifdef SUPPORT_ADTV
     EPGData *data;
     AM_ErrorCode_t ret;
 
@@ -1098,10 +1109,12 @@ static void epg_change_mode(JNIEnv* env, jobject obj, jint op, jint mode)
     ret = AM_EPG_ChangeMode(data->handle, op, mode);
     if (ret != AM_SUCCESS)
         log_error("AM_EPG_ChangeMode failed");
+#endif
 }
 
 static int get_channel_data(JNIEnv* env, jobject obj, jobject channel, EPGChannelData *pch)
 {
+#ifdef SUPPORT_ADTV
     UNUSED(obj);
 
     memset(pch, 0, sizeof(*pch));
@@ -1220,11 +1233,13 @@ static int get_channel_data(JNIEnv* env, jobject obj, jobject channel, EPGChanne
     log_error("eitversions: %s\n", buf);
 
     pch->valid = 1;
+#endif
     return 0;
 }
 
 static void epg_monitor_service(JNIEnv* env, jobject obj, jobject channel)
 {
+#ifdef SUPPORT_ADTV
     EPGData *data;
     AM_ErrorCode_t ret;
     EPGChannelData *pch = &gChannelMonitored;
@@ -1250,10 +1265,12 @@ static void epg_monitor_service(JNIEnv* env, jobject obj, jobject channel)
     if (ret != AM_SUCCESS) {
         log_error("AM_EPG_MonitorService failed");
     }
+#endif
 }
 
 static void epg_set_dvb_text_coding(JNIEnv* env, jobject obj, jstring coding)
 {
+#ifdef SUPPORT_ADTV
     const char *str = (*env)->GetStringUTFChars(env, coding, 0);
 
     UNUSED(obj);
@@ -1267,6 +1284,7 @@ static void epg_set_dvb_text_coding(JNIEnv* env, jobject obj, jstring coding)
 
         (*env)->ReleaseStringUTFChars(env, coding, str);
     }
+#endif
 }
 
 static JNINativeMethod epg_methods[] =
@@ -1301,12 +1319,10 @@ static int registerNativeMethods(JNIEnv* env, const char* className,
 }
 
 JNIEXPORT jint
-JNI_OnLoad(JavaVM* vm, void* reserved)
+JNI_OnLoad(JavaVM* vm, void* reserved __unused)
 {
     JNIEnv* env = NULL;
     jclass clazz;
-
-    UNUSED(reserved);
 
     if ((*vm)->GetEnv(vm, (void**) &env, JNI_VERSION_1_4) != JNI_OK)
         return -1;
@@ -1348,11 +1364,9 @@ JNI_OnLoad(JavaVM* vm, void* reserved)
 }
 
 JNIEXPORT void
-JNI_OnUnload(JavaVM* vm, void* reserved)
+JNI_OnUnload(JavaVM* vm, void* reserved __unused)
 {
     JNIEnv* env = NULL;
-
-    UNUSED(reserved);
 
     if ((*vm)->GetEnv(vm, (void**) &env, JNI_VERSION_1_4) != JNI_OK) {
         return;
