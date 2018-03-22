@@ -68,6 +68,9 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+
 
 public class DroidLogicTv extends Activity implements Callback, onSourceInputClickListener, OnChannelSelectListener {
     private static final String TAG = "DroidLogicTv";
@@ -888,6 +891,43 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
                     mAudioManager.setStreamMute(AudioSystem.STREAM_MUSIC, true);
                     showMuteIcon(true);
                 }
+                return true;
+            case KeyEvent.KEYCODE_PROG_RED:
+                if (!down)
+                    return true;
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle(getResources().getString(R.string.open_hdmi_20));
+                final CharSequence[] items = new CharSequence[] { "off", "on"};
+                int deviceId = mSourceInput.getDeviceId();
+                TvControlManager.HdmiPortID[] allport = {TvControlManager.HdmiPortID.HDMI_PORT_1, TvControlManager.HdmiPortID.HDMI_PORT_2,
+                    TvControlManager.HdmiPortID.HDMI_PORT_3, TvControlManager.HdmiPortID.HDMI_PORT_4};
+                Log.d(TAG, "KEYCODE_PROG_RED,deviceId:" + deviceId);
+                int hdcp20_status = 0;
+                if (mTvControlManager.GetHdmiEdidVersion(allport[deviceId-5]) == TvControlManager.HdmiEdidVer.HDMI_EDID_VER_20.toInt())
+                    hdcp20_status = 1;
+                /*if (mSystemControlManager.getPropertyBoolean("persist.hdmi.edid20", false))
+                    hdcp20_status = 1;*/
+                builder.setSingleChoiceItems(items, hdcp20_status, new AlertDialog.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (which == 0) {
+                            Log.d(TAG, "set HDMI_EDID_VER_14:");
+                            mTvControlManager.SaveHdmiEdidVersion(allport[deviceId-5],
+                                TvControlManager.HdmiEdidVer.HDMI_EDID_VER_14);
+                            mTvControlManager.SetHdmiEdidVersion(allport[deviceId-5],
+                                TvControlManager.HdmiEdidVer.HDMI_EDID_VER_14);
+                           //mSystemControlManager.setProperty("persist.hdmi.edid20", "false");
+                        } else {
+                            Log.d(TAG, "set HDMI_EDID_VER_20:");
+                            mTvControlManager.SaveHdmiEdidVersion(allport[deviceId-5],
+                                TvControlManager.HdmiEdidVer.HDMI_EDID_VER_20);
+                            mTvControlManager.SetHdmiEdidVersion(allport[deviceId-5],
+                                TvControlManager.HdmiEdidVer.HDMI_EDID_VER_20);
+                            //mSystemControlManager.setProperty("persist.hdmi.edid20", "true");
+                        }
+                    }
+                });
+                builder.show();
                 return true;
             default:
                 break;

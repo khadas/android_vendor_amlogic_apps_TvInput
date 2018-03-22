@@ -1079,7 +1079,7 @@ public class SettingsManager {
 
     public String getHdmi20Status() {
         TvControlManager.HdmiPortID hdmiPort = getCurrHdmiPortID();
-        int hdmiVer = mTvControlManager.SSMReadHdmiEdidVer(hdmiPort);
+        int hdmiVer = mTvControlManager.GetHdmiEdidVersion(hdmiPort);
         if (hdmiVer == TvControlManager.HdmiEdidVer.HDMI_EDID_VER_20.toInt()) {
             return mResources.getString(R.string.on);
         } else {
@@ -1090,12 +1090,12 @@ public class SettingsManager {
     public void setHdmi20Mode(String mode) {
         if (mode.equals(STATUS_ON)) {
             // set HDMI mode sequence: save than set
-            mTvControlManager.SSMSaveHdmiEdidVer(getCurrHdmiPortID(),
+            mTvControlManager.SaveHdmiEdidVersion(getCurrHdmiPortID(),
                 TvControlManager.HdmiEdidVer.HDMI_EDID_VER_20);
             mTvControlManager.SetHdmiEdidVersion(getCurrHdmiPortID(),
                 TvControlManager.HdmiEdidVer.HDMI_EDID_VER_20);
         } else if (mode.equals(STATUS_OFF)) {
-            mTvControlManager.SSMSaveHdmiEdidVer(getCurrHdmiPortID(),
+            mTvControlManager.SaveHdmiEdidVersion(getCurrHdmiPortID(),
                 TvControlManager.HdmiEdidVer.HDMI_EDID_VER_14);
             mTvControlManager.SetHdmiEdidVersion(getCurrHdmiPortID(),
                 TvControlManager.HdmiEdidVer.HDMI_EDID_VER_14);
