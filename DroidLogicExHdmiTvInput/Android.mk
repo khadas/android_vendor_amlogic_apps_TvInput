@@ -13,6 +13,8 @@ LOCAL_PROGUARD_ENABLED := disabled
 
 LOCAL_JAVA_LIBRARIES := droidlogic droidlogic-tv
 
+LOCAL_PRIVATE_PLATFORM_APIS := true
+
 include $(BUILD_PACKAGE)
 
 include $(call all-makefiles-under,$(LOCAL_PATH))
