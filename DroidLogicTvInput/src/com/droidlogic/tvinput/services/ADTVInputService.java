@@ -289,17 +289,17 @@ public class ADTVInputService extends DTVInputService {
         Log.d(TAG, "=====onHardwareAdded=====" + hardwareInfo.getDeviceId());
 
         TvInputInfo info = null;
-        ResolveInfo rInfo = getResolveInfo(ADTVInputService.class.getName());
-        if (rInfo != null) {
+        //ResolveInfo rInfo = getResolveInfo(ADTVInputService.class.getName());
+        //if (rInfo != null) {
             try {
-                info = new TvInputInfo.Builder(this, rInfo)
+                info = new TvInputInfo.Builder(this, new android.content.ComponentName(this, ADTVInputService.class))
                     .setLabel(getTvInputInfoLabel(hardwareInfo.getDeviceId()))
                     .setTvInputHardwareInfo(hardwareInfo)
                     //.setCanRecord(true)
                     .build();
             } catch (Exception e) {
             }
-        }
+        //}
         updateInfoListIfNeededLocked(hardwareInfo, info, false);
         acquireHardware(info);
         return info;
