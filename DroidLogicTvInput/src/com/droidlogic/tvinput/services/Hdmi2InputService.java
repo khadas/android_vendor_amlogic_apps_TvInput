@@ -113,9 +113,11 @@ public class Hdmi2InputService extends DroidLogicTvInputService {
             }
         }
 
-        @Override
+        /*@Override
         public boolean onKeyUp(int keyCode, KeyEvent event) {
-            if (isNavigationKey(keyCode)) {
+            tils.logd(TAG, "=====onKeyUp=====");
+           if (isNavigationKey(keyCode)) {
+                Utils.logd(TAG, "=====dispatchKeyEventToHdmi=====");
                 mHardware.dispatchKeyEventToHdmi(event);
                 return true;
             }
@@ -124,12 +126,14 @@ public class Hdmi2InputService extends DroidLogicTvInputService {
 
         @Override
         public boolean onKeyDown(int keyCode, KeyEvent event) {
+            Utils.logd(TAG, "=====onKeyDown=====");
             if (isNavigationKey(keyCode)  && mHardware != null) {
+                Utils.logd(TAG, "=====dispatchKeyEventToHdmi=====");
                 mHardware.dispatchKeyEventToHdmi(event);
                 return true;
             }
             return false;
-        }
+        }*/
     }
 
     public TvInputInfo onHardwareAdded(TvInputHardwareInfo hardwareInfo) {
