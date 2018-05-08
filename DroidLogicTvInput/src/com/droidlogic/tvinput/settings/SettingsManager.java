@@ -961,6 +961,16 @@ public class SettingsManager {
         return mode;
     }
 
+    public String getDefaultDtvType() {
+        /*int deviceId = DroidLogicTvUtils.getHardwareDeviceId(mInputId);
+        if (deviceId == DroidLogicTvUtils.DEVICE_ID_ADTV ) {
+            return TvContract.Channels.TYPE_ATSC_T;
+        }else {
+            return TvContract.Channels.TYPE_DTMB;
+        }*/
+        return TvContract.Channels.TYPE_ATSC_T;
+    }
+
     public String getDtvTypeStatus(String type) {
         String ret = "";
         if (TextUtils.equals(type, TvContract.Channels.TYPE_DTMB)) {

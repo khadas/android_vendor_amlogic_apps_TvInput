@@ -1769,6 +1769,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             if (mCurrentChannel != null) {
                 int mask = DroidLogicTvUtils.getObjectValueInt(json, "cc", "data", -1);
                 if (mask != -1) {
+                    sendCCDataInfoByTif(mask);
                     if (mHandler != null) {
                         Message msg = mHandler.obtainMessage(MSG_CC_DATA, this);
                         msg.arg1 = mask;
@@ -1785,6 +1786,12 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                         mHandler.sendMessage(mHandler.obtainMessage(MSG_PARENTAL_CONTROL, this));
                 }
             }
+        }
+
+        private void sendCCDataInfoByTif(final int mask) {
+            Bundle ratingbundle = new Bundle();
+            ratingbundle.putInt(DroidLogicTvUtils.SIG_INFO_CC_DATA_INFO_KEY, mask);
+            notifySessionEvent(DroidLogicTvUtils.SIG_INFO_CC_DATA_INFO, ratingbundle);
         }
 
         protected void onUpdateTsPlay(long mId) {

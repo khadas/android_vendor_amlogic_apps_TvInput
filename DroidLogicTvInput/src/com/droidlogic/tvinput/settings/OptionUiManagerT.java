@@ -120,6 +120,8 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
     private int optionTag = OPTION_PICTURE_MODE;
     private String optionKey = null;
     private int channelNumber = 0;//for setting show searched tv channelNumber
+    private int dtvNumber = 0;//for setting show searched dtv channelNumber
+    private int atvNumber = 0;//for setting show searched atv channelNumber
     private int radioNumber = 0;//for setting show searched radio channelNumber
     private int tvDisplayNumber = 0;//for db store TV channel's channel displayNumber
     private int radioDisplayNumber = 0;//for db store Radio channel's channel displayNumber
@@ -814,8 +816,8 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
         bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA3, mSettingsManager.getTvSearchTypeSys());
         bundle.putInt(DroidLogicTvUtils.PARA_SCAN_PARA4, TvControlManager.ATV_AUDIO_STD_AUTO);
         mTvControlManager.setAmAudioPreMute(TvControlManager.AUDIO_MUTE_FOR_TV);
-        int autoscanmode;
         int checkcablemode;
+        int autoscanmode;
         if (!isLiveTvScaning) {
             autoscanmode = ((TvSettingsActivity)mContext).mScanEdit.checkAutoScanMode();
         } else {
@@ -1118,13 +1120,13 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
                 int isNewProgram = 0;
                 Log.d(TAG, "onEvent:"+event.precent + "%\tfreq[" + event.freq + "] lock[" + event.lock + "] strength[" + event.strength + "] quality[" + event.quality + "]");
 
-                if ((event.mode == TvChannelParams.MODE_ANALOG) && (event.lock == 0x11)) { //trick here
+                if (((event.mode & 0xff) == TvChannelParams.MODE_ANALOG) && (event.lock == 0x11)) { //trick here
                     isNewProgram = 1;
                     Log.d(TAG, "Resume Scanning");
                     if ((mTvControlManager.AtvDtvGetScanStatus() & TvControlManager.ATV_DTV_SCAN_STATUS_PAUSED)
                             == TvControlManager.ATV_DTV_SCAN_STATUS_PAUSED)
                         resumeSearch();
-                } else if ((event.mode != TvChannelParams.MODE_ANALOG) && (event.programName.length() != 0)) {
+                } else if (((event.mode & 0xff)  != TvChannelParams.MODE_ANALOG) && (event.programName.length() != 0)) {
                     try {
                         name = TvMultilingualText.getText(event.programName);
                     } catch (Exception e) {
@@ -1135,12 +1137,21 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
 
                 if (isNewProgram == 1) {
                     channelNumber++;
+                    atvNumber++;
+                    sendMessage(ChannelSearchActivity.CHANNELNUMBER, atvNumber, DroidLogicTvUtils.ATVNUMBER);
+                    sendMessage(ChannelSearchActivity.FREQUENCY, event.freq, DroidLogicTvUtils.ATVPROGRAM);//send found frequency
                     Log.d(TAG, "New ATV Program");
                 } else if (isNewProgram == 2) {
-                    if (event.srvType == 1)
+                    if (event.srvType == 1) {
                         channelNumber++;
-                    else if (event.srvType == 2)
+                        dtvNumber++;
+                        sendMessage(ChannelSearchActivity.CHANNELNUMBER, dtvNumber, DroidLogicTvUtils.DTVNUMBER);
+                        sendMessage(ChannelSearchActivity.FREQUENCY, event.freq, DroidLogicTvUtils.DTVPROGRAM);//send found frequency
+                    } else if (event.srvType == 2) {
                         radioNumber++;
+                        sendMessage(ChannelSearchActivity.CHANNELNUMBER, radioNumber, DroidLogicTvUtils.RADIONUMBER);
+                        sendMessage(ChannelSearchActivity.FREQUENCY, event.freq, DroidLogicTvUtils.RADIOPROGRAM);//send found frequency
+                    }
                     Log.d(TAG, "New DTV Program : [" + name + "] type[" + event.srvType + "]");
                 }
 
@@ -1159,7 +1170,7 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
                 else
                     setAutoSearchFrequency(event);
 
-                if ((event.mode == TvChannelParams.MODE_ANALOG) && ((optionTag == OPTION_MANUAL_SEARCH) || isLiveTvScaning)
+                if (((event.mode & 0xff)  == TvChannelParams.MODE_ANALOG) && ((optionTag == OPTION_MANUAL_SEARCH) || isLiveTvScaning)
                     && event.precent == 100)
                     stopSearch();
                 break;
@@ -1302,7 +1313,7 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
         mLiveTvManualSearch = true;
         mLiveTvAutoSearch = false;
         SystemControlManager scm = new SystemControlManager(mContext);
-        if (TvContract.Channels.TYPE_ATSC_C.equals(mSettingsManager.getDtvType()) && mAtsccMode > ATSC_C_HRC_SET) {
+        if (TvContract.Channels.TYPE_ATSC_C.equals(mSettingsManager.getDtvType()) && mAtsccMode == ATSC_C_AUTO_SET) {
             scm.writeSysFs(AUTO_ATSC_C_PATH, AUTO_ATSC_C_MODE_ENABLE);
             scm.writeSysFs(AUTO_ATSC_C_ATV_PATH, AUTO_ATSC_C_MODE_ENABLE);
         } else {
@@ -1465,6 +1476,32 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
         if (type != null) {
             mSettingsManager.setDtvType(type);
         }
+    }
+
+    public void setDtvType(String type) {
+        if (type != null) {
+            mSettingsManager.setDtvType(type);
+        }
+    }
+
+    public String getDtvType() {
+        return mSettingsManager.getDtvType();
+    }
+
+    public TvControlManager getTvControlManager() {
+        return mTvControlManager;
+    }
+
+    public String getTVSupportCountries() {
+        return mTvControlManager.GetTVSupportCountries();
+    }
+
+    public void SetTvCountry(String country) {
+        mTvControlManager.SetTvCountry(country);
+    }
+
+    public String getDefaultDtvType() {
+        return mSettingsManager.getDefaultDtvType();
     }
 
     private boolean mNumberSearchNeed = false;;

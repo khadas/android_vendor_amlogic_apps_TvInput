@@ -425,18 +425,32 @@ public class AV1InputService extends DroidLogicTvInputService {
 
            if (json.contains("Aratings") ) {
                 mATVContentRatings = DroidLogicTvUtils.parseARatings(json);
+                sendAvRatingByTif();
                 if (mHandler != null)
                     mHandler.sendMessage(mHandler.obtainMessage(MSG_PARENTAL_CONTROL_AV, this));
            }
 
            int mask = DroidLogicTvUtils.getObjectValueInt(json, "cc", "data", -1);
            if (mask != -1 ) {
+               sendCCDataInfoByTif(mask);
                if (mHandler != null) {
                    Message msg = mHandler.obtainMessage(MSG_CC_DATA, this);
                    msg.arg1 = mask;
                    msg.sendToTarget();
                }
            }
+        }
+
+        private void sendAvRatingByTif() {
+            Bundle ratingbundle = new Bundle();
+            ratingbundle.putString(DroidLogicTvUtils.SIG_INFO_AV_VCHIP_KEY, Program.contentRatingsToString(mATVContentRatings));
+            notifySessionEvent(DroidLogicTvUtils.SIG_INFO_AV_VCHIP, ratingbundle);
+        }
+
+        private void sendCCDataInfoByTif(final int mask) {
+            Bundle ratingbundle = new Bundle();
+            ratingbundle.putInt(DroidLogicTvUtils.SIG_INFO_CC_DATA_INFO_KEY, mask);
+            notifySessionEvent(DroidLogicTvUtils.SIG_INFO_CC_DATA_INFO, ratingbundle);
         }
 
         private int mCurrentCCExist = 0;
@@ -859,5 +873,4 @@ public class AV1InputService extends DroidLogicTvInputService {
         Utils.logd(TAG, "=====onHardwareRemoved=====" + id);
         return id;
     }
-
 }
