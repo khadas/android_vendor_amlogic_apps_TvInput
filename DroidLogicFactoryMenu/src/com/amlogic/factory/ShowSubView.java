@@ -18,7 +18,7 @@ import com.droidlogic.app.tv.TvInSignalInfo;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
 import android.content.Context;
-import android.os.SystemProperties;
+//import android.os.SystemProperties;
 import android.util.Log;
 
 public class ShowSubView {
@@ -282,7 +282,8 @@ public class ShowSubView {
         String sub_value = "";
         TvControlManager.version_info tmpInfo = tv.TvMiscGetVersion();
         map.put("soft_name", context.getString(Constant.FACUI_SOFTINFO_NUMBER));
-        map.put("soft_value", SystemProperties.get("ro.product.model", "NONE") + " " + SystemProperties.get("ro.build.version.time", "NONE"));
+        //map.put("soft_value", SystemProperties.get("ro.product.model", "NONE") + " " + SystemProperties.get("ro.build.version.time", "NONE"));
+        map.put("soft_value", "NULL");
         mListSubMenuData.add(map);
         map = new HashMap<String, String>();
         map.put("soft_name", context.getString(Constant.FACUI_SOFTINFO_BOOTVERSION));
@@ -451,7 +452,8 @@ public class ShowSubView {
 
     public void show_dynamicbacklight_submenu() {
         Map<String, String> map = new HashMap<String, String>();
-        String dynamicbacklightvalue = SystemProperties.get("persist.tv.auto_bl_value", "0");
+        //String dynamicbacklightvalue = SystemProperties.get("persist.tv.auto_bl_value", "0");
+        String dynamicbacklightvalue = "0";
         map.put("sub_name", "");
         map.put("sub_value", dynamicbacklightvalue);
         mListSubMenuData.add(map);

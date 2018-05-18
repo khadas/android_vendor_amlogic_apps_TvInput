@@ -125,7 +125,7 @@ public class ATVInputService extends DroidLogicTvInputService {
             mLastBlockedRating = null;
             mCurrentChannel = null;
 
-            initOverlayView(R.layout.layout_overlay);
+            //initOverlayView(R.layout.layout_overlay);
             if (mOverlayView != null) {
                 mOverlayView.setImage(R.drawable.bg_no_signal);
             }

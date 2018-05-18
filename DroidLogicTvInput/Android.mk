@@ -6,7 +6,7 @@ LOCAL_MODULE_TAGS := optional
 
 LOCAL_SRC_FILES := $(call all-java-files-under, src)
 
-#LOCAL_CERTIFICATE := platform
+LOCAL_CERTIFICATE := platform
 LOCAL_PACKAGE_NAME := DroidLogicTvInput
 
 LOCAL_PROGUARD_ENABLED := disabled

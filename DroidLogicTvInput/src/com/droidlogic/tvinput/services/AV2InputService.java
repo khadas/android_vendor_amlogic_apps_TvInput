@@ -213,13 +213,13 @@ public class AV2InputService extends DroidLogicTvInputService {
                 mTvInputManager = (TvInputManager)getSystemService(Context.TV_INPUT_SERVICE);
             mCurrentChannel = null;
             mTvDataBaseManager = new TvDataBaseManager(mContext);
-            initOverlayView(R.layout.layout_overlay);
+            //initOverlayView(R.layout.layout_overlay);
             if (mOverlayView != null) {
                 mOverlayView.setImage(R.drawable.hotplug_out);
             }
 
             initWorkThread();
-            initOverlayView(R.layout.layout_overlay);
+            //initOverlayView(R.layout.layout_overlay);
             if (mOverlayView != null) {
                 mOverlayView.setImage(R.drawable.bg_no_signal);
                 mSubtitleView = (DTVSubtitleView)mOverlayView.getSubtitleView();
@@ -737,7 +737,7 @@ public class AV2InputService extends DroidLogicTvInputService {
              */
             CaptioningManager.CaptionStyle userStyle = mCaptioningManager.getUserStyle();
 
-            int style = mCaptioningManager.getRawUserStyle();
+            int style = getCaptionRawUserStyle();//mCaptioningManager.getRawUserStyle();
             float textSize = mCaptioningManager.getFontScale();
             int fg_color = userStyle.foregroundColor & 0x00ffffff;
             int fg_opacity = userStyle.foregroundColor & 0xff000000;

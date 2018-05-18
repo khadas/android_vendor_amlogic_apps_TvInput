@@ -201,19 +201,21 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
                 break;
             case KeyEvent.KEYCODE_VOLUME_UP:
             case KeyEvent.KEYCODE_VOLUME_DOWN:
-                if (mAudioManager.isMasterMute()) {
+                /*if (mAudioManager.isMasterMute()) {
                     mAudioManager.setMasterMute(false, AudioManager.FLAG_PLAY_SOUND);
                     mSettingsManager.sendBroadcastToTvapp("unmute");
-                }
+                }*/
+                // ww: isMasterMute is hiden api, remove it.
                 break;
             case KeyEvent.KEYCODE_VOLUME_MUTE:
-                if (mAudioManager.isMasterMute()) {
+                /*if (mAudioManager.isMasterMute()) {
                     mAudioManager.setMasterMute(false, AudioManager.FLAG_PLAY_SOUND);
                     mSettingsManager.sendBroadcastToTvapp("unmute");
                 } else {
                     mAudioManager.setMasterMute(true, AudioManager.FLAG_PLAY_SOUND);
                     mSettingsManager.sendBroadcastToTvapp("mute");
-                }
+                }*/
+                //ww: isMasterMute is hiden api, remove it.
                 return true;
             default:
                 break;

@@ -75,7 +75,7 @@ public class Hdmi2InputService extends DroidLogicTvInputService {
         public Hdmi2InputSession(Context context, String inputId, int deviceId) {
             super(context, inputId, deviceId);
             Utils.logd(TAG, "=====new HdmiInputSession=====");
-            initOverlayView(R.layout.layout_overlay);
+            //initOverlayView(R.layout.layout_overlay);
             if (mOverlayView != null) {
                 mOverlayView.setImage(R.drawable.hotplug_out);
             }

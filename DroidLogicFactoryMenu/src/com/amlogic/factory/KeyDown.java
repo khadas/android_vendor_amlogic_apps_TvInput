@@ -15,7 +15,7 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
-import android.os.SystemProperties;
+//import android.os.SystemProperties;
 import android.util.Log;
 
 public class KeyDown {
@@ -664,7 +664,7 @@ public class KeyDown {
                 else
                     value_int = Math.abs(Integer.parseInt(value_str) + step) % 101;
                 map.put("sub_value", String.valueOf(value_int));
-                SystemProperties.set("persist.tv.auto_bl_value", value_int + "");
+                //SystemProperties.set("persist.tv.auto_bl_value", value_int + "");
                 FactoryMainActivity.sAdapter.notifyDataSetChanged();
                 break;
             default:

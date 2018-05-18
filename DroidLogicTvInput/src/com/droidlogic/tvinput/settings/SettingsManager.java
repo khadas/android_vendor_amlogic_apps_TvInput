@@ -17,7 +17,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.os.Bundle;
 import android.os.SystemClock;
-import android.os.SystemProperties;
+//import android.os.SystemProperties;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -1404,7 +1404,8 @@ public class SettingsManager {
 
     public void setDefAudioStreamVolume() {
         AudioManager audioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
-        int maxVolume = SystemProperties.getInt("ro.config.media_vol_steps", 100);
+        //int maxVolume = SystemProperties.getInt("ro.config.media_vol_steps", 100);
+        int maxVolume = mSystemControlManager.getPropertyInt("ro.config.media_vol_steps", 100);
         int streamMaxVolume = audioManager.getStreamMaxVolume(AudioSystem.STREAM_MUSIC);
         int defaultVolume = maxVolume == streamMaxVolume ? (maxVolume * 3) / 10 : (streamMaxVolume * 3) / 4;
         audioManager.setStreamVolume(AudioSystem.STREAM_MUSIC, defaultVolume, 0);
@@ -1632,9 +1633,10 @@ public class SettingsManager {
     };
 
     private  void ClearPackageData(String packageName) {
-        Log.d(TAG, "ClearPackageData:" + packageName);
+        //Log.d(TAG, "ClearPackageData:" + packageName);
+        Log.e(TAG, "This process doesn't have the permission to clear package data now !!!");
         //clear data
-        ActivityManager am = (ActivityManager)mContext.getSystemService(Context.ACTIVITY_SERVICE);
+       /* ActivityManager am = (ActivityManager)mContext.getSystemService(Context.ACTIVITY_SERVICE);
         ClearUserDataObserver mClearDataObserver = new ClearUserDataObserver();
         boolean res = am.clearApplicationUserData(packageName, mClearDataObserver);
         if (!res) {
@@ -1649,7 +1651,7 @@ public class SettingsManager {
         packageManager.deleteApplicationCacheFiles(packageName, mClearCacheObserver);
 
         //clear default
-        packageManager.clearPackagePreferredActivities(packageName);
+        packageManager.clearPackagePreferredActivities(packageName);*/
     }
 
     private class ClearUserDataObserver extends IPackageDataObserver.Stub {

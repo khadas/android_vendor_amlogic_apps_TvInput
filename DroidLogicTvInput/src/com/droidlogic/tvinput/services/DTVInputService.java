@@ -77,7 +77,7 @@ import android.view.Surface;
 import android.util.NtpTrustedTime;
 import android.util.TrustedTime;
 import android.os.SystemClock;
-import android.os.SystemProperties;
+//import android.os.SystemProperties;
 
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -145,7 +145,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
     public static final String MAX_CACHE_SIZE_KEY = "tv.dtv.tf.max.size";
     public static final int MAX_CACHE_SIZE_DEF = 2 * 1024;  // 2GB
     public static final int MIN_CACHE_SIZE_DEF = 256;  // 256MB
-
+    protected SystemControlManager mSystemControlManager;
 
 
     private static boolean DEBUG = false;
@@ -209,6 +209,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         Log.d(TAG,"oncreate:Set EAS listener as TvInput");
         mEASProcessManager = new EASProcessManager(this);
         mTvControlManager.setEasListener(this);
+
+        mSystemControlManager = new SystemControlManager(this);
     }
 
     @Override
@@ -308,7 +310,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
     public String getCacheStoragePath() {
         File baseDir;
-        int maxCacheSizeMb = SystemProperties.getInt(MAX_CACHE_SIZE_KEY, MAX_CACHE_SIZE_DEF);
+        //int maxCacheSizeMb = SystemProperties.getInt(MAX_CACHE_SIZE_KEY, MAX_CACHE_SIZE_DEF);
+        int maxCacheSizeMb = mSystemControlManager.getPropertyInt(MAX_CACHE_SIZE_KEY, MAX_CACHE_SIZE_DEF);
         if (maxCacheSizeMb >= MIN_CACHE_SIZE_DEF) {
             boolean useExternalStorage = Environment.MEDIA_MOUNTED.equals(
                     Environment.getExternalStorageState()) &&
@@ -432,7 +435,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         protected List<ChannelInfo.Subtitle> mCurrentSubtitles;
         protected ChannelInfo.Subtitle mCurrentSubtitle;
         protected List<ChannelInfo.Audio> mCurrentAudios;
-        protected SystemControlManager mSystemControlManager;
+        //protected SystemControlManager mSystemControlManager;
         protected CaptioningManager mCaptioningManager = null;
         private String mRecordingId = null;
 
@@ -459,7 +462,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
             mContext = context;
             mTvDataBaseManager = new TvDataBaseManager(mContext);
-            mSystemControlManager = new SystemControlManager(mContext);
+            //mSystemControlManager = new SystemControlManager(mContext);
             mLastBlockedRating = null;
             mCurrentChannel = null;
             mCurrentSubtitles = null;
@@ -467,7 +470,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             mCurrentUri = null;
             initWorkThread();
 
-            initOverlayView(R.layout.layout_overlay);
+            //initOverlayView(R.layout.layout_overlay);
             Log.d(TAG,"init overlay view");
             if (mOverlayView != null) {
                 mOverlayView.setImage(R.drawable.bg_no_signal);
@@ -2024,7 +2027,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
              */
             CaptioningManager.CaptionStyle userStyle = mCaptioningManager.getUserStyle();
 
-            int style = mCaptioningManager.getRawUserStyle();
+            int style = getCaptionRawUserStyle();//mCaptioningManager.getRawUserStyle();
             float textSize = mCaptioningManager.getFontScale();
             int fg_color = userStyle.foregroundColor & 0x00ffffff;
             int fg_opacity = userStyle.foregroundColor & 0xff000000;
@@ -3474,7 +3477,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
         protected ChannelInfo mChannel;
         protected TvDataBaseManager mTvDataBaseManager;
-        protected SystemControlManager mSystemControlManager;
+        //protected SystemControlManager mSystemControlManager;
         protected List<ChannelInfo.Subtitle> mCurrentSubtitles;
         protected List<ChannelInfo.Audio> mCurrentAudios;
 
@@ -3490,7 +3493,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             mRandom.setSeed(System.nanoTime());
 
             mTvDataBaseManager = new TvDataBaseManager(mContext);
-            mSystemControlManager = new SystemControlManager(mContext);
+            //mSystemControlManager = new SystemControlManager(mContext);
 
             HandlerThread handlerThread = new HandlerThread(TAG);
             handlerThread.start();
@@ -3815,11 +3818,12 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         ResolveInfo rInfo = getResolveInfo(DTVInputService.class.getName());
         if (rInfo != null) {
             try {
-                info = new TvInputInfo.Builder(this, rInfo)
+               /* info = new TvInputInfo.Builder(this, rInfo)
                     .setLabel(getTvInputInfoLabel(hardwareInfo.getDeviceId()))
                     .setTvInputHardwareInfo(hardwareInfo)
                     //.setCanRecord(true)
-                    .build();
+                    .build();*/
+                info = TvInputInfo.createTvInputInfo(this, rInfo, hardwareInfo, getTvInputInfoLabel(hardwareInfo.getDeviceId()), null);
             } catch (Exception e) {
             }
         }
