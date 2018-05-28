@@ -345,7 +345,7 @@ public class FactoryMainActivity extends Activity implements TvControlManager.Up
     /* cursor's position in noLiner's son dialog */
     int j = 0;
 
-    protected int showAddDialog(final TvControlManager.SourceInput source, final TvControlManager.noline_params_t noline_params) {
+    protected int showAddDialog(final TvControlManager.SourceInput source, final SystemControlManager.noline_params_t noline_params) {
         LayoutInflater factory = LayoutInflater.from(this);
         View textEntryView = factory.inflate(R.layout.mdialog, null);
         /* EditText backspace's listener */
@@ -452,7 +452,7 @@ public class FactoryMainActivity extends Activity implements TvControlManager.Up
                     if (noline_params.osd0 >= 0 && noline_params.osd0 < 256 && noline_params.osd25 >= 0 && noline_params.osd25 < 256
                         && noline_params.osd50 >= 0 && noline_params.osd50 < 256 && noline_params.osd75 >= 0 && noline_params.osd75 < 256
                         && noline_params.osd100 >= 0 && noline_params.osd100 < 256) {
-                        tv.FactorySetNolineParams(TvControlManager.NOLINE_PARAMS_TYPE.values()[mSubMenuPos - 1], source, noline_params);
+                       // tv.FactorySetNolineParams(TvControlManager.NOLINE_PARAMS_TYPE.values()[mSubMenuPos - 1], source, noline_params);
                         for (int io = mListSubMenuData.size() - 1; io > 0; io--)
                             mListSubMenuData.remove(io);
                         ShowSubView ssv = new ShowSubView(mListSubMenuData, FactoryMainActivity.this);
@@ -496,42 +496,42 @@ public class FactoryMainActivity extends Activity implements TvControlManager.Up
             switch (mSubMenuPos) {
                 case 2:
                     if (value >= 0 && value < 2047) {
-                        tv.FactoryWhiteBalanceSetRedGain(source.toInt(), mColorTemperaturePos, value);
+                        mSystemControlManager.FactoryWhiteBalanceSetRedGain(source.toInt(), mColorTemperaturePos, value);
                         map.put("sub_value", "" + value);
                         sAdapter.notifyDataSetChanged();
                     }
                     break;
                 case 3:
                     if (value >= 0 && value < 2047) {
-                        tv.FactoryWhiteBalanceSetGreenGain(source.toInt(), mColorTemperaturePos, value);
+                        mSystemControlManager.FactoryWhiteBalanceSetGreenGain(source.toInt(), mColorTemperaturePos, value);
                         map.put("sub_value", "" + value);
                         sAdapter.notifyDataSetChanged();
                     }
                     break;
                 case 4:
                     if (value >= 0 && value < 2047) {
-                        tv.FactoryWhiteBalanceSetBlueGain(source.toInt(), mColorTemperaturePos, value);
+                        mSystemControlManager.FactoryWhiteBalanceSetBlueGain(source.toInt(), mColorTemperaturePos, value);
                         map.put("sub_value", "" + value);
                         sAdapter.notifyDataSetChanged();
                     }
                     break;
                 case 5:
                     if (value >= -1023 && value < 1024) {
-                        tv.FactoryWhiteBalanceSetRedOffset(source.toInt(), mColorTemperaturePos, value);
+                        mSystemControlManager.FactoryWhiteBalanceSetRedOffset(source.toInt(), mColorTemperaturePos, value);
                         map.put("sub_value", "" + value);
                         sAdapter.notifyDataSetChanged();
                     }
                     break;
                 case 6:
                     if (value >= -1023 && value < 1024) {
-                        tv.FactoryWhiteBalanceSetGreenOffset(source.toInt(), mColorTemperaturePos, value);
+                        mSystemControlManager.FactoryWhiteBalanceSetGreenOffset(source.toInt(), mColorTemperaturePos, value);
                         map.put("sub_value", "" + value);
                         sAdapter.notifyDataSetChanged();
                     }
                     break;
                 case 7:
                     if (value >= -1023 && value < 1024) {
-                        tv.FactoryWhiteBalanceSetBlueOffset(source.toInt(), mColorTemperaturePos, value);
+                        mSystemControlManager.FactoryWhiteBalanceSetBlueOffset(source.toInt(), mColorTemperaturePos, value);
                         map.put("sub_value", "" + value);
                         sAdapter.notifyDataSetChanged();
                     }

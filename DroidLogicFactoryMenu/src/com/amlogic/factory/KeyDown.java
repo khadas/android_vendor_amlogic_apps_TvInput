@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.droidlogic.app.tv.TvControlManager;
+import com.droidlogic.app.SystemControlManager;
 import com.droidlogic.app.tv.TvInSignalInfo;
 import android.app.Activity;
 import android.app.ActivityManager;
@@ -18,16 +19,19 @@ import android.content.Intent;
 //import android.os.SystemProperties;
 import android.util.Log;
 
+
 public class KeyDown {
     public static TvControlManager tv = TvControlManager.getInstance();
     /* son ListView's item save to this List */
     public List<Map<String, String>> mListSubMenuData = null;
 
     private Context context;
+    private SystemControlManager sm;
 
     public KeyDown(List<Map<String, String>> mListSubMenuData, Context context) {
         this.mListSubMenuData = mListSubMenuData;
         this.context = context;
+        sm = new SystemControlManager(context);
     }
 
     public void adjustCalibrate(boolean left, int step) {
@@ -47,24 +51,24 @@ public class KeyDown {
         }
     }
 
-    private void setpicparam(Map<String, String> map1, TvControlManager.SourceInput source, int is_save) {
+    private void setpicparam(Map<String, String> map1,  int is_save) {
         if (FactoryMainActivity.mCurShowModePos != 3) {
-            int brightness = tv.GetBrightness(source);
-            int contrast = tv.GetContrast(source);
-            int saturation = tv.GetSaturation(source);
-            int sharpness = tv.GetSharpness(source);
+            int brightness = sm.GetBrightness();
+            int contrast = sm.GetContrast();
+            int saturation = sm.GetSaturation();
+            int sharpness = sm.GetSharpness();
             FactoryMainActivity.mCurShowModePos = 3;
-            tv.SetPQMode(TvControlManager.PQMode.values()[FactoryMainActivity.mCurShowModePos], source, is_save);
+            sm.SetPQMode(SystemControlManager.PQMode.values()[FactoryMainActivity.mCurShowModePos].toInt(), is_save, 0);
             map1.put("sub_value", context.getString(Constant.mShowModeList[FactoryMainActivity.mCurShowModePos]));
             FactoryMainActivity.sAdapter.notifyDataSetChanged();
-            tv.SetBrightness(brightness, source, is_save);
-            tv.SaveBrightness(brightness, source);
-            tv.SetContrast(contrast, source, is_save);
-            tv.SaveContrast(contrast, source);
-            tv.SetSaturation(saturation, source, tv.GetCurrentSignalInfo().sigFmt, is_save);
-            tv.SaveSaturation(saturation, source);
-            tv.SetSharpness(sharpness, source, 0, 0);
-            tv.SaveSharpness(sharpness, source, 1);
+            sm.SetBrightness(brightness, is_save);
+            sm.SaveBrightness(brightness);
+            sm.SetContrast(contrast, is_save);
+            sm.SaveContrast(contrast);
+            sm.SetSaturation(saturation, is_save);
+            sm.SaveSaturation(saturation);
+            sm.SetSharpness(sharpness, 0, 0);
+            sm.SaveSharpness(sharpness, 1);
         }
     }
 
@@ -95,8 +99,8 @@ public class KeyDown {
                     int mCurShowModeSize = Constant.mShowModeList.length;
                     FactoryMainActivity.mCurShowModePos = Math.abs(FactoryMainActivity.mCurShowModePos + step + mCurShowModeSize) % mCurShowModeSize;
                     map.put("sub_value", context.getString(Constant.mShowModeList[FactoryMainActivity.mCurShowModePos]));
-                    tv.SetPQMode(TvControlManager.PQMode.values()[FactoryMainActivity.mCurShowModePos], source, is_save);
-                    tv.SavePQMode(TvControlManager.PQMode.values()[FactoryMainActivity.mCurShowModePos], source);
+                    sm.SetPQMode(SystemControlManager.PQMode.values()[FactoryMainActivity.mCurShowModePos].toInt(), is_save, 0);
+                    sm.SavePQMode(SystemControlManager.PQMode.values()[FactoryMainActivity.mCurShowModePos].toInt());
                     for (int i = mListSubMenuData.size() - 1; i > 0; i--)
                         mListSubMenuData.remove(i);
                     ssv.setPicture(source);
@@ -104,7 +108,7 @@ public class KeyDown {
                 }
                 break;
             case 2: {
-                    setpicparam(map1, source, is_save);
+                    setpicparam(map1, is_save);
                     value_str = map.get("sub_value");
                     if (-1 == step && value_str.equals("0"))
                         value_int = 100;
@@ -112,12 +116,12 @@ public class KeyDown {
                         value_int = Math.abs(Integer.parseInt(value_str) + step) % 101;
                     map.put("sub_value", String.valueOf(value_int));
                     FactoryMainActivity.sAdapter.notifyDataSetChanged();
-                    tv.SetBrightness(value_int, source, is_save);
-                    tv.SaveBrightness(value_int, source);
+                    sm.SetBrightness(value_int, is_save);
+                    sm.SaveBrightness(value_int);
                 }
                 break;
             case 3: {
-                    setpicparam(map1, source, is_save);
+                    setpicparam(map1, is_save);
                     value_str = map.get("sub_value");
                     if (-1 == step && value_str.equals("0"))
                         value_int = 100;
@@ -125,12 +129,12 @@ public class KeyDown {
                         value_int = Math.abs(Integer.parseInt(value_str) + step) % 101;
                     map.put("sub_value", String.valueOf(value_int));
                     FactoryMainActivity.sAdapter.notifyDataSetChanged();
-                    tv.SetContrast(value_int, source, is_save);
-                    tv.SaveContrast(value_int, source);
+                    sm.SetContrast(value_int, is_save);
+                    sm.SaveContrast(value_int);
                 }
                 break;
             case 4: {
-                    setpicparam(map1, source, is_save);
+                    setpicparam(map1, is_save);
                     value_str = map.get("sub_value");
                     if (-1 == step && value_str.equals("0"))
                         value_int = 100;
@@ -138,12 +142,12 @@ public class KeyDown {
                         value_int = Math.abs(Integer.parseInt(value_str) + step) % 101;
                     map.put("sub_value", String.valueOf(value_int));
                     FactoryMainActivity.sAdapter.notifyDataSetChanged();
-                    tv.SetSaturation(value_int, source, tv.GetCurrentSignalInfo().sigFmt, is_save);
-                    tv.SaveSaturation(value_int, source);
+                    sm.SetSaturation(value_int, is_save);
+                    sm.SaveSaturation(value_int);
                 }
                 break;
             case 5: {
-                    setpicparam(map1, source, is_save);
+                    setpicparam(map1, is_save);
                     value_str = map.get("sub_value");
                     if (-1 == step && value_str.equals("0"))
                         value_int = 100;
@@ -151,13 +155,13 @@ public class KeyDown {
                         value_int = Math.abs(Integer.parseInt(value_str) + step) % 101;
                     map.put("sub_value", String.valueOf(value_int));
                     FactoryMainActivity.sAdapter.notifyDataSetChanged();
-                    if (tv.SetSharpness(value_int, source, 0, 0) == 0) {
-                        tv.SaveSharpness(value_int, source, 1);
+                    if (sm.SetSharpness(value_int, 0, 0) == 0) {
+                        sm.SaveSharpness(value_int, 1);
                     }
                 }
                 break;
             case 6: {
-                    setpicparam(map1, source, is_save);
+                    setpicparam(map1, is_save);
                     value_str = map.get("sub_value");
                     if (-1 == step && value_str.equals("-50"))
                         value_int = 50;
@@ -165,7 +169,7 @@ public class KeyDown {
                         value_int = Math.abs(Integer.parseInt(value_str) + step + 50) % 101 - 50;
                     map.put("sub_value", String.valueOf(value_int));
                     FactoryMainActivity.sAdapter.notifyDataSetChanged();
-                    tv.SetHue(value_int, source, tv.GetCurrentSignalInfo().sigFmt, is_save);
+                    sm.SetHue(value_int, is_save);
                 }
                 break;
             default:
@@ -216,7 +220,7 @@ public class KeyDown {
                         value_int = Math.abs(Integer.parseInt(value_str) + step) % 2048;
                     map.put("sub_value", String.valueOf(value_int));
                     FactoryMainActivity.sAdapter.notifyDataSetChanged();
-                    tv.FactoryWhiteBalanceSetRedGain(FactoryMainActivity.mCurInputPortPos, FactoryMainActivity.mColorTemperaturePos, value_int);
+                    sm.FactoryWhiteBalanceSetRedGain(FactoryMainActivity.mCurInputPortPos, FactoryMainActivity.mColorTemperaturePos, value_int);
                 }
                 break;
             case 3: {
@@ -227,7 +231,7 @@ public class KeyDown {
                         value_int = Math.abs(Integer.parseInt(value_str) + step) % 2048;
                     map.put("sub_value", String.valueOf(value_int));
                     FactoryMainActivity.sAdapter.notifyDataSetChanged();
-                    tv.FactoryWhiteBalanceSetGreenGain(FactoryMainActivity.mCurInputPortPos, FactoryMainActivity.mColorTemperaturePos, value_int);
+                    sm.FactoryWhiteBalanceSetGreenGain(FactoryMainActivity.mCurInputPortPos, FactoryMainActivity.mColorTemperaturePos, value_int);
                 }
                 break;
             case 4: {
@@ -238,7 +242,7 @@ public class KeyDown {
                         value_int = Math.abs(Integer.parseInt(value_str) + step) % 2048;
                     map.put("sub_value", String.valueOf(value_int));
                     FactoryMainActivity.sAdapter.notifyDataSetChanged();
-                    tv.FactoryWhiteBalanceSetBlueGain(FactoryMainActivity.mCurInputPortPos, FactoryMainActivity.mColorTemperaturePos, value_int);
+                    sm.FactoryWhiteBalanceSetBlueGain(FactoryMainActivity.mCurInputPortPos, FactoryMainActivity.mColorTemperaturePos, value_int);
                 }
                 break;
             case 5: {
@@ -251,7 +255,7 @@ public class KeyDown {
                         value_int = Math.abs(Integer.parseInt(value_str) + step + 1024) % 2049 - 1024;
                     map.put("sub_value", String.valueOf(value_int));
                     FactoryMainActivity.sAdapter.notifyDataSetChanged();
-                    tv.FactoryWhiteBalanceSetRedOffset(FactoryMainActivity.mCurInputPortPos, FactoryMainActivity.mColorTemperaturePos, value_int);
+                    sm.FactoryWhiteBalanceSetRedOffset(FactoryMainActivity.mCurInputPortPos, FactoryMainActivity.mColorTemperaturePos, value_int);
                 }
                 break;
             case 6: {
@@ -264,7 +268,7 @@ public class KeyDown {
                         value_int = Math.abs(Integer.parseInt(value_str) + step + 1024) % 2049 - 1024;
                     map.put("sub_value", String.valueOf(value_int));
                     FactoryMainActivity.sAdapter.notifyDataSetChanged();
-                    tv.FactoryWhiteBalanceSetGreenOffset(FactoryMainActivity.mCurInputPortPos, FactoryMainActivity.mColorTemperaturePos, value_int);
+                    sm.FactoryWhiteBalanceSetGreenOffset(FactoryMainActivity.mCurInputPortPos, FactoryMainActivity.mColorTemperaturePos, value_int);
                 }
                 break;
             case 7: {
@@ -277,7 +281,7 @@ public class KeyDown {
                         value_int = Math.abs(Integer.parseInt(value_str) + step + 1024) % 2049 - 1024;
                     map.put("sub_value", String.valueOf(value_int));
                     FactoryMainActivity.sAdapter.notifyDataSetChanged();
-                    tv.FactoryWhiteBalanceSetBlueOffset(FactoryMainActivity.mCurInputPortPos, FactoryMainActivity.mColorTemperaturePos, value_int);
+                    sm.FactoryWhiteBalanceSetBlueOffset(FactoryMainActivity.mCurInputPortPos, FactoryMainActivity.mColorTemperaturePos, value_int);
                 }
                 break;
             default:
@@ -299,7 +303,7 @@ public class KeyDown {
 
                     map.put("sub_value", value_int + "");
                     FactoryMainActivity.sAdapter.notifyDataSetChanged();
-                    tv.FactorySetLVDSSSC(value_int);
+                    sm.FactorySetLVDSSSC(value_int);
                 }
                 break;
             default:
@@ -446,7 +450,7 @@ public class KeyDown {
                 map.put("sub_value", value_int + "");
                 FactoryMainActivity.sAdapter.notifyDataSetChanged();
                 cutwin_t.hs = value_int;
-                tv.FactorySetOverscanParams(source, fmt, trans_fmt, cutwin_t);
+                //sm.FactorySetOverscanParams(source, fmt, trans_fmt, cutwin_t);
                 break;
             case 5:
                 value_str = map.get("sub_value");
@@ -454,7 +458,7 @@ public class KeyDown {
                 map.put("sub_value", value_int + "");
                 FactoryMainActivity.sAdapter.notifyDataSetChanged();
                 cutwin_t.vs = value_int;
-                tv.FactorySetOverscanParams(source, fmt, trans_fmt, cutwin_t);
+                //sm.FactorySetOverscanParams(source, fmt, trans_fmt, cutwin_t);
                 break;
             case 6:
                 value_str = map.get("sub_value");
@@ -462,7 +466,7 @@ public class KeyDown {
                 map.put("sub_value", value_int + "");
                 FactoryMainActivity.sAdapter.notifyDataSetChanged();
                 cutwin_t.he = value_int;
-                tv.FactorySetOverscanParams(source, fmt, trans_fmt, cutwin_t);
+                //sm.FactorySetOverscanParams(source, fmt, trans_fmt, cutwin_t);
                 break;
             case 7:
                 value_str = map.get("sub_value");
@@ -470,7 +474,7 @@ public class KeyDown {
                 map.put("sub_value", value_int + "");
                 FactoryMainActivity.sAdapter.notifyDataSetChanged();
                 cutwin_t.ve = value_int;
-                tv.FactorySetOverscanParams(source, fmt, trans_fmt, cutwin_t);
+                //sm.FactorySetOverscanParams(source, fmt, trans_fmt, cutwin_t);
                 break;
             default:
                 break;

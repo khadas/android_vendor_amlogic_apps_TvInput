@@ -9,10 +9,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.droidlogic.app.tv.TvControlManager;
-import com.droidlogic.app.tv.TvControlManager.NOLINE_PARAMS_TYPE;
 import com.droidlogic.app.tv.TvControlManager.SourceInput_Type;
 import com.droidlogic.app.tv.TvControlManager.SourceInput;
-import com.droidlogic.app.tv.TvControlManager.noline_params_t;
 import com.droidlogic.app.tv.TvControlManager.tvin_cutwin_t;
 import com.droidlogic.app.tv.TvInSignalInfo;
 import android.app.ActivityManager;
@@ -20,9 +18,13 @@ import android.app.ActivityManager.RunningAppProcessInfo;
 import android.content.Context;
 //import android.os.SystemProperties;
 import android.util.Log;
+import com.droidlogic.app.SystemControlManager;
+import com.droidlogic.app.SystemControlManager.noline_params_t;
+import com.droidlogic.app.SystemControlManager.NOLINE_PARAMS_TYPE;
 
 public class ShowSubView {
     public static TvControlManager tv = TvControlManager.getInstance();
+    private SystemControlManager sm;
     /* son ListView's item save to this ArrayList */
     public List<Map<String, String>> mListSubMenuData = null;
     private Context context;
@@ -31,6 +33,7 @@ public class ShowSubView {
     public ShowSubView(List<Map<String, String>> mListSubMenuData, Context context) {
         this.mListSubMenuData = mListSubMenuData;
         this.context = context;
+        sm = new SystemControlManager(context);
     }
 
     /* ADC calibration */
@@ -60,32 +63,32 @@ public class ShowSubView {
     public void setPicture(SourceInput source) {
         Map<String, String> map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_PICMODE_MODE));
-        int itemPosition = tv.GetPQMode(source);
+        int itemPosition = sm.GetPQMode();
         map.put("sub_value", context.getString(Constant.mShowModeList[itemPosition]));
         mListSubMenuData.add(map);
         map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_PICMODE_BRIGHTNESS));
-        int value = tv.GetBrightness(source);
+        int value = sm.GetBrightness();
         map.put("sub_value", value + "");
         mListSubMenuData.add(map);
         map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_PICMODE_CONTRAST));
-        value = tv.GetContrast(source);
+        value = sm.GetContrast();
         map.put("sub_value", value + "");
         mListSubMenuData.add(map);
         map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_PICMODE_COLOR));
-        value = tv.GetSaturation(source);
+        value = sm.GetSaturation();
         map.put("sub_value", value + "");
         mListSubMenuData.add(map);
         map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_PICMODE_DEFINITION));
-        value = tv.GetSharpness(source);
+        value = sm.GetSharpness();
         map.put("sub_value", value + "");
         mListSubMenuData.add(map);
         map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_PICMODE_TONE));
-        value = tv.GetHue(source);
+        value = sm.GetHue();
         map.put("sub_value", value + "");
         mListSubMenuData.add(map);
     }
@@ -113,32 +116,32 @@ public class ShowSubView {
     public void setWhite2(int source, int colortemp_mode) {
         Map<String, String> map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_WHTBLAN_GAIN_R));
-        int i = tv.FactoryWhiteBalanceGetRedGain(source, colortemp_mode);
+        int i = sm.FactoryWhiteBalanceGetRedGain(source, colortemp_mode);
         map.put("sub_value", "" + i);
         mListSubMenuData.add(map);
         map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_WHTBLAN_GAIN_G));
-        i = tv.FactoryWhiteBalanceGetGreenGain(source, colortemp_mode);
+        i = sm.FactoryWhiteBalanceGetGreenGain(source, colortemp_mode);
         map.put("sub_value", "" + i);
         mListSubMenuData.add(map);
         map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_WHTBLAN_GAIN_B));
-        i = tv.FactoryWhiteBalanceGetBlueGain(source, colortemp_mode);
+        i = sm.FactoryWhiteBalanceGetBlueGain(source, colortemp_mode);
         map.put("sub_value", "" + i);
         mListSubMenuData.add(map);
         map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_WHTBLAN_OFFSET_R));
-        i = tv.FactoryWhiteBalanceGetRedOffset(source, colortemp_mode);
+        i = sm.FactoryWhiteBalanceGetRedOffset(source, colortemp_mode);
         map.put("sub_value", "" + i);
         mListSubMenuData.add(map);
         map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_WHTBLAN_OFFSET_G));
-        i = tv.FactoryWhiteBalanceGetGreenOffset(source, colortemp_mode);
+        i = sm.FactoryWhiteBalanceGetGreenOffset(source, colortemp_mode);
         map.put("sub_value", "" + i);
         mListSubMenuData.add(map);
         map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_WHTBLAN_OFFSET_B));
-        i = tv.FactoryWhiteBalanceGetBlueOffset(source, colortemp_mode);
+        i = sm.FactoryWhiteBalanceGetBlueOffset(source, colortemp_mode);
         map.put("sub_value", "" + i);
         mListSubMenuData.add(map);
     }
@@ -147,7 +150,7 @@ public class ShowSubView {
     public void show_ssc_submenu() {
         Map<String, String> map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_LVDS_LVDS));
-        int i = tv.FactoryGetLVDSSSC();
+        int i = sm.FactoryGetLVDSSSC();
         map.put("sub_value", i + "");
         mListSubMenuData.add(map);
         FactoryMainActivity.mPage = Constant.PAGE_SSC;
@@ -166,43 +169,46 @@ public class ShowSubView {
 
     /* set NOliner's parameter like brightness ect.*/
     public void setNoLine(SourceInput source) {
+        //temp init noline params,because FactoryGetNolineParams interface is wrong.
+        /*
         noline_params_t noline_params;
         Map<String, String> map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_NOLINEAR_BRIGHTNESS));
-        noline_params = tv.FactoryGetNolineParams(NOLINE_PARAMS_TYPE.NOLINE_PARAMS_TYPE_BRIGHTNESS, source);
+        //noline_params = sm.FactoryGetNolineParams(NOLINE_PARAMS_TYPE.NOLINE_PARAMS_TYPE_BRIGHTNESS, source);
         map.put("sub_value", noline_params.osd0 + "     " + noline_params.osd25 + "     " + noline_params.osd50 + "     " + noline_params.osd75
                 + "     " + noline_params.osd100);
         mListSubMenuData.add(map);
         map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_NOLINEAR_CONTRAST));
-        noline_params = tv.FactoryGetNolineParams(NOLINE_PARAMS_TYPE.NOLINE_PARAMS_TYPE_CONTRAST, source);
+        //noline_params = sm.FactoryGetNolineParams(NOLINE_PARAMS_TYPE.NOLINE_PARAMS_TYPE_CONTRAST, source);
         map.put("sub_value", noline_params.osd0 + "     " + noline_params.osd25 + "     " + noline_params.osd50 + "     " + noline_params.osd75
                 + "     " + noline_params.osd100);
         mListSubMenuData.add(map);
         map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_NOLINEAR_SATURATION));
-        noline_params = tv.FactoryGetNolineParams(NOLINE_PARAMS_TYPE.NOLINE_PARAMS_TYPE_SATURATION, source);
+        //noline_params = sm.FactoryGetNolineParams(NOLINE_PARAMS_TYPE.NOLINE_PARAMS_TYPE_SATURATION, source);
         map.put("sub_value", noline_params.osd0 + "     " + noline_params.osd25 + "     " + noline_params.osd50 + "     " + noline_params.osd75
                 + "     " + noline_params.osd100);
         mListSubMenuData.add(map);
         map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_NOLINEAR_DEFINITION));
-        noline_params = tv.FactoryGetNolineParams(NOLINE_PARAMS_TYPE.NOLINE_PARAMS_TYPE_HUE, source);
+        //noline_params = sm.FactoryGetNolineParams(NOLINE_PARAMS_TYPE.NOLINE_PARAMS_TYPE_HUE, source);
         map.put("sub_value", noline_params.osd0 + "     " + noline_params.osd25 + "     " + noline_params.osd50 + "     " + noline_params.osd75
                 + "     " + noline_params.osd100);
         mListSubMenuData.add(map);
         map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_NOLINEAR_TONE));
-        noline_params = tv.FactoryGetNolineParams(NOLINE_PARAMS_TYPE.NOLINE_PARAMS_TYPE_SHARPNESS, source);
+        //noline_params = sm.FactoryGetNolineParams(NOLINE_PARAMS_TYPE.NOLINE_PARAMS_TYPE_SHARPNESS, source);
         map.put("sub_value", noline_params.osd0 + "     " + noline_params.osd25 + "     " + noline_params.osd50 + "     " + noline_params.osd75
                 + "     " + noline_params.osd100);
         mListSubMenuData.add(map);
         map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_NOLINEAR_VOLUMN));
-        noline_params = tv.FactoryGetNolineParams(NOLINE_PARAMS_TYPE.NOLINE_PARAMS_TYPE_VOLUME, source);
+        //noline_params = sm.FactoryGetNolineParams(NOLINE_PARAMS_TYPE.NOLINE_PARAMS_TYPE_VOLUME, source);
         map.put("sub_value", noline_params.osd0 + "     " + noline_params.osd25 + "     " + noline_params.osd50 + "     " + noline_params.osd75
                 + "     " + noline_params.osd100);
         mListSubMenuData.add(map);
+        */
     }
 
     /* reShow rate */
