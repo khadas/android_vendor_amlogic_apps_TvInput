@@ -36,10 +36,10 @@
             </intent-filter>
         </activity>
 
-	<receiver android:name=".AppointedProgramReceiver" >
+        <receiver android:name=".AppointedProgramReceiver" >
             <intent-filter>
-                <action android:name="android.intent.action.tv_appointed_program" />
+                <action android:name="droidlogic.intent.action.tv_appointed_program" />
             </intent-filter>
-	</receiver>
+        </receiver>
     </application>
 </manifest>

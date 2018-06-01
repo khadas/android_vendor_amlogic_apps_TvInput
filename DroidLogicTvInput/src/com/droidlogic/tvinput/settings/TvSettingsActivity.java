@@ -491,7 +491,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
         if (mFactoryShow == 3 && keyValue == factoryPasswordFourthKey) {
             mFactoryShow = 0;
             this.finish();
-            Intent factory = new Intent("android.intent.action.FactoryMainActivity");
+            Intent factory = new Intent("droidlogic.intent.action.FactoryMainActivity");
             startActivity(factory);
             return;
         }
