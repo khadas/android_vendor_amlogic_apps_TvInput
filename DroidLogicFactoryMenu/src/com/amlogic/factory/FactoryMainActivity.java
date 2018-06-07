@@ -265,14 +265,14 @@ public class FactoryMainActivity extends Activity implements TvControlManager.Up
                     public void onClick(DialogInterface dialog, int which) {
                         tv.SSMInitDevice();
                         tv.FactoryCleanAllTableForProgram();
-                        sendBroadcast(new Intent("android.intent.action.MASTER_CLEAR"));
+                        sendBroadcast(new Intent(Intent.ACTION_MASTER_CLEAR));
                     }
                 };
                 ConfirmDialog(msg, listener);
                 break;
             case Constant.PAGE_FACTORYCHANNEL:
                 // Intent intent = new Intent();
-                // intent.setAction("android.intent.action.FavoriteChannelActivity");
+                // intent.setAction("droidlogic.intent.action.FavoriteChannelActivity");
                 // this.startActivity(intent);
                /* if (tv.TvMiscChannelImport(FileUtil.getUdiskPath() + "tv.db") == 0) {
                     Toast.makeText(getApplicationContext(), "set success", Toast.LENGTH_LONG).show();
