@@ -446,6 +446,7 @@ typedef void* AM_SUB2_Handle_t;
         if (ret != AM_SUCCESS)
             goto error;
         data->dmx_id = dmx_id;
+        //AM_DMX_SetSource(dmx_id, AM_DMX_SRC_TS2);
 
         ret = AM_DMX_AllocateFilter(dmx_id, &data->filter_handle);
         if (ret != AM_SUCCESS)

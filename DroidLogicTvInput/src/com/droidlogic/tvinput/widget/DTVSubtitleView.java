@@ -386,6 +386,14 @@ public class DTVSubtitleView extends View {
 
             }
             init_count = 1;
+
+            clear_paint = new Paint();
+            clear_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+
+            if (mPaint == null)
+                mPaint = new Paint();
+            if (bitmap == null)
+                bitmap = Bitmap.createBitmap(BUFFER_W, BUFFER_H, Bitmap.Config.ARGB_8888);
         }
     }
 
@@ -525,8 +533,9 @@ public class DTVSubtitleView extends View {
 
     public void startTT() {
         synchronized(lock) {
-            if (activeView != this)
-                return;
+            //if (activeView != this)
+              //  return;
+
             stopDecoder();
 
             if (tt_params.mode == MODE_NONE)

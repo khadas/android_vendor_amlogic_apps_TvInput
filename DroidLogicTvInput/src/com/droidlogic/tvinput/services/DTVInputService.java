@@ -647,6 +647,34 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 } else {
                     mIsChannelBlocked = false;
                 }
+            }else if ("action_teletext_start".equals(action)) {
+                boolean start = bundle.getBoolean("action_teletext_start", false);
+                Log.d(TAG, "do private cmd: action_teletext_start: "+ start);
+            } else if ("action_teletext_up".equals(action)) {
+                boolean actionup = bundle.getBoolean("action_teletext_up", false);
+                Log.d(TAG, "do private cmd: action_teletext_up: "+ actionup);
+                if (mSubtitleView != null) {
+                    mSubtitleView.previousPage();
+                }
+            } else if ("action_teletext_down".equals(action)) {
+                boolean actiondown = bundle.getBoolean("action_teletext_down", false);
+                Log.d(TAG, "do private cmd: action_teletext_down: "+ actiondown);
+                if (mSubtitleView != null) {
+                    mSubtitleView.nextPage();
+                }
+            } else if ("action_teletext_number".equals(action)) {
+                int number = bundle.getInt("action_teletext_number", -1);
+                Log.d(TAG, "do private cmd: action_teletext_number: "+ number);
+                if (mSubtitleView != null) {
+                    mSubtitleView.gotoPage(number);
+                }
+
+            } else if ("action_teletext_country".equals(action)) {
+                int number = bundle.getInt("action_teletext_country", -1);
+                Log.d(TAG, "do private cmd: action_teletext_country: "+ number);
+                if (mSubtitleView != null) {
+                    mSubtitleView.gotoPage(number);
+                }
             }
         }
 
@@ -1828,7 +1856,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             Log.d(TAG, "\tAuto Aud: [" + AudioSelectedId + "]");
             notifyTrackSelected(TvTrackInfo.TYPE_AUDIO, AudioSelectedId);
 
-            Log.d(TAG, "\tAuto Sub: [" + SubSelectedId + "]");
+            Log.d(TAG, "\tAuto Sub: [" + SubSelectedId +  "]" + "type " + ch.getSubtitleTypes());
             notifyTrackSelected(TvTrackInfo.TYPE_SUBTITLE, SubSelectedId);
         }
 
@@ -2184,6 +2212,14 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 mSubtitleView.setSubParams(params);
                 mSubtitleView.setMargin(225, 128, 225, 128);
                 Log.d(TAG, "ATV CC pid="+pid+",fg_color="+ccParam.fg_color+", fg_op="+ccParam.fg_opacity+", bg_color="+ccParam.bg_color+", bg_op="+ccParam.bg_opacity);
+            } else if (type == ChannelInfo.Subtitle.TYPE_DTV_TELETEXT_IMG) {
+                Log.e(TAG, "TELETEXT_IMG");
+                int pgno;
+                pgno = (id1 == 0) ? 800 : id1 * 100;
+                pgno += (id2 & 15) + ((id2 >> 4) & 15) * 10 + ((id2 >> 8) & 15) * 100;
+                DTVSubtitleView.DTVTTParams params =
+                        new DTVSubtitleView.DTVTTParams(0, pid, pgno, 0x3F7F, getTeletextRegionID("English"));
+                mSubtitleView.setSubParams(params);
             }
         }
 
