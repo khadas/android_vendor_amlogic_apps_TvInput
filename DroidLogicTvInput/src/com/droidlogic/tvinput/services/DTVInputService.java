@@ -156,6 +156,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
     protected int id = 0;
     protected TvControlManager mTvControlManager;
     protected boolean isTvPlaying = false;
+    protected TvTime mTvTime = null;
 
     public boolean is_subtitle_enabled;
 
@@ -211,6 +212,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         mTvControlManager.setEasListener(this);
 
         mSystemControlManager = new SystemControlManager(this);
+        mTvTime = new TvTime(this);
     }
 
     @Override
@@ -784,8 +786,11 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         }
 
         protected void doPlay(Uri uri) {
+            Log.d(TAG, "--doPlay  uri=" + uri + " this:"+ this);
+            if (null == uri) {
+                return;
+            }
             mCurrentUri = uri;
-            Log.d(TAG, "doPlay  uri=" + uri + " this:"+ this);
             stopSubtitle();
 
             mUnblockedRatingSet.clear();
@@ -1037,11 +1042,10 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         }
 
         protected TvContentRating[] getContentRatingsOfCurrentProgram(ChannelInfo channelInfo) {
-            TvTime TvTime = new TvTime(mContext);
             if (channelInfo == null)
                 return null;
-            Program mCurrentProgram = mTvDataBaseManager.getProgram(TvContract.buildChannelUri(channelInfo.getId()), TvTime.getTime());
-            Log.d(TAG, "TvTime:"+getDateAndTime(TvTime.getTime())+" ("+TvTime.getTime()+")");
+            Program mCurrentProgram = mTvDataBaseManager.getProgram(TvContract.buildChannelUri(channelInfo.getId()), mTvTime.getTime());
+            Log.d(TAG, "TvTime:"+getDateAndTime(mTvTime.getTime())+" ("+mTvTime.getTime()+")");
 
             TvContentRating[] ratings = mCurrentProgram == null ? null : mCurrentProgram.getContentRatings();
             TvContentRating[] newparseratings = null;
@@ -1127,14 +1131,13 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
             if (mHandler != null) {
                 if (false) {
-                    TvTime TvTime = new TvTime(mContext);
-                    Program mCurrentProgram = mTvDataBaseManager.getProgram(TvContract.buildChannelUri(channelInfo.getId()), TvTime.getTime());
+                    Program mCurrentProgram = mTvDataBaseManager.getProgram(TvContract.buildChannelUri(channelInfo.getId()), mTvTime.getTime());
                     Program mNextProgram = null;
                     if (mCurrentProgram != null)
                         mNextProgram = mTvDataBaseManager.getProgram(TvContract.buildChannelUri(channelInfo.getId()), mCurrentProgram.getEndTimeUtcMillis() + 1);
                     mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_PARENTAL_CONTROL, this),
-                        (mNextProgram == null ? mParentControlDelay : mNextProgram.getStartTimeUtcMillis() - TvTime.getTime()));
-                    Log.d(TAG, "doPC next:"+(mNextProgram == null ? mParentControlDelay : mNextProgram.getStartTimeUtcMillis() - TvTime.getTime())+"ms");
+                        (mNextProgram == null ? mParentControlDelay : mNextProgram.getStartTimeUtcMillis() - mTvTime.getTime()));
+                    Log.d(TAG, "doPC next:"+(mNextProgram == null ? mParentControlDelay : mNextProgram.getStartTimeUtcMillis() - mTvTime.getTime())+"ms");
                 } else {
                     mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_PARENTAL_CONTROL, this), mParentControlDelay);
                     Log.d(TAG, "doPC next:"+mParentControlDelay);
@@ -1392,9 +1395,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         }
 
         protected List<ChannelInfo.Subtitle> getChannelProgramCaptions(ChannelInfo channelInfo) {
-            TvTime TvTime = new TvTime(mContext);
-            Program mCurrentProgram = mTvDataBaseManager.getProgram(TvContract.buildChannelUri(channelInfo.getId()), TvTime.getTime());
-            Log.d(TAG, "TvTime:"+getDateAndTime(TvTime.getTime()));
+            Program mCurrentProgram = mTvDataBaseManager.getProgram(TvContract.buildChannelUri(channelInfo.getId()), mTvTime.getTime());
+            Log.d(TAG, "TvTime:"+getDateAndTime(mTvTime.getTime()));
             Log.d(TAG, "caption:"+(mCurrentProgram==null?"null":mCurrentProgram.getInternalProviderData()));
             return DroidLogicTvUtils.parseAtscCaptions(mCurrentProgram == null ? null : mCurrentProgram.getInternalProviderData());
         }
@@ -2361,7 +2363,6 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             private TvChannelParams tvchan = null;
             private ChannelInfo tvservice = null;
             private TvDataBaseManager mTvDataBaseManager = null;
-            private TvTime mTvTime = null;
 
             private ChannelObserver mChannelObserver;
             private CCStyleObserver mCCObserver;
@@ -2437,7 +2438,6 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 mMode = mode;
                 mStandard = standard;
                 mTvDataBaseManager = new TvDataBaseManager(mContext);
-                mTvTime = new TvTime(mContext);
 
                 int channel_number_start = mSystemControlManager.getPropertyInt(DTV_CHANNEL_NUMBER_START, 1);
                 mMonitorStoreManager = new MonitorStoreManager(mInputId, channel_number_start);
@@ -2879,8 +2879,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                     }
 
                     if (mTvDataBaseManager != null && programs.size() != 0) {
-                        TvTime TvTime = new TvTime(mContext);
-                        boolean updated = mTvDataBaseManager.updatePrograms(channelUri, programs, TvTime.getTime(), true);
+                        boolean updated = mTvDataBaseManager.updatePrograms(channelUri, programs, mTvTime.getTime(), true);
                         if (updated && mCurrentChannel != null && mCurrentChannel.getId() == c.getId()) {
                             if (DEBUG) Log.d(TAG, "epg eit, program updated for current");
                             checkCurrentContentBlockNeeded();
