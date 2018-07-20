@@ -323,7 +323,7 @@ public class SettingsManager {
                 return getSwitchChannelStatus();
             } else if (key.equals(KEY_FINE_TUNE)) {
                 return getFineTuneStatus();
-            }else if (key.equals(KEY_MTS)) {
+            } else if (key.equals(KEY_MTS)) {
                 return getAudioOutmode();
             }
             //settings

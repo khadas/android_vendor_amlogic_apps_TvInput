@@ -271,7 +271,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
             } else if (item_name.equals(mResources.getString(R.string.switch_channel))) {
                 optionTag = OPTION_SWITCH_CHANNEL;
                 optionKey = SettingsManager.KEY_SWITCH_CHANNEL;
-            }else if (item_name.equals(mResources.getString(R.string.mts))) {
+            } else if (item_name.equals(mResources.getString(R.string.mts))) {
                 optionTag = OPTION_MTS;
                 optionKey = SettingsManager.KEY_MTS;
             }
@@ -1006,7 +1006,6 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
                     setIcon(parent, R.id.switch_channel_black_frame);
                 }
                 break;
-
             case OPTION_MTS:
                 if (TextUtils.equals(mSettingsManager.getAudioOutmode(),mResources.getString(R.string.audio_outmode_mono))) {
                     setIcon(parent, R.id.audio_outmode_mono);

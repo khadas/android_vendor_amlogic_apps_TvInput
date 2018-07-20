@@ -215,7 +215,7 @@ public class AV1InputService extends DroidLogicTvInputService {
             mTvDataBaseManager = new TvDataBaseManager(mContext);
             //initOverlayView(R.layout.layout_overlay);
             if (mOverlayView != null) {
-                mOverlayView.setImage(R.drawable.hotplug_out);
+                mOverlayView.setImage(R.drawable.bg_no_signal);
             }
 
             initWorkThread();

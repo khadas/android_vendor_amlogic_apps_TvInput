@@ -586,7 +586,7 @@ public class DroidLogicTv extends Activity implements Callback, onSourceInputCli
             mSignalState = SIGNAL_NOT_GOT;
             reset_nosignal_time();
             releaseTvView();
-            mMainView.setBackgroundDrawable(getResources().getDrawable(R.drawable.hotplug_out));
+            mMainView.setBackgroundDrawable(getResources().getDrawable(R.drawable.bg_no_signal));
         }
         if (mSigType == DroidLogicTvUtils.SIG_INFO_TYPE_DTV) {
             showUi(Utils.UI_TYPE_DTV_INFO,false);
