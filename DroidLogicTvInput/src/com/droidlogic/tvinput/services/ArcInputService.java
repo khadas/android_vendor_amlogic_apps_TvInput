@@ -25,33 +25,31 @@ import android.view.Surface;
 import android.net.Uri;
 import android.media.AudioManager;
 
-public class SPDIFInputService extends DroidLogicTvInputService {
-    private static final String TAG = SPDIFInputService.class.getSimpleName();;
-    private SPDIFInputSession mCurrentSession;
+public class ArcInputService extends DroidLogicTvInputService {
+    private static final String TAG = ArcInputService.class.getSimpleName();;
+    private ArcInputSession mCurrentSession;
     private int id = 0;
-    private Map<Integer, SPDIFInputSession> sessionMap = new HashMap<>();
+    private Map<Integer, ArcInputSession> sessionMap = new HashMap<>();
     private AudioManager mAudioManager;
 
     @Override
     public Session onCreateSession(String inputId) {
         super.onCreateSession(inputId);
         Utils.logd(TAG, "onCreateSession:"+inputId);
-        mCurrentSession = new SPDIFInputSession(getApplicationContext(), inputId, getHardwareDeviceId(inputId));
+        mCurrentSession = new ArcInputSession(getApplicationContext(), inputId, getHardwareDeviceId(inputId));
         registerInputSession(mCurrentSession);
         mCurrentSession.setSessionId(id);
         sessionMap.put(id, mCurrentSession);
         id++;
-
         if (mAudioManager == null)
             mAudioManager = (AudioManager)getApplicationContext().getSystemService (Context.AUDIO_SERVICE);
-
         return mCurrentSession;
     }
 
     @Override
     public void setCurrentSessionById(int sessionId) {
         Utils.logd(TAG, "setCurrentSessionById:"+sessionId);
-        SPDIFInputSession session = sessionMap.get(sessionId);
+        ArcInputSession session = sessionMap.get(sessionId);
         if (session != null) {
             mCurrentSession = session;
         }
@@ -60,7 +58,7 @@ public class SPDIFInputService extends DroidLogicTvInputService {
     @Override
     public void doReleaseFinish(int sessionId) {
         Utils.logd(TAG, "doReleaseFinish,sessionId:"+sessionId);
-        SPDIFInputSession session = sessionMap.get(sessionId);
+        ArcInputSession session = sessionMap.get(sessionId);
         if (session != null)
             session.performDoReleaseSession();
     }
@@ -69,16 +67,16 @@ public class SPDIFInputService extends DroidLogicTvInputService {
     public void doTuneFinish(int result, Uri uri, int sessionId) {
         Utils.logd(TAG, "doTuneFinish,result:"+result+"sessionId:"+sessionId);
         if (result == ACTION_SUCCESS) {
-            SPDIFInputSession session = sessionMap.get(sessionId);
+            ArcInputSession session = sessionMap.get(sessionId);
             if (session != null)
-                mAudioManager.setParameters("spdifin/arcin switch=0");
+                mAudioManager.setParameters("spdifin/arcin switch=1");
         }
     }
 
-    public class SPDIFInputSession extends TvInputBaseSession {
-        public SPDIFInputSession(Context context, String inputId, int deviceId) {
+    public class ArcInputSession extends TvInputBaseSession {
+        public ArcInputSession(Context context, String inputId, int deviceId) {
             super(context, inputId, deviceId);
-            Utils.logd(TAG, "=====new SPDIFInputSession=====");
+            Utils.logd(TAG, "=====new ArcInputSession=====");
             //initOverlayView(R.layout.layout_overlay);
             if (mOverlayView != null) {
                 mOverlayView.setImage(R.drawable.spdifin);
@@ -119,14 +117,14 @@ public class SPDIFInputService extends DroidLogicTvInputService {
     }
 
     public TvInputInfo onHardwareAdded(TvInputHardwareInfo hardwareInfo) {
-        if (hardwareInfo.getDeviceId() != DroidLogicTvUtils.DEVICE_ID_SPDIF
+        if (hardwareInfo.getDeviceId() != DroidLogicTvUtils.DEVICE_ID_ARC
             || hasInfoExisted(hardwareInfo))
             return null;
 
         Utils.logd(TAG, "=====onHardwareAdded=====" + hardwareInfo.getDeviceId());
 
         TvInputInfo info = null;
-        ResolveInfo rInfo = getResolveInfo(SPDIFInputService.class.getName());
+        ResolveInfo rInfo = getResolveInfo(ArcInputService.class.getName());
         if (rInfo != null) {
             try {
                 info = TvInputInfo.createTvInputInfo(
@@ -147,7 +145,7 @@ public class SPDIFInputService extends DroidLogicTvInputService {
     }
 
     public String onHardwareRemoved(TvInputHardwareInfo hardwareInfo) {
-        if (hardwareInfo.getDeviceId() != DroidLogicTvUtils.DEVICE_ID_SPDIF
+        if (hardwareInfo.getDeviceId() != DroidLogicTvUtils.DEVICE_ID_ARC
             || !hasInfoExisted(hardwareInfo))
             return null;
 
