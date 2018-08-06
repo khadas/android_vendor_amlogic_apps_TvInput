@@ -383,7 +383,7 @@ public class SettingsManager {
     }
 
     private String getBacklightStatus () {
-        return mSystemControlManager.GetBacklight(mTvSourceInput.toInt()) + "%";
+        return mSystemControlManager.GetBacklight() + "%";
     }
 
     public boolean isShowTint() {
@@ -932,7 +932,7 @@ public class SettingsManager {
     }
 
     public String getSwitchChannelStatus () {
-        if (mTvControlManager.SSMReadBlackoutEnalbe() == 0)
+        if (mTvControlManager.getBlackoutEnalbe() == 0)
             return mResources.getString(R.string.static_frame);
         else
             return mResources.getString(R.string.black_frame);
@@ -1214,9 +1214,9 @@ public class SettingsManager {
     }
 
     public void setBacklight (int step) {
-        int value = mSystemControlManager.GetBacklight(mTvSourceInput.toInt()) + step;
+        int value = mSystemControlManager.GetBacklight() + step;
         if (value >= 0 && value <= 100) {
-            mSystemControlManager.SetBacklight(mTvSourceInput.toInt(), value, 1);
+            mSystemControlManager.SetBacklight(value, 1);
         }
     }
 
