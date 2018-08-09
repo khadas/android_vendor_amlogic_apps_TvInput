@@ -4,8 +4,8 @@
 #include "Fonts.h"
 #include <utils/Log.h>
 #include <jni.h>
-#include <nativehelper/JNIHelp.h>
-#include <android_runtime/AndroidRuntime.h>
+//#include <nativehelper/JNIHelp.h>
+//#include <android_runtime/AndroidRuntime.h>
 
 using namespace android;
 
@@ -42,11 +42,20 @@ static JNINativeMethod gMethods[] =
 
 int register_com_droidlogic_tvinput_TvApplication_FileUtils(JNIEnv *env)
 {
+    jint rc;
     static const char *const kClassPathName = "com/droidlogic/tvinput/TvApplication$FileUtils";
     jclass clazz;
     FIND_CLASS(clazz, kClassPathName);
-    return jniRegisterNativeMethods(env, kClassPathName, gMethods, sizeof(gMethods) / sizeof(gMethods[0]));
+
+    if (rc = (env->RegisterNatives(clazz, gMethods, sizeof(gMethods) / sizeof(gMethods[0]))) < 0) {
+        env->DeleteLocalRef(clazz);
+        return -1;
+    }
+
+    env->DeleteLocalRef(clazz);
+    return 0;
 }
+
 jint JNI_OnLoad(JavaVM *vm, void *reserved)
 {
     JNIEnv *env = NULL;
@@ -56,7 +65,7 @@ jint JNI_OnLoad(JavaVM *vm, void *reserved)
     {
         goto bail;
     }
-    assert(env != NULL);
+    //assert(env != NULL);
 
 
     if (register_com_droidlogic_tvinput_TvApplication_FileUtils(env) < 0)

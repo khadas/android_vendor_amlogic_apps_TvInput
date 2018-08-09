@@ -12,7 +12,10 @@ LOCAL_PACKAGE_NAME := DroidLogicTvInput
 LOCAL_PROGUARD_ENABLED := disabled
 
 LOCAL_JAVA_LIBRARIES := droidlogic droidlogic-tv
-LOCAL_JNI_SHARED_LIBRARIES := libjnidtvsubtitle libjnidtvepgscanner libjnifont
+LOCAL_JNI_SHARED_LIBRARIES := libjnidtvsubtitle \
+	libjnidtvepgscanner \
+	libjnifont \
+	libtv_jni
 
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26 && echo OK),OK)
 LOCAL_PROPRIETARY_MODULE := true

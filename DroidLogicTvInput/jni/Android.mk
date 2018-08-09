@@ -26,7 +26,9 @@ LOCAL_C_INCLUDES := \
   bionic/libc/include \
   external/skia/include\
   external/skia/include/core \
-  external/skia/include/config
+  external/skia/include/config \
+  libnativehelper/include_jni \
+  frameworks/native/include
 
 #DVB define
 ifeq ($(BOARD_HAS_ADTV),true)
@@ -47,11 +49,10 @@ LOCAL_SHARED_LIBRARIES += \
 endif
 
 LOCAL_SHARED_LIBRARIES += \
-  libjnigraphics \
   liblog \
   libcutils
 
-LOCAL_STATIC_LIBRARIES := libskia
+#LOCAL_STATIC_LIBRARIES := libskia
 
 LOCAL_PRELINK_MODULE := false
 
@@ -74,13 +75,14 @@ LOCAL_C_INCLUDES := \
 	external/skia/include\
 	external/skia/include/core \
 	external/skia/include/config \
+	libnativehelper/include_jni \
 	bionic/libc/include
 
 LOCAL_SHARED_LIBRARIES += \
   liblog \
   libcutils
 
-LOCAL_STATIC_LIBRARIES := libskia
+#LOCAL_STATIC_LIBRARIES := libskia
 
 LOCAL_PRELINK_MODULE := false
 
@@ -141,9 +143,11 @@ LOCAL_ARM_MODE := arm
 LOCAL_C_INCLUDES := \
     $(JNI_H_INCLUDE) \
     libnativehelper/include_jni \
+    system/core/libutils/include \
+    system/core/liblog/include \
     libnativehelper/include/nativehelper
 
-LOCAL_SHARED_LIBRARIES += libvendorfont liblog libnativehelper libandroid_runtime libcutils
+LOCAL_SHARED_LIBRARIES += libvendorfont liblog libcutils
 
 LOCAL_PRELINK_MODULE := false
 
