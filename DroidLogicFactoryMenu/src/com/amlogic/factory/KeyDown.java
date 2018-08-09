@@ -182,6 +182,10 @@ public class KeyDown {
         int value_int = 0;
         Map<String, String> map = mListSubMenuData.get(FactoryMainActivity.mSubMenuPos);
         TvControlManager.SourceInput source = null;
+        SystemControlManager.SignalFmt sigFmt = null;
+        SystemControlManager.SourceInput sourceInput = SystemControlManager.SourceInput.values()[FactoryMainActivity.mCurInputPortPos];
+        SystemControlManager.color_temperature mode = SystemControlManager.color_temperature.values()[FactoryMainActivity.mColorTemperaturePos];
+        SystemControlManager.TransFmt transFmt = SystemControlManager.TransFmt.values()[FactoryMainActivity.reshowTvinTransFmtPos];
         ShowSubView ssv = new ShowSubView(mListSubMenuData, context);
         switch (FactoryMainActivity.mSubMenuPos) {
             case 0: {
@@ -220,7 +224,7 @@ public class KeyDown {
                         value_int = Math.abs(Integer.parseInt(value_str) + step) % 2048;
                     map.put("sub_value", String.valueOf(value_int));
                     FactoryMainActivity.sAdapter.notifyDataSetChanged();
-                    sm.FactoryWhiteBalanceSetRedGain(FactoryMainActivity.mCurInputPortPos, FactoryMainActivity.mColorTemperaturePos, value_int);
+                    sm.FactoryWhiteBalanceSetRedGain(sourceInput, sigFmt.valueOf(FactoryMainActivity.mCurInputPortPos), transFmt, mode, value_int);
                 }
                 break;
             case 3: {
@@ -231,7 +235,7 @@ public class KeyDown {
                         value_int = Math.abs(Integer.parseInt(value_str) + step) % 2048;
                     map.put("sub_value", String.valueOf(value_int));
                     FactoryMainActivity.sAdapter.notifyDataSetChanged();
-                    sm.FactoryWhiteBalanceSetGreenGain(FactoryMainActivity.mCurInputPortPos, FactoryMainActivity.mColorTemperaturePos, value_int);
+                    sm.FactoryWhiteBalanceSetGreenGain(sourceInput, sigFmt.valueOf(FactoryMainActivity.mCurInputPortPos), transFmt, mode, value_int);
                 }
                 break;
             case 4: {
@@ -242,7 +246,7 @@ public class KeyDown {
                         value_int = Math.abs(Integer.parseInt(value_str) + step) % 2048;
                     map.put("sub_value", String.valueOf(value_int));
                     FactoryMainActivity.sAdapter.notifyDataSetChanged();
-                    sm.FactoryWhiteBalanceSetBlueGain(FactoryMainActivity.mCurInputPortPos, FactoryMainActivity.mColorTemperaturePos, value_int);
+                    sm.FactoryWhiteBalanceSetBlueGain(sourceInput, sigFmt.valueOf(FactoryMainActivity.mCurInputPortPos), transFmt, mode, value_int);
                 }
                 break;
             case 5: {
@@ -255,7 +259,7 @@ public class KeyDown {
                         value_int = Math.abs(Integer.parseInt(value_str) + step + 1024) % 2049 - 1024;
                     map.put("sub_value", String.valueOf(value_int));
                     FactoryMainActivity.sAdapter.notifyDataSetChanged();
-                    sm.FactoryWhiteBalanceSetRedOffset(FactoryMainActivity.mCurInputPortPos, FactoryMainActivity.mColorTemperaturePos, value_int);
+                    sm.FactoryWhiteBalanceSetRedOffset(sourceInput, sigFmt.valueOf(FactoryMainActivity.mCurInputPortPos), transFmt, mode, value_int);
                 }
                 break;
             case 6: {
@@ -268,7 +272,7 @@ public class KeyDown {
                         value_int = Math.abs(Integer.parseInt(value_str) + step + 1024) % 2049 - 1024;
                     map.put("sub_value", String.valueOf(value_int));
                     FactoryMainActivity.sAdapter.notifyDataSetChanged();
-                    sm.FactoryWhiteBalanceSetGreenOffset(FactoryMainActivity.mCurInputPortPos, FactoryMainActivity.mColorTemperaturePos, value_int);
+                    sm.FactoryWhiteBalanceSetGreenOffset(sourceInput, sigFmt.valueOf(FactoryMainActivity.mCurInputPortPos), transFmt, mode, value_int);
                 }
                 break;
             case 7: {
@@ -281,7 +285,7 @@ public class KeyDown {
                         value_int = Math.abs(Integer.parseInt(value_str) + step + 1024) % 2049 - 1024;
                     map.put("sub_value", String.valueOf(value_int));
                     FactoryMainActivity.sAdapter.notifyDataSetChanged();
-                    sm.FactoryWhiteBalanceSetBlueOffset(FactoryMainActivity.mCurInputPortPos, FactoryMainActivity.mColorTemperaturePos, value_int);
+                    sm.FactoryWhiteBalanceSetBlueOffset(sourceInput, sigFmt.valueOf(FactoryMainActivity.mCurInputPortPos), transFmt, mode, value_int);
                 }
                 break;
             default:
@@ -344,7 +348,7 @@ public class KeyDown {
         int value_int = 0;
         Map<String, String> map = mListSubMenuData.get(FactoryMainActivity.mSubMenuPos);
         ShowSubView ssv = new ShowSubView(mListSubMenuData, context);
-        TvControlManager.tvin_cutwin_t cutwin_t = tv.FactoryGetOverscanParams(source, fmt, trans_fmt);
+        SystemControlManager.tvin_cutwin_t cutwin_t = sm.new tvin_cutwin_t();
         switch (FactoryMainActivity.mSubMenuPos) {
             case 0:
                 int iInputPortCount = Constant.mInputPortList.length;

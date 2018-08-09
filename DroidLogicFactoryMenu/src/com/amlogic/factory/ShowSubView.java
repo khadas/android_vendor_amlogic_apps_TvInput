@@ -11,7 +11,7 @@ import java.util.Map;
 import com.droidlogic.app.tv.TvControlManager;
 import com.droidlogic.app.tv.TvControlManager.SourceInput_Type;
 import com.droidlogic.app.tv.TvControlManager.SourceInput;
-import com.droidlogic.app.tv.TvControlManager.tvin_cutwin_t;
+import com.droidlogic.app.SystemControlManager;
 import com.droidlogic.app.tv.TvInSignalInfo;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
@@ -114,34 +114,38 @@ public class ShowSubView {
 
     /* set white balance's parameter at one source and mode */
     public void setWhite2(int source, int colortemp_mode) {
+        SystemControlManager.SourceInput sourceInput = SystemControlManager.SourceInput.values()[source];
+        SystemControlManager.color_temperature mode = SystemControlManager.color_temperature.values()[colortemp_mode];
+        SystemControlManager.SignalFmt sigFmt = SystemControlManager.SignalFmt.values()[source];
+        SystemControlManager.TransFmt transFmt = SystemControlManager.TransFmt.values()[source];
         Map<String, String> map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_WHTBLAN_GAIN_R));
-        int i = sm.FactoryWhiteBalanceGetRedGain(source, colortemp_mode);
+        int i = sm.FactoryWhiteBalanceGetRedGain(sourceInput, sigFmt, transFmt, mode);
         map.put("sub_value", "" + i);
         mListSubMenuData.add(map);
         map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_WHTBLAN_GAIN_G));
-        i = sm.FactoryWhiteBalanceGetGreenGain(source, colortemp_mode);
+        i = sm.FactoryWhiteBalanceGetGreenGain(sourceInput, sigFmt, transFmt, mode);
         map.put("sub_value", "" + i);
         mListSubMenuData.add(map);
         map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_WHTBLAN_GAIN_B));
-        i = sm.FactoryWhiteBalanceGetBlueGain(source, colortemp_mode);
+        i = sm.FactoryWhiteBalanceGetBlueGain(sourceInput, sigFmt, transFmt, mode);
         map.put("sub_value", "" + i);
         mListSubMenuData.add(map);
         map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_WHTBLAN_OFFSET_R));
-        i = sm.FactoryWhiteBalanceGetRedOffset(source, colortemp_mode);
+        i = sm.FactoryWhiteBalanceGetRedOffset(sourceInput, sigFmt, transFmt, mode);
         map.put("sub_value", "" + i);
         mListSubMenuData.add(map);
         map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_WHTBLAN_OFFSET_G));
-        i = sm.FactoryWhiteBalanceGetGreenOffset(source, colortemp_mode);
+        i = sm.FactoryWhiteBalanceGetGreenOffset(sourceInput, sigFmt, transFmt, mode);
         map.put("sub_value", "" + i);
         mListSubMenuData.add(map);
         map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_WHTBLAN_OFFSET_B));
-        i = sm.FactoryWhiteBalanceGetBlueOffset(source, colortemp_mode);
+        i = sm.FactoryWhiteBalanceGetBlueOffset(sourceInput, sigFmt, transFmt, mode);
         map.put("sub_value", "" + i);
         mListSubMenuData.add(map);
     }
@@ -241,8 +245,7 @@ public class ShowSubView {
 
     /* set reShow rate's parameter except Timing,TVIN_3D_STATUS,TVIN_TRANS_FMT */
     public void setElse(SourceInput source, TvInSignalInfo.SignalFmt fmt, TvInSignalInfo.TransFmt trans_fmt) {
-        tvin_cutwin_t cutwin_t;
-        cutwin_t = tv.FactoryGetOverscanParams(source, fmt, trans_fmt);
+        SystemControlManager.tvin_cutwin_t cutwin_t = sm.new tvin_cutwin_t();
         Map<String, String> map = new HashMap<String, String>();
         map.put("sub_name", context.getString(Constant.FACUI_CHONGXIAN_HSTART));
         map.put("sub_value", cutwin_t.hs + "");
