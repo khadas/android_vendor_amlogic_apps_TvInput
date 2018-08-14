@@ -9,6 +9,7 @@ import com.droidlogic.tvinput.Utils;
 import com.droidlogic.app.tv.DroidLogicTvInputService;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.app.tv.TvInputBaseSession;
+import com.droidlogic.app.tv.TvControlDataManager;
 import com.droidlogic.tvinput.R;
 
 import android.content.Context;
@@ -56,6 +57,7 @@ public class AV2InputService extends DroidLogicTvInputService {
     private Map<Integer, AV2InputSession> sessionMap = new HashMap<>();
     private ChannelInfo mCurrentChannel = null;
     private TvDataBaseManager mTvDataBaseManager;
+    private TvControlDataManager mTvControlDataManager = null;
     protected final Object mLock = new Object();
     protected static final int DTV_CC_STYLE_WHITE_ON_BLACK = 0;
     protected static final int DTV_CC_STYLE_BLACK_ON_WHITE = 1;
@@ -98,6 +100,7 @@ public class AV2InputService extends DroidLogicTvInputService {
     @Override
     public void onCreate() {
         super.onCreate();
+        initInputService(DroidLogicTvUtils.DEVICE_ID_AV2, AV2InputService.class.getName());
 
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(TvInputManager.ACTION_BLOCKED_RATINGS_CHANGED);
@@ -213,13 +216,14 @@ public class AV2InputService extends DroidLogicTvInputService {
                 mTvInputManager = (TvInputManager)getSystemService(Context.TV_INPUT_SERVICE);
             mCurrentChannel = null;
             mTvDataBaseManager = new TvDataBaseManager(mContext);
-            //initOverlayView(R.layout.layout_overlay);
+            mTvControlDataManager = TvControlDataManager.getInstance(mContext);
+            initOverlayView(R.layout.layout_overlay);
             if (mOverlayView != null) {
                 mOverlayView.setImage(R.drawable.bg_no_signal);
             }
 
             initWorkThread();
-            //initOverlayView(R.layout.layout_overlay);
+            initOverlayView(R.layout.layout_overlay);
             if (mOverlayView != null) {
                 mOverlayView.setImage(R.drawable.bg_no_signal);
                 mSubtitleView = (DTVSubtitleView)mOverlayView.getSubtitleView();
@@ -238,7 +242,7 @@ public class AV2InputService extends DroidLogicTvInputService {
         }
 
         private boolean getBlockNoRatingEnable() {
-            int status = Settings.System.getInt(mContext.getContentResolver(), DroidLogicTvUtils.BLOCK_NORATING, 0) ;
+            int status = mTvControlDataManager.getInt(mContext.getContentResolver(), DroidLogicTvUtils.BLOCK_NORATING, 0) ;
             Log.d(TAG,"getBlockNoRatingEnable:"+status);
             return (status == 1) ? true : false;
         }
@@ -270,12 +274,9 @@ public class AV2InputService extends DroidLogicTvInputService {
         public boolean onSetSurface(Surface surface) {
             return setSurfaceInService(surface,this);
         }
-        @Override
-        public void onRelease() {
-            //doRelease();
-            Log.d(TAG, "onRelease,session:"+this);
-            doReleaseInService(getSessionId());
-        }
+
+
+
         @Override
         public boolean onTune(Uri channelUri) {
             isUnlockCurrent_NR = false;
@@ -300,8 +301,8 @@ public class AV2InputService extends DroidLogicTvInputService {
             }
         }
 
-        public void performDoReleaseSession() {
-            super.performDoReleaseSession();
+        public void doRelease() {
+            super.doRelease();
             mUnblockedRatingSet.clear();
             stopSubtitle();
             releaseWorkThread();
@@ -314,10 +315,10 @@ public class AV2InputService extends DroidLogicTvInputService {
             }
             if (sessionMap.containsKey(getSessionId())) {
                 sessionMap.remove(getSessionId());
-            }
-            if (mCurrentSession != null && mCurrentSession.getSessionId() == getSessionId()) {
-                mCurrentSession = null;
-                registerInputSession(null);
+                if (mCurrentSession == this) {
+                    mCurrentSession = null;
+                    registerInputSession(null);
+                }
             }
             mSubtitleView = null;
 
@@ -355,9 +356,11 @@ public class AV2InputService extends DroidLogicTvInputService {
         }
         @Override
         public void doAppPrivateCmd(String action, Bundle bundle) {
-            super.doAppPrivateCmd(action, bundle);
+            //super.doAppPrivateCmd(action, bundle);
             if (TextUtils.equals(DroidLogicTvUtils.ACTION_STOP_TV, action)) {
-                stopTv();
+                if (mHardware != null) {
+                    mHardware.setSurface(null, null);
+                }
             } else if (DroidLogicTvUtils.ACTION_BLOCK_NORATING.equals(action)) {
                 Log.d(TAG, "do private cmd: ACTION_BLOCK_NORATING:"+ bundle.getInt(DroidLogicTvUtils.PARAM_NORATING_ENABLE));
                 if (DroidLogicTvUtils.NORATING_OFF == bundle.getInt(DroidLogicTvUtils.PARAM_NORATING_ENABLE)) {
@@ -751,7 +754,7 @@ public class AV2InputService extends DroidLogicTvInputService {
              */
             CaptioningManager.CaptionStyle userStyle = mCaptioningManager.getUserStyle();
 
-            int style = getCaptionRawUserStyle();//mCaptioningManager.getRawUserStyle();
+            int style = mCaptioningManager.getRawUserStyle();
             float textSize = mCaptioningManager.getFontScale();
             int fg_color = userStyle.foregroundColor & 0x00ffffff;
             int fg_opacity = userStyle.foregroundColor & 0xff000000;

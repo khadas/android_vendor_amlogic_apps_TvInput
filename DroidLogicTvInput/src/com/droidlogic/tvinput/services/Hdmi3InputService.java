@@ -72,11 +72,12 @@ public class Hdmi3InputService extends DroidLogicTvInputService {
         if (session != null)
             session.performDoReleaseSession();
     }
+
     public class Hdmi3InputSession extends TvInputBaseSession {
         public Hdmi3InputSession(Context context, String inputId, int deviceId) {
             super(context, inputId, deviceId);
             Utils.logd(TAG, "=====new HdmiInputSession=====");
-           // initOverlayView(R.layout.layout_overlay);
+            initOverlayView(R.layout.layout_overlay);
             if (mOverlayView != null) {
                 mOverlayView.setImage(R.drawable.bg_no_signal);
             }
@@ -86,17 +87,30 @@ public class Hdmi3InputService extends DroidLogicTvInputService {
         public boolean onSetSurface(Surface surface) {
             return setSurfaceInService(surface,this);
         }
+
         @Override
         public void onRelease() {
             //doRelease();
             Utils.logd(TAG, "onRelease,session:"+this);
             doReleaseInService(getSessionId());
         }
+
         @Override
         public boolean onTune(Uri channelUri) {
             return doTuneInService(channelUri, getSessionId());
         }
 
+
+        public void doRelease() {
+            super.doRelease();
+            if (sessionMap.containsKey(getSessionId())) {
+                sessionMap.remove(getSessionId());
+                if (mCurrentSession == this) {
+                    mCurrentSession = null;
+                    registerInputSession(null);
+                }
+            }
+        }
 
         public void performDoReleaseSession() {
             super.performDoReleaseSession();
@@ -110,7 +124,9 @@ public class Hdmi3InputService extends DroidLogicTvInputService {
         public void doAppPrivateCmd(String action, Bundle bundle) {
             super.doAppPrivateCmd(action, bundle);
             if (TextUtils.equals(DroidLogicTvUtils.ACTION_STOP_TV, action)) {
-                stopTv();
+                if (mHardware != null) {
+                    mHardware.setSurface(null, null);
+                }
             }
         }
 

@@ -31,6 +31,7 @@ abstract public class DTVEpgScanner {
     public static final int SCAN_RRT = 0x2000;
     public static final int SCAN_PSIP_EIT = 0x4000;
     public static final int SCAN_PSIP_ETT = 0x8000;
+    public static final int SCAN_PSIP_EIT_VERSION_CHANGE = 0x20000;
     public static final int SCAN_EIT_PF_ALL = SCAN_EIT_PF_ACT | SCAN_EIT_PF_OTH;
     public static final int SCAN_EIT_SCHE_ALL = SCAN_EIT_SCHE_ACT | SCAN_EIT_SCHE_OTH;
     public static final int SCAN_EIT_ALL = SCAN_EIT_PF_ALL | SCAN_EIT_SCHE_ALL;
@@ -60,7 +61,7 @@ abstract public class DTVEpgScanner {
         public int dvbServiceID;
         public int dvbServiceType;
         public long time;
-        public int dvbVersion;
+        public int[] dvbVersion;
         public Evt[] evts;
         public ChannelInfo channel;
         public ServiceInfosFromSDT services;

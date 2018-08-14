@@ -22,6 +22,8 @@ import android.widget.RelativeLayout;
 import android.view.inputmethod.InputMethodManager;
 import android.util.Log;
 import android.text.TextUtils;
+import android.text.InputType;
+import android.text.InputFilter;
 import android.media.AudioManager;
 import android.media.tv.TvInputInfo;
 import android.widget.BaseAdapter;
@@ -52,6 +54,7 @@ import java.util.HashMap;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.tvinput.R;
 import com.droidlogic.app.tv.TvControlManager;
+import com.droidlogic.app.tv.TvControlDataManager;
 
 public class ChannelSearchActivity extends Activity implements OnClickListener {
     public static final String TAG = "ChannelSearchActivity";
@@ -59,7 +62,8 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
     private OptionUiManagerT mOptionUiManagerT;
     private PowerManager mPowerManager;
 
-    //private TvControlManager mTvControlManager;
+    private TvControlManager mTvControlManager;
+    private TvControlDataManager mTvControlDataManager = null;
     private AudioManager mAudioManager = null;
     private boolean isFinished = false;
 
@@ -76,10 +80,13 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
     private Spinner mOrderSetting;
     private Spinner mAtvColorSystem;
     private Spinner mAtvSoundSystem;
-    private EditText mInputChannel;
+    private EditText mInputChannelFrom;
+    private EditText mInputChannelTo;
 
     private TextView mSearchOptionText;
-    private TextView mInputChannelText;
+    private ViewGroup mAllInputLayout;
+    private ViewGroup mFromInputLayout;
+    private ViewGroup mToInputLayout;
     private TextView mAtvSearchOrderText;
     private TextView mAtvColorSystemText;
     private TextView mAtvSoundSystemText;
@@ -114,6 +121,14 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
     private int hasFoundChannelNumber = 0;
     private Map hasFoundInfo =  new HashMap<String, Integer>();
 
+    public static final String hint_channel_number = "number";
+    public static final String hint_channel_frequency = "frequency";
+
+    /* config in file 'tvconfig.cfg' [atv.auto.scan.mode] */
+    /* 0: freq table list sacn mode */
+    /* 1: all band sacn mode */
+    private int mATvAutoScanMode = 0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -124,6 +139,9 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
         mOptionUiManagerT.setHandler(mHandler);
         mAudioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
         mPowerManager = (PowerManager)getSystemService(Context.POWER_SERVICE);
+
+        mTvControlManager = TvControlManager.getInstance();
+        mTvControlDataManager = TvControlDataManager.getInstance(this);
 
         if (in != null && in.getBooleanExtra(NUMBERSEARCH, NUMBERSEARCHDEFAULT)) {
             mNumber = in.getIntExtra(NUMBER, NUMBERDEFAULT);
@@ -154,7 +172,9 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
         ViewGroup progressHolder = (ViewGroup) findViewById(R.id.progress_holder);
         mChannelHolder = findViewById(R.id.channel_holder);
         mSearchOptionText = findViewById(R.id.search_option);
-        mInputChannelText = findViewById(R.id.channel);
+        mAllInputLayout = findViewById(R.id.channel_input_type_container);
+        mFromInputLayout = findViewById(R.id.channel_input_from_container);
+        mToInputLayout = findViewById(R.id.channel_input_to_container);
         mAtvSearchOrderText = findViewById(R.id.order);
         mAtvColorSystemText = findViewById(R.id.atv_color);
         mAtvSoundSystemText = findViewById(R.id.atv_sound);
@@ -162,7 +182,9 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
         mScanButton = (Button) findViewById(R.id.search_channel);
         mScanButton.setOnClickListener(this);
         mScanButton.requestFocus();
-        mInputChannel= (EditText) findViewById(R.id.input_channel);
+        mInputChannelFrom = (EditText) findViewById(R.id.input_channel_from);
+        mInputChannelTo= (EditText) findViewById(R.id.input_channel_to);
+        mATvAutoScanMode = mTvControlManager.GetAtvAutoScanMode();
         initSpinner();
         startShowActivityTimer();
         //mOptionUiManagerT.startTvPlayAndSetSourceInput();//no need
@@ -189,10 +211,11 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
     public final int COUNTRY_INDONESIA = 2;//Indonesia
     public final int COUNTRY_MEXICO = 3;//Mexico
     public final int COUNTRY_GERMANY = 4;
+    public final int COUNTRY_CHINA = 5;
 
-    public final ArrayList<String> COUNTRY_LIST = new ArrayList<String>(){{add("US"); add("IN"); add("ID"); add("MX"); add("DE");}};
+    public final ArrayList<String> COUNTRY_LIST = new ArrayList<String>(){{add("US"); add("IN"); add("ID"); add("MX"); add("DE"); add("CN");}};
 
-    final private int[] COUNTRY = {R.string.tv_america, R.string.tv_india, R.string.tv_indonesia, R.string.tv_mexico, R.string.tv_germany};
+    final private int[] COUNTRY = {R.string.tv_america, R.string.tv_india, R.string.tv_indonesia, R.string.tv_mexico, R.string.tv_germany, R.string.tv_china};
 
     final private int[] SEARCH_MODE = {R.string.tv_search_mode_manual, R.string.tv_search_mode_auto};
 
@@ -201,10 +224,11 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
     final private int[] AMERICA_TV_TYPE = {R.string.tv_search_type_atsc_t, R.string.tv_search_type_atsc_c_standard, R.string.tv_search_type_atsc_c_lrc, R.string.tv_search_type_atsc_c_hrc, R.string.tv_search_type_atsc_c_auto};
     final private int[] MEXICO_TV_TYPE = {R.string.tv_search_type_atsc_t, R.string.tv_search_type_atsc_c_standard, R.string.tv_search_type_atsc_c_lrc, R.string.tv_search_type_atsc_c_hrc, R.string.tv_search_type_atsc_c_auto};
     final private int[] GERMANY_TV_TYPE = {R.string.atv, R.string.tv_search_type_dvb_t, R.string.tv_search_type_dvb_c, R.string.tv_search_type_dvb_s};
+    final private int[] CHINA_TV_TYPE = {R.string.tv_search_type_atv, R.string.tv_search_type_dtmb};
 
     final private int[] SEARCH_ORDER = {R.string.tv_search_order_low, R.string.tv_search_order_high};
     final private int[] ATV_COLOR_SYSTEM = {R.string.tv_search_atv_clolor_auto, R.string.tv_search_atv_clolor_pal, R.string.tv_search_atv_clolor_ntsc, R.string.tv_search_atv_clolor_secam};
-    final private int[] ATV_SOUND_SYSTEM = {R.string.tv_search_atv_sound_bg, R.string.tv_search_atv_sound_dk, R.string.tv_search_atv_sound_i, R.string.tv_search_atv_sound_l};
+    final private int[] ATV_SOUND_SYSTEM = {R.string.tv_search_atv_sound_auto, R.string.tv_search_atv_sound_dk, R.string.tv_search_atv_sound_i, R.string.tv_search_atv_sound_bg, R.string.tv_search_atv_sound_m, R.string.tv_search_atv_sound_l};
 
     private void initSpinner() {
         ArrayAdapter<String> country_arr_adapter;
@@ -251,6 +275,9 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
             case "DE"://COUNTRY_LIST.get(COUNTRY_GERMANY):
                 list = GERMANY_TV_TYPE;
                 break;
+            case "CN"://COUNTRY_LIST.get(COUNTRY_CHINA):
+                list = CHINA_TV_TYPE;
+                break;
             default:
                 list = INDIA_TV_TYPE;
                 break;
@@ -294,7 +321,7 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
         search_atv_sound_arr_adapter= new ArrayAdapter<String>(ChannelSearchActivity.this, android.R.layout.simple_spinner_item, search_atv_sound_data_list);
         search_atv_sound_arr_adapter.setDropDownViewResource(android.R.layout.simple_list_item_single_choice );
         mAtvSoundSystem.setAdapter(search_atv_sound_arr_adapter);
-        mAtvSoundSystem.setSelection(getTvSearchSoundSys());
+        mAtvSoundSystem.setSelection((getTvSearchSoundSys() + 1) % ATV_SEARCH_SOUND_MAX);
         if (!(getAtvDtvModeFlag() == SEARCH_DTV)) {//atv type
             mAtvColorSystem.setEnabled(true);
             mAtvSoundSystem.setEnabled(true);
@@ -306,9 +333,14 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
         }
         if (SEARCH_MODE_LIST[TV_SEARCH_AUTO].equals(getSearchMode())) {
             hideInputChannel(true);
+            mScanButton.setText(R.string.ut_auto_scan);
         } else {
             hideInputChannel(false);
+            mScanButton.setText(R.string.ut_manual_scan);
         }
+        //no effect at moment, and hide it
+        mOrderSetting.setVisibility(View.GONE);
+        mAtvSearchOrderText.setVisibility(View.GONE);
         mCountrySetting.setOnItemSelectedListener(new OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -327,7 +359,7 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
                     setAtsccListMode(STANDARD);
                     setSearchOrder(TV_SEARCH_ORDER_LOW);
                     setTvSearchTypeSys(TV_SEARCH_SYS_AUTO);
-                    setTvSearchSoundSys(ATV_SEARCH_SOUND_BG);
+                    setTvSearchSoundSys(ATV_SEARCH_SOUND_AUTO);
                     initSpinner();//init again
                 }
             }
@@ -347,8 +379,10 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
                 }
                 if (SEARCH_MODE_LIST[TV_SEARCH_AUTO].equals(getSearchMode())) {
                     hideInputChannel(true);
+                    mScanButton.setText(R.string.ut_auto_scan);
                 } else {
                     hideInputChannel(false);
+                    mScanButton.setText(R.string.ut_manual_scan);
                 }
             }
 
@@ -388,6 +422,14 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
                     mAtvSoundSystem.setEnabled(false);
                     hideAtvRelatedOption(true);
                 }
+
+                if (SEARCH_MODE_LIST[TV_SEARCH_AUTO].equals(getSearchMode())) {
+                    hideInputChannel(true);
+                    mScanButton.setText(R.string.ut_auto_scan);
+                } else {
+                    hideInputChannel(false);
+                    mScanButton.setText(R.string.ut_manual_scan);
+                }
             }
 
             @Override
@@ -424,10 +466,26 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
         mAtvSoundSystem.setOnItemSelectedListener(new OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (position >= ATV_SEARCH_SOUND_BG && position <= ATV_SEARCH_SOUND_L) {
-                    setTvSearchSoundSys(position);
+                if (position >= ATV_SEARCH_SOUND_MIN && position < ATV_SEARCH_SOUND_MAX) {
+                    int value = ATV_SEARCH_SOUND_AUTO;
+                    if (position == 0) {
+                        value = ATV_SEARCH_SOUND_AUTO;
+                    } else if (position == 1) {
+                        value = ATV_SEARCH_SOUND_DK;
+                    } else if (position == 2) {
+                        value = ATV_SEARCH_SOUND_I;
+                    } else if (position == 3) {
+                        value = ATV_SEARCH_SOUND_BG;
+                    } else if (position == 4) {
+                        value = ATV_SEARCH_SOUND_M;
+                    } else if (position == 5) {
+                        value = ATV_SEARCH_SOUND_L;
+                    } else {
+                        value = ATV_SEARCH_SOUND_AUTO;
+                    }
+                    setTvSearchSoundSys(value);
                 } else {
-                    setTvSearchSoundSys(ATV_SEARCH_SOUND_BG);
+                    setTvSearchSoundSys(ATV_SEARCH_SOUND_AUTO);
                 }
             }
 
@@ -440,17 +498,39 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
 
     private void hideInputChannel(boolean value) {
         if (value) {
-            mInputChannelText.setVisibility(View.INVISIBLE);
-            mInputChannel.setVisibility(View.INVISIBLE);
+            mAllInputLayout.setVisibility(View.GONE);
         } else {
-            mInputChannelText.setVisibility(View.VISIBLE);
-            mInputChannel.setVisibility(View.VISIBLE);
+            mAllInputLayout.setVisibility(View.VISIBLE);
+            //show start frequency and end frequency as need
+            if (mATvAutoScanMode == TvControlManager.ScanType.SCAN_ATV_AUTO_ALL_BAND && getAtvDtvModeFlag() == SEARCH_ATV) {
+                //SpannableString hint = new SpannableString("");
+                mInputChannelFrom.setHint(hint_channel_frequency);
+                mInputChannelTo.setHint(hint_channel_frequency);
+                mInputChannelFrom.setFilters(new InputFilter[]{new InputFilter.LengthFilter(10)});
+                mInputChannelTo.setFilters(new InputFilter[]{new InputFilter.LengthFilter(10)});
+            } else {
+                mInputChannelFrom.setHint(hint_channel_number);
+                mInputChannelTo.setHint(hint_channel_number);
+                mInputChannelFrom.setFilters(new InputFilter[]{new InputFilter.LengthFilter(3)});
+                mInputChannelTo.setFilters(new InputFilter[]{new InputFilter.LengthFilter(3)});
+            }
+
+            mInputChannelFrom.setInputType(InputType.TYPE_CLASS_NUMBER);
+            mInputChannelTo.setInputType(InputType.TYPE_CLASS_NUMBER);
+
+            if (false && COUNTRY_LIST.get(COUNTRY_CHINA).equals(getCountry())) {
+                mToInputLayout.setVisibility(View.VISIBLE);
+            } else {
+                mToInputLayout.setVisibility(View.GONE);
+            }
         }
+        mInputChannelFrom.setText("");
+        mInputChannelTo.setText("");
     }
 
     private void hideSearchOption(boolean value) {
         if (value) {
-            mSearchOptionText.setVisibility(View.INVISIBLE);
+            mSearchOptionText.setVisibility(View.GONE);
         } else {
             mSearchOptionText.setVisibility(View.VISIBLE);
         }
@@ -459,16 +539,16 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
     private void hideAtvRelatedOption(boolean value) {
         if (value) {
             Log.d(TAG, "hideAtvRelatedOption = " + value);
-            mAtvSearchOrderText.setVisibility(View.INVISIBLE);
-            mOrderSetting.setVisibility(View.INVISIBLE);
-            mAtvColorSystemText.setVisibility(View.INVISIBLE);
-            mAtvColorSystem.setVisibility(View.INVISIBLE);
-            mAtvSoundSystemText.setVisibility(View.INVISIBLE);
-            mAtvSoundSystem.setVisibility(View.INVISIBLE);
+            mAtvSearchOrderText.setVisibility(View.GONE);
+            mOrderSetting.setVisibility(View.GONE);
+            mAtvColorSystemText.setVisibility(View.GONE);
+            mAtvColorSystem.setVisibility(View.GONE);
+            mAtvSoundSystemText.setVisibility(View.GONE);
+            mAtvSoundSystem.setVisibility(View.GONE);
         } else {
             Log.d(TAG, "hideAtvRelatedOption = " + value);
-            mAtvSearchOrderText.setVisibility(View.VISIBLE);
-            mOrderSetting.setVisibility(View.VISIBLE);
+            //mAtvSearchOrderText.setVisibility(View.VISIBLE);
+            //mOrderSetting.setVisibility(View.VISIBLE);//no effect at monent, and hide it
             mAtvColorSystemText.setVisibility(View.VISIBLE);
             mAtvColorSystem.setVisibility(View.VISIBLE);
             mAtvSoundSystemText.setVisibility(View.VISIBLE);
@@ -508,7 +588,16 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
                     break;
                 case STATUS:
                     if (!isNumberSearchMode) {
-                        mScanningMessage.setText((String) msg.obj);
+                        if (mATvAutoScanMode == TvControlManager.ScanType.SCAN_ATV_AUTO_ALL_BAND) {
+                            if ("pause".equals((String) msg.obj)) {//scan pause
+                                isAutoStarted = false;
+                                mScanButton.setText(R.string.ut_manual_scan);
+                            } else {
+                                mScanningMessage.setText((String) msg.obj);
+                            }
+                        } else {
+                            mScanningMessage.setText((String) msg.obj);
+                        }
                     } else {
                         hasFoundChannelNumber = msg.what;
                         if (hasFoundChannelNumber > 0) {
@@ -594,18 +683,33 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
         String dtvdefaultstart = "0";
         String from = null;
         String to = null;
-        if (!isNumberSearchMode && mInputChannel.getText() != null && mInputChannel.getText().length() > 0) {
-            from = mInputChannel.getText().toString();
+
+        int[] freqPair = new int[2];
+
+        if (!isNumberSearchMode && mInputChannelFrom.getText() != null && mInputChannelFrom.getText().length() > 0) {
+            from = mInputChannelFrom.getText().toString();
         } else if (isNumberSearchMode) {
             from = String.valueOf(mNumber);
         } else {
             from = null;
         }
-        to= atvdefaultend;
-        if (mOptionUiManagerT.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV) {
-            mOptionUiManagerT.setFrequency(from != null ? from : atvdefaultbegain, to);
+        if (!isNumberSearchMode && mInputChannelTo.getText() != null && mInputChannelTo.getText().length() > 0) {
+            to = mInputChannelTo.getText().toString();
+        } else if (isNumberSearchMode) {
+            to = String.valueOf(mNumber);
         } else {
-            mOptionUiManagerT.setFrequency(from != null ? from : dtvdefaultstart, to);
+            to = null;
+        }
+
+        if (mATvAutoScanMode == TvControlManager.ScanType.SCAN_ATV_AUTO_ALL_BAND && getAtvDtvModeFlag() == SEARCH_ATV) {
+            mTvControlManager.ATVGetMinMaxFreq(freqPair);
+
+            atvdefaultbegain = String.valueOf(freqPair[0] / 1000000);
+            atvdefaultend = String.valueOf(freqPair[1] / 1000000);
+
+            mOptionUiManagerT.setFrequency(from != null ? from : atvdefaultbegain, to != null ? to : atvdefaultend);
+        } else {
+            mOptionUiManagerT.setFrequency(from != null ? from : dtvdefaultstart, to != null ? to : dtvdefaultstart);
         }
     }
 
@@ -613,16 +717,37 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
         boolean status = false;
         String searchmode = getSearchMode();
         boolean manualsearch = false;
+        int[] freqPair = new int[2];
+        int input = 0;
+
         if (SEARCH_MODE_LIST[TV_SEARCH_MANUAL].equals(searchmode)) {
             manualsearch = true;
         }
-        if (manualsearch && mInputChannel.getText() != null && mInputChannel.getText().length() > 0) {
-            status = true;
-        } else if (manualsearch && mInputChannel.getText() == null || mInputChannel.getText().length() <= 0) {
+        if (manualsearch && mInputChannelFrom.getText() != null && mInputChannelFrom.getText().length() > 0) {
+            if (mATvAutoScanMode == TvControlManager.ScanType.SCAN_ATV_AUTO_ALL_BAND && getAtvDtvModeFlag() == SEARCH_ATV) {
+                mTvControlManager.ATVGetMinMaxFreq(freqPair);
+
+                input = Integer.valueOf(mInputChannelFrom.getText().toString());
+
+                if (input < (freqPair[0] / 1000000) || (freqPair[1] / 1000000) < input) {
+                    status = false;
+                    ShowToastTint("Please input from " + freqPair[0] / 1000000 + "MHz to " +  freqPair[1] / 1000000 + "MHz");
+                } else {
+                    status = true;
+                }
+            } else {
+                status = true;
+            }
+        } else if (manualsearch && mInputChannelFrom.getText() == null || mInputChannelFrom.getText().length() <= 0) {
             status = false;
             ShowToastTint(getString(R.string.set_frquency_channel));
         } else if (!manualsearch) {
             status = true;
+        }
+        if (status && COUNTRY_LIST.get(COUNTRY_CHINA).equals(getCountry()) && (mInputChannelFrom.getText() == null || mInputChannelFrom.getText().length() <= 0)) {
+            //show it if need a frequency range
+            //status = false;
+            //ShowToastTint(getString(R.string.set_frquency_channel));
         }
         return status;
     }
@@ -653,15 +778,24 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
 
     @Override
     public void onClick(View v) {
-        //At the moment, if dtv_type_switched is 1 in Settings, make it 0,
+        //At the moment, if search_type_changed is 1 in Settings, make it 0,
         //otherwise, when searching channel finished, retreat from LiveTv and lunch LiveTv again, or click Menu-->Channel,
         //it will execute resumeTvIfNeeded and send broadcast to switch channel automatically, so it should be avoid.
-        resetDTVTypeSwitched();
+        resetSearchTypeChanged();
 
         switch (v.getId()) {
             case R.id.search_channel:
                 if (SEARCH_MODE_LIST[TV_SEARCH_MANUAL].equals(getSearchMode())) {
                     if (ShowNoAtvFrequencyOrChannel()) {
+                        if (mATvAutoScanMode == TvControlManager.ScanType.SCAN_ATV_AUTO_ALL_BAND) {
+                            if (!isAutoStarted) {
+                                isAutoStarted = true;
+                                mScanButton.setText(R.string.ut_stop_channel_scan);
+                            } else {
+                                isAutoStarted = false;
+                                mScanButton.setText(R.string.ut_manual_scan);
+                            }
+                        }
                         sendMessage(MANUAL_START, 0, null);
                     }
                 } else {
@@ -732,10 +866,10 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
         }
     };
 
-    public void resetDTVTypeSwitched() {
-        int isDtvTypeSwitched = Settings.System.getInt(this.getContentResolver(), DroidLogicTvUtils.DTV_TYPE_SWITCHED, 0);
-        if (isDtvTypeSwitched == 1) {
-            Settings.System.putInt(this.getContentResolver(), DroidLogicTvUtils.DTV_TYPE_SWITCHED, 0);
+    public void resetSearchTypeChanged() {
+        int searchTypeChanged = mTvControlDataManager.getInt(this.getContentResolver(), DroidLogicTvUtils.TV_SEARCH_TYPE_CHANGED, 0);
+        if (searchTypeChanged == 1) {
+            mTvControlDataManager.putInt(this.getContentResolver(), DroidLogicTvUtils.TV_SEARCH_TYPE_CHANGED, 0);
         }
     }
 
@@ -745,10 +879,10 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
 
     @Override
     public void finish() {
-        //At the moment, if dtv_type_switched is 1 in Settings, make it 0,
-        //otherwise, when switch DTV Type in ChannelSearchActivity, but don't search channel and push the EXIT key to return to LiveTv,
+        //At the moment, if search_type_changed is 1 in Settings, make it 0,
+        //otherwise, when change search_type in ChannelSearchActivity, but don't search channel and push the EXIT key to return to LiveTv,
         //it will do resumeTvIfNeeded and the current channel will be switched to next one, so this can't happen.
-        resetDTVTypeSwitched();
+        resetSearchTypeChanged();
 
         isFinished = true;
 
@@ -756,8 +890,8 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
             Log.d(TAG, "TV is going to sleep, stop tv");
             return;
         }
-        //send search info to livetv if searched by manual or number search
-        if ((isNumberSearchMode || SEARCH_MODE_LIST[TV_SEARCH_MANUAL].equals(getSearchMode())) && hasFoundInfo.size() > 0) {
+        //send search info to livetv if found any
+        if (hasFoundInfo.size() > 0) {
             Intent intent = new Intent();
             for (Object key : hasFoundInfo.keySet()) {
                 intent.putExtra((String)key, (int)hasFoundInfo.get(key));
@@ -820,14 +954,14 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
 
     @Override
     protected void finalize() throws Throwable {
-        super.finalize();
         Log.d(TAG, "finalized");
+        super.finalize();
     }
 
     public void startShowActivityTimer () {
         handler.removeMessages(0);
 
-        int seconds = Settings.System.getInt(getContentResolver(), SettingsManager.KEY_MENU_TIME, SettingsManager.DEFUALT_MENU_TIME);
+        int seconds = mTvControlDataManager.getInt(getContentResolver(), SettingsManager.KEY_MENU_TIME, SettingsManager.DEFUALT_MENU_TIME);
         handler.sendEmptyMessageDelayed(0, 30 * 1000);
     }
 
@@ -837,7 +971,7 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
             if ((!isNumberSearchMode && (!mOptionUiManagerT.isSearching() && !imm. isAcceptingText())) || (isNumberSearchMode && hasFoundChannel)) {
                 finish();
             } else  {
-                int seconds = Settings.System.getInt(getContentResolver(), SettingsManager.KEY_MENU_TIME, SettingsManager.DEFUALT_MENU_TIME);
+                int seconds = mTvControlDataManager.getInt(getContentResolver(), SettingsManager.KEY_MENU_TIME, SettingsManager.DEFUALT_MENU_TIME);
                 sendEmptyMessageDelayed(0, 30 * 1000);
             }
         }
@@ -872,8 +1006,10 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
         handler.removeCallbacksAndMessages(null);
         mHandler.removeCallbacksAndMessages(null);
         mOptionUiManagerT.release();
-        exitNumberSearch();
+        mHandler = null;
         mOptionUiManagerT = null;
+        handler = null;
+        exitNumberSearch();
     }
 
     final int STANDARD = 0;
@@ -886,10 +1022,14 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
     final int TV_SEARCH_SYS_NTSC = 2;
     final int TV_SEARCH_SYS_SECAM = 3;
 
-    final int ATV_SEARCH_SOUND_BG = 0;
-    final int ATV_SEARCH_SOUND_DK = 1;
-    final int ATV_SEARCH_SOUND_I = 2;
-    final int ATV_SEARCH_SOUND_L = 3;
+    final int ATV_SEARCH_SOUND_MIN = 0;
+    final int ATV_SEARCH_SOUND_DK = 0;
+    final int ATV_SEARCH_SOUND_I = 1;
+    final int ATV_SEARCH_SOUND_BG = 2;
+    final int ATV_SEARCH_SOUND_M = 3;
+    final int ATV_SEARCH_SOUND_L = 4;
+    final int ATV_SEARCH_SOUND_AUTO = 5;
+    final int ATV_SEARCH_SOUND_MAX = 6;
 
     public final String[] DEFAULT_ATSC_TYPE_LIST = {TvContract.Channels.TYPE_ATSC_T};
     public final String[] DEFAULT_DTV_TYPE_LIST = {TvContract.Channels.TYPE_DTMB};
@@ -898,6 +1038,7 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
     public final String[] AMERICA_TV_TYPE_LIST = {TvContract.Channels.TYPE_ATSC_T, TvContract.Channels.TYPE_ATSC_C, TvContract.Channels.TYPE_ATSC_C, TvContract.Channels.TYPE_ATSC_C, TvContract.Channels.TYPE_ATSC_C};
     public final String[] MEXICO_TV_TYPE_LIST = {TvContract.Channels.TYPE_ATSC_T, TvContract.Channels.TYPE_ATSC_C, TvContract.Channels.TYPE_ATSC_C, TvContract.Channels.TYPE_ATSC_C, TvContract.Channels.TYPE_ATSC_C};
     public final String[] GERMANY_TV_TYPE_LIST = {TvContract.Channels.TYPE_NTSC, TvContract.Channels.TYPE_DVB_T, TvContract.Channels.TYPE_DVB_C, TvContract.Channels.TYPE_DVB_S};
+    public final String[] CHINA_TV_TYPE_LIST = {TvContract.Channels.TYPE_PAL, TvContract.Channels.TYPE_DTMB};
 
     public final int TV_SEARCH_MANUAL = 0;
     public final int TV_SEARCH_AUTO = 1;
@@ -921,41 +1062,44 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
 
     private void setAtsccListMode(int mode) {
         Log.d(TAG, "setAtsccListMode = " + mode);
-        Settings.Global.putInt(ChannelSearchActivity.this.getContentResolver(), "atsc_c_list_mode", mode);
+        mTvControlDataManager.putInt(ChannelSearchActivity.this.getContentResolver(), "atsc_c_list_mode", mode);
     }
 
     private int getAtsccListMode() {
-        Log.d(TAG, "getAtsccListMode = " + Settings.System.getInt(ChannelSearchActivity.this.getContentResolver(), "atsc_c_list_mode", STANDARD));
-        return Settings.Global.getInt(ChannelSearchActivity.this.getContentResolver(), "atsc_c_list_mode", STANDARD);
+        int mode = mTvControlDataManager.getInt(ChannelSearchActivity.this.getContentResolver(), "atsc_c_list_mode", STANDARD);
+        Log.d(TAG, "getAtsccListMode = " + mode);
+        return mode;
     }
 
     private void setTvSearchTypeSys(int mode) {
         Log.d(TAG, "setTvSearchTypeSys = " + mode);
-        Settings.Global.putInt(ChannelSearchActivity.this.getContentResolver(), ATSC_TV_SEARCH_SYS, mode);
+        mTvControlDataManager.putInt(ChannelSearchActivity.this.getContentResolver(), ATSC_TV_SEARCH_SYS, mode);
     }
 
     private int getTvSearchTypeSys() {
-        Log.d(TAG, "getTvSearchTypeSys = " + Settings.System.getInt(ChannelSearchActivity.this.getContentResolver(), ATSC_TV_SEARCH_SYS, TV_SEARCH_SYS_AUTO));
-        return Settings.Global.getInt(ChannelSearchActivity.this.getContentResolver(), ATSC_TV_SEARCH_SYS, TV_SEARCH_SYS_AUTO);
+        int type = mTvControlDataManager.getInt(ChannelSearchActivity.this.getContentResolver(), ATSC_TV_SEARCH_SYS, TV_SEARCH_SYS_AUTO);
+        Log.d(TAG, "getTvSearchTypeSys = " + type);
+        return type;
     }
 
     private void setTvSearchSoundSys(int mode) {
         Log.d(TAG, "setTvSearchSoundSys = " + mode);
-        Settings.Global.putInt(ChannelSearchActivity.this.getContentResolver(), ATSC_TV_SEARCH_SOUND_SYS, mode);
+        mTvControlDataManager.putInt(ChannelSearchActivity.this.getContentResolver(), ATSC_TV_SEARCH_SOUND_SYS, mode);
     }
 
     private int getTvSearchSoundSys() {
-        Log.d(TAG, "getTvSearchSoundSys = " + Settings.System.getInt(ChannelSearchActivity.this.getContentResolver(), ATSC_TV_SEARCH_SOUND_SYS, ATV_SEARCH_SOUND_BG));
-        return Settings.Global.getInt(ChannelSearchActivity.this.getContentResolver(), ATSC_TV_SEARCH_SOUND_SYS, ATV_SEARCH_SOUND_BG);
+        int sys = mTvControlDataManager.getInt(ChannelSearchActivity.this.getContentResolver(), ATSC_TV_SEARCH_SOUND_SYS, ATV_SEARCH_SOUND_AUTO);
+        Log.d(TAG, "getTvSearchSoundSys = " + sys);
+        return sys;
     }
 
     public void setCountry(String country) {
         Log.d(TAG, "setCountry = " + country);
-        Settings.Global.putString(ChannelSearchActivity.this.getContentResolver(), "tv_country", country);
+        mTvControlDataManager.putString(ChannelSearchActivity.this.getContentResolver(), DroidLogicTvUtils.KEY_SEARCH_COUNTRY, country);
     }
 
     public String getCountry() {
-        String country = Settings.Global.getString(ChannelSearchActivity.this.getContentResolver(), "tv_country");
+        String country = mTvControlDataManager.getString(ChannelSearchActivity.this.getContentResolver(), DroidLogicTvUtils.KEY_SEARCH_COUNTRY);
         if (TextUtils.isEmpty(country)) {
             country = getSupportCountry().get(0);
             setCountry(country);
@@ -968,7 +1112,7 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
     public void setCountryByIndex(int index) {
         String country = getSupportCountry().get(index);
         Log.d(TAG, "setCountryByIndex = " + country);
-        Settings.Global.putString(ChannelSearchActivity.this.getContentResolver(), "tv_country", country);
+        mTvControlDataManager.putString(ChannelSearchActivity.this.getContentResolver(), DroidLogicTvUtils.KEY_SEARCH_COUNTRY, country);
     }
 
     public String getCountryByIndex(int index) {
@@ -978,9 +1122,9 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
     }
 
     public ArrayList<String> getSupportCountry() {
-        String config = mOptionUiManagerT.getTVSupportCountries();//"US,IN,ID,MX,DE";
+        String config = mOptionUiManagerT.getTVSupportCountries();//"US,IN,ID,MX,DE,CN";
         Log.d(TAG, "getCountry = " + config);
-        String[] supportcountry = {"US", "IN", "ID", "MX", "DE"};//default
+        String[] supportcountry = {"US", "IN", "ID", "MX", "DE", "CN"};//default
         ArrayList<String> getsupportlist = new ArrayList<String>();
         if (!TextUtils.isEmpty(config)) {
             supportcountry = config.split(",");
@@ -1012,6 +1156,8 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
                 return MEXICO_TV_TYPE_LIST;
             case COUNTRY_GERMANY:
                 return GERMANY_TV_TYPE_LIST;
+            case COUNTRY_CHINA:
+                return CHINA_TV_TYPE_LIST;
             default:
                 return INDIA_TV_TYPE_LIST;
         }
@@ -1030,11 +1176,11 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
 
     public void setSearchMode(String mode) {
         Log.d(TAG, "setSearchMode = " + mode);
-        Settings.Global.putString(ChannelSearchActivity.this.getContentResolver(), "tv_search_mode", mode);
+        mTvControlDataManager.putString(ChannelSearchActivity.this.getContentResolver(), "tv_search_mode", mode);
     }
 
     public String getSearchMode() {
-        String mode = Settings.Global.getString(ChannelSearchActivity.this.getContentResolver(), "tv_search_mode");
+        String mode = mTvControlDataManager.getString(ChannelSearchActivity.this.getContentResolver(), "tv_search_mode");
         if (mode == null) {
             mode = SEARCH_MODE_LIST[TV_SEARCH_AUTO];
             setSearchMode(mode);
@@ -1045,33 +1191,33 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
 
     public void setSearchType(int mode) {
         Log.d(TAG, "setSearchType = " + mode);
-        Settings.Global.putInt(ChannelSearchActivity.this.getContentResolver(), "tv_search_type", mode);
+        mTvControlDataManager.putInt(ChannelSearchActivity.this.getContentResolver(), "tv_search_type", mode);
     }
 
     public int getSearchType() {
-        int mode = Settings.Global.getInt(ChannelSearchActivity.this.getContentResolver(), "tv_search_type", TV_SEARCH_ATV);
+        int mode = mTvControlDataManager.getInt(ChannelSearchActivity.this.getContentResolver(), "tv_search_type", TV_SEARCH_ATV);
         Log.d(TAG, "getSearchType = " + mode);
         return mode;
     }
 
     public void setSearchOrder(int mode) {
         Log.d(TAG, "setSearchOrder = " + mode);
-        Settings.Global.putInt(ChannelSearchActivity.this.getContentResolver(), "tv_search_order", mode);
+        mTvControlDataManager.putInt(ChannelSearchActivity.this.getContentResolver(), "tv_search_order", mode);
     }
 
     public int getSearchOrder() {
-        int mode = Settings.Global.getInt(ChannelSearchActivity.this.getContentResolver(), "tv_search_order", TV_SEARCH_ORDER_LOW);
+        int mode = mTvControlDataManager.getInt(ChannelSearchActivity.this.getContentResolver(), "tv_search_order", TV_SEARCH_ORDER_LOW);
         Log.d(TAG, "getSearchOrder = " + mode);
         return mode;
     }
 
     public void setAtvDtvModeFlag(int mode) {
         Log.d(TAG, "setAtvDtvModeFlag = " + mode);
-        Settings.Global.putInt(ChannelSearchActivity.this.getContentResolver(), "search_atv_dtv_flag", mode);
+        mTvControlDataManager.putInt(ChannelSearchActivity.this.getContentResolver(), "search_atv_dtv_flag", mode);
     }
 
     public int getAtvDtvModeFlag() {
-        int mode = Settings.Global.getInt(ChannelSearchActivity.this.getContentResolver(), "search_atv_dtv_flag", SEARCH_ATV);
+        int mode = mTvControlDataManager.getInt(ChannelSearchActivity.this.getContentResolver(), "search_atv_dtv_flag", SEARCH_ATV);
         Log.d(TAG, "getAtvDtvModeFlag = " + mode);
         return mode;
     }

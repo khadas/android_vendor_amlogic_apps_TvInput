@@ -17,7 +17,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.os.Bundle;
 import android.os.SystemClock;
-//import android.os.SystemProperties;
+import android.os.SystemProperties;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -34,6 +34,7 @@ import android.media.tv.TvContract.Channels;
 import com.droidlogic.app.tv.ChannelInfo;
 import com.droidlogic.app.tv.TvDataBaseManager;
 import com.droidlogic.app.tv.TvControlManager;
+import com.droidlogic.app.tv.TvControlDataManager;
 import com.droidlogic.app.tv.TvInSignalInfo;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.app.tv.TvMultilingualText;
@@ -142,6 +143,7 @@ public class SettingsManager {
     public static final String STRING_PRIVATE                       = "private";
 
     public static final String ATSC_TV_SEARCH_SYS                   = "atsc_tv_search_sys";
+    public static final String ATSC_TV_SEARCH_SOUND_SYS             = "atsc_tv_search_sound_sys";
     public static String currentTag = null;
 
     private Context mContext;
@@ -152,6 +154,7 @@ public class SettingsManager {
     private TvControlManager.SourceInput mTvSourceInput;
     private ChannelInfo currentChannel;
     private TvControlManager mTvControlManager;
+    private TvControlDataManager mTvControlDataManager = null;
     private TvDataBaseManager mTvDataBaseManager;
     private SystemControlManager mSystemControlManager;
     private ArrayList<ChannelInfo> videoChannelList;
@@ -162,16 +165,18 @@ public class SettingsManager {
     public SettingsManager (Context context, Intent intent) {
         mContext = context;
         mTvDataBaseManager = new TvDataBaseManager(mContext);
-        mSystemControlManager = new SystemControlManager(mContext);
+        mSystemControlManager = new SystemControlManager();
 
         setCurrentChannelData(intent);
 
         mTvControlManager = TvControlManager.getInstance();
         mResources = mContext.getResources();
+        mTvControlDataManager = TvControlDataManager.getInstance(mContext);
     }
 
     public void setCurrentChannelData(Intent intent) {
         mInputId = intent.getStringExtra(TvInputInfo.EXTRA_INPUT_ID);
+        DroidLogicTvUtils.saveInputId(mContext, mInputId);
         isRadioChannel = intent.getBooleanExtra(DroidLogicTvUtils.EXTRA_IS_RADIO_CHANNEL, false);
 
         int deviceId = intent.getIntExtra(DroidLogicTvUtils.EXTRA_CHANNEL_DEVICE_ID, -1);
@@ -225,14 +230,6 @@ public class SettingsManager {
 
     public TvControlManager.SourceInput_Type getCurentVirtualTvSource () {
         return mVirtualTvSource;
-    }
-
-    public TvControlManager getTvControlManager () {
-        return mTvControlManager;
-    }
-
-    public TvDataBaseManager getTvDataBaseManager () {
-        return mTvDataBaseManager;
     }
 
     private int parseChannelEditType () {
@@ -671,7 +668,7 @@ public class SettingsManager {
     }
 
     private String getDefaultLanStatus () {
-        String ret = Settings.System.getString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DEFAULT_LANGUAGE);
+        String ret = mTvControlDataManager.getString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DEFAULT_LANGUAGE);
         String[] lanArray;
         if (ret == null) {
             lanArray =  mResources.getStringArray(R.array.def_lan);
@@ -694,7 +691,7 @@ public class SettingsManager {
     }
 
     public String getSubtitleSwitchStatus () {
-        int switchVal = Settings.System.getInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_SUBTITLE_SWITCH, 0);
+        int switchVal = mTvControlDataManager.getInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_SUBTITLE_SWITCH, 0);
         switch (switchVal) {
             case 0:
                 return mResources.getString(R.string.off);
@@ -706,7 +703,7 @@ public class SettingsManager {
     }
 
     public String getADSwitchStatus () {
-        int switchVal = Settings.System.getInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_AD_SWITCH, 0);
+        int switchVal = mTvControlDataManager.getInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_AD_SWITCH, 0);
         switch (switchVal) {
             case 0:
                 return mResources.getString(R.string.off);
@@ -766,7 +763,7 @@ public class SettingsManager {
     }
 
     public int getADMix() {
-        int val = Settings.System.getInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_AD_MIX, 50);
+        int val = mTvControlDataManager.getInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_AD_MIX, 50);
         return val;
     }
 
@@ -818,6 +815,8 @@ public class SettingsManager {
             mTvControlManager.SetFrontendParms(TvControlManager.tv_fe_type_e.TV_FE_ANALOG,
                                                currentChannel.getFrequency() + currentChannel.getFineTune(),
                                                currentChannel.getVideoStd(), currentChannel.getAudioStd(),
+                                               currentChannel.getVfmt(),
+                                               currentChannel.getAudioOutPutMode(),
                                                0, 0);
         }
     }
@@ -940,7 +939,7 @@ public class SettingsManager {
 
     public String getDtvType() {
         int deviceId = DroidLogicTvUtils.getHardwareDeviceId(mInputId);
-        String type = Settings.System.getString(mContext.getContentResolver(),
+        String type = mTvControlDataManager.getString(mContext.getContentResolver(),
             DroidLogicTvUtils.TV_KEY_DTV_TYPE);
         if (type != null) {
             return type;
@@ -954,11 +953,15 @@ public class SettingsManager {
     }
 
     public int getTvSearchTypeSys() {
-        int mode = Settings.System.getInt(mContext.getContentResolver(), ATSC_TV_SEARCH_SYS, -1);
+        int mode = mTvControlDataManager.getInt(mContext.getContentResolver(), ATSC_TV_SEARCH_SYS, TvControlManager.ATV_VIDEO_STD_AUTO);
         if (mode == -1) {
             mode = 0;
         }
         return mode;
+    }
+
+    public int getTvSearchSoundSys() {
+        return mTvControlDataManager.getInt(mContext.getContentResolver(), ATSC_TV_SEARCH_SOUND_SYS, TvControlManager.ATV_AUDIO_STD_AUTO);
     }
 
     public String getDefaultDtvType() {
@@ -1030,7 +1033,7 @@ public class SettingsManager {
     }
 
     public String getMenuTimeStatus () {
-        int seconds = Settings.System.getInt(mContext.getContentResolver(), KEY_MENU_TIME, DEFUALT_MENU_TIME);
+        int seconds = mTvControlDataManager.getInt(mContext.getContentResolver(), KEY_MENU_TIME, DEFUALT_MENU_TIME);
         switch (seconds) {
             case 0:
                 return mResources.getString(R.string.time_10s);
@@ -1046,7 +1049,7 @@ public class SettingsManager {
     }
 
     public String getStartupSettingStatus () {
-        int type = Settings.System.getInt(mContext.getContentResolver(), "tv_start_up_enter_app", 0);
+        int type = mTvControlDataManager.getInt(mContext.getContentResolver(), "tv_start_up_enter_app", 0);
 
         if (type == 0)
             return mResources.getString(R.string.launcher);
@@ -1064,7 +1067,7 @@ public class SettingsManager {
 
     public TvControlManager.HdmiPortID getCurrHdmiPortID() {
         TvControlManager.HdmiPortID hdmiPortID;
-        int device_id = Settings.System.getInt(mContext.getContentResolver(),
+        int device_id = mTvControlDataManager.getInt(mContext.getContentResolver(),
                 DroidLogicTvUtils.TV_CURRENT_DEVICE_ID, -1);
         switch (device_id) {
             case DroidLogicTvUtils.DEVICE_ID_HDMI1:
@@ -1404,8 +1407,7 @@ public class SettingsManager {
 
     public void setDefAudioStreamVolume() {
         AudioManager audioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
-        //int maxVolume = SystemProperties.getInt("ro.config.media_vol_steps", 100);
-        int maxVolume = mSystemControlManager.getPropertyInt("ro.config.media_vol_steps", 100);
+        int maxVolume = SystemProperties.getInt("ro.config.media_vol_steps", 100);
         int streamMaxVolume = audioManager.getStreamMaxVolume(AudioSystem.STREAM_MUSIC);
         int defaultVolume = maxVolume == streamMaxVolume ? (maxVolume * 3) / 10 : (streamMaxVolume * 3) / 4;
         audioManager.setStreamVolume(AudioSystem.STREAM_MUSIC, defaultVolume, 0);
@@ -1413,7 +1415,7 @@ public class SettingsManager {
 
     public void setDefLanguage (int position) {
         String[] def_lanArray = mResources.getStringArray(R.array.def_lan);
-        Settings.System.putString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DEFAULT_LANGUAGE, def_lanArray[position]);
+        mTvControlDataManager.putString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DEFAULT_LANGUAGE, def_lanArray[position]);
         /*
                 ArrayList<ChannelInfo> mVideoChannels = mTvDataBaseManager.getChannelList(mInputId, Channels.SERVICE_TYPE_AUDIO_VIDEO);
                 int trackIdx = 0;
@@ -1437,7 +1439,7 @@ public class SettingsManager {
             currentChannel.setVideoStd(mode);
             mTvDataBaseManager.updateChannelInfo(currentChannel);
             mTvControlManager.SetFrontendParms(TvControlManager.tv_fe_type_e.TV_FE_ANALOG, currentChannel.getFrequency(),
-                                               currentChannel.getVideoStd(), currentChannel.getAudioStd(), 0, currentChannel.getFineTune());
+                                               currentChannel.getVideoStd(), currentChannel.getAudioStd(), currentChannel.getVfmt(), currentChannel.getAudioOutPutMode(), 0, currentChannel.getFineTune());
         }
     }
 
@@ -1446,7 +1448,7 @@ public class SettingsManager {
             currentChannel.setAudioStd(mode);
             mTvDataBaseManager.updateChannelInfo(currentChannel);
             mTvControlManager.SetFrontendParms(TvControlManager.tv_fe_type_e.TV_FE_ANALOG, currentChannel.getFrequency(),
-                                               currentChannel.getVideoStd(), currentChannel.getAudioStd(), 0, currentChannel.getFineTune());
+                                               currentChannel.getVideoStd(), currentChannel.getAudioStd(), currentChannel.getVfmt(), currentChannel.getAudioOutPutMode(), 0, currentChannel.getFineTune());
         }
     }
 
@@ -1514,17 +1516,17 @@ public class SettingsManager {
     }
 
     public void setDtvType(String type) {
-        Settings.System.putString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DTV_TYPE, type);
+        mTvControlDataManager.putString(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_DTV_TYPE, type);
     }
 
     public void setTvSearchTypeSys(int mode) {
-        Settings.System.putInt(mContext.getContentResolver(), ATSC_TV_SEARCH_SYS, mode);
+        mTvControlDataManager.putInt(mContext.getContentResolver(), ATSC_TV_SEARCH_SYS, mode);
     }
 
     public void setSleepTimer (int mode) {
         AlarmManager alarm = (AlarmManager)mContext.getSystemService(Context.ALARM_SERVICE);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(mContext, 0,
-                new Intent("droidlogic.intent.action.TIMER_SUSPEND"), 0);
+                new Intent("android.intent.action.TIMER_SUSPEND"), 0);
         alarm.cancel(pendingIntent);
 
         mSystemControlManager.setProperty("tv.sleep_timer", mode+"");
@@ -1553,20 +1555,20 @@ public class SettingsManager {
         } else if (seconds == 60) {
             type = 3;
         }
-        Settings.System.putInt(mContext.getContentResolver(), KEY_MENU_TIME, type);
+        mTvControlDataManager.putInt(mContext.getContentResolver(), KEY_MENU_TIME, type);
         ((TvSettingsActivity)mContext).startShowActivityTimer();
     }
 
     public void setStartupSetting (int type) {
-        Settings.System.putInt(mContext.getContentResolver(), "tv_start_up_enter_app", type);
+        mTvControlDataManager.putInt(mContext.getContentResolver(), "tv_start_up_enter_app", type);
     }
 
     public void setSubtitleSwitch (int switchVal) {
-        Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_SUBTITLE_SWITCH, switchVal);
+        mTvControlDataManager.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_SUBTITLE_SWITCH, switchVal);
     }
 
     public void setAudioADSwitch (int switchVal) {
-        Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_AD_SWITCH, switchVal);
+        mTvControlDataManager.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_AD_SWITCH, switchVal);
         Intent intent = new Intent(DroidLogicTvUtils.ACTION_AD_SWITCH);
         intent.putExtra(DroidLogicTvUtils.EXTRA_SWITCH_VALUE, switchVal);
         mContext.sendBroadcast(intent);
@@ -1575,7 +1577,7 @@ public class SettingsManager {
     public void setADMix (int step) {
         int level = getADMix() + step;
         if (level <= 100 && level >= 0) {
-            Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_AD_MIX, level);
+            mTvControlDataManager.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_AD_MIX, level);
             Intent intent = new Intent(DroidLogicTvUtils.ACTION_AD_MIXING_LEVEL);
             intent.putExtra(DroidLogicTvUtils.PARA_VALUE1, level);
             mContext.sendBroadcast(intent);
@@ -1583,7 +1585,7 @@ public class SettingsManager {
     }
 
     public void setAudioADTrack (int track) {
-        //Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_AD_TRACK, track);
+        //mTvControlDataManager.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_AD_TRACK, track);
         Intent intent = new Intent(DroidLogicTvUtils.ACTION_AD_TRACK);
         intent.putExtra(DroidLogicTvUtils.PARA_VALUE1, track);
         mContext.sendBroadcast(intent);
@@ -1633,10 +1635,9 @@ public class SettingsManager {
     };
 
     private  void ClearPackageData(String packageName) {
-        //Log.d(TAG, "ClearPackageData:" + packageName);
-        Log.e(TAG, "This process doesn't have the permission to clear package data now !!!");
+        Log.d(TAG, "ClearPackageData:" + packageName);
         //clear data
-       /* ActivityManager am = (ActivityManager)mContext.getSystemService(Context.ACTIVITY_SERVICE);
+        ActivityManager am = (ActivityManager)mContext.getSystemService(Context.ACTIVITY_SERVICE);
         ClearUserDataObserver mClearDataObserver = new ClearUserDataObserver();
         boolean res = am.clearApplicationUserData(packageName, mClearDataObserver);
         if (!res) {
@@ -1651,7 +1652,7 @@ public class SettingsManager {
         packageManager.deleteApplicationCacheFiles(packageName, mClearCacheObserver);
 
         //clear default
-        packageManager.clearPackagePreferredActivities(packageName);*/
+        packageManager.clearPackagePreferredActivities(packageName);
     }
 
     private class ClearUserDataObserver extends IPackageDataObserver.Stub {
@@ -1676,4 +1677,8 @@ public class SettingsManager {
             //Log.e(TAG,"deviceId:"+deviceId);
             mTvControlManager.SetSourceInput(mTvSourceInput, DroidLogicTvUtils.parseTvSourceInputFromDeviceId(deviceId));
         }
+
+    public void deleteChannels(String type) {
+            mTvDataBaseManager.deleteChannels(mInputId, type);
+    }
 }

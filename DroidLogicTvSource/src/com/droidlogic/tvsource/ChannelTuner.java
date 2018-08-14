@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import com.droidlogic.app.tv.ChannelInfo;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.app.tv.TvDataBaseManager;
+import com.droidlogic.app.tv.TvControlManager;
 
 public class ChannelTuner {
     private static final String TAG = "ChannelTuner";
@@ -354,22 +355,27 @@ public class ChannelTuner {
             return "";
         String colorSystemString = "";
         String soundSystemString = "";
-        if (mCurrentChannel.getVideoStd() == 1)
+        int vstd = mCurrentChannel.getVideoStd();
+        int astd = mCurrentChannel.getAudioStd();
+
+        if (vstd == TvControlManager.ATV_VIDEO_STD_PAL)
             colorSystemString = "PAL";
-        else if (mCurrentChannel.getVideoStd() == 2)
+        else if (vstd == TvControlManager.ATV_VIDEO_STD_NTSC)
             colorSystemString = "NTSC";
         else
-            colorSystemString = "PAL";
-        if (mCurrentChannel.getAudioStd() == 0)
+            colorSystemString = "SECAM";
+
+        if (astd == TvControlManager.ATV_AUDIO_STD_DK)
             soundSystemString = "D/K";
-        else if (mCurrentChannel.getAudioStd() == 1)
+        else if (astd == TvControlManager.ATV_AUDIO_STD_I)
             soundSystemString = "I";
-        else if (mCurrentChannel.getAudioStd() == 2)
+        else if (astd == TvControlManager.ATV_AUDIO_STD_BG)
             soundSystemString = "B/G";
-        else if (mCurrentChannel.getAudioStd() == 3)
+        else if (astd == TvControlManager.ATV_AUDIO_STD_M)
             soundSystemString = "M";
         else
             soundSystemString = "D/K";
+
         return colorSystemString + "_" + soundSystemString;
     }
 

@@ -5,8 +5,8 @@
     android:versionName="1.0" >
 
     <uses-sdk
-        android:minSdkVersion="22"
-        android:targetSdkVersion="22"/>
+        android:minSdkVersion="24"
+        android:targetSdkVersion="25"/>
 
     <uses-permission android:name="droidlogic.permission.SYSTEM_CONTROL" />
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
@@ -25,6 +25,7 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="com.android.tv.permission.RECEIVE_INPUT_EVENT" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.HDMI_CEC"/>
 
     <application
         android:name=".TvApplication"
@@ -131,6 +132,12 @@
                 android:resource="@xml/spdifinputservice" />
         </service>
 
+        <service android:name=".services.TvScanService" >
+            <intent-filter>
+                <action android:name="com.droidlogic.tvinput.services.TvScanService" />
+            </intent-filter>
+        </service>
+
         <service
             android:name=".services.AUXInputService"
             android:permission="android.permission.BIND_TV_INPUT" >
@@ -150,6 +157,12 @@
             <meta-data android:name="android.media.tv.input"
                 android:resource="@xml/arcinputservice" />
         </service>
+
+        <receiver android:name=".services.TvScanServiceReceiver">
+             <intent-filter>
+                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
+             </intent-filter>
+        </receiver>
 
         <activity
             android:name=".settings.TvSettingsActivity"

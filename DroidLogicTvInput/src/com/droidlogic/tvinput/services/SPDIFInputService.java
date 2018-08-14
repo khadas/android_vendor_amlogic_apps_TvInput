@@ -34,9 +34,15 @@ public class SPDIFInputService extends DroidLogicTvInputService {
     private AudioManager mAudioManager;
 
     @Override
+    public void onCreate() {
+        super.onCreate();
+        initInputService(DroidLogicTvUtils.DEVICE_ID_SPDIF, SPDIFInputService.class.getName());
+    }
+
+    @Override
     public Session onCreateSession(String inputId) {
         super.onCreateSession(inputId);
-        Utils.logd(TAG, "onCreateSession:"+inputId);
+
         mCurrentSession = new SPDIFInputSession(getApplicationContext(), inputId, getHardwareDeviceId(inputId));
         registerInputSession(mCurrentSession);
         mCurrentSession.setSessionId(id);
@@ -83,7 +89,7 @@ public class SPDIFInputService extends DroidLogicTvInputService {
         public SPDIFInputSession(Context context, String inputId, int deviceId) {
             super(context, inputId, deviceId);
             Utils.logd(TAG, "=====new SPDIFInputSession=====");
-            //initOverlayView(R.layout.layout_overlay);
+            initOverlayView(R.layout.layout_overlay);
             if (mOverlayView != null) {
                 mOverlayView.setImage(R.drawable.spdifin);
             }
@@ -93,17 +99,22 @@ public class SPDIFInputService extends DroidLogicTvInputService {
         public boolean onSetSurface(Surface surface) {
             return setSurfaceInService(surface,this);
         }
+
         @Override
         public void onRelease() {
             //doRelease();
             Utils.logd(TAG, "onRelease,session:"+this);
             doReleaseInService(getSessionId());
         }
+
         @Override
         public boolean onTune(Uri channelUri) {
-            return doTuneInService(channelUri, getSessionId());
+             doTuneInService(channelUri, getSessionId());
+             if (mOverlayView != null) {
+                mOverlayView.setImageVisibility(true);
+             }
+             return false;
         }
-
 
         public void performDoReleaseSession() {
             super.performDoReleaseSession();
@@ -113,11 +124,22 @@ public class SPDIFInputService extends DroidLogicTvInputService {
             }
         }
 
+        public void doRelease() {
+            super.doRelease();
+            if (sessionMap.containsKey(getSessionId())) {
+                mCurrentSession = null;
+                sessionMap.remove(getSessionId());
+                registerInputSession(null);
+            }
+        }
+
         @Override
         public void doAppPrivateCmd(String action, Bundle bundle) {
             super.doAppPrivateCmd(action, bundle);
             if (TextUtils.equals(DroidLogicTvUtils.ACTION_STOP_TV, action)) {
-                stopTv();
+                if (mHardware != null) {
+                    mHardware.setSurface(null, null);
+                }
             }
         }
     }

@@ -11,6 +11,7 @@ import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.KeyEvent;
 import android.view.View;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.Paint;
@@ -24,20 +25,16 @@ import java.util.Locale;
 import android.util.Log;
 import android.view.accessibility.CaptioningManager;
 import android.widget.Toast;
-
+import android.graphics.Bitmap;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import com.droidlogic.tvinput.widget.CcImplement;
-/**
- * DTVSubtitleView提供数字/模拟电视字幕和图文信息支持.
- * 目前支持DVB subtitle, DTV/ATV teletext, ATSC/NTSC closed caption.
- */
+
 public class DTVSubtitleView extends View {
     private static final String TAG = "DTVSubtitleView";
 
     private static Object lock = new Object();
-    private static Object json_lock = new Object();
     private static final int BUFFER_W = 1920;
     private static final int BUFFER_H = 1080;
 
@@ -111,6 +108,8 @@ public class DTVSubtitleView extends View {
     public static final int CC_COLOR_YELLOW = 6;
     public static final int CC_COLOR_MAGENTA = 7;
     public static final int CC_COLOR_CYAN = 8;
+    static final int VFMT_ATV = 100;
+    private Paint clear_paint;
 
     public static final int JSON_MSG_NORMAL = 0;
 
@@ -120,6 +119,9 @@ public class DTVSubtitleView extends View {
     private static CustomFonts cf = null;
     private static CcImplement ci = null;
     private static String json_str;
+    private Paint mPaint;
+
+    public static boolean cc_is_started = false;
 
     private boolean isPreWindowMode = false;
 
@@ -140,7 +142,7 @@ public class DTVSubtitleView extends View {
     private native int native_sub_tt_search_next(int dir);
     protected native int native_get_subtitle_picture_width();
     protected native int native_get_subtitle_picture_height();
-    private native int native_sub_start_atsc_cc(int caption, int fg_color, int fg_opacity, int bg_color, int bg_opacity, int font_style, int font_size);
+    private native int native_sub_start_atsc_cc(int vfmt, int caption, int fg_color, int fg_opacity, int bg_color, int bg_opacity, int font_style, int font_size);
     private native int native_sub_start_atsc_atvcc(int caption, int fg_color, int fg_opacity, int bg_color, int bg_opacity, int font_style, int font_size);
     private native int native_sub_stop_atsc_cc();
     private native static int native_sub_set_atsc_cc_options(int fg_color, int fg_opacity, int bg_color, int bg_opacity, int font_style, int font_size);
@@ -153,22 +155,11 @@ public class DTVSubtitleView extends View {
         System.loadLibrary("jnidtvsubtitle");
     }
 
-    /**
-     * DVB subtitle 参数
-     */
     static public class DVBSubParams {
         private int dmx_id;
         private int pid;
         private int composition_page_id;
         private int ancillary_page_id;
-
-        /**
-         * 创建DVB subtitle参数
-         * @param dmx_id 接收使用demux设备的ID
-         * @param pid subtitle流的PID
-         * @param page_id 字幕的page_id
-         * @param anc_page_id 字幕的ancillary_page_id
-         */
         public DVBSubParams(int dmx_id, int pid, int page_id, int anc_page_id) {
             this.dmx_id              = dmx_id;
             this.pid                 = pid;
@@ -177,9 +168,6 @@ public class DTVSubtitleView extends View {
         }
     }
 
-    /**
-     * 数字电视teletext图文参数
-     */
     static public class DTVTTParams {
         private int dmx_id;
         private int pid;
@@ -187,13 +175,6 @@ public class DTVSubtitleView extends View {
         private int sub_page_no;
         private int region_id;
 
-        /**
-         * 创建数字电视teletext图文参数
-         * @param dmx_id 接收使用demux设备的ID
-         * @param pid 图文信息流的PID
-         * @param page_no 要显示页号
-         * @param sub_page_no 要显示的子页号
-         */
         public DTVTTParams(int dmx_id, int pid, int page_no, int sub_page_no, int region_id) {
             this.dmx_id      = dmx_id;
             this.pid         = pid;
@@ -207,6 +188,7 @@ public class DTVSubtitleView extends View {
     }
 
     static public class DTVCCParams {
+        protected int vfmt;
         protected int caption_mode;
         protected int fg_color;
         protected int fg_opacity;
@@ -215,8 +197,9 @@ public class DTVSubtitleView extends View {
         protected int font_style;
         protected float font_size;
 
-        public DTVCCParams(int caption, int fg_color, int fg_opacity,
+        public DTVCCParams(int vfmt, int caption, int fg_color, int fg_opacity,
                 int bg_color, int bg_opacity, int font_style, float font_size) {
+            this.vfmt = vfmt;
             this.caption_mode = caption;
             this.fg_color = fg_color;
             this.fg_opacity = fg_opacity;
@@ -230,19 +213,20 @@ public class DTVSubtitleView extends View {
     static public class ATVCCParams extends DTVCCParams {
         public ATVCCParams(int caption, int fg_color, int fg_opacity,
                 int bg_color, int bg_opacity, int font_style, float font_size) {
-            super(caption, fg_color, fg_opacity,
+            super(VFMT_ATV, caption, fg_color, fg_opacity,
                     bg_color, bg_opacity, font_style, font_size);
         }
     }
     static public class AVCCParams extends DTVCCParams {
         public AVCCParams(int caption, int fg_color, int fg_opacity,
                 int bg_color, int bg_opacity, int font_style, float font_size) {
-            super(caption, fg_color, fg_opacity,
+            super(VFMT_ATV, caption, fg_color, fg_opacity,
                     bg_color, bg_opacity, font_style, font_size);
         }
     }
     private class SubParams {
         int mode;
+        int vfmt;
         DVBSubParams dvb_sub;
         DTVTTParams  dtv_tt;
         ATVTTParams  atv_tt;
@@ -276,15 +260,18 @@ public class DTVSubtitleView extends View {
     private static int       play_mode;
     private boolean   visible;
     private boolean   destroy;
+    private static Bitmap bitmap = null;
     private static DTVSubtitleView activeView = null;
     private void update() {
-        //Log.e(TAG, "update");
-        // if (!isPreWindowMode)
-        //     postInvalidate();
+        //Log.d(TAG, "update");
+        postInvalidate();
     }
 
     private void stopDecoder() {
         synchronized(lock) {
+            if (!cc_is_started)
+                return;
+
             switch (play_mode) {
                 case PLAY_NONE:
                     break;
@@ -315,7 +302,7 @@ public class DTVSubtitleView extends View {
                     }
                     break;
             }
-
+            cc_is_started = false;
             play_mode = PLAY_NONE;
         }
     }
@@ -323,10 +310,10 @@ public class DTVSubtitleView extends View {
     private void init() {
         synchronized(lock) {
             if (init_count == 0) {
-                play_mode  = PLAY_NONE;
-                visible    = true;
-                destroy    = false;
-                tt_params  = new TTParams();
+                play_mode = PLAY_NONE;
+                visible = true;
+                destroy = false;
+                tt_params = new TTParams();
                 sub_params = new SubParams();
 
                 if (native_sub_init() < 0) {
@@ -387,40 +374,28 @@ public class DTVSubtitleView extends View {
 
             }
             init_count = 1;
+            if (mPaint == null)
+                mPaint = new Paint();
+            if (bitmap == null)
+                bitmap = Bitmap.createBitmap(BUFFER_W, BUFFER_H, Bitmap.Config.ARGB_8888);
         }
     }
 
-    /**
-     * 创建TVSubtitle控件
-     */
     public DTVSubtitleView(Context context) {
         super(context);
         init();
     }
 
-    /**
-     * 创建TVSubtitle控件
-     */
     public DTVSubtitleView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init();
     }
 
-    /**
-     * 创建TVSubtitle控件
-     */
     public DTVSubtitleView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         init();
     }
 
-    /**
-     *设定显示边缘空隙
-     *@param left 左边缘宽度
-     *@param top 顶部边缘高度
-     *@param right 右部边缘宽度
-     *@param bottom 底部边缘高度
-     */
     public void setMargin(int left, int top, int right, int bottom) {
         disp_left   = left;
         disp_top    = top;
@@ -428,10 +403,6 @@ public class DTVSubtitleView extends View {
         disp_bottom = bottom;
     }
 
-    /**
-     * 设定控件活跃状态
-     * @param active 活跃/不活跃
-     */
     public void setActive(boolean active) {
         synchronized (lock) {
             if (active && (activeView != this) && (activeView != null)) {
@@ -450,10 +421,6 @@ public class DTVSubtitleView extends View {
         }
     }
 
-    /**
-     * 设定字幕参数
-     * @param params 字幕参数
-     */
     public void setSubParams(DVBSubParams params) {
         synchronized(lock) {
             sub_params.mode = MODE_DVB_SUB;
@@ -464,10 +431,6 @@ public class DTVSubtitleView extends View {
         }
     }
 
-    /**
-     * 设定字幕参数
-     * @param params 字幕参数
-     */
     public void setSubParams(DTVTTParams params) {
         synchronized(lock) {
             sub_params.mode = MODE_DTV_TT;
@@ -478,24 +441,17 @@ public class DTVSubtitleView extends View {
         }
     }
 
-    /**
-     * 设定close caption字幕参数
-     * @param params 字幕参数
-     */
     public void setSubParams(DTVCCParams params) {
         synchronized(lock) {
             sub_params.mode = MODE_DTV_CC;
             sub_params.dtv_cc = params;
+            sub_params.vfmt = params.vfmt;
 
             if (play_mode == PLAY_SUB)
                 startSub();
         }
     }
 
-    /**
-     * 设定close caption字幕参数
-     * @param params 字幕参数
-     */
     public void setSubParams(ATVCCParams params) {
         synchronized(lock) {
             sub_params.mode = MODE_ATV_CC;
@@ -515,10 +471,7 @@ public class DTVSubtitleView extends View {
                 startSub();
         }
     }
-    /**
-     * 设定图文参数
-     * @param params 字幕参数
-     */
+
     public void setTTParams(DTVTTParams params) {
         synchronized(lock) {
             tt_params.mode = MODE_DTV_TT;
@@ -542,9 +495,6 @@ public class DTVSubtitleView extends View {
         }
     }
 
-    /**
-     * 显示字幕/图文信息
-     */
     public void show() {
         if (visible)
             return;
@@ -555,9 +505,6 @@ public class DTVSubtitleView extends View {
         update();
     }
 
-    /**
-     * 隐藏字幕/图文信息
-     */
     public void hide() {
         if (!visible)
             return;
@@ -568,14 +515,10 @@ public class DTVSubtitleView extends View {
         update();
     }
 
-    /**
-     * 开始图文信息解析
-     */
     public void startTT() {
         synchronized(lock) {
             if (activeView != this)
                 return;
-
             stopDecoder();
 
             if (tt_params.mode == MODE_NONE)
@@ -600,9 +543,6 @@ public class DTVSubtitleView extends View {
         }
     }
 
-    /**
-     * 开始字幕信息解析
-     */
     public void startSub() {
         synchronized(lock) {
             if (activeView != this)
@@ -631,6 +571,7 @@ public class DTVSubtitleView extends View {
                     break;
                 case MODE_DTV_CC:
                     ret = native_sub_start_atsc_cc(
+                            sub_params.vfmt,
                             sub_params.dtv_cc.caption_mode,
                             sub_params.dtv_cc.fg_color,
                             sub_params.dtv_cc.fg_opacity,
@@ -660,17 +601,17 @@ public class DTVSubtitleView extends View {
                             new Float(sub_params.av_cc.font_size).intValue());
                     break;
                 default:
+                    ret = -1;
                     break;
             }
 
-            if (ret >= 0)
+            if (ret >= 0) {
+                cc_is_started = true;
                 play_mode = PLAY_SUB;
+            }
         }
     }
 
-    /**
-     * 停止图文/字幕信息解析
-     */
     public void stop() {
         synchronized(lock) {
             if (activeView != this)
@@ -679,9 +620,6 @@ public class DTVSubtitleView extends View {
         }
     }
 
-    /**
-     * 停止图文/字幕信息解析并清除缓存数据
-     */
     public void clear() {
         synchronized(lock) {
             if (activeView != this)
@@ -693,9 +631,6 @@ public class DTVSubtitleView extends View {
         }
     }
 
-    /**
-     * 在图文模式下进入下一页
-     */
     public void nextPage() {
         synchronized(lock) {
             if (activeView != this)
@@ -707,9 +642,6 @@ public class DTVSubtitleView extends View {
         }
     }
 
-    /**
-     * 在图文模式下进入上一页
-     */
     public void previousPage() {
         synchronized(lock) {
             if (activeView != this)
@@ -721,10 +653,6 @@ public class DTVSubtitleView extends View {
         }
     }
 
-    /**
-     * 在图文模式下跳转到指定页
-     * @param page 要跳转到的页号
-     */
     public void gotoPage(int page) {
         synchronized(lock) {
             if (activeView != this)
@@ -736,9 +664,6 @@ public class DTVSubtitleView extends View {
         }
     }
 
-    /**
-     * 在图文模式下跳转到home页
-     */
     public void goHome() {
         synchronized(lock) {
             if (activeView != this)
@@ -750,10 +675,6 @@ public class DTVSubtitleView extends View {
         }
     }
 
-    /**
-     * 在图文模式下根据颜色跳转到指定链接
-     * @param color 颜色，COLOR_RED/COLOR_GREEN/COLOR_YELLOW/COLOR_BLUE
-     */
     public void colorLink(int color) {
         synchronized(lock) {
             if (activeView != this)
@@ -765,11 +686,6 @@ public class DTVSubtitleView extends View {
         }
     }
 
-    /**
-     * 在图文模式下设定搜索字符串
-     * @param pattern 搜索匹配字符串
-     * @param casefold 是否区分大小写
-     */
     public void setSearchPattern(String pattern, boolean casefold) {
         synchronized(lock) {
             if (activeView != this)
@@ -781,9 +697,6 @@ public class DTVSubtitleView extends View {
         }
     }
 
-    /**
-     * 搜索下一页
-     */
     public void searchNext() {
         synchronized(lock) {
             if (activeView != this)
@@ -795,9 +708,6 @@ public class DTVSubtitleView extends View {
         }
     }
 
-    /**
-     * 搜索上一页
-     */
     public void searchPrevious() {
         synchronized(lock) {
             if (activeView != this)
@@ -819,37 +729,61 @@ public class DTVSubtitleView extends View {
     }
 
     @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        ci.caption_screen.updateCaptionScreen(w, h);
+    }
+
+    @Override
     public void onDraw(Canvas canvas) {
-        Rect sr;
+        Rect sr, dr;
         String json_data;
-        if (!active || !visible || (play_mode == PLAY_NONE)) {
-            /* Clear canvas */
-            if (ci == null)
-                return;
-            ci.window_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
-            canvas.drawPaint(ci.window_paint);
-            ci.window_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC));
-            cw = null;
-            return;
-        }
-        if (!ci.cc_setting.is_enabled)
-            return;
 
-        if (play_mode == PLAY_TT || sub_params.mode == MODE_DTV_TT || sub_params.mode == MODE_ATV_TT) {
-            sr = new Rect(0, 0, 12 * 41, 10 * 25);
-        } else if (play_mode == PLAY_SUB) {
-            sr = new Rect(0, 0, native_get_subtitle_picture_width(), native_get_subtitle_picture_height());
-        } else {
-            sr = new Rect(0, 0, BUFFER_W, BUFFER_H);
-        }
+        switch (sub_params.mode)
+        {
+            case MODE_AV_CC:
+            case MODE_DTV_CC:
+            case MODE_ATV_CC:
+                /* For atsc */
+                if (!active || !visible || (play_mode == PLAY_NONE)) {
+                    /* Clear canvas */
+                    if (ci == null)
+                        return;
+                    ci.window_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+                    canvas.drawPaint(ci.window_paint);
+                    ci.window_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC));
+                    cw = null;
+                    return;
+                }
+                if (!ci.cc_setting.is_enabled)
+                    return;
+                ci.caption_screen.updateCaptionScreen(canvas.getWidth(), canvas.getHeight());
 
-        ci.caption_screen.updateCaptionScreen(canvas.getWidth(), canvas.getHeight());
+                cw = ci.new CaptionWindow(json_str);
+                if (cw != null)
+                    cw.draw(canvas);
+                break;
+            case MODE_DTV_TT:
+            case MODE_DVB_SUB:
+            case MODE_ATV_TT:
+            /* Not atsc */
+                native_sub_lock();
+                dr = new Rect(disp_left, disp_top, getWidth() - disp_right, getHeight() - disp_bottom);
+                if (play_mode == PLAY_TT || sub_params.mode == MODE_DTV_TT || sub_params.mode == MODE_ATV_TT) {
+                    sr = new Rect(0, 0, 12 * 41, 10 * 25);
+                } else if (play_mode == PLAY_SUB) {
+                    sr = new Rect(0, 0, native_get_subtitle_picture_width(), native_get_subtitle_picture_height());
+                } else {
+                    sr = new Rect(0, 0, BUFFER_W, BUFFER_H);
+                }
+                canvas.setDrawFilter(new PaintFlagsDrawFilter(0, Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG));
+                canvas.drawBitmap(bitmap, sr, dr, mPaint);
 
-        cw = ci.new CaptionWindow(json_str);
-        if (cw != null)
-            cw.draw(canvas);
-        //        native_sub_lock();
-        //        native_sub_unlock();
+                native_sub_unlock();
+                break;
+            default:
+                break;
+        };
     }
 
     public void dispose() {
@@ -874,6 +808,7 @@ public class DTVSubtitleView extends View {
     public void setVisible(boolean value) {
         Log.d(TAG, "force set visible to:" + value);
         visible = value;
+        postInvalidate();
     }
 
     private SubtitleDataListener mSubtitleDataListener = null;
@@ -882,7 +817,7 @@ public class DTVSubtitleView extends View {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case JSON_MSG_NORMAL:
-                    json_str = (String)msg.obj;
+                    cw = (CcImplement.CaptionWindow)msg.obj;
                     postInvalidate();
                     break;
             }
@@ -894,7 +829,7 @@ public class DTVSubtitleView extends View {
             return;
 
         if (!TextUtils.isEmpty(str)) {
-            handler.obtainMessage(JSON_MSG_NORMAL, str).sendToTarget();
+            handler.obtainMessage(JSON_MSG_NORMAL, ci.new CaptionWindow(str)).sendToTarget();
         }
     }
 

@@ -38,6 +38,7 @@ import com.droidlogic.app.tv.Program;
 import com.droidlogic.app.tv.TvMultilingualText;
 import com.droidlogic.app.tv.TvTime;
 import com.droidlogic.app.tv.TvStoreManager;
+import com.droidlogic.app.tv.TvControlDataManager;
 import com.droidlogic.app.SystemControlManager;
 
 import java.util.HashSet;
@@ -59,6 +60,14 @@ public class ADTVInputService extends DTVInputService {
 
     private static final String TAG = "ADTVInputService";
 
+    private TvControlDataManager mTvControlDataManager = null;
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        initInputService(DroidLogicTvUtils.DEVICE_ID_ADTV, ADTVInputService.class.getName());
+    }
+
     @Override
     public Session onCreateSession(String inputId) {
         registerInput(inputId);
@@ -76,21 +85,10 @@ public class ADTVInputService extends DTVInputService {
         return mCurrentSession;
     }
 
-    public class ADTVSessionImpl extends DTVInputService.DTVSessionImpl implements TvControlManager.AVPlaybackListener {
+    public class ADTVSessionImpl extends DTVInputService.DTVSessionImpl implements TvControlManager.AVPlaybackListener, TvControlManager.AudioEventListener {
 
         protected ADTVSessionImpl(Context context, String inputId, int deviceId) {
             super(context, inputId, deviceId);
-        }
-
-        @Override
-        public void doAppPrivateCmd(String action, Bundle bundle) {
-           /*if (DroidLogicTvUtils.ACTION_DTV_AUTO_SCAN.equals(action)
-                || DroidLogicTvUtils.ACTION_DTV_MANUAL_SCAN.equals(action)) {
-                Log.d(TAG, "do private cmd: DTV_XXX_SCAN");
-                //TODO let scanner know adtv here?
-            }*/
-
-            super.doAppPrivateCmd(action, bundle);
         }
 
         @Override
@@ -114,10 +112,13 @@ public class ADTVInputService extends DTVInputService {
                 if (info.isNtscChannel())
                     muteVideo(false);
 
+                openTvAudio(DroidLogicTvUtils.SOURCE_TYPE_ATV);
                 if (false) {
                     mTvControlManager.PlayATVProgram(info.getFrequency() + info.getFineTune(),
                         info.getVideoStd(),
                         info.getAudioStd(),
+                        info.getVfmt(),
+                        info.getAudioOutPutMode(),
                         0,
                         info.getAudioCompensation());
                 } else {
@@ -125,6 +126,8 @@ public class ADTVInputService extends DTVInputService {
                     fe.setFrequency(info.getFrequency() + info.getFineTune());
                     fe.setVideoStd(info.getVideoStd());
                     fe.setAudioStd(info.getAudioStd());
+                    fe.setVfmt(info.getVfmt());
+                    fe.setAudioOutPutMode(info.getAudioOutPutMode());
                     fe.setAfc(0);
                     StringBuilder param = new StringBuilder("{")
                         .append("\"type\":\"atv\"")
@@ -138,10 +141,12 @@ public class ADTVInputService extends DTVInputService {
                 TvControlManager.FEParas fe = new TvControlManager.FEParas(info.getFEParas());
                 int mixingLevel = mAudioADMixingLevel;
                 if (mixingLevel < 0)
-                    mixingLevel = Settings.System.getInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_AD_MIX, AD_MIXING_LEVEL_DEF);
+                    mixingLevel = mTvControlDataManager.getInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_KEY_AD_MIX, AD_MIXING_LEVEL_DEF);
 
                 Log.d(TAG, "v:"+info.getVideoPid()+" a:"+(audio!=null?audio.mPid:"null")+" p:"+info.getPcrPid());
                 mTvControlManager.SetAVPlaybackListener(this);
+                mTvControlManager.SetAudioEventListener(this);
+                openTvAudio(DroidLogicTvUtils.SOURCE_TYPE_DTV);
                 if (false) {
                     mTvControlManager.PlayDTVProgram(
                         fe,
@@ -195,14 +200,6 @@ public class ADTVInputService extends DTVInputService {
                 mSystemControlManager.writeSysFs("/sys/class/deinterlace/di0/config", "hold_video 1");
             else
                 mSystemControlManager.writeSysFs("/sys/class/deinterlace/di0/config", "hold_video 0");
-        }
-
-        @Override
-        protected void releasePlayerBlock() {
-            if (mCurrentChannel.isNtscChannel())
-                muteVideo(true);
-            else
-                super.releasePlayerBlock();
         }
 
         @Override
@@ -279,6 +276,11 @@ public class ADTVInputService extends DTVInputService {
             super.onEvent(msgType, programID);
         }
 
+        @Override
+        public void HandleAudioEvent(int cmd, int param1, int param2) {
+            Log.d(TAG, "audio cmd" + cmd);
+            super.HandleAudioEvent(cmd, param1, param2);
+         }
     }
 
     @Override
@@ -292,13 +294,11 @@ public class ADTVInputService extends DTVInputService {
         ResolveInfo rInfo = getResolveInfo(ADTVInputService.class.getName());
         if (rInfo != null) {
             try {
-                /*info = new TvInputInfo.Builder(this, new android.content.ComponentName(this, ADTVInputService.class))
+                info = new TvInputInfo.Builder(this, rInfo)
                     .setLabel(getTvInputInfoLabel(hardwareInfo.getDeviceId()))
                     .setTvInputHardwareInfo(hardwareInfo)
                     //.setCanRecord(true)
-                    .build();*/
-                info = TvInputInfo.createTvInputInfo(this, rInfo,
-                    hardwareInfo, getTvInputInfoLabel(hardwareInfo.getDeviceId()), null);
+                    .build();
             } catch (Exception e) {
             }
         }

@@ -29,6 +29,7 @@ import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.app.tv.ChannelInfo;
 import com.droidlogic.app.tv.Program;
 import com.droidlogic.app.tv.TvDataBaseManager;
+import com.droidlogic.app.tv.TvControlDataManager;
 
 import java.util.ArrayList;
 import java.util.Timer;
@@ -51,6 +52,7 @@ public class AppointedProgramReceiver extends BroadcastReceiver implements OnCli
     private boolean isRadio = false;
     private AlertDialog mAlertDialog = null;
     private PowerManager mPowerManager;
+    private TvControlDataManager mTvControlDataManager = null;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -152,9 +154,13 @@ public class AppointedProgramReceiver extends BroadcastReceiver implements OnCli
     }
 
     public void startTvApp() {
-        Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_CURRENT_DEVICE_ID, deviceId);
-        Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_DTV_CHANNEL_INDEX, channelIndex);
-        Settings.System.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_CURRENT_CHANNEL_IS_RADIO, isRadio ? 1 : 0);
+        if (mTvControlDataManager == null) {
+            mTvControlDataManager = TvControlDataManager.getInstance(mContext);
+        }
+
+        mTvControlDataManager.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_CURRENT_DEVICE_ID, deviceId);
+        mTvControlDataManager.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_DTV_CHANNEL_INDEX, channelIndex);
+        mTvControlDataManager.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_CURRENT_CHANNEL_IS_RADIO, isRadio ? 1 : 0);
 
         ActivityManager am = (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
         if (am.getRunningTasks(1).get(0).topActivity.getPackageName().equals(PACKAGE_LAUNCHER)) {

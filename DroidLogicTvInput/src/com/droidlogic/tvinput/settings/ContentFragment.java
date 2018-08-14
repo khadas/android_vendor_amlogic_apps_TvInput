@@ -14,7 +14,7 @@ import android.util.TypedValue;
 import android.util.Xml;
 import android.widget.ListView;
 import android.widget.TextView;
-//import android.os.SystemProperties;
+import android.os.SystemProperties;
 
 import com.android.internal.util.XmlUtils;
 import org.xmlpull.v1.XmlPullParser;
@@ -82,7 +82,7 @@ public class ContentFragment extends Fragment {
                     if (mNodeNameRequested.equals(nodeName)) {
                         mListener.handleRequestedNode(mContext, parser, attrs);
                     } else {
-                        skipCurrentTag(parser);
+                        XmlUtils.skipCurrentTag(parser);
                     }
                 }
 
@@ -94,16 +94,6 @@ public class ContentFragment extends Fragment {
                 if (parser != null)
                     parser.close();
             }
-        }
-    }
-
-    public static void skipCurrentTag(XmlPullParser parser)
-            throws XmlPullParserException, IOException {
-        int outerDepth = parser.getDepth();
-        int type;
-        while ((type=parser.next()) != XmlPullParser.END_DOCUMENT
-               && (type != XmlPullParser.END_TAG
-                       || parser.getDepth() > outerDepth)) {
         }
     }
 
@@ -142,12 +132,12 @@ public class ContentFragment extends Fragment {
 
         content_list.setAdapter(null);
         listItem.clear();
-        //new XmlReader(mContext, mContentList, "PreferenceScreen", "Preference", new PreferenceXmlReaderListener()).read();
+        new XmlReader(mContext, mContentList, "PreferenceScreen", "Preference", new PreferenceXmlReaderListener()).read();
         mContentAdapter = new ContentAdapter(mContext, listItem);
         content_list.setAdapter(mContentAdapter);
     }
 
-    /*private class PreferenceXmlReaderListener implements XmlReaderListener {
+    private class PreferenceXmlReaderListener implements XmlReaderListener {
         PreferenceXmlReaderListener() {
         }
 
@@ -196,7 +186,7 @@ public class ContentFragment extends Fragment {
                 }
             }
         }
-    }*/
+    }
 
     private String getStringFromTypedArray(TypedArray sa, int resourceId) {
         String value = null;

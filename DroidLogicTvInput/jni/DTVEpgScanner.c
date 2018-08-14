@@ -42,10 +42,11 @@ static jmethodID gServiceInfoFromSDTInitID;
 typedef struct{
     int dmx_id;
     int fend_id;
-    void * handle;
+    AM_EPG_Handle_t handle;
     jobject obj;
 }EPGData;
-
+// dvb version array len
+#define MAX_DVBVERSION_COUNT (128)
 typedef struct {
     int type;
     int channelID;
@@ -54,7 +55,7 @@ typedef struct {
     int dvbTSID;
     int dvbServiceID;
     long time;
-    int dvbVersion;
+    int dvbVersion[MAX_DVBVERSION_COUNT];
     int eitNumber;
     char pmt_rating[1024];
 }EPGEventData;
@@ -90,6 +91,7 @@ typedef struct {
     int mSdtVersion;
     sdt_service_t *services;
     int mEitVersions[128];
+    int mProgramsInPat;
 }EPGChannelData;
 
 struct sdt_service{
@@ -104,6 +106,7 @@ struct sdt_service{
 #ifdef SUPPORT_ADTV
 EPGChannelData gChannelMonitored = {.valid = 0};
 static jbyteArray get_byte_array(JNIEnv* env, const char *str);
+static jintArray get_int_array(JNIEnv* env, const int *str, int len);
 
 static int epg_conf_get(char *prop, int def) {
     return property_get_int32(prop, def);
@@ -135,7 +138,7 @@ static void epg_on_event(jobject obj, EPGEventData *evt_data)
     (*env)->SetIntField(env,event,(*env)->GetFieldID(env, gEventClass, "dvbTSID", "I"), evt_data->dvbTSID);
     (*env)->SetIntField(env,event,(*env)->GetFieldID(env, gEventClass, "dvbServiceID", "I"), evt_data->dvbServiceID);
     (*env)->SetLongField(env,event,(*env)->GetFieldID(env, gEventClass, "time", "J"), evt_data->time);
-    (*env)->SetIntField(env,event,(*env)->GetFieldID(env, gEventClass, "dvbVersion", "I"), evt_data->dvbVersion);
+    (*env)->SetObjectField(env,event,(*env)->GetFieldID(env, gEventClass, "dvbVersion", "[I"), get_int_array(env, evt_data->dvbVersion, MAX_DVBVERSION_COUNT));
     (*env)->SetIntField(env,event,(*env)->GetFieldID(env, gEventClass, "eitNumber", "I"), evt_data->eitNumber);
     (*env)->SetIntField(env,event,(*env)->GetFieldID(env, gEventClass, "eitNumber", "I"), evt_data->eitNumber);
     (*env)->SetObjectField(env,event, (*env)->GetFieldID(env, gEventClass, "pmt_rrt_ratings", "[B"), get_byte_array(env, evt_data->pmt_rating));
@@ -156,7 +159,7 @@ static void epg_evt_callback(long dev_no, int event_type, void *param, void *use
 
     log_info("evt callback %d\n", event_type);
 
-    AM_EPG_GetUserData((void *)dev_no, (void**)&priv_data);
+    AM_EPG_GetUserData((AM_EPG_Handle_t)dev_no, (void**)&priv_data);
     if (!priv_data)
         return;
     memset(&edata, 0, sizeof(edata));
@@ -164,7 +167,7 @@ static void epg_evt_callback(long dev_no, int event_type, void *param, void *use
         case AM_EPG_EVT_NEW_NIT:
             log_info(".....................AM_EPG_EVT_NEW_NIT.................%d\n",(int)(long)param);
             edata.type = EVENT_NIT_END;
-            edata.dvbVersion =(int)(long)param;
+            edata.dvbVersion[0] =(int)(long)param;
             epg_on_event(priv_data->obj, &edata);
             break;
         case AM_EPG_EVT_NEW_TDT:
@@ -201,7 +204,14 @@ static void epg_evt_callback(long dev_no, int event_type, void *param, void *use
         case EVENT_EIT_CHANGED:
             edata.type = EVENT_EIT_CHANGED;
             edata.eitNumber = (int)(long)param;
-            edata.dvbVersion = (int)(long)user_data;
+            // cp 128 byte
+            {
+                int k = 0;
+                for (k = 0; k < MAX_DVBVERSION_COUNT; k++) {
+                    edata.dvbVersion[k] = ((int *)(long)user_data)[k];
+                    log_info("-evt eit version callback %d\n", edata.dvbVersion[k]);
+                }
+            }
             epg_on_event(priv_data->obj, &edata);
             break;
         case AM_EPG_EVT_PMT_RATING:
@@ -230,7 +240,21 @@ static jbyteArray get_byte_array(JNIEnv* env, const char *str)
 }
 
 
-void Events_Update(void * handle, int event_count, AM_EPG_Event_t *pevents)
+static jintArray get_int_array(JNIEnv* env, const int *array, int len)
+{
+    if (!array)
+        return NULL;
+    jintArray intArray = (*env)->NewIntArray(env, len);
+    int i = 0;
+    int *pa_tmp = malloc(len * sizeof(int));
+    for (i = 0; i < len; i++)
+        pa_tmp[i] = array[i];
+    (*env)->SetIntArrayRegion(env, intArray, 0, len, pa_tmp);
+    free(pa_tmp);
+    return intArray;
+}
+
+void Events_Update(AM_EPG_Handle_t handle, int event_count, AM_EPG_Event_t *pevents)
 {
     int i;
     AM_EPG_Event_t *pevt;
@@ -566,7 +590,7 @@ FUNC_get_int_array(sid1s, sub_t, sub_count, subs, id1);
 FUNC_get_int_array(sid2s, sub_t, sub_count, subs, id2);
 FUNC_get_string_array(slangs, sub_t, sub_count, subs, lang);
 
-static void PMT_Update(void * handle, dvbpsi_pmt_t *pmts)
+static void PMT_Update(AM_EPG_Handle_t handle, dvbpsi_pmt_t *pmts)
 {
     dvbpsi_pmt_t *pmt;
     dvbpsi_pmt_es_t *es;
@@ -586,6 +610,10 @@ static void PMT_Update(void * handle, dvbpsi_pmt_t *pmts)
     ch.mVideoPID = 0x1fff;
     ch.mVideoFormat = -1;
     ch.mPcrPID = (pmts) ? pmts->i_pcr_pid : 0x1fff;
+    ch.valid = 1;
+    ch.mTransportStreamId = pch_cur->mTransportStreamId;
+    ch.mProgramsInPat = pch_cur->mProgramsInPat;
+    ch.mSdtVersion = pch_cur->mSdtVersion;
 
     log_info("PMT update");
     AM_SI_LIST_BEGIN(pmts, pmt)
@@ -785,7 +813,7 @@ static int sdt_get_services(dvbpsi_sdt_t *sdts, EPGChannelData *pch_cur) {
     return 0;
 }
 
-static void SDT_Update(void * handle, EPGChannelData *pch) {
+static void SDT_Update(AM_EPG_Handle_t handle, EPGChannelData *pch) {
     JNIEnv *env;
     int ret;
     int attached = 0;
@@ -868,7 +896,7 @@ static void SDT_Update(void * handle, EPGChannelData *pch) {
     }
 }
 
-static int epg_sdt_update(void * handle, int type, void *tables, void *user_data)
+static int epg_sdt_update(AM_EPG_Handle_t handle, int type, void *tables, void *user_data)
 {
     dvbpsi_sdt_t *sdts = (dvbpsi_sdt_t*)tables;
     EPGChannelData *pch_cur = &gChannelMonitored;
@@ -923,11 +951,13 @@ static int epg_sdt_update(void * handle, int type, void *tables, void *user_data
     return 0;
 }
 
-static int epg_pat_update(void * handle, int type, void *tables, void *user_data)
+static int epg_pat_update(AM_EPG_Handle_t handle, int type, void *tables, void *user_data)
 {
     dvbpsi_pat_t *pats = (dvbpsi_pat_t*)tables;
     EPGChannelData *pch_cur = &gChannelMonitored;
     dvbpsi_pat_t *pat;
+    dvbpsi_pat_program_t *prog;
+    int prog_in_pat = 0;
 
     UNUSED(type);
     UNUSED(user_data);
@@ -935,22 +965,32 @@ static int epg_pat_update(void * handle, int type, void *tables, void *user_data
     if (!pch_cur->valid)
         return 1;
 
-    if (pats->i_ts_id != pch_cur->mTransportStreamId) {
-        log_info(" pat tsid now[%d] != tsid[%d]", pats->i_ts_id, pch_cur->mTransportStreamId);
+    AM_SI_LIST_BEGIN(pats, pat) {
+        AM_SI_LIST_BEGIN(pat->p_first_program, prog) {
+            prog_in_pat ++;
+   } AM_SI_LIST_END();
+    } AM_SI_LIST_END();
+
+    if ((pats->i_ts_id != pch_cur->mTransportStreamId)
+           || (pch_cur->mProgramsInPat && (pch_cur->mProgramsInPat != prog_in_pat))) {
+        log_info(" TS changed: tsid[%d]-->tsid[%d],  ProgramsInPat[%d]-->ProgramsInPat[%d]",
+                 pch_cur->mTransportStreamId, pats->i_ts_id, pch_cur->mProgramsInPat, prog_in_pat);
         pch_cur->mTransportStreamId = pats->i_ts_id;
+        pch_cur->mProgramsInPat = prog_in_pat;
         epg_evt_callback((long)handle, AM_EPG_EVT_UPDATE_TS, 0, NULL);
+        return 0;
     }
 
     return 0;
 }
 
-static int epg_mgt_update(void * handle, int type, void *tables, void *user_data)
+static int epg_mgt_update(AM_EPG_Handle_t handle, int type, void *tables, void *user_data)
 {
     dvbpsi_atsc_mgt_t *mgts = (dvbpsi_atsc_mgt_t*)tables;
     EPGChannelData *pch_cur = &gChannelMonitored;
     dvbpsi_atsc_mgt_t *mgt;
     dvbpsi_atsc_mgt_table_t *table;
-
+    int mIsVerChanged = 0;
     UNUSED(type);
     UNUSED(user_data);
 
@@ -966,10 +1006,8 @@ static int epg_mgt_update(void * handle, int type, void *tables, void *user_data
                     if (pch_cur->mEitVersions[k] != table->i_table_type_version) {
                         log_info("mgt: version chaned, eit[%d]: %d -> %d",
                             k, pch_cur->mEitVersions[k], table->i_table_type_version);
-                        epg_evt_callback((long)handle, EVENT_EIT_CHANGED,
-                                (void*)(long)k,
-                                (void*)(long)table->i_table_type_version);
                         pch_cur->mEitVersions[k] = table->i_table_type_version;
+                        mIsVerChanged = 1;
                     }
                 }break;
                 case AM_SI_ATSC_TT_ETT0 ... AM_SI_ATSC_TT_ETT0+127:
@@ -977,10 +1015,43 @@ static int epg_mgt_update(void * handle, int type, void *tables, void *user_data
             }
         AM_SI_LIST_END()
     AM_SI_LIST_END()
+    if (mIsVerChanged == 1) {
+        int k = 0;
+        epg_evt_callback((long)handle, EVENT_EIT_CHANGED,
+        (void*)(long)k,
+        (void*)pch_cur->mEitVersions);
+    }
     return 0;
 }
 
-static void epg_table_callback(void * handle, int type, void *tables, void *user_data)
+static int epg_vct_update(AM_EPG_Handle_t handle, int type, void *tables, void *user_data)
+{
+        dvbpsi_atsc_vct_t *vcts = (dvbpsi_atsc_vct_t*)tables;
+        dvbpsi_atsc_vct_t *vct;
+        EPGChannelData *pch_cur = &gChannelMonitored;
+
+        UNUSED(type);
+        UNUSED(user_data);
+
+        if (!pch_cur->valid)
+             return 1;
+
+        if (NULL == vcts)
+             return 2;
+
+        AM_SI_LIST_BEGIN(vcts, vct)
+             if ((vct->i_extension == pch_cur->mTransportStreamId) && (pch_cur->mSdtVersion != vcts->i_version)) {
+                  log_info("##### vct: version changed ##### wow  VctVersion: [%d] -> [%d] ",pch_cur->mSdtVersion, vcts->i_version); //temp use mSdtVersion to store vctVersion.
+                  if (pch_cur->mSdtVersion != 0xff)
+                       epg_evt_callback((long)handle, AM_EPG_EVT_UPDATE_TS, 0, NULL);
+                  pch_cur->mSdtVersion = vcts->i_version;
+                  break;
+             }
+        AM_SI_LIST_END()
+        return 0;
+}
+
+static void epg_table_callback(AM_EPG_Handle_t handle, int type, void *tables, void *user_data)
 {
     if (!tables)
         return;
@@ -994,6 +1065,9 @@ static void epg_table_callback(void * handle, int type, void *tables, void *user
         break;
         case AM_EPG_TAB_MGT:
             epg_mgt_update(handle, type, tables, user_data);
+        break;
+        case AM_EPG_TAB_VCT:
+            epg_vct_update(handle, type, tables, user_data);
         break;
         default:
         break;
@@ -1045,7 +1119,6 @@ static void epg_create(JNIEnv* env, jobject obj, jint fend_id, jint dmx_id, jint
 
     (*env)->SetLongField(env, obj, gHandleID, (long)data);
 
-    /*注册EIT通知事件*/
     AM_EVT_Subscribe((long)data->handle,AM_EPG_EVT_NEW_NIT,epg_evt_callback,NULL);
     AM_EVT_Subscribe((long)data->handle,AM_EPG_EVT_NEW_TDT,epg_evt_callback,NULL);
     AM_EVT_Subscribe((long)data->handle,AM_EPG_EVT_NEW_STT,epg_evt_callback,NULL);
@@ -1067,6 +1140,8 @@ static void epg_create(JNIEnv* env, jobject obj, jint fend_id, jint dmx_id, jint
     if (!epg_conf_get("tv.dtv.tsupdate.pat.disable", 0))
         AM_EPG_SetTablesCallback(data->handle, AM_EPG_TAB_PAT, epg_table_callback, NULL);
     AM_EPG_SetTablesCallback(data->handle, AM_EPG_TAB_MGT, epg_table_callback, NULL);
+    if (epg_conf_get("tv.dtv.tsupdate.vct.enable", 0))
+        AM_EPG_SetTablesCallback(data->handle, AM_EPG_TAB_VCT, epg_table_callback, NULL);
 #endif
 }
 
@@ -1077,7 +1152,6 @@ static void epg_destroy(JNIEnv* env, jobject obj)
 
     data = (EPGData*)(long)((*env)->GetLongField(env, obj, gHandleID));
 
-    /*反注册EIT通知事件*/
     if (data) {
         AM_EVT_Unsubscribe((long)data->handle,AM_EPG_EVT_NEW_TDT,epg_evt_callback,NULL);
         AM_EVT_Unsubscribe((long)data->handle,AM_EPG_EVT_NEW_STT,epg_evt_callback,NULL);

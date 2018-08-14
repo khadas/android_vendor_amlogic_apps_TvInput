@@ -20,6 +20,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.view.ViewGroup;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
+import com.droidlogic.app.tv.TvControlDataManager;
 
 public class ManualScanEdit implements OnFocusChangeListener , OnClickListener, OnCheckedChangeListener{
     public static final String TAG = "ScanEdit";
@@ -42,6 +43,7 @@ public class ManualScanEdit implements OnFocusChangeListener , OnClickListener, 
     private RadioGroup dtv_radio_group;
     private String mInputId;
     private OptionEditText mOptionEditText;
+    private TvControlDataManager mTvControlDataManager = null;
 
     public ManualScanEdit (Context context,ViewGroup viewgroup){
         Log.d(TAG," ScanEdit ");
@@ -50,6 +52,7 @@ public class ManualScanEdit implements OnFocusChangeListener , OnClickListener, 
         initScanView(mParentView);
         Intent mIntent = new Intent();
         mInputId = mIntent.getStringExtra(TvInputInfo.EXTRA_INPUT_ID);
+        mTvControlDataManager = TvControlDataManager.getInstance(mContext);
     }
 
     private void initScanView(ViewGroup mParent) {
@@ -231,7 +234,7 @@ public class ManualScanEdit implements OnFocusChangeListener , OnClickListener, 
 
     private String getTvType() {
         int deviceId = DroidLogicTvUtils.getHardwareDeviceId(mInputId);
-        String type = Settings.System.getString(mContext.getContentResolver(),
+        String type = mTvControlDataManager.getString(mContext.getContentResolver(),
             DroidLogicTvUtils.TV_KEY_DTV_TYPE);
         if (type != null) {
             return type;

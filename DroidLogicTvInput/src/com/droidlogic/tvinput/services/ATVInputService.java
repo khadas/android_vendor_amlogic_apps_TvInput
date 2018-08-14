@@ -55,6 +55,7 @@ public class ATVInputService extends DroidLogicTvInputService {
     @Override
     public void onCreate() {
         super.onCreate();
+        initInputService(DroidLogicTvUtils.DEVICE_ID_ATV, ATVInputService.class.getName());
 
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(TvInputManager.ACTION_BLOCKED_RATINGS_CHANGED);
@@ -125,7 +126,7 @@ public class ATVInputService extends DroidLogicTvInputService {
             mLastBlockedRating = null;
             mCurrentChannel = null;
 
-            //initOverlayView(R.layout.layout_overlay);
+            initOverlayView(R.layout.layout_overlay);
             if (mOverlayView != null) {
                 mOverlayView.setImage(R.drawable.bg_no_signal);
             }
@@ -134,21 +135,18 @@ public class ATVInputService extends DroidLogicTvInputService {
         public boolean onSetSurface(Surface surface) {
             return setSurfaceInService(surface,this);
         }
-        @Override
-        public void onRelease() {
-            //doRelease();
-            Log.d(TAG, "onRelease,session:"+this);
-            doReleaseInService(getSessionId());
-        }
+
+
         @Override
         public boolean onTune(Uri channelUri) {
             return doTuneInService(channelUri, getSessionId());
         }
 
 
-        public void performDoReleaseSession() {
-            super.performDoReleaseSession();
-            if (mCurrentSession != null && mCurrentSession.getSessionId() == getSessionId()) {
+        public void doRelease() {
+            super.doRelease();
+            if (sessionMap.containsKey(getSessionId())) {
+                sessionMap.remove(getSessionId());
                 mCurrentSession = null;
                 registerInputSession(null);
             }
@@ -156,9 +154,11 @@ public class ATVInputService extends DroidLogicTvInputService {
 
         @Override
         public void doAppPrivateCmd(String action, Bundle bundle) {
-            super.doAppPrivateCmd(action, bundle);
+            //super.doAppPrivateCmd(action, bundle);
             if (TextUtils.equals(DroidLogicTvUtils.ACTION_STOP_TV, action)) {
-                stopTv();
+                if (mHardware != null) {
+                    mHardware.setSurface(null, null);
+                }
             } /*else if (DroidLogicTvUtils.ACTION_ATV_AUTO_SCAN.equals(action)
                 || DroidLogicTvUtils.ACTION_ATV_MANUAL_SCAN.equals(action)) {
                 resetScanStoreListener();
@@ -172,6 +172,16 @@ public class ATVInputService extends DroidLogicTvInputService {
                 mOverlayView.setImage(R.drawable.bg_no_signal);
                 mOverlayView.setImageVisibility(true);
                 mOverlayView.setTextVisibility(true);
+            }
+        }
+
+        @Override
+        public void notifyVideoAvailable() {
+            Log.d(TAG, "notifyVideoAvailable "+getSessionId());
+            super.notifyVideoAvailable();
+
+            if (mCurrentChannel !=null && mCurrentChannel.isAnalogChannel()) {
+                openTvAudio(DroidLogicTvUtils.SOURCE_TYPE_ATV);
             }
         }
 
@@ -191,7 +201,7 @@ public class ATVInputService extends DroidLogicTvInputService {
                 mTvControlManager.SetFrontendParms(TvControlManager.tv_fe_type_e.TV_FE_ANALOG,
                                      45250000,// try to get the tune into unlock status
                                      TvControlManager.tvin_color_system_e.COLOR_SYSTEM_PAL.toInt(),
-                                     TvControlManager.ATV_AUDIO_STD_DK, 0, 0);
+                                     TvControlManager.ATV_AUDIO_STD_DK, 0, 0, 0, 0);
                 releasePlayer();
                 notifyVideoUnavailable(TvInputManager.VIDEO_UNAVAILABLE_REASON_UNKNOWN);
                 mCurrentChannel = null;
@@ -207,9 +217,12 @@ public class ATVInputService extends DroidLogicTvInputService {
 
         private boolean playProgram(ChannelInfo info) {
             info.print();
+            openTvAudio(DroidLogicTvUtils.SOURCE_TYPE_ATV);
             mTvControlManager.PlayATVProgram(info.getFrequency() + info.getFineTune(),
                 info.getVideoStd(),
                 info.getAudioStd(),
+                info.getVfmt(),
+                info.getAudioOutPutMode(),
                 0,
                 info.getAudioCompensation());
             checkContentBlockNeeded();

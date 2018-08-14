@@ -64,7 +64,7 @@
     <string name="start_frequency_default">开始频率: 706MHz</string>
     <string name="searched_number">节目数量</string>
     <string name="channel_edit">频道编辑</string>
-    <string name="switch_channel">切台</string>
+    <string name="switch_channel">切台效果</string>
 
     <!-- Settings -->
     <string name="settings">设置</string>
@@ -170,6 +170,37 @@
     <string name="tv_manual_option">手动搜索选项:</string>
     <string name="tv_auto_option">自动搜索选项:</string>
     <string name="ut_tune_atsc_c_standard">标准</string>
+    <string name="tv_mode_option">模式选项:</string>
+    <string name="tv_country">国家</string>
+    <string name="tv_america">美国</string>
+    <string name="tv_india">印度</string>
+    <string name="tv_indonesia">印度尼西亚</string>
+    <string name="tv_mexico">墨西哥</string>
+    <string name="tv_germany">德国</string>
+    <string name="tv_china">中国</string>
+    <string name="tv_search_mode">搜台模式</string>
+    <string name="tv_search_mode_manual">手动</string>
+    <string name="tv_search_mode_auto">自动</string>
+    <string name="tv_search_type">搜台制式</string>
+    <string name="tv_search_type_atv">ATV</string>
+    <string name="tv_search_type_dtbm">DTMB</string>
+    <string name="tv_search_type_dvb_t">DVB-T</string>
+    <string name="tv_search_type_dvb_c">DVB-C</string>
+    <string name="tv_search_type_dvb_s">DVB-S</string>
+    <string name="tv_search_type_atsc_t">ATSC-T</string>
+    <string name="tv_search_type_atsc_c">ATSC-C</string>
+    <string name="tv_search_type_atsc_c_auto">ATSC-C(auto)</string>
+    <string name="tv_search_type_atsc_c_standard">ATSC-C(std)</string>
+    <string name="tv_search_type_atsc_c_lrc">ATSC-C(lrc)</string>
+    <string name="tv_search_type_atsc_c_hrc">ATSC-C(hrc)</string>
+    <string name="tv_search_option">搜台选项:</string>
+    <string name="tv_search_order">频率顺序</string>
+    <string name="tv_search_atv_clolor">色彩制式</string>
+    <string name="tv_search_atv_sound">伴音制式</string>
+    <string name="tv_search_order_high">由高到低</string>
+    <string name="tv_search_order_low">由低到高</string>
+    <string name="tv_search_channel">频道</string>
+    <string name="tv_search">搜索</string>
 
     <!-- number search channel-->
     <string name="number_search_title">"搜台中"</string>

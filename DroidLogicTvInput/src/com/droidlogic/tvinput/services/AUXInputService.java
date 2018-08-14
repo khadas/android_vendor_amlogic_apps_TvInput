@@ -9,6 +9,7 @@ import com.droidlogic.tvinput.Utils;
 import com.droidlogic.app.tv.DroidLogicTvInputService;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.app.tv.TvInputBaseSession;
+import com.droidlogic.app.tv.TvControlDataManager;
 import com.droidlogic.tvinput.R;
 
 import android.content.Context;
@@ -56,6 +57,7 @@ public class AUXInputService extends DroidLogicTvInputService {
     private Map<Integer, AUXInputSession> sessionMap = new HashMap<>();
     private ChannelInfo mCurrentChannel = null;
     private TvDataBaseManager mTvDataBaseManager;
+    private TvControlDataManager mTvControlDataManager = null;
     protected final Object mLock = new Object();
     protected static final int DTV_CC_STYLE_WHITE_ON_BLACK = 0;
     protected static final int DTV_CC_STYLE_BLACK_ON_WHITE = 1;
@@ -235,10 +237,11 @@ public class AUXInputService extends DroidLogicTvInputService {
             Log.d(TAG,"isBlockNoRatingEnable:"+isBlockNoRatingEnable+",isUnlockCurrent_NR:"+isUnlockCurrent_NR);
             mCaptioningManager = (CaptioningManager) mContext.getSystemService(Context.CAPTIONING_SERVICE);
             mSystemControlManager = new SystemControlManager(mContext);
+            mTvControlDataManager = TvControlDataManager.getInstance(mContext);
         }
 
         /*private boolean getBlockNoRatingEnable() {
-            int status = Settings.System.getInt(mContext.getContentResolver(), DroidLogicTvUtils.BLOCK_NORATING, 0) ;
+            int status = mTvControlDataManager.getInt(mContext.getContentResolver(), DroidLogicTvUtils.BLOCK_NORATING, 0) ;
             Log.d(TAG,"getBlockNoRatingEnable:"+status);
             return (status == 1) ? true : false;
         }*/

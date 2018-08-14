@@ -28,6 +28,7 @@ import android.media.tv.TvInputInfo;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.tvinput.R;
 import com.droidlogic.app.tv.TvControlManager;
+import com.droidlogic.app.tv.TvControlDataManager;
 
 public class TvSettingsActivity extends Activity implements OnClickListener, OnFocusChangeListener {
     private static final String TAG = "TvSettingsActivity";
@@ -48,6 +49,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
     private ImageButton tabChannel;
     private ImageButton tabSettings;
     private TvControlManager mTvControlManager;
+    private TvControlDataManager mTvControlDataManager = null;
     private AudioManager mAudioManager = null;
     private boolean isFinished = false;
 
@@ -72,7 +74,8 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
         isFinished = false;
 
         mSettingsManager = new SettingsManager(this, getIntent());
-        mTvControlManager = mSettingsManager.getTvControlManager();
+        mTvControlManager = TvControlManager.getInstance();
+        mTvControlDataManager = TvControlDataManager.getInstance(this);
         mAudioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
         mPowerManager = (PowerManager)getSystemService(Context.POWER_SERVICE);
 
@@ -201,21 +204,19 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
                 break;
             case KeyEvent.KEYCODE_VOLUME_UP:
             case KeyEvent.KEYCODE_VOLUME_DOWN:
-                /*if (mAudioManager.isMasterMute()) {
+                if (mAudioManager.isMasterMute()) {
                     mAudioManager.setMasterMute(false, AudioManager.FLAG_PLAY_SOUND);
                     mSettingsManager.sendBroadcastToTvapp("unmute");
-                }*/
-                // ww: isMasterMute is hiden api, remove it.
+                }
                 break;
             case KeyEvent.KEYCODE_VOLUME_MUTE:
-                /*if (mAudioManager.isMasterMute()) {
+                if (mAudioManager.isMasterMute()) {
                     mAudioManager.setMasterMute(false, AudioManager.FLAG_PLAY_SOUND);
                     mSettingsManager.sendBroadcastToTvapp("unmute");
                 } else {
                     mAudioManager.setMasterMute(true, AudioManager.FLAG_PLAY_SOUND);
                     mSettingsManager.sendBroadcastToTvapp("mute");
-                }*/
-                //ww: isMasterMute is hiden api, remove it.
+                }
                 return true;
             default:
                 break;
@@ -402,7 +403,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
     public void startShowActivityTimer () {
         handler.removeMessages(0);
 
-        int seconds = Settings.System.getInt(getContentResolver(), SettingsManager.KEY_MENU_TIME, SettingsManager.DEFUALT_MENU_TIME);
+        int seconds = mTvControlDataManager.getInt(getContentResolver(), SettingsManager.KEY_MENU_TIME, SettingsManager.DEFUALT_MENU_TIME);
         if (seconds == 0) {
             seconds = 10;
         } else if (seconds == 1) {
@@ -422,7 +423,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
                 finish();
                 isNeedStopTv = false;
             } else  {
-                int seconds = Settings.System.getInt(getContentResolver(), SettingsManager.KEY_MENU_TIME, SettingsManager.DEFUALT_MENU_TIME);
+                int seconds = mTvControlDataManager.getInt(getContentResolver(), SettingsManager.KEY_MENU_TIME, SettingsManager.DEFUALT_MENU_TIME);
                 if (seconds == 0) {
                     seconds = 10;
                 } else if (seconds == 1) {
@@ -456,7 +457,7 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
 
     private void resume() {
         mSettingsManager = new SettingsManager(this, getIntent());
-        mTvControlManager = mSettingsManager.getTvControlManager();
+        mTvControlManager = TvControlManager.getInstance();
         mOptionUiManager = new OptionUiManager(this);
 
         startShowActivityTimer();
