@@ -15,7 +15,8 @@ LOCAL_JAVA_LIBRARIES := droidlogic droidlogic-tv
 
 LOCAL_JNI_SHARED_LIBRARIES := \
     libjnidtvsubtitle \
-    libjnidtvepgscanner
+    libjnidtvepgscanner \
+    libjnifont
 
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26 && echo OK),OK)
 LOCAL_PROPRIETARY_MODULE := true
