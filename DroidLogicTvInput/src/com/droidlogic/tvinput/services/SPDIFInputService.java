@@ -24,6 +24,7 @@ import java.util.Map;
 import android.view.Surface;
 import android.net.Uri;
 import android.media.AudioManager;
+import android.media.tv.TvInputManager;
 
 public class SPDIFInputService extends DroidLogicTvInputService {
     private static final String TAG = SPDIFInputService.class.getSimpleName();;
@@ -70,8 +71,11 @@ public class SPDIFInputService extends DroidLogicTvInputService {
         Utils.logd(TAG, "doTuneFinish,result:"+result+"sessionId:"+sessionId);
         if (result == ACTION_SUCCESS) {
             SPDIFInputSession session = sessionMap.get(sessionId);
-            if (session != null)
+            if (session != null) {
                 mAudioManager.setParameters("spdifin/arcin switch=0");
+                //notifyVideoUnavailable for cts test
+                session.notifyVideoUnavailable(TvInputManager.VIDEO_UNAVAILABLE_REASON_AUDIO_ONLY);
+            }
         }
     }
 

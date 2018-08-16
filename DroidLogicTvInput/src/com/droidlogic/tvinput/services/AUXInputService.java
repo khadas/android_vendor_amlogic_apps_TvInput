@@ -135,8 +135,8 @@ public class AUXInputService extends DroidLogicTvInputService {
             AUXInputSession session = sessionMap.get(sessionId);
             if (session != null) {
                 mCurrentChannel = mTvDataBaseManager.getChannelInfo(uri);
-                Log.d(TAG, "mCurrentChannel:"+mCurrentChannel);
-               // session.checkContentBlockNeeded(mCurrentChannel);
+                //notifyVideoUnavailable for cts test
+                session.notifyVideoUnavailable(TvInputManager.VIDEO_UNAVAILABLE_REASON_AUDIO_ONLY);
             }
         }
     }
