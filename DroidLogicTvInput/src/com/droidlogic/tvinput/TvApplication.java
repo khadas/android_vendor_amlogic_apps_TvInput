@@ -26,11 +26,12 @@ public class TvApplication extends Application{
         mContext = getApplicationContext();
         File uncryteDir = new File(mContext.getDataDir(),uncryptDirStr);
         if (uncryteDir == null || uncryteDir.listFiles() == null || uncryteDir.listFiles().length == 0 ) {
-            FileUtils.unzipUncry(uncryteDir);
+            //FileUtils.unzipUncry(uncryteDir);
         }
     }
 
     static class FileUtils {
+/*
         static {
             System.loadLibrary("jnifont");
         }
@@ -105,6 +106,7 @@ public class TvApplication extends Application{
                 }
             }
         private static native void nativeUnCrypt(String src,String dest);
+*/
     }
 
 }
