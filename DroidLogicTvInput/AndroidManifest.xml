@@ -141,6 +141,16 @@
                 android:resource="@xml/auxinputservice" />
         </service>
 
+        <service
+            android:name=".services.ArcInputService"
+            android:permission="android.permission.BIND_TV_INPUT" >
+            <intent-filter>
+                <action android:name="android.media.tv.TvInputService" />
+            </intent-filter>
+            <meta-data android:name="android.media.tv.input"
+                android:resource="@xml/arcinputservice" />
+        </service>
+
         <activity
             android:name=".settings.TvSettingsActivity"
             android:stateNotNeeded="true"
