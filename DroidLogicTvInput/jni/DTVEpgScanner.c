@@ -39,6 +39,10 @@ static jmethodID gServiceInfosFromSDTInitID;
 static jclass    gServiceInfoFromSDTClass;
 static jmethodID gServiceInfoFromSDTInitID;
 
+#ifndef SUPPORT_ADTV
+typedef void* AM_EPG_Handle_t;
+#endif
+
 typedef struct{
     int dmx_id;
     int fend_id;

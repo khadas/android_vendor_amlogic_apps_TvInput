@@ -19,6 +19,10 @@
 
 extern "C" {
 
+#ifndef SUPPORT_ADTV
+typedef void* AM_SUB2_Handle_t;
+#endif
+
     typedef struct {
         pthread_mutex_t  lock;
         AM_SUB2_Handle_t sub_handle;
