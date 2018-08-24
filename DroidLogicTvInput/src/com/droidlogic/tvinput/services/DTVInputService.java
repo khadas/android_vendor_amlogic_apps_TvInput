@@ -176,7 +176,6 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                       mCurrentSession.notifyUpdateUnblockRatingSet();
                       mCurrentSession.doRelease();
                   }
-                  resetScanStoreListener();
             }
     };
 
@@ -201,7 +200,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
     @Override
     public void onCreate() {
         super.onCreate();
-        initInputService(DroidLogicTvUtils.DEVICE_ID_ATV, ATVInputService.class.getName());
+        initInputService(DroidLogicTvUtils.DEVICE_ID_DTV, DTVInputService.class.getName());
 
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(TvInputManager.ACTION_BLOCKED_RATINGS_CHANGED);
