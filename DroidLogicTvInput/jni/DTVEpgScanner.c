@@ -96,6 +96,7 @@ typedef struct {
     sdt_service_t *services;
     int mEitVersions[128];
     int mProgramsInPat;
+    int mPatTsId;
 }EPGChannelData;
 
 struct sdt_service{
@@ -618,6 +619,7 @@ static void PMT_Update(AM_EPG_Handle_t handle, dvbpsi_pmt_t *pmts)
     ch.mTransportStreamId = pch_cur->mTransportStreamId;
     ch.mProgramsInPat = pch_cur->mProgramsInPat;
     ch.mSdtVersion = pch_cur->mSdtVersion;
+    ch.mPatTsId = pch_cur->mPatTsId;
 
     log_info("PMT update");
     AM_SI_LIST_BEGIN(pmts, pmt)
@@ -975,11 +977,11 @@ static int epg_pat_update(AM_EPG_Handle_t handle, int type, void *tables, void *
    } AM_SI_LIST_END();
     } AM_SI_LIST_END();
 
-    if ((pats->i_ts_id != pch_cur->mTransportStreamId)
+    if ((pats->i_ts_id != pch_cur->mPatTsId)
            || (pch_cur->mProgramsInPat && (pch_cur->mProgramsInPat != prog_in_pat))) {
         log_info(" TS changed: tsid[%d]-->tsid[%d],  ProgramsInPat[%d]-->ProgramsInPat[%d]",
-                 pch_cur->mTransportStreamId, pats->i_ts_id, pch_cur->mProgramsInPat, prog_in_pat);
-        pch_cur->mTransportStreamId = pats->i_ts_id;
+                 pch_cur->mPatTsId, pats->i_ts_id, pch_cur->mProgramsInPat, prog_in_pat);
+        pch_cur->mPatTsId = pats->i_ts_id;
         pch_cur->mProgramsInPat = prog_in_pat;
         epg_evt_callback((long)handle, AM_EPG_EVT_UPDATE_TS, 0, NULL);
         return 0;
@@ -1218,6 +1220,7 @@ static int get_channel_data(JNIEnv* env, jobject obj, jobject channel, EPGChanne
     pch->mVideoPID = (*env)->GetIntField(env, channel, (*env)->GetFieldID(env, objclass, "mVideoPid", "I"));
     pch->mVideoFormat = (*env)->GetIntField(env, channel, (*env)->GetFieldID(env, objclass, "mVfmt", "I"));
     pch->mPcrPID = (*env)->GetIntField(env, channel, (*env)->GetFieldID(env, objclass, "mPcrPid", "I"));
+    pch->mPatTsId = (*env)->GetIntField(env, channel, (*env)->GetFieldID(env, objclass, "mPatTsId", "I"));
     jintArray aids = (jintArray)(*env)->GetObjectField(env, channel, (*env)->GetFieldID(env, objclass, "mAudioPids", "[I"));
     jintArray afmts = (jintArray)(*env)->GetObjectField(env, channel, (*env)->GetFieldID(env, objclass, "mAudioFormats", "[I"));
     jobjectArray alangs = (jobjectArray)(*env)->GetObjectField(env, channel, (*env)->GetFieldID(env, objclass, "mAudioLangs", "[Ljava/lang/String;"));
