@@ -158,7 +158,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
     protected DTVSessionImpl mCurrentSession;
     protected int id = 0;
     protected TvControlManager mTvControlManager;
-    private TvControlDataManager mTvControlDataManager = null;
+    protected TvControlDataManager mTvControlDataManager = null;
     protected static boolean isTvPlaying = false;
     protected TvTime mTvTime = null;
 

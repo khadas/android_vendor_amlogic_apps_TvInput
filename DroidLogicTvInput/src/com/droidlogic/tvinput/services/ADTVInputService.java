@@ -60,8 +60,6 @@ public class ADTVInputService extends DTVInputService {
 
     private static final String TAG = "ADTVInputService";
 
-    private TvControlDataManager mTvControlDataManager = null;
-
     @Override
     public void onCreate() {
         super.onCreate();
