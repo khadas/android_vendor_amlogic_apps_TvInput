@@ -1002,23 +1002,23 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 Log.d(TAG,"channelInfo is null ,exit updateChannelBlockStatus");
                 return;
             }
-            Log.d(TAG, "updateBlock:"+channelBlocked + " curBlock:"+mChannelBlocked + " channel:"+channelInfo.getId());
+            //Log.d(TAG, "updateBlock:"+channelBlocked + " curBlock:"+mChannelBlocked + " channel:"+channelInfo.getId());
             TvContentRating tcr = TvContentRating.createRating("com.android.tv", "block_norating", "block_norating", null);//only for block norationg function
             //maybe from the previous channel
             if (TvContract.buildChannelUri(channelInfo.getId()).compareTo(mCurrentUri) != 0)
                 return;
 
             boolean needChannelBlock = channelBlocked;
-            Log.d(TAG, "isBlockNoRatingEnable:"+isBlockNoRatingEnable+",isUnlockCurrent_NR:"+isUnlockCurrent_NR);
+            //Log.d(TAG, "isBlockNoRatingEnable:"+isBlockNoRatingEnable+",isUnlockCurrent_NR:"+isUnlockCurrent_NR);
             //add for no-rating block
             boolean isParentControlEnabled = mTvInputManager.isParentalControlsEnabled();
             TvContentRating ratings[] = getContentRatingsOfCurrentProgram(channelInfo);
             if (ratings == null && isBlockNoRatingEnable && !isUnlockCurrent_NR)
                 needChannelBlock = true;
 
-            Log.d(TAG, "needChannelBlock:"+needChannelBlock);
+            //Log.d(TAG, "needChannelBlock:"+needChannelBlock);
             needChannelBlock = isParentControlEnabled & needChannelBlock;
-            Log.d(TAG, "updated needChannelBlock:"+needChannelBlock);
+            //Log.d(TAG, "updated needChannelBlock:"+needChannelBlock);
             if ((mChannelBlocked != -1) && (mChannelBlocked == 1) == needChannelBlock
                     && (!needChannelBlock || (needChannelBlock && contentRating != null && contentRating.equals(mLastBlockedRating))))
                 //if(!isBlockNoRatingEnable)
@@ -1103,7 +1103,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             if (currentProgramTime == 0)
                 return null;
             Program mCurrentProgram = mTvDataBaseManager.getProgram(TvContract.buildChannelUri(channelInfo.getId()), currentProgramTime);
-            Log.d(TAG, "TvTime:"+getDateAndTime(currentProgramTime)+" ("+currentProgramTime+")");
+            //Log.d(TAG, "TvTime:"+getDateAndTime(currentProgramTime)+" ("+currentProgramTime+")");
 
             TvContentRating[] ratings = mCurrentProgram == null ? null : mCurrentProgram.getContentRatings();
             if (isAtsc(channelInfo)) {
@@ -1183,13 +1183,13 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 }
                 updateChannelBlockStatus(blockContentRating != null, blockContentRating, channelInfo);
             } else {
-                Log.d(TAG, "Check parental controls: disabled");
+                //Log.d(TAG, "Check parental controls: disabled");
                 updateChannelBlockStatus(false, null, channelInfo);
             }
 
             if (mHandler != null) {
                     mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_PARENTAL_CONTROL, this), mParentControlDelay);
-                    Log.d(TAG, "doPC next:"+mParentControlDelay);
+                    //Log.d(TAG, "doPC next:"+mParentControlDelay);
             }
         }
 
@@ -3446,33 +3446,31 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
                 public void onScanEndBeforeStore(int freg) {
                     //delete channel before store
-                    if (mUpdateFrequency == 0 || mUpdateFrequency != freg)
-                    {
+                    if (mUpdateFrequency == 0 || mUpdateFrequency != freg) {
                         Log.d(TAG, "[onScanEndBeforeStore] mUpdateFrequency:" + mUpdateFrequency + ", freg:" + freg);
                         return;
                     }
                     deleteChannelInfoByFreq(mUpdateFrequency);
                 }
 
-                public void onScanExit(int freg) {
+                public void onStoreEnd(int freg) {
+                    Log.d(TAG, "onStoreEnd");
                     setEpgAutoReset(true);
-                    if (mUpdateFrequency == 0 || mUpdateFrequency != freg)
-                    {
+                    if (mUpdateFrequency == 0 || mUpdateFrequency != freg) {
                         Log.d(TAG, "[onScanExit]  mUpdateFrequency:" + mUpdateFrequency + ", freg:" + freg);
                         return;
                     }
                     ArrayList<ChannelInfo> channelMap = mTvDataBaseManager.getChannelList(mInputId, ChannelInfo.COMMON_PROJECTION, null, null);
                     if (channelMap != null) {
-                        for (ChannelInfo c : channelMap)
-                        {
+                        for (ChannelInfo c : channelMap) {
                              Log.d(TAG, "onScanExit mUpdateFrequency:" + mUpdateFrequency + "ChannelInfo.getFrequency()" + c.getFrequency());
-                             if (mUpdateFrequency == c.getFrequency())
-                             {
+                             if (mUpdateFrequency == c.getFrequency()) {
                                  Log.d(TAG, "Will send msg to Session handler");
                                  synchronized (this) {
                                      if (mCurrentSession != null)
                                          mCurrentSession.onUpdateTsPlay(c.getId());
                                      notifyChannelRetuned(c.getUri());
+                                     Log.d(TAG, "TS changed,  notifyChannelRetuned: " + c.getUri());
                                  }
                                  break;
                              }
