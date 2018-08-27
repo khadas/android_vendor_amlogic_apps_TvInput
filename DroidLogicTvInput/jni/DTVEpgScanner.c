@@ -921,8 +921,8 @@ static int epg_sdt_update(AM_EPG_Handle_t handle, int type, void *tables, void *
     log_info("something changed.");
 
     /*nid/tsid changed*/
-    if (((pch_cur->mOriginalNetworkId != -1) && (pch_cur->mOriginalNetworkId != sdts->i_network_id))
-        || (pch_cur->mTransportStreamId != sdts->i_ts_id)) {
+    if (/*((pch_cur->mOriginalNetworkId != -1) && (pch_cur->mOriginalNetworkId != sdts->i_network_id))
+        || */(pch_cur->mTransportStreamId != sdts->i_ts_id)) {
         log_info("nid:[0x%04x->0x%04x] tsid:[0x%04x->0x%04x]",
             pch_cur->mOriginalNetworkId, sdts->i_network_id,
             pch_cur->mTransportStreamId, sdts->i_ts_id);
