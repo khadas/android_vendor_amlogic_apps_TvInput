@@ -174,7 +174,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                   Log.d(TAG, "-----onReceive:"+action);
                   if (mCurrentSession != null) {
                       mCurrentSession.notifyUpdateUnblockRatingSet();
-                      mCurrentSession.doRelease();
+                      //mCurrentSession.doRelease();
                   }
             }
     };
