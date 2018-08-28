@@ -100,14 +100,6 @@ public class ATVInputService extends DroidLogicTvInputService {
         }
     }
 
-    @Override
-    public void doReleaseFinish(int sessionId) {
-        Utils.logd(TAG, "doReleaseFinish,sessionId:"+sessionId);
-        ATVSessionImpl session = sessionMap.get(sessionId);
-        if (session != null)
-            session.performDoReleaseSession();
-    }
-
     public class ATVSessionImpl extends TvInputBaseSession {
         private final Context mContext;
         private TvInputManager mTvInputManager;

@@ -57,14 +57,6 @@ public class ArcInputService extends DroidLogicTvInputService {
     }
 
     @Override
-    public void doReleaseFinish(int sessionId) {
-        Utils.logd(TAG, "doReleaseFinish,sessionId:"+sessionId);
-        ArcInputSession session = sessionMap.get(sessionId);
-        if (session != null)
-            session.performDoReleaseSession();
-    }
-
-    @Override
     public void doTuneFinish(int result, Uri uri, int sessionId) {
         Utils.logd(TAG, "doTuneFinish,result:"+result+"sessionId:"+sessionId);
         if (result == ACTION_SUCCESS) {
@@ -92,19 +84,12 @@ public class ArcInputService extends DroidLogicTvInputService {
             return setSurfaceInService(surface,this);
         }
         @Override
-        public void onRelease() {
-            //doRelease();
-            Utils.logd(TAG, "onRelease,session:"+this);
-            doReleaseInService(getSessionId());
-        }
-        @Override
         public boolean onTune(Uri channelUri) {
             return doTuneInService(channelUri, getSessionId());
         }
-
-
-        public void performDoReleaseSession() {
-            super.performDoReleaseSession();
+        @Override
+        public void doRelease() {
+            super.doRelease();
             if (mCurrentSession != null && mCurrentSession.getSessionId() == getSessionId()) {
                 mCurrentSession = null;
                 registerInputSession(null);

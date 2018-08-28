@@ -65,14 +65,6 @@ public class Hdmi3InputService extends DroidLogicTvInputService {
         }
     }
 
-    @Override
-    public void doReleaseFinish(int sessionId) {
-        Utils.logd(TAG, "doReleaseFinish,sessionId:"+sessionId);
-        Hdmi3InputSession session = sessionMap.get(sessionId);
-        if (session != null)
-            session.performDoReleaseSession();
-    }
-
     public class Hdmi3InputSession extends TvInputBaseSession {
         public Hdmi3InputSession(Context context, String inputId, int deviceId) {
             super(context, inputId, deviceId);
@@ -89,18 +81,11 @@ public class Hdmi3InputService extends DroidLogicTvInputService {
         }
 
         @Override
-        public void onRelease() {
-            //doRelease();
-            Utils.logd(TAG, "onRelease,session:"+this);
-            doReleaseInService(getSessionId());
-        }
-
-        @Override
         public boolean onTune(Uri channelUri) {
             return doTuneInService(channelUri, getSessionId());
         }
 
-
+        @Override
         public void doRelease() {
             super.doRelease();
             if (sessionMap.containsKey(getSessionId())) {
@@ -109,14 +94,6 @@ public class Hdmi3InputService extends DroidLogicTvInputService {
                     mCurrentSession = null;
                     registerInputSession(null);
                 }
-            }
-        }
-
-        public void performDoReleaseSession() {
-            super.performDoReleaseSession();
-            if (mCurrentSession != null && mCurrentSession.getSessionId() == getSessionId()) {
-                mCurrentSession = null;
-                registerInputSession(null);
             }
         }
 

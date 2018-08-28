@@ -65,14 +65,6 @@ public class SPDIFInputService extends DroidLogicTvInputService {
     }
 
     @Override
-    public void doReleaseFinish(int sessionId) {
-        Utils.logd(TAG, "doReleaseFinish,sessionId:"+sessionId);
-        SPDIFInputSession session = sessionMap.get(sessionId);
-        if (session != null)
-            session.performDoReleaseSession();
-    }
-
-    @Override
     public void doTuneFinish(int result, Uri uri, int sessionId) {
         Utils.logd(TAG, "doTuneFinish,result:"+result+"sessionId:"+sessionId);
         if (result == ACTION_SUCCESS) {
@@ -101,13 +93,6 @@ public class SPDIFInputService extends DroidLogicTvInputService {
         }
 
         @Override
-        public void onRelease() {
-            //doRelease();
-            Utils.logd(TAG, "onRelease,session:"+this);
-            doReleaseInService(getSessionId());
-        }
-
-        @Override
         public boolean onTune(Uri channelUri) {
              doTuneInService(channelUri, getSessionId());
              if (mOverlayView != null) {
@@ -116,14 +101,7 @@ public class SPDIFInputService extends DroidLogicTvInputService {
              return false;
         }
 
-        public void performDoReleaseSession() {
-            super.performDoReleaseSession();
-            if (mCurrentSession != null && mCurrentSession.getSessionId() == getSessionId()) {
-                mCurrentSession = null;
-                registerInputSession(null);
-            }
-        }
-
+        @Override
         public void doRelease() {
             super.doRelease();
             if (sessionMap.containsKey(getSessionId())) {

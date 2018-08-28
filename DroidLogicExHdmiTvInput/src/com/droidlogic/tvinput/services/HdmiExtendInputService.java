@@ -114,11 +114,6 @@ public class HdmiExtendInputService extends TvInputService {
             return false;
         }
         @Override
-        public void onRelease() {
-            Log.d(TAG, "onRelease");
-            mHardware.setSurface(null, null);
-        }
-        @Override
         public void onSetStreamVolume(float volume) {
             Log.d(TAG, "onSetStreamVolume");
         }

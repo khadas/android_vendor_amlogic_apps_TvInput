@@ -144,14 +144,6 @@ public class AV2InputService extends DroidLogicTvInputService {
         }
     }
 
-    @Override
-    public void doReleaseFinish(int sessionId) {
-        Utils.logd(TAG, "doReleaseFinish,sessionId:"+sessionId);
-        AV2InputSession session = sessionMap.get(sessionId);
-        if (session != null)
-            session.performDoReleaseSession();
-    }
-
     public class AV2InputSession extends TvInputBaseSession implements DTVSubtitleView.SubtitleDataListener{
         private TvInputManager mTvInputManager;
         private final Context mContext;

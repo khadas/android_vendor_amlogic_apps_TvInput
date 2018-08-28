@@ -174,7 +174,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                   Log.d(TAG, "-----onReceive:"+action);
                   if (mCurrentSession != null) {
                       mCurrentSession.notifyUpdateUnblockRatingSet();
-                      //mCurrentSession.doRelease();
+                      mCurrentSession.doRelease();
                   }
             }
     };
@@ -272,14 +272,6 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             if (session != null)
                 session.switchToSourceInput(uri);
         }
-    }
-
-    @Override
-    public void doReleaseFinish(int sessionId) {
-        Utils.logd(TAG, "doReleaseFinish,sessionId:"+sessionId);
-        DTVSessionImpl session = sessionMap.get(sessionId);
-        if (session != null)
-            session.performDoReleaseSession();
     }
 
     @Override
@@ -3964,6 +3956,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             }
             mRecordingHandler.removeCallbacksAndMessages(null);
             mRecordingHandler.sendEmptyMessage(MSG_RECORD_RELEASE);
+
         }
 
         @Override

@@ -143,14 +143,6 @@ public class AUXInputService extends DroidLogicTvInputService {
         }
     }
 
-    @Override
-    public void doReleaseFinish(int sessionId) {
-        Utils.logd(TAG, "doReleaseFinish,sessionId:"+sessionId);
-        AUXInputSession session = sessionMap.get(sessionId);
-        if (session != null)
-            session.performDoReleaseSession();
-    }
-
     public class AUXInputSession extends TvInputBaseSession{
         private TvInputManager mTvInputManager;
         private final Context mContext;
@@ -274,12 +266,6 @@ public class AUXInputService extends DroidLogicTvInputService {
             return setSurfaceInService(surface,this);
         }
         @Override
-        public void onRelease() {
-            //doRelease();
-            Log.d(TAG, "onRelease,session:"+this);
-            doReleaseInService(getSessionId());
-        }
-        @Override
         public boolean onTune(Uri channelUri) {
             isUnlockCurrent_NR = false;
             mUnblockedRatingSet.clear();
@@ -303,8 +289,9 @@ public class AUXInputService extends DroidLogicTvInputService {
             }
         }*/
 
-        public void performDoReleaseSession() {
-            super.performDoReleaseSession();
+        @Override
+        public void doRelease() {
+            super.doRelease();
             mUnblockedRatingSet.clear();
             //stopSubtitle();
             releaseWorkThread();
