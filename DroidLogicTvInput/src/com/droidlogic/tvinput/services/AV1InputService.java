@@ -208,6 +208,7 @@ public class AV1InputService extends DroidLogicTvInputService {
                 mTvInputManager = (TvInputManager)getSystemService(Context.TV_INPUT_SERVICE);
             mCurrentChannel = null;
             mTvDataBaseManager = new TvDataBaseManager(mContext);
+            mTvControlDataManager = TvControlDataManager.getInstance(mContext);
             initOverlayView(R.layout.layout_overlay);
             if (mOverlayView != null) {
                 mOverlayView.setImage(R.drawable.bg_no_signal);
@@ -230,7 +231,6 @@ public class AV1InputService extends DroidLogicTvInputService {
             Log.d(TAG,"isBlockNoRatingEnable:"+isBlockNoRatingEnable+",isUnlockCurrent_NR:"+isUnlockCurrent_NR);
             mCaptioningManager = (CaptioningManager) mContext.getSystemService(Context.CAPTIONING_SERVICE);
             mSystemControlManager = new SystemControlManager(mContext);
-            mTvControlDataManager = TvControlDataManager.getInstance(mContext);
         }
 
         private boolean getBlockNoRatingEnable() {
