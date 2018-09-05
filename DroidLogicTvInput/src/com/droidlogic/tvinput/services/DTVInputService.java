@@ -1426,7 +1426,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             mSubtitleView.setVisible(is_subtitle_enabled);
             Log.i(TAG,"mCurrentUri = "+mCurrentUri+",mEasprocessManager = "+mEASProcessManager);
             if (mEASProcessManager != null &&
-                    mEASProcessManager.isEasInProgress() &&
+                    mEASProcessManager.isEasInProgress() && mEASProcessManager.getEasChannelUri() != null &&
                     mEASProcessManager.getEasChannelUri().equals(mCurrentUri)) {
                 notifyAppEasStatus(true);
                 showEasText();
@@ -4131,7 +4131,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             String ratingDescription = TvMultilingualText.getTextJ(g.optString("rs"));
             int region = g.optInt("g", -1);
             if (region > DroidContentRatingsParser.FIXED_REGION_lEVEL_2) {//region > 2, search download rrt
-                Log.d(TAG, "parse ratings rrt5 region = " + region + ", title = " + title);
+                if (DEBUG) Log.d(TAG, "parse ratings rrt5 region = " + region + ", title = " + title);
                 rrt5count++;
             } else {
                 nonerrt5count ++;
@@ -4155,7 +4155,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                             TvContentRating r = TvContentRating.createRating(RatingDomain,rrtSearchInfo.dimensions_name, rrtSearchInfo.rating_value_text, null);
                             if (r != null) {
                                 RatingList.add(r);
-                                Log.d(TAG, "parse ratings add rating:"+r.flattenToString()  + ", title = " + title);
+                                if (DEBUG) Log.d(TAG, "parse ratings add rating:"+r.flattenToString()  + ", title = " + title);
                         }
                     }
                 }
@@ -4176,7 +4176,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             for (int k = ratings_vchip.length; k < ratings_all.length; k++) {
                 ratings_all[k] = RatingList.get(k - ratings_vchip.length);
             }
-            Log.v(TAG, "parse ratings mixed vchip & rrt5"  + ", title = " + title);
+            if (DEBUG) Log.v(TAG, "parse ratings mixed vchip & rrt5"  + ", title = " + title);
         } else if (ratings_vchip != null && ratings_vchip.length > 0) {
             ratings_all = ratings_vchip;
             Log.v(TAG, "parse ratings vchip only " + ", title = " + title);
@@ -4185,7 +4185,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             for (int k = 0; k < ratings_all.length; k++) {
                 ratings_all[k] = RatingList.get(k);
             }
-            Log.v(TAG, "parse ratings rrt5 only " + ", title = " + title);
+            if (DEBUG) Log.v(TAG, "parse ratings rrt5 only " + ", title = " + title);
         } else {
             ratings_all = null;
             Log.v(TAG, "parse ratings null " + ", title = " + title);
