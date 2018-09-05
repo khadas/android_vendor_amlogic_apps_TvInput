@@ -3727,7 +3727,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             handlerThread.start();
             mRecordingHandler = new Handler(handlerThread.getLooper(), this);
 
-            mStorageDir = new File(getCacheStoragePath());
+            String RecordingPath = mSystemControlManager.getPropertyString("tv.dtv.rec.path", getCacheStoragePath());
+            mStorageDir = new File(RecordingPath);
 
             if (DEBUG) Log.d(TAG, "DTVRecordingSession:"+inputId);
         }
