@@ -115,6 +115,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
     protected static final String DTV_SUBTITLE_AUTO_START = "tv.dtv.subtitle.autostart";
     protected static final String DTV_SUBTITLE_DTV_XDS = "tv.dtv.subtitle.xds";
+    protected static final String DTV_SUBTITLE_TIF_COMPATIABLE = "tv.dtv.subtitle.tif";
 
     protected static final String DTV_SUBTITLE_CS_PREFER = "persist.sys.cs.prefer";
     protected static final String DTV_SUBTITLE_CC_PREFER = "persist.sys.cc.prefer";
@@ -155,6 +156,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
     private EASProcessManager mEASProcessManager;
     private String mEasText = null;
 
+    protected SystemControlManager mSystemControlManager;
     protected DTVSessionImpl mCurrentSession;
     protected int id = 0;
     protected TvControlManager mTvControlManager;
@@ -217,6 +219,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         registerReceiver(mChannelScanStartReceiver, filter);
 
         mTvControlManager = TvControlManager.getInstance();
+        mSystemControlManager = new SystemControlManager(this);
         Log.d(TAG,"oncreate:Set EAS listener as TvInput");
         mEASProcessManager = new EASProcessManager(this);
         mTvControlManager.setEasListener(this);
@@ -382,6 +385,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
     protected static boolean subtitleAutoSave = false;
     protected static boolean audioAutoSave = false;
     protected static boolean subtitleAutoStart = false;
+    protected static boolean subtitleTifMode = true;
 
     /*associate audio*/
     protected static boolean audioADAutoStart = false;
@@ -809,8 +813,9 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
             isTvPlaying = false;
 
-            subtitleAutoStart = mSystemControlManager.getPropertyBoolean(DTV_SUBTITLE_AUTO_START, false);
+            subtitleAutoStart = mSystemControlManager.getPropertyBoolean(DTV_SUBTITLE_AUTO_START, true);
             subtitleAutoSave = subtitleAutoStart;
+            subtitleTifMode = mSystemControlManager.getPropertyBoolean(DTV_SUBTITLE_TIF_COMPATIABLE, true);
 
             if (Utils.getChannelId(uri) < 0) {
                 if (false)
@@ -926,15 +931,12 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         }
 
         protected int tryStartSubtitle(ChannelInfo info) {
-            if (isAtsc(info)) {
+            if (isAtsc(info) && !subtitleTifMode) {
                 mCurrentCCExist = 0;
                 mSystemControlManager.setProperty(DTV_SUBTITLE_CAPTION_EXIST, String.valueOf(mCurrentCCExist));
                 startSubtitleCCBackground(info);
-                mCurrentCCEnabled = mCaptioningManager == null? false : mCaptioningManager.isEnabled();
-            } else {
-                mCurrentCCExist = 0;
-                mSystemControlManager.setProperty(DTV_SUBTITLE_CAPTION_EXIST, String.valueOf(mCurrentCCExist));
             }
+            mCurrentCCEnabled = mCaptioningManager == null? false : mCaptioningManager.isEnabled();
 
             if (subtitleAutoStart)
                 startSubtitle(info);
@@ -1396,12 +1398,21 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             } else if (type == TvTrackInfo.TYPE_SUBTITLE) {
                 int index = -1;
                 if (trackId == null) {
+                    if (isAtsc(mCurrentChannel) && !subtitleTifMode) {
+                        mSystemControlManager.setProperty(DTV_SUBTITLE_CS_PREFER, String.valueOf(-1));
+                        mSystemControlManager.setProperty(DTV_SUBTITLE_CC_PREFER, String.valueOf(-1));
+                    }
                     stopSubtitleUser(mCurrentChannel);
                     index = -2;
                 } else {
                     ChannelInfo.Subtitle subtitle = parseSubtitleIdString(trackId);
-                    startSubtitle(subtitle, mCurrentChannel.getVfmt());
-                    mSystemControlManager.setProperty(DTV_SUBTITLE_TRACK_IDX, String.valueOf(subtitle.id));
+                    if (isAtsc(mCurrentChannel) && !subtitleTifMode) {
+                        mSystemControlManager.setProperty(DTV_SUBTITLE_CS_PREFER, String.valueOf(subtitle.mPid));
+                        mSystemControlManager.setProperty(DTV_SUBTITLE_CC_PREFER, String.valueOf(-1));
+                    } else {
+                        startSubtitle(subtitle, mCurrentChannel.getVfmt());
+                        mSystemControlManager.setProperty(DTV_SUBTITLE_TRACK_IDX, String.valueOf(subtitle.id));
+                    }
                     index = subtitle.id;
                 }
 
@@ -1427,7 +1438,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
             mVideoUnavailableReason = TvInputManager.VIDEO_UNAVAILABLE_REASON_UNKNOWN - 1;
 
-            mSubtitleView.setVisible(is_subtitle_enabled);
+            enableSubtitleShow(true);
             Log.i(TAG,"mCurrentUri = "+mCurrentUri+",mEasprocessManager = "+mEASProcessManager);
             if (mEASProcessManager != null &&
                     mEASProcessManager.isEasInProgress() && mEASProcessManager.getEasChannelUri() != null &&
@@ -1471,7 +1482,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                         mOverlayView.setImageVisibility(true);
                         mOverlayView.setTextVisibility(true);
                         mOverlayView.setEasTextVisibility(false);
-                        mSubtitleView.setVisible(false);
+                        enableSubtitleShow(false);
                         break;
                 }
             }
@@ -2021,10 +2032,10 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             }
             /*Check CC show*/
             mCurrentCCExist = mask;
-//            if (mSystemControlManager != null)
-//                mSystemControlManager.setProperty(DTV_SUBTITLE_CAPTION_EXIST, String.valueOf(mCurrentCCExist));
+            if (mSystemControlManager != null)
+                mSystemControlManager.setProperty(DTV_SUBTITLE_CAPTION_EXIST, String.valueOf(mCurrentCCExist));
 
-            if (mHandler != null) {
+            if (mHandler != null && !subtitleTifMode) {
                 mHandler.removeMessages(MSG_CC_TRY_PREFERRED);
                 mHandler.obtainMessage(MSG_CC_TRY_PREFERRED, mCurrentCCExist, 0, this).sendToTarget();
             }

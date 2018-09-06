@@ -763,11 +763,10 @@ public class DTVSubtitleView extends View {
                     cw = null;
                     return;
                 }
-                if (!ci.cc_setting.is_enabled)
-                    return;
+//                if (!ci.cc_setting.is_enabled)
+//                    return;
                 ci.caption_screen.updateCaptionScreen(canvas.getWidth(), canvas.getHeight());
 
-                cw = ci.new CaptionWindow(json_str);
                 if (cw != null)
                     cw.draw(canvas);
                 break;
