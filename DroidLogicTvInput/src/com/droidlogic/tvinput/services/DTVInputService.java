@@ -467,7 +467,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
             mContext = context;
             mTvDataBaseManager = new TvDataBaseManager(mContext);
-            mSystemControlManager = new SystemControlManager(mContext);
+            mSystemControlManager = SystemControlManager.getInstance();
             mTvControlDataManager = TvControlDataManager.getInstance(mContext);
             mLastBlockedRating = null;
             mCurrentChannel = null;

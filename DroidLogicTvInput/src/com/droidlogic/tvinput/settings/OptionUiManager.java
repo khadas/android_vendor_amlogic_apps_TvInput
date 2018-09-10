@@ -2224,7 +2224,7 @@ public class OptionUiManager implements OnClickListener, OnFocusChangeListener, 
 
             case TvControlManager.EVENT_SCAN_EXIT:
                 Log.d(TAG, "onEvent:Scan exit.");
-                SystemControlManager scm = new SystemControlManager(mContext);
+                SystemControlManager scm = SystemControlManager.getInstance();
                 scm.setProperty("tv.channels.count", ""+(channelNumber+radioNumber));
                 isSearching = SEARCH_STOPPED;
                 ((TvSettingsActivity) mContext).finish();

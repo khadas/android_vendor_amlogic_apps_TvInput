@@ -165,7 +165,7 @@ public class SettingsManager {
     public SettingsManager (Context context, Intent intent) {
         mContext = context;
         mTvDataBaseManager = new TvDataBaseManager(mContext);
-        mSystemControlManager = new SystemControlManager();
+        mSystemControlManager = SystemControlManager.getInstance();
 
         setCurrentChannelData(intent);
 

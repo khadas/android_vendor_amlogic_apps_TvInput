@@ -228,7 +228,7 @@ public class AUXInputService extends DroidLogicTvInputService {
             }*/
             Log.d(TAG,"isBlockNoRatingEnable:"+isBlockNoRatingEnable+",isUnlockCurrent_NR:"+isUnlockCurrent_NR);
             mCaptioningManager = (CaptioningManager) mContext.getSystemService(Context.CAPTIONING_SERVICE);
-            mSystemControlManager = new SystemControlManager(mContext);
+            mSystemControlManager = SystemControlManager.getInstance();
             mTvControlDataManager = TvControlDataManager.getInstance(mContext);
         }
 

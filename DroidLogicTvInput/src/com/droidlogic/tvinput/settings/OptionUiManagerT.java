@@ -177,7 +177,7 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
     public void init () {
         mTvControlManager = TvControlManager.getInstance();
         mTvControlManager.setScannerListener(this);
-        mSystemControlManager = new SystemControlManager();
+        mSystemControlManager = SystemControlManager.getInstance();
         mTvDataBaseManager = new TvDataBaseManager(mContext);
         mTvControlDataManager = TvControlDataManager.getInstance(mContext);
     }

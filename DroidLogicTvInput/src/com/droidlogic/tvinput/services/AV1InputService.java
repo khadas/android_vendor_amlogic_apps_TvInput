@@ -230,7 +230,7 @@ public class AV1InputService extends DroidLogicTvInputService {
             }
             Log.d(TAG,"isBlockNoRatingEnable:"+isBlockNoRatingEnable+",isUnlockCurrent_NR:"+isUnlockCurrent_NR);
             mCaptioningManager = (CaptioningManager) mContext.getSystemService(Context.CAPTIONING_SERVICE);
-            mSystemControlManager = new SystemControlManager(mContext);
+            mSystemControlManager = SystemControlManager.getInstance();
         }
 
         private boolean getBlockNoRatingEnable() {
