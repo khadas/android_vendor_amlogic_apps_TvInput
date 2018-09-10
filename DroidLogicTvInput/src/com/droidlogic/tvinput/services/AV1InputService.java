@@ -435,6 +435,20 @@ public class AV1InputService extends DroidLogicTvInputService {
            }
         }
 
+        public String onReadSysFs(String node) {
+            String value = null;
+            if (mSystemControlManager != null) {
+                value = mSystemControlManager.readSysFs(node);
+            }
+            return value;
+        }
+
+        public void onWriteSysFs(String node, String value) {
+            if (mSystemControlManager != null) {
+                mSystemControlManager.writeSysFs(node, value);
+            }
+        }
+
         private void sendAvRatingByTif() {
             Bundle ratingbundle = new Bundle();
             ratingbundle.putString(DroidLogicTvUtils.SIG_INFO_AV_VCHIP_KEY, Program.contentRatingsToString(mATVContentRatings));
