@@ -262,6 +262,14 @@ public class ADTVInputService extends DTVInputService {
             super.onSubtitleData(json);
         }
 
+        public String onReadSysFs(String node) {
+            return super.onReadSysFs(node);
+        }
+
+        public void onWriteSysFs(String node, String value) {
+            super.onWriteSysFs(node, value);
+        }
+
         @Override
         protected void setMonitor(ChannelInfo channel) {
             if (channel == null || !channel.isAnalogChannel())

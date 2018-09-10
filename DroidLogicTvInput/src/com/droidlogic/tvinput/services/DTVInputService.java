@@ -1959,6 +1959,20 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             }
         }
 
+        public String onReadSysFs(String node) {
+            String value = null;
+            if (mSystemControlManager != null) {
+                value = mSystemControlManager.readSysFs(node);
+            }
+            return value;
+        }
+
+        public void onWriteSysFs(String node, String value) {
+            if (mSystemControlManager != null) {
+                mSystemControlManager.writeSysFs(node, value);
+            }
+        }
+
         private void sendCCDataInfoByTif(final int mask) {
             Bundle ratingbundle = new Bundle();
             ratingbundle.putInt(DroidLogicTvUtils.SIG_INFO_CC_DATA_INFO_KEY, mask);

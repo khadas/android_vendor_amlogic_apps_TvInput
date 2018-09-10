@@ -62,6 +62,8 @@ typedef void* AM_SUB2_Handle_t;
     static jfieldID gCC_JsonID;
     static jstring gCC_JsonStr;
     static jmethodID gPassJsonStr;
+    static jmethodID gReadSysfsID;
+    static jmethodID gWriteSysfsID;
     static char gJsonStr[CC_JSON_BUFFER_SIZE];
 
     static jint sub_clear(JNIEnv *env, jobject obj);
@@ -638,6 +640,79 @@ error:
     }
 #endif
 
+    //notify java read sysfs
+    void read_sysfs_cb(const char *name, char *buf, int len)
+    {
+        JNIEnv *env;
+        int ret;
+        int attached = 0;
+        TVSubtitleData *subdata;
+        subdata = &gSubtitleData;
+
+        ret = gJavaVM->GetEnv((void **) &env, JNI_VERSION_1_4);
+
+        if (ret < 0) {
+            ret = gJavaVM->AttachCurrentThread(&env, NULL);
+            if (ret < 0) {
+                LOGE("Can't attach thread");
+                return;
+            }
+            attached = 1;
+        }
+        jstring jvalue = NULL;
+        const char *utf_chars = NULL;
+        jstring jname = env->NewStringUTF(name);
+        jvalue = (jstring)env->CallObjectMethod(subdata->obj, gReadSysfsID, jname);
+        if (jvalue) {
+            utf_chars = env->GetStringUTFChars(jvalue, NULL);
+            if (utf_chars) {
+                memset(buf, 0, len);
+                if (len <= strlen(utf_chars) + 1) {
+                    memcpy(buf, utf_chars, len - 1);
+                    buf[strlen(buf)] = '\0';
+                }else {
+                    strcpy(buf, utf_chars);
+                }
+            }
+            env->ReleaseStringUTFChars(jvalue, utf_chars);
+            env->DeleteLocalRef(jvalue);
+        }
+        env->DeleteLocalRef(jname);
+
+        if (attached) {
+            gJavaVM->DetachCurrentThread();
+        }
+    }
+
+    //notify java write sysfs
+    void write_sysfs_cb(const char *name, const char *cmd)
+    {
+        JNIEnv *env;
+        int ret;
+        int attached = 0;
+        TVSubtitleData *subdata;
+        subdata = &gSubtitleData;
+
+        ret = gJavaVM->GetEnv((void **) &env, JNI_VERSION_1_4);
+
+        if (ret < 0) {
+            ret = gJavaVM->AttachCurrentThread(&env, NULL);
+            if (ret < 0) {
+                LOGE("Can't attach thread");
+                return;
+            }
+            attached = 1;
+        }
+        jstring jname = env->NewStringUTF(name);
+        jstring jcmd = env->NewStringUTF(cmd);
+        env->CallVoidMethod(subdata->obj, gWriteSysfsID, jname, jcmd);
+        env->DeleteLocalRef(jname);
+        env->DeleteLocalRef(jcmd);
+        if (attached) {
+            gJavaVM->DetachCurrentThread();
+        }
+    }
+
     static jint sub_init(JNIEnv *env, jobject obj)
     {
     #ifdef SUPPORT_ADTV
@@ -652,6 +727,7 @@ error:
         pthread_mutex_init(&data->lock, NULL);
 
         data->obj = env->NewGlobalRef(obj);
+        AM_RegisterRWSysfsFun(read_sysfs_cb, write_sysfs_cb);
 
         setDvbDebugLogLevel();
     #endif
@@ -668,6 +744,7 @@ error:
 
             if (data->obj) {
                 pthread_mutex_lock(&data->lock);
+                AM_UnRegisterRWSysfsFun();
                 env->DeleteGlobalRef(data->obj);
                 data->obj = NULL;
                 pthread_mutex_unlock(&data->lock);
@@ -1165,6 +1242,8 @@ error:
             gBitmapID = env->GetStaticFieldID(clazz, "bitmap", "Landroid/graphics/Bitmap;");
 
             gUpdateDataID = env->GetMethodID(clazz, "updateData", "(Ljava/lang/String;)V");
+            gReadSysfsID = env->GetMethodID(clazz, "readSysFs", "(Ljava/lang/String;)Ljava/lang/String;");
+            gWriteSysfsID = env->GetMethodID(clazz, "writeSysFs", "(Ljava/lang/String;Ljava/lang/String;)V");
 
 
             LOGI("load jnitvsubtitle ok");

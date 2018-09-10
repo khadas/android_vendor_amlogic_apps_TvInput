@@ -839,12 +839,28 @@ public class DTVSubtitleView extends View {
         }
     }
 
+    public String readSysFs(String name) {
+        String value = null;
+        if (mSubtitleDataListener != null) {
+            value = mSubtitleDataListener.onReadSysFs(name);
+        }
+        return value;
+    }
+
+    public void writeSysFs(String name, String cmd) {
+        if (mSubtitleDataListener != null) {
+            mSubtitleDataListener.onWriteSysFs(name, cmd);
+        }
+    }
+
     public void setSubtitleDataListener(SubtitleDataListener l) {
         mSubtitleDataListener = l;
     }
 
     public interface SubtitleDataListener {
         public void onSubtitleData(String json);
+        public String onReadSysFs(String node);
+        public void onWriteSysFs(String node, String value);
     }
 
 }
