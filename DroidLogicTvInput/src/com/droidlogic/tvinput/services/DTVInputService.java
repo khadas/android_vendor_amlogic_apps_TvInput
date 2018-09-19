@@ -202,6 +202,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         super.onCreate();
         initInputService(DroidLogicTvUtils.DEVICE_ID_DTV, DTVInputService.class.getName());
 
+        registerChannelScanStartReceiver();
+
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(TvInputManager.ACTION_BLOCKED_RATINGS_CHANGED);
         intentFilter
@@ -225,6 +227,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
     public void onDestroy() {
         super.onDestroy();
         unregisterReceiver(mParentalControlsBroadcastReceiver);
+        unregisterReceiver(mChannelScanStartReceiver);
+        unRegisterChannelScanStartReceiver();
     }
 
     @Override

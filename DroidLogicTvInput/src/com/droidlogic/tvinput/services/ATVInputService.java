@@ -61,12 +61,14 @@ public class ATVInputService extends DroidLogicTvInputService {
         intentFilter.addAction(TvInputManager.ACTION_BLOCKED_RATINGS_CHANGED);
         intentFilter.addAction(TvInputManager.ACTION_PARENTAL_CONTROLS_ENABLED_CHANGED);
         registerReceiver(mParentalControlsBroadcastReceiver, intentFilter);
+        registerChannelScanStartReceiver();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         unregisterReceiver(mParentalControlsBroadcastReceiver);
+        unRegisterChannelScanStartReceiver();
     }
 
     @Override

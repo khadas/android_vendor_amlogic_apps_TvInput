@@ -75,11 +75,6 @@ public class ADTVInputService extends DTVInputService {
         sessionMap.put(id, mCurrentSession);
         id++;
 
-        /*IntentFilter filter= new IntentFilter();
-        filter.addAction(DroidLogicTvUtils.ACTION_DTV_AUTO_SCAN);
-        filter.addAction(DroidLogicTvUtils.ACTION_DTV_MANUAL_SCAN);
-        registerReceiver(mChannelScanStartReceiver, filter);*/
-
         return mCurrentSession;
     }
 

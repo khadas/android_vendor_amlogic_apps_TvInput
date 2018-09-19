@@ -101,11 +101,6 @@ public class AUXInputService extends DroidLogicTvInputService {
     public void onCreate() {
         super.onCreate();
          Utils.logd(TAG, "onCreate");
-        /*IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(TvInputManager.ACTION_BLOCKED_RATINGS_CHANGED);
-        intentFilter.addAction(TvInputManager.ACTION_PARENTAL_CONTROLS_ENABLED_CHANGED);
-        intentFilter.addAction(Intent.ACTION_TIME_CHANGED);
-        registerReceiver(mParentalControlsBroadcastReceiver, intentFilter);*/
     }
 
     @Override

@@ -110,6 +110,12 @@ public class AV1InputService extends DroidLogicTvInputService {
     }
 
     @Override
+    public void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(mParentalControlsBroadcastReceiver);
+    }
+
+    @Override
     public Session onCreateSession(String inputId) {
         super.onCreateSession(inputId);
 
