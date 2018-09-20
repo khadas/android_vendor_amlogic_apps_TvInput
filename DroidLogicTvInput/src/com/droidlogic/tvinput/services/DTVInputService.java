@@ -4238,8 +4238,9 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 public void onUpdateEasText(String text) {
                     if (DEBUG) Log.d(TAG,"onUpdateEasText:"+text);
                         mEasText = text;
-                    if (mCurrentSession != null)
+                    if (mCurrentSession != null) {
                         mCurrentSession.showEasText();
+                    }
                 }
     };
 }
