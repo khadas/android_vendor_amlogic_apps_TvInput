@@ -1214,6 +1214,7 @@ static int get_channel_data(JNIEnv* env, jobject obj, jobject channel, EPGChanne
     }
     pch->mOriginalNetworkId = (*env)->GetIntField(env, channel, (*env)->GetFieldID(env, objclass, "mOriginalNetworkId", "I"));
     pch->mTransportStreamId = (*env)->GetIntField(env, channel, (*env)->GetFieldID(env, objclass, "mTransportStreamId", "I"));
+    pch->mProgramsInPat = (*env)->GetIntField(env, channel, (*env)->GetFieldID(env, objclass, "mProgramsInPat", "I"));
     pch->mServiceId = (*env)->GetIntField(env, channel, (*env)->GetFieldID(env, objclass, "mServiceId", "I"));
     pch->mFrequency = (*env)->GetIntField(env, channel, (*env)->GetFieldID(env, objclass, "mFrequency", "I"));
     pch->mBandwidth = (*env)->GetIntField(env, channel, (*env)->GetFieldID(env, objclass, "mBandwidth", "I"));
