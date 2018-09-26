@@ -172,9 +172,9 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
                   Log.d(TAG, "-----onReceive:"+action);
-                  if (mCurrentSession != null) {
-                      mCurrentSession.notifyUpdateUnblockRatingSet();
-                      mCurrentSession.doRelease();
+                    if (mCurrentSession != null) {
+                        mCurrentSession.notifyUpdateUnblockRatingSet();
+                        //mCurrentSession.doRelease();
                   }
             }
     };
