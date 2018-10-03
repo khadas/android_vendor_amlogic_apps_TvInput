@@ -23,6 +23,9 @@ import android.provider.Settings;
 import android.text.TextUtils;
 import android.view.Surface;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Field;
+
 import java.util.Iterator;
 import java.util.HashMap;
 import java.util.Map;
@@ -702,6 +705,20 @@ public class AUXInputService extends DroidLogicTvInputService {
                 return 2.0f;//AM_CC_FONTSIZE_DEFAULT
             }
         }
+
+        private String getRawTypeface(CaptioningManager.CaptionStyle captionstyle) {
+            try {
+                Class<?> cls = Class.forName("android.view.accessibility.CaptioningManager.CaptionStyle");
+                Object obj = cls.newInstance();
+                obj = captionstyle;
+                Field rawTypeface = cls.getDeclaredField("mRawTypeface");
+                return rawTypeface.get(obj).toString();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
         protected CCStyleParams getCaptionStyle() {
             boolean USE_NEW_CCVIEW = true;
 
@@ -723,12 +740,12 @@ public class AUXInputService extends DroidLogicTvInputService {
             int fontStyle = DTVSubtitleView.CC_FONTSTYLE_DEFAULT;
 
             for (int i = 0; i < typeface.length; ++i) {
-                if (typeface[i].equals(userStyle.mRawTypeface)) {
+                if (typeface[i].equals(getRawTypeface(userStyle))) {
                     fontStyle = i;
                     break;
                 }
             }
-            Log.d(TAG, "get style: " + style + ", fontStyle" + fontStyle + ", typeface: " + userStyle.mRawTypeface);
+            Log.d(TAG, "get style: " + style + ", fontStyle" + fontStyle + ", typeface: " + getRawTypeface(userStyle));
 
             int fg = userStyle.foregroundColor;
             int bg = userStyle.backgroundColor;

@@ -24,6 +24,7 @@ import android.util.Log;
 import android.text.TextUtils;
 import android.media.AudioManager;
 import android.media.tv.TvInputInfo;
+import java.lang.reflect.Method;
 
 import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.tvinput.R;
@@ -182,6 +183,29 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
         return super.dispatchKeyEvent(event);
     }
 
+    private boolean isMasterMute() {
+        try {
+              Class<?> cls = Class.forName("android.media.AudioManager");
+              Method method = cls.getMethod("isMasterMute");
+              Object objbool = method.invoke(mAudioManager);
+              return Boolean.parseBoolean(objbool.toString());
+          } catch (Exception e) {
+                  // TODO Auto-generated catch block
+              e.printStackTrace();
+          }
+          return false;
+    }
+
+    private void setMasterMute(boolean bval, int val) {
+        try {
+            Class<?> cls = Class.forName("android.media.AudioManager");
+            Method method = cls.getMethod("setMasterMute", boolean.class, int.class);
+            method.invoke(mAudioManager, bval, val);
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         //Log.d(TAG, "==== focus =" + getCurrentFocus() + ", keycode =" + keyCode);
@@ -204,17 +228,17 @@ public class TvSettingsActivity extends Activity implements OnClickListener, OnF
                 break;
             case KeyEvent.KEYCODE_VOLUME_UP:
             case KeyEvent.KEYCODE_VOLUME_DOWN:
-                if (mAudioManager.isMasterMute()) {
-                    mAudioManager.setMasterMute(false, AudioManager.FLAG_PLAY_SOUND);
+                if (isMasterMute()) {
+                    setMasterMute(false, AudioManager.FLAG_PLAY_SOUND);
                     mSettingsManager.sendBroadcastToTvapp("unmute");
                 }
                 break;
             case KeyEvent.KEYCODE_VOLUME_MUTE:
-                if (mAudioManager.isMasterMute()) {
-                    mAudioManager.setMasterMute(false, AudioManager.FLAG_PLAY_SOUND);
+                if (isMasterMute()) {
+                    setMasterMute(false, AudioManager.FLAG_PLAY_SOUND);
                     mSettingsManager.sendBroadcastToTvapp("unmute");
                 } else {
-                    mAudioManager.setMasterMute(true, AudioManager.FLAG_PLAY_SOUND);
+                    setMasterMute(true, AudioManager.FLAG_PLAY_SOUND);
                     mSettingsManager.sendBroadcastToTvapp("mute");
                 }
                 return true;

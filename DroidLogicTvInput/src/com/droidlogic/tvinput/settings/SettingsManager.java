@@ -10,7 +10,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.content.pm.IPackageDataObserver;
+//import android.content.pm.IPackageDataObserver;
 import android.content.res.Resources;
 import android.provider.Settings;
 import android.text.TextUtils;
@@ -23,12 +23,13 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.HashMap;
 import java.lang.System;
+import java.lang.reflect.Method;
 
 import android.media.tv.TvInputInfo;
 import com.droidlogic.app.SystemControlManager;
 
 import android.media.AudioManager;
-import android.media.AudioSystem;
+//import android.media.AudioSystem;
 import android.media.tv.TvContract;
 import android.media.tv.TvContract.Channels;
 import com.droidlogic.app.tv.ChannelInfo;
@@ -145,6 +146,7 @@ public class SettingsManager {
     public static final String ATSC_TV_SEARCH_SYS                   = "atsc_tv_search_sys";
     public static final String ATSC_TV_SEARCH_SOUND_SYS             = "atsc_tv_search_sound_sys";
     public static String currentTag = null;
+    public static final int STREAM_MUSIC = 3;
 
     private Context mContext;
     private Resources mResources;
@@ -380,7 +382,8 @@ public class SettingsManager {
     }
 
     private String getBacklightStatus () {
-        return mSystemControlManager.GetBacklight() + "%";
+        Log.d(TAG, " code temp removed");
+        return null;//mSystemControlManager.GetBacklight() + "%"; tmp removed;
     }
 
     public boolean isShowTint() {
@@ -1217,10 +1220,12 @@ public class SettingsManager {
     }
 
     public void setBacklight (int step) {
-        int value = mSystemControlManager.GetBacklight() + step;
-        if (value >= 0 && value <= 100) {
-            mSystemControlManager.SetBacklight(value, 1);
-        }
+       // int value = mSystemControlManager.GetBacklight() + step;
+       // if (value >= 0 && value <= 100) {
+       //     mSystemControlManager.SetBacklight(value, 1);
+       // }
+
+       Log.d(TAG, "setBacklight code removed");
     }
 
     public void setColorTemperature(String mode) {
@@ -1408,9 +1413,9 @@ public class SettingsManager {
     public void setDefAudioStreamVolume() {
         AudioManager audioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
         int maxVolume = SystemProperties.getInt("ro.config.media_vol_steps", 100);
-        int streamMaxVolume = audioManager.getStreamMaxVolume(AudioSystem.STREAM_MUSIC);
+        int streamMaxVolume = audioManager.getStreamMaxVolume(STREAM_MUSIC);
         int defaultVolume = maxVolume == streamMaxVolume ? (maxVolume * 3) / 10 : (streamMaxVolume * 3) / 4;
-        audioManager.setStreamVolume(AudioSystem.STREAM_MUSIC, defaultVolume, 0);
+        audioManager.setStreamVolume(STREAM_MUSIC, defaultVolume, 0);
     }
 
     public void setDefLanguage (int position) {
@@ -1634,12 +1639,35 @@ public class SettingsManager {
         "com.android.providers.tv",
     };
 
+   /*
+    private void deleteApplicationCacheFiles(PackageManager packageManager, String packageName, ClearUserDataObserver clearCacheObserver) {
+        try {
+            Class<?> cls = Class.forName("android.content.pm.PackageManager");
+            Method method = cls.getMethod("deleteApplicationCacheFiles", String.class, ClearUserDataObserver.class);
+            method.invoke(packageManager, packageName, clearCacheObserver);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private boolean clearApplicationUserData(ActivityManager am, String packageName, ClearUserDataObserver clearDataObserver) {
+        try {
+            Class<?> cls = Class.forName("android.app.ActivityManager");
+            Method method = cls.getMethod("clearApplicationUserData", String.class, ClearUserDataObserver.class);
+            Object objbool = method.invoke(am, packageName, clearDataObserver);
+            return Boolean.parseBoolean(objbool.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    */
     private  void ClearPackageData(String packageName) {
         Log.d(TAG, "ClearPackageData:" + packageName);
+        /*
         //clear data
         ActivityManager am = (ActivityManager)mContext.getSystemService(Context.ACTIVITY_SERVICE);
         ClearUserDataObserver mClearDataObserver = new ClearUserDataObserver();
-        boolean res = am.clearApplicationUserData(packageName, mClearDataObserver);
+        boolean res = clearApplicationUserData(am, packageName, mClearDataObserver);
         if (!res) {
             Log.i(TAG, " clear " + packageName + " data failed");
         } else {
@@ -1649,17 +1677,19 @@ public class SettingsManager {
         //clear cache
         PackageManager packageManager = mContext.getPackageManager();
         ClearUserDataObserver mClearCacheObserver = new ClearUserDataObserver();
-        packageManager.deleteApplicationCacheFiles(packageName, mClearCacheObserver);
+        deleteApplicationCacheFiles(packageManager, packageName, mClearCacheObserver);
 
         //clear default
         packageManager.clearPackagePreferredActivities(packageName);
+        */
     }
 
+    /*
     private class ClearUserDataObserver extends IPackageDataObserver.Stub {
         public void onRemoveCompleted(final String packageName, final boolean succeeded) {
         }
     }
-
+    */
     public void sendBroadcastToTvapp(String extra) {
         Intent intent = new Intent(DroidLogicTvUtils.ACTION_UPDATE_TV_PLAY);
         intent.putExtra("tv_play_extra", extra);

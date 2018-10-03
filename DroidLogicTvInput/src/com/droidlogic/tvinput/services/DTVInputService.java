@@ -7,7 +7,7 @@ import android.content.IntentFilter;
 import android.content.ContentUris;
 import android.content.pm.ResolveInfo;
 import android.media.AudioManager;
-import android.media.AudioSystem;
+//import android.media.AudioSystem;
 import android.media.PlaybackParams;
 import android.media.tv.TvContentRating;
 import android.media.tv.TvInputManager;
@@ -30,10 +30,12 @@ import android.view.accessibility.CaptioningManager;
 import android.view.accessibility.CaptioningManager.CaptionStyle;
 import android.view.accessibility.CaptioningManager.CaptioningChangeListener;
 import android.database.ContentObserver;
-import android.database.IContentObserver;
+//import android.database.IContentObserver;
 import android.provider.Settings;
 import android.graphics.Color;
 import android.widget.Toast;
+import java.lang.reflect.Method;
+import java.lang.reflect.Field;
 
 import com.droidlogic.tvinput.Utils;
 
@@ -75,14 +77,15 @@ import java.util.HashMap;
 import java.util.Map;
 import android.net.Uri;
 import android.view.Surface;
-import android.util.NtpTrustedTime;
-import android.util.TrustedTime;
+//import android.util.NtpTrustedTime;
+//import android.util.TrustedTime;
 import android.os.SystemClock;
 import android.os.SystemProperties;
 
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
+import java.lang.Long;
 
 
 //tmp for RecorderSession
@@ -115,7 +118,6 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
     protected static final String DTV_SUBTITLE_AUTO_START = "tv.dtv.subtitle.autostart";
     protected static final String DTV_SUBTITLE_DTV_XDS = "tv.dtv.subtitle.xds";
-    protected static final String DTV_SUBTITLE_TIF_COMPATIABLE = "tv.dtv.subtitle.tif";
 
     protected static final String DTV_SUBTITLE_CS_PREFER = "persist.sys.cs.prefer";
     protected static final String DTV_SUBTITLE_CC_PREFER = "persist.sys.cc.prefer";
@@ -156,7 +158,6 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
     private EASProcessManager mEASProcessManager;
     private String mEasText = null;
 
-    protected SystemControlManager mSystemControlManager;
     protected DTVSessionImpl mCurrentSession;
     protected int id = 0;
     protected TvControlManager mTvControlManager;
@@ -174,9 +175,9 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
                   Log.d(TAG, "-----onReceive:"+action);
-                    if (mCurrentSession != null) {
-                        mCurrentSession.notifyUpdateUnblockRatingSet();
-                        //mCurrentSession.doRelease();
+                  if (mCurrentSession != null) {
+                      mCurrentSession.notifyUpdateUnblockRatingSet();
+                      mCurrentSession.doRelease();
                   }
             }
     };
@@ -219,7 +220,6 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         registerReceiver(mChannelScanStartReceiver, filter);
 
         mTvControlManager = TvControlManager.getInstance();
-        mSystemControlManager = new SystemControlManager(this);
         Log.d(TAG,"oncreate:Set EAS listener as TvInput");
         mEASProcessManager = new EASProcessManager(this);
         mTvControlManager.setEasListener(this);
@@ -385,7 +385,6 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
     protected static boolean subtitleAutoSave = false;
     protected static boolean audioAutoSave = false;
     protected static boolean subtitleAutoStart = false;
-    protected static boolean subtitleTifMode = true;
 
     /*associate audio*/
     protected static boolean audioADAutoStart = false;
@@ -557,17 +556,28 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         public void doFinalRelease() {
             if (mSystemControlManager.getPropertyBoolean("persist.sys.getdtvtime.isneed", false)) {
                 int autoTimeValue = Settings.Global.getInt(mContext.getContentResolver(), Settings.Global.AUTO_TIME, 0);
-                NtpTrustedTime mTime = NtpTrustedTime.getInstance(mContext);
+                //NtpTrustedTime mTime = NtpTrustedTime.getInstance(mContext);
+
                 if (autoTimeValue == 0) {
                     Settings.Global.putInt(mContext.getContentResolver(), Settings.Global.AUTO_TIME, 1);
-                    mTime.forceRefresh();
-                    long mCachedAge = mTime.getCacheAge();
-                    long mCachedNtpTime = mTime.getCachedNtpTime();
-                    if (mCachedAge != Long.MAX_VALUE) {
-                        Log.d("DroidLogic", "I have mCachedAge");
-                        SystemClock.setCurrentTimeMillis(mCachedNtpTime + mCachedAge);
+                    try {
+                        Class clazz         = ClassLoader.getSystemClassLoader().loadClass("android.util.NtpTrustedTime");
+                        Method method       = clazz.getMethod("forceRefresh");
+                        method.invoke(clazz);
+                        method              = clazz.getMethod("getCacheAge");
+                        Object objlong      = method.invoke(clazz);
+                        long mCachedAge     =  Long.valueOf(String.valueOf(objlong)).longValue();
+                        objlong             = clazz.getMethod("getCachedNtpTime");
+                        long mCachedNtpTime = Long.valueOf(String.valueOf(objlong)).longValue();
+                        if (mCachedAge != Long.MAX_VALUE) {
+                            Log.d("DroidLogic", "I have mCachedAge");
+                            SystemClock.setCurrentTimeMillis(mCachedNtpTime + mCachedAge);
+                            Log.d("DroidLogic", "autoTimeValue changed 0");
+                        }
+                    }catch (Exception e) {
+                        e.printStackTrace();
                     }
-                    Log.d("DroidLogic", "autoTimeValue changed 0");
+
                 } else if (autoTimeValue == 1) {
                     Settings.Global.putInt(mContext.getContentResolver(), Settings.Global.AUTO_TIME, 1);
                     Log.d("DroidLogic", "autoTimeValue changed 1");
@@ -815,9 +825,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             isTvPlaying = false;
             mIsChannelScrambled = false;
 
-            subtitleAutoStart = mSystemControlManager.getPropertyBoolean(DTV_SUBTITLE_AUTO_START, true);
+            subtitleAutoStart = mSystemControlManager.getPropertyBoolean(DTV_SUBTITLE_AUTO_START, false);
             subtitleAutoSave = subtitleAutoStart;
-            subtitleTifMode = mSystemControlManager.getPropertyBoolean(DTV_SUBTITLE_TIF_COMPATIABLE, true);
 
             if (Utils.getChannelId(uri) < 0) {
                 if (false)
@@ -933,12 +942,15 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         }
 
         protected int tryStartSubtitle(ChannelInfo info) {
-            if (isAtsc(info) && !subtitleTifMode) {
+            if (isAtsc(info)) {
                 mCurrentCCExist = 0;
                 mSystemControlManager.setProperty(DTV_SUBTITLE_CAPTION_EXIST, String.valueOf(mCurrentCCExist));
                 startSubtitleCCBackground(info);
+                mCurrentCCEnabled = mCaptioningManager == null? false : mCaptioningManager.isEnabled();
+            } else {
+                mCurrentCCExist = 0;
+                mSystemControlManager.setProperty(DTV_SUBTITLE_CAPTION_EXIST, String.valueOf(mCurrentCCExist));
             }
-            mCurrentCCEnabled = mCaptioningManager == null? false : mCaptioningManager.isEnabled();
 
             if (subtitleAutoStart)
                 startSubtitle(info);
@@ -1010,23 +1022,23 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 Log.d(TAG,"channelInfo is null ,exit updateChannelBlockStatus");
                 return;
             }
-            //Log.d(TAG, "updateBlock:"+channelBlocked + " curBlock:"+mChannelBlocked + " channel:"+channelInfo.getId());
+            Log.d(TAG, "updateBlock:"+channelBlocked + " curBlock:"+mChannelBlocked + " channel:"+channelInfo.getId());
             TvContentRating tcr = TvContentRating.createRating("com.android.tv", "block_norating", "block_norating", null);//only for block norationg function
             //maybe from the previous channel
             if (TvContract.buildChannelUri(channelInfo.getId()).compareTo(mCurrentUri) != 0)
                 return;
 
             boolean needChannelBlock = channelBlocked;
-            //Log.d(TAG, "isBlockNoRatingEnable:"+isBlockNoRatingEnable+",isUnlockCurrent_NR:"+isUnlockCurrent_NR);
+            Log.d(TAG, "isBlockNoRatingEnable:"+isBlockNoRatingEnable+",isUnlockCurrent_NR:"+isUnlockCurrent_NR);
             //add for no-rating block
             boolean isParentControlEnabled = mTvInputManager.isParentalControlsEnabled();
             TvContentRating ratings[] = getContentRatingsOfCurrentProgram(channelInfo);
             if (ratings == null && isBlockNoRatingEnable && !isUnlockCurrent_NR)
                 needChannelBlock = true;
 
-            //Log.d(TAG, "needChannelBlock:"+needChannelBlock);
+            Log.d(TAG, "needChannelBlock:"+needChannelBlock);
             needChannelBlock = isParentControlEnabled & needChannelBlock;
-            //Log.d(TAG, "updated needChannelBlock:"+needChannelBlock);
+            Log.d(TAG, "updated needChannelBlock:"+needChannelBlock);
             if ((mChannelBlocked != -1) && (mChannelBlocked == 1) == needChannelBlock
                     && (!needChannelBlock || (needChannelBlock && contentRating != null && contentRating.equals(mLastBlockedRating))))
                 //if(!isBlockNoRatingEnable)
@@ -1111,7 +1123,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             if (currentProgramTime == 0)
                 return null;
             Program mCurrentProgram = mTvDataBaseManager.getProgram(TvContract.buildChannelUri(channelInfo.getId()), currentProgramTime);
-            //Log.d(TAG, "TvTime:"+getDateAndTime(currentProgramTime)+" ("+currentProgramTime+")");
+            Log.d(TAG, "TvTime:"+getDateAndTime(currentProgramTime)+" ("+currentProgramTime+")");
 
             TvContentRating[] ratings = mCurrentProgram == null ? null : mCurrentProgram.getContentRatings();
             //if (isAtsc(channelInfo)) {
@@ -1191,13 +1203,13 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 }
                 updateChannelBlockStatus(blockContentRating != null, blockContentRating, channelInfo);
             } else {
-                //Log.d(TAG, "Check parental controls: disabled");
+                Log.d(TAG, "Check parental controls: disabled");
                 updateChannelBlockStatus(false, null, channelInfo);
             }
 
             if (mHandler != null) {
                     mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_PARENTAL_CONTROL, this), mParentControlDelay);
-                    //Log.d(TAG, "doPC next:"+mParentControlDelay);
+                    Log.d(TAG, "doPC next:"+mParentControlDelay);
             }
         }
 
@@ -1405,21 +1417,12 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             } else if (type == TvTrackInfo.TYPE_SUBTITLE) {
                 int index = -1;
                 if (trackId == null) {
-                    if (isAtsc(mCurrentChannel) && !subtitleTifMode) {
-                        mSystemControlManager.setProperty(DTV_SUBTITLE_CS_PREFER, String.valueOf(-1));
-                        mSystemControlManager.setProperty(DTV_SUBTITLE_CC_PREFER, String.valueOf(-1));
-                    }
                     stopSubtitleUser(mCurrentChannel);
                     index = -2;
                 } else {
                     ChannelInfo.Subtitle subtitle = parseSubtitleIdString(trackId);
-                    if (isAtsc(mCurrentChannel) && !subtitleTifMode) {
-                        mSystemControlManager.setProperty(DTV_SUBTITLE_CS_PREFER, String.valueOf(subtitle.mPid));
-                        mSystemControlManager.setProperty(DTV_SUBTITLE_CC_PREFER, String.valueOf(-1));
-                    } else {
-                        startSubtitle(subtitle, mCurrentChannel.getVfmt());
-                        mSystemControlManager.setProperty(DTV_SUBTITLE_TRACK_IDX, String.valueOf(subtitle.id));
-                    }
+                    startSubtitle(subtitle, mCurrentChannel.getVfmt());
+                    mSystemControlManager.setProperty(DTV_SUBTITLE_TRACK_IDX, String.valueOf(subtitle.id));
                     index = subtitle.id;
                 }
 
@@ -1445,7 +1448,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
             mVideoUnavailableReason = TvInputManager.VIDEO_UNAVAILABLE_REASON_UNKNOWN - 1;
 
-            enableSubtitleShow(true);
+            mSubtitleView.setVisible(is_subtitle_enabled);
             Log.i(TAG,"mCurrentUri = "+mCurrentUri+",mEasprocessManager = "+mEASProcessManager);
             if (mEASProcessManager != null &&
                     mEASProcessManager.isEasInProgress() && mEASProcessManager.getEasChannelUri() != null &&
@@ -1497,7 +1500,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                         mOverlayView.setImageVisibility(true);
                         mOverlayView.setTextVisibility(true);
                         mOverlayView.setEasTextVisibility(false);
-                        enableSubtitleShow(false);
+                        mSubtitleView.setVisible(false);
                         break;
                 }
             }
@@ -2249,6 +2252,32 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         protected void convertStyle() {
         }
 
+        private int getRawUserStyle(){
+            try {
+                Class clazz = ClassLoader.getSystemClassLoader().loadClass("android.view.accessibility.CaptioningManager");
+                Method method = clazz.getMethod("getUserStyle");
+                Object objInt = method.invoke(clazz);
+                return Integer.parseInt(String.valueOf(objInt));
+            } catch (Exception e) {
+                    // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            return -1;
+        }
+
+        private String getRawTypeface(CaptioningManager.CaptionStyle captionstyle) {
+            try {
+                Class<?> cls = Class.forName("android.view.accessibility.CaptioningManager.CaptionStyle");
+                Object obj = cls.newInstance();
+                obj = captionstyle;
+                Field rawTypeface = cls.getDeclaredField("mRawTypeface");
+                return rawTypeface.get(obj).toString();
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
         protected CCStyleParams getCaptionStyle()
         {
             boolean USE_NEW_CCVIEW = true;
@@ -2262,7 +2291,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
              */
             CaptioningManager.CaptionStyle userStyle = mCaptioningManager.getUserStyle();
 
-            int style = mCaptioningManager.getRawUserStyle();
+            int style = getRawUserStyle();
             float textSize = mCaptioningManager.getFontScale();
             int fg_color = userStyle.foregroundColor & 0x00ffffff;
             int fg_opacity = userStyle.foregroundColor & 0xff000000;
@@ -2271,12 +2300,12 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             int fontStyle = DTVSubtitleView.CC_FONTSTYLE_DEFAULT;
 
             for (int i = 0; i < typeface.length; ++i) {
-                if (typeface[i].equals(userStyle.mRawTypeface)) {
+                if (typeface[i].equals(getRawTypeface(userStyle))) {
                     fontStyle = i;
                     break;
                 }
             }
-            Log.d(TAG, "get style: " + style + ", fontStyle" + fontStyle + ", typeface: " + userStyle.mRawTypeface);
+            Log.d(TAG, "get style: " + style + ", fontStyle" + fontStyle + ", typeface: " + getRawTypeface(userStyle));
 
             int fg = userStyle.foregroundColor;
             int bg = userStyle.backgroundColor;
@@ -3413,12 +3442,12 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                             reset();
                     }
                 }
-
+                /*
                 @Override
                 public IContentObserver releaseContentObserver() {
                     // TODO Auto-generated method stub
                     return super.releaseContentObserver();
-                }
+                }*/
             }
 
             private final class CCStyleObserver extends CaptioningChangeListener {
@@ -3476,31 +3505,33 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
                 public void onScanEndBeforeStore(int freg) {
                     //delete channel before store
-                    if (mUpdateFrequency == 0 || mUpdateFrequency != freg) {
+                    if (mUpdateFrequency == 0 || mUpdateFrequency != freg)
+                    {
                         Log.d(TAG, "[onScanEndBeforeStore] mUpdateFrequency:" + mUpdateFrequency + ", freg:" + freg);
                         return;
                     }
                     deleteChannelInfoByFreq(mUpdateFrequency);
                 }
 
-                public void onStoreEnd(int freg) {
-                    Log.d(TAG, "onStoreEnd");
+                public void onScanExit(int freg) {
                     setEpgAutoReset(true);
-                    if (mUpdateFrequency == 0 || mUpdateFrequency != freg) {
+                    if (mUpdateFrequency == 0 || mUpdateFrequency != freg)
+                    {
                         Log.d(TAG, "[onScanExit]  mUpdateFrequency:" + mUpdateFrequency + ", freg:" + freg);
                         return;
                     }
                     ArrayList<ChannelInfo> channelMap = mTvDataBaseManager.getChannelList(mInputId, ChannelInfo.COMMON_PROJECTION, null, null);
                     if (channelMap != null) {
-                        for (ChannelInfo c : channelMap) {
+                        for (ChannelInfo c : channelMap)
+                        {
                              Log.d(TAG, "onScanExit mUpdateFrequency:" + mUpdateFrequency + "ChannelInfo.getFrequency()" + c.getFrequency());
-                             if (mUpdateFrequency == c.getFrequency()) {
+                             if (mUpdateFrequency == c.getFrequency())
+                             {
                                  Log.d(TAG, "Will send msg to Session handler");
                                  synchronized (this) {
                                      if (mCurrentSession != null)
                                          mCurrentSession.onUpdateTsPlay(c.getId());
                                      notifyChannelRetuned(c.getUri());
-                                     Log.d(TAG, "TS changed,  notifyChannelRetuned: " + c.getUri());
                                  }
                                  break;
                              }
@@ -4090,12 +4121,15 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         ResolveInfo rInfo = getResolveInfo(DTVInputService.class.getName());
         if (rInfo != null) {
             try {
-                info = new TvInputInfo.Builder(this, rInfo)
-                    .setLabel(getTvInputInfoLabel(hardwareInfo.getDeviceId()))
-                    .setTvInputHardwareInfo(hardwareInfo)
-                    //.setCanRecord(true)
-                    .build();
+                info = TvInputInfo.createTvInputInfo(
+                           getApplicationContext(),
+                           rInfo,
+                           hardwareInfo,
+                           getTvInputInfoLabel(hardwareInfo.getDeviceId()),
+                           null);
             } catch (Exception e) {
+                // TODO: handle exception
+                 e.printStackTrace();
             }
         }
         updateInfoListIfNeededLocked(hardwareInfo, info, false);
@@ -4264,9 +4298,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 public void onUpdateEasText(String text) {
                     if (DEBUG) Log.d(TAG,"onUpdateEasText:"+text);
                         mEasText = text;
-                    if (mCurrentSession != null) {
+                    if (mCurrentSession != null)
                         mCurrentSession.showEasText();
-                    }
                 }
     };
 }

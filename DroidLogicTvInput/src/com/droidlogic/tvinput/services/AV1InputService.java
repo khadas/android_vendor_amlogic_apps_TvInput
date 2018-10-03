@@ -12,6 +12,9 @@ import com.droidlogic.app.tv.TvInputBaseSession;
 import com.droidlogic.app.tv.TvControlDataManager;
 import com.droidlogic.tvinput.R;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Field;
+
 import android.content.Context;
 import android.content.pm.ResolveInfo;
 import android.media.tv.TvInputHardwareInfo;
@@ -753,6 +756,33 @@ public class AV1InputService extends DroidLogicTvInputService {
                 return 2.0f;//AM_CC_FONTSIZE_DEFAULT
             }
         }
+
+        private int getRawUserStyle(){
+            try {
+                Class clazz = ClassLoader.getSystemClassLoader().loadClass("android.view.accessibility.CaptioningManager");
+                Method method = clazz.getMethod("getUserStyle");
+                Object objInt = method.invoke(clazz);
+                return Integer.parseInt(String.valueOf(objInt));
+            } catch (Exception e) {
+                    // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            return -1;
+        }
+
+        private String getRawTypeface(CaptioningManager.CaptionStyle captionstyle) {
+            try {
+                Class<?> cls = Class.forName("android.view.accessibility.CaptioningManager.CaptionStyle");
+                Object obj = cls.newInstance();
+                obj = captionstyle;
+                Field rawTypeface = cls.getDeclaredField("mRawTypeface");
+                return rawTypeface.get(obj).toString();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
         protected CCStyleParams getCaptionStyle() {
             boolean USE_NEW_CCVIEW = true;
 
@@ -765,7 +795,7 @@ public class AV1InputService extends DroidLogicTvInputService {
              */
             CaptioningManager.CaptionStyle userStyle = mCaptioningManager.getUserStyle();
 
-            int style = mCaptioningManager.getRawUserStyle();
+            int style = getRawUserStyle();
             float textSize = mCaptioningManager.getFontScale();
             int fg_color = userStyle.foregroundColor & 0x00ffffff;
             int fg_opacity = userStyle.foregroundColor & 0xff000000;
@@ -774,12 +804,12 @@ public class AV1InputService extends DroidLogicTvInputService {
             int fontStyle = DTVSubtitleView.CC_FONTSTYLE_DEFAULT;
 
             for (int i = 0; i < typeface.length; ++i) {
-                if (typeface[i].equals(userStyle.mRawTypeface)) {
+                if (typeface[i].equals(getRawTypeface(userStyle))) {
                     fontStyle = i;
                     break;
                 }
             }
-            Log.d(TAG, "get style: " + style + ", fontStyle" + fontStyle + ", typeface: " + userStyle.mRawTypeface);
+            Log.d(TAG, "get style: " + style + ", fontStyle" + fontStyle + ", typeface: " + getRawTypeface(userStyle));
 
             int fg = userStyle.foregroundColor;
             int bg = userStyle.backgroundColor;

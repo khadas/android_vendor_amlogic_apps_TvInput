@@ -1,6 +1,5 @@
 package com.droidlogic.tvinput.services;
 
-import android.app.ActivityThread;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Handler;

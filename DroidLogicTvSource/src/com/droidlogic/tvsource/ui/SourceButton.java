@@ -2,7 +2,6 @@ package com.droidlogic.tvsource.ui;
 
 import com.droidlogic.app.tv.ChannelInfo;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
-import com.droidlogic.app.tv.TvControlDataManager;
 
 import com.droidlogic.tvsource.ChannelDataManager;
 import com.droidlogic.tvsource.ChannelTuner;
@@ -48,8 +47,6 @@ public class SourceButton extends LinearLayout {
 
     private OnSourceClickListener mListener;
 
-    private TvControlDataManager mTvControlDataManager = null;
-
     public SourceButton(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
@@ -63,7 +60,6 @@ public class SourceButton extends LinearLayout {
         mContext = context;
         mResources = context.getResources();
         mHardwareDeviceId = deviceId;
-        mTvControlDataManager = TvControlDataManager.getInstance(mContext);
         init();
     }
 
@@ -75,7 +71,6 @@ public class SourceButton extends LinearLayout {
         mContext = context;
         mResources = context.getResources();
         mInputInfo = info;
-        mTvControlDataManager = TvControlDataManager.getInstance(mContext);
         init();
     }
 
@@ -413,7 +408,7 @@ public class SourceButton extends LinearLayout {
     }
 
     public boolean moveToRecentChannel() {
-        int recentChannelIndex = mTvControlDataManager.getInt(mContext.getContentResolver(), RECENT_CHANNEL_INDEX, -1);
+        int recentChannelIndex = Settings.System.getInt(mContext.getContentResolver(), RECENT_CHANNEL_INDEX, -1);
         if (recentChannelIndex != getChannelIndex())
             return moveToIndex(recentChannelIndex);
         else
@@ -421,9 +416,9 @@ public class SourceButton extends LinearLayout {
     }
 
     private void setRecentChannelIndex(int index) {
-        int recentChannelIndex = mTvControlDataManager.getInt(mContext.getContentResolver(), RECENT_CHANNEL_INDEX, -1);
+        int recentChannelIndex = Settings.System.getInt(mContext.getContentResolver(), RECENT_CHANNEL_INDEX, -1);
         if (recentChannelIndex != index) {
-            mTvControlDataManager.putInt(mContext.getContentResolver(), RECENT_CHANNEL_INDEX, index);
+            Settings.System.putInt(mContext.getContentResolver(), RECENT_CHANNEL_INDEX, index);
         }
     }
 
