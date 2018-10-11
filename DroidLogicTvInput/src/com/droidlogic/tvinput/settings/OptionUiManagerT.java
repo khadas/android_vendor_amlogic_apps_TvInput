@@ -108,6 +108,8 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
     private static final int CHANNELNUMBER = 7;
     private static final int EXIT_SCAN = 8;
 
+    private static final int EVENT_SCAN_END_PERCENT = 100;
+
     private Context mContext;
     private Resources mResources;
     private SettingsManager mSettingsManager;
@@ -1266,6 +1268,7 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
 
             case TvControlManager.EVENT_SCAN_END:
                 Log.d(TAG, "onEvent:Scan end");
+                sendMessage(PROCCESS, EVENT_SCAN_END_PERCENT, null);
                 stopSearch();
                 break;
 
