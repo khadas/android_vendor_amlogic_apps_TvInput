@@ -3811,7 +3811,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             mRandom.setSeed(System.nanoTime());
 
             mTvDataBaseManager = new TvDataBaseManager(mContext);
-            mSystemControlManager = new SystemControlManager(mContext);
+            mSystemControlManager = SystemControlManager.getInstance();
 
             HandlerThread handlerThread = new HandlerThread(TAG);
             handlerThread.start();
