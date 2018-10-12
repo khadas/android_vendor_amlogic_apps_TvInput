@@ -1114,12 +1114,12 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             //Log.d(TAG, "TvTime:"+getDateAndTime(currentProgramTime)+" ("+currentProgramTime+")");
 
             TvContentRating[] ratings = mCurrentProgram == null ? null : mCurrentProgram.getContentRatings();
-            if (isAtsc(channelInfo)) {
-                String jason = null;
+            //if (isAtsc(channelInfo)) {
+                String json = null;
                 TvContentRating[] newparseratings = null;
                 if (mCurrentProgram != null) {
-                    jason = mCurrentProgram.getInternalProviderData();
-                    newparseratings = parseDRatingsT(jason, -1, null, mCurrentProgram.getTitle());
+                    json = mCurrentProgram.getInternalProviderData();
+                    newparseratings = parseDRatingsT(json, -1, null, mCurrentProgram.getTitle());
                 }
                 if (newparseratings != null && !TextUtils.equals(Program.contentRatingsToString(newparseratings), Program.contentRatingsToString(ratings))) {
                     ratings = newparseratings;
@@ -1144,7 +1144,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                         saveCurrentChannelRatings();
                     }
                 }
-            }
+            //}
             if (ratings == null && mCurrentChannel != null) {
                 ratings = Program.stringToContentRatings(mCurrentChannel.getContentRatings());
                 if (ratings != null && ratings.length > 0) {
@@ -2046,14 +2046,14 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 }
             }
             /*Check CC show*/
-            mCurrentCCExist = mask;
-            if (mSystemControlManager != null)
-                mSystemControlManager.setProperty(DTV_SUBTITLE_CAPTION_EXIST, String.valueOf(mCurrentCCExist));
+//            mCurrentCCExist = mask;
+//            if (mSystemControlManager != null)
+//                mSystemControlManager.setProperty(DTV_SUBTITLE_CAPTION_EXIST, String.valueOf(mCurrentCCExist));
 
-            if (mHandler != null && !subtitleTifMode) {
-                mHandler.removeMessages(MSG_CC_TRY_PREFERRED);
-                mHandler.obtainMessage(MSG_CC_TRY_PREFERRED, mCurrentCCExist, 0, this).sendToTarget();
-            }
+//            if (mHandler != null) {
+//                mHandler.removeMessages(MSG_CC_TRY_PREFERRED);
+//                mHandler.obtainMessage(MSG_CC_TRY_PREFERRED, mCurrentCCExist, 0, this).sendToTarget();
+//            }
         }
 
         private static final int DELAY_TRY_PREFER_CC = 2000;

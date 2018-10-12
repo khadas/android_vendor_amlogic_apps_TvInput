@@ -234,7 +234,7 @@ public class ADTVInputService extends DTVInputService {
         @Override
         protected TvContentRating[] getContentRatingsOfCurrentProgram(ChannelInfo channelInfo) {
             if (channelInfo != null && channelInfo.isAnalogChannel())
-                return DroidLogicTvUtils.parseARatings(channelInfo.getContentRatings());
+                return Program.stringToContentRatings(channelInfo.getContentRatings());
                 //return mATVContentRatings;
             else
                 return super.getContentRatingsOfCurrentProgram(channelInfo);
@@ -242,19 +242,19 @@ public class ADTVInputService extends DTVInputService {
 
         @Override
         public void onSubtitleData(String json) {
-            Log.d(TAG, "onSubtitleData json: " + json);
-            Log.d(TAG, "onSubtitleData curchannel:"+(mCurrentChannel!=null?mCurrentChannel.getDisplayName():"null"));
-            if (mCurrentChannel != null && mCurrentChannel.isAnalogChannel()) {
-                mATVContentRatings = DroidLogicTvUtils.parseARatings(json);
-                if (/*mATVContentRatings != null && */json.contains("Aratings") && !TextUtils.equals(json, mCurrentChannel.getContentRatings())) {
-                    TvDataBaseManager tvdatabasemanager = new TvDataBaseManager(mContext);
-                    mCurrentChannel.setContentRatings(json);
-                    tvdatabasemanager.updateOrinsertAtvChannel(mCurrentChannel);
-                }
-
-                if (mHandler != null)
-                    mHandler.sendMessage(mHandler.obtainMessage(MSG_PARENTAL_CONTROL, this));
-            }
+//            Log.d(TAG, "onSubtitleData json: " + json);
+//            Log.d(TAG, "onSubtitleData curchannel:"+(mCurrentChannel!=null?mCurrentChannel.getDisplayName():"null"));
+//            if (mCurrentChannel != null && mCurrentChannel.isAnalogChannel()) {
+//                mATVContentRatings = DroidLogicTvUtils.parseARatings(json);
+//                if (/*mATVContentRatings != null && */json.contains("Aratings") && !TextUtils.equals(json, mCurrentChannel.getContentRatings())) {
+//                    TvDataBaseManager tvdatabasemanager = new TvDataBaseManager(mContext);
+//                    mCurrentChannel.setContentRatings(json);
+//                    tvdatabasemanager.updateOrinsertAtvChannel(mCurrentChannel);
+//                }
+//
+//                if (mHandler != null)
+//                    mHandler.sendMessage(mHandler.obtainMessage(MSG_PARENTAL_CONTROL, this));
+//            }
             super.onSubtitleData(json);
         }
 
