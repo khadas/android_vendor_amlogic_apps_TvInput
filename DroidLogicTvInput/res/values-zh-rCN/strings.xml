@@ -65,6 +65,7 @@
     <string name="searched_number">节目数量</string>
     <string name="channel_edit">频道编辑</string>
     <string name="switch_channel">切台效果</string>
+    <string name="av_scrambled">加密频道</string>
 
     <!-- Settings -->
     <string name="settings">设置</string>

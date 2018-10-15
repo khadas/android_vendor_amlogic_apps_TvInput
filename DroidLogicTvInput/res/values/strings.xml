@@ -76,6 +76,7 @@
     <string name="switch_channel">Switch Channel</string>
     <string name="atv_program">ATV program</string>
     <string name="mts">MTS</string>
+    <string name="av_scrambled">Scrambled</string>
 
     <!-- Settings -->
     <string name="settings">Settings</string>

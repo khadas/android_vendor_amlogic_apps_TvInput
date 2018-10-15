@@ -296,7 +296,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                     && mCurrentSession != null
                     && mCurrentSession.mCurrentChannel != null
                     && !mCurrentSession.mCurrentChannel.isAnalogChannel()
-                    && mTvControlManager.DtvGetVideoFormatInfo().fps != 0) {
+                    && mTvControlManager.DtvGetVideoFormatInfo().fps > 0) {
                 Log.d(TAG, "Signal and video look well");
                 mCurrentSession.notifyVideoAvailable();
 
@@ -456,6 +456,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         protected Uri  mCurrentUri;
         private boolean mIsBlocked = false;
         private boolean mIsChannelBlocked = false;
+        private boolean mIsChannelScrambled = false;
         private boolean mIsPreviousChannelBlocked = false;
 
         private boolean mUpdateTsFlag = false;
@@ -812,6 +813,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             isUnlockCurrent_NR = false;
 
             isTvPlaying = false;
+            mIsChannelScrambled = false;
 
             subtitleAutoStart = mSystemControlManager.getPropertyBoolean(DTV_SUBTITLE_AUTO_START, true);
             subtitleAutoSave = subtitleAutoStart;
@@ -1320,7 +1322,12 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             Log.d(TAG, "AV evt:" + msgType);
             switch (msgType) {
                 case TvControlManager.EVENT_AV_SCRAMBLED:
+                    if (mOverlayView != null) {
+                        mOverlayView.setText(R.string.av_scrambled);
+                        mOverlayView.setTextVisibility(true);
+                    }
                     notifySessionEvent(DroidLogicTvUtils.AV_SIG_SCRAMBLED, null);
+                    mIsChannelScrambled = true;
                     break;
                 case TvControlManager.EVENT_AV_PLAYBACK_NODATA:
                     break;
@@ -1448,7 +1455,13 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             }
             if (isRadioChannel() && mOverlayView != null) {
                 mOverlayView.setImage(R.drawable.bg_radio);
-                mSystemControlManager.writeSysFs("/sys/class/video/disable_video", "2");
+            }
+
+            if (mIsChannelScrambled && mTvControlManager.DtvGetVideoFormatInfo().fps <= 0) {
+                mOverlayView.setText(R.string.av_scrambled);
+                mOverlayView.setTextVisibility(true);
+            } else {
+                mIsChannelScrambled = false;
             }
         }
 
@@ -1479,6 +1492,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                     case TvInputManager.VIDEO_UNAVAILABLE_REASON_UNKNOWN:
                     default:
                         mOverlayView.setImage(R.drawable.bg_no_signal);
+                        mOverlayView.setText(R.string.nosignal);
+                        mOverlayView.setTextVisibility(true);
                         mOverlayView.setImageVisibility(true);
                         mOverlayView.setTextVisibility(true);
                         mOverlayView.setEasTextVisibility(false);
