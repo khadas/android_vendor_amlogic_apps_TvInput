@@ -395,6 +395,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
     protected final Object mLock = new Object();
     protected final Object mSubtitleLock = new Object();
     protected final Object mEpgUpdateLock = new Object();
+    protected final Object mRatingsUpdatelLock = new Object();
 
 
 
@@ -773,11 +774,13 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             boolean isParentControlEnabled = mTvInputManager.isParentalControlsEnabled();
             Log.d(TAG, "checkIsNeedClearUnblockRating  isParentControlEnabled = " + isParentControlEnabled);
             if (isParentControlEnabled) {
-                Iterator<TvContentRating> rateIter = mUnblockedRatingSet.iterator();
-                while (rateIter.hasNext()) {
-                    TvContentRating rating = rateIter.next();
-                    if (mTvInputManager.isRatingBlocked(rating)) {
-                        mUnblockedRatingSet.remove(rating);
+                synchronized (mRatingsUpdatelLock) {
+                    Iterator<TvContentRating> rateIter = mUnblockedRatingSet.iterator();
+                    while (rateIter.hasNext()) {
+                        TvContentRating rating = rateIter.next();
+                        if (mTvInputManager.isRatingBlocked(rating)) {
+                            mUnblockedRatingSet.remove(rating);
+                        }
                     }
                 }
             }
@@ -1226,35 +1229,38 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 || mLastBlockedRating == null
                 || (mLastBlockedRating != null && rating.equals(mLastBlockedRating))) {
                 mLastBlockedRating = null;
-                if (rating != null) {
-                    //unblock all other ratings
-                    TvContentRating[] allratings = getContentRatingsOfCurrentProgram(mCurrentChannel);
-                    if (allratings != null) {
-                        for (TvContentRating single : allratings) {
-                            mUnblockedRatingSet.add(single);
+
+                synchronized (mRatingsUpdatelLock) {
+                    if (rating != null) {
+                        //unblock all other ratings
+                        TvContentRating[] allratings = getContentRatingsOfCurrentProgram(mCurrentChannel);
+                        if (allratings != null) {
+                            for (TvContentRating single : allratings) {
+                                mUnblockedRatingSet.add(single);
+                            }
+                        } else {
+                            mUnblockedRatingSet.add(rating);
                         }
-                    } else {
-                        mUnblockedRatingSet.add(rating);
-                    }
-                    isUnlockCurrent_NR = true;
-                    TvContentRating ratings[] = DroidLogicTvUtils.unblockLowRating(rating);
-                    if (ratings != null && ratings.length > 0) {
-                        for (index = 0; index < ratings.length; index ++) {
-                            if (!mUnblockedRatingSet.contains(ratings[index]))
-                                mUnblockedRatingSet.add(ratings[index]);
+                        isUnlockCurrent_NR = true;
+                        TvContentRating ratings[] = DroidLogicTvUtils.unblockLowRating(rating);
+                        if (ratings != null && ratings.length > 0) {
+                            for (index = 0; index < ratings.length; index ++) {
+                                if (!mUnblockedRatingSet.contains(ratings[index]))
+                                    mUnblockedRatingSet.add(ratings[index]);
+                            }
                         }
                     }
-                }
-                //Unlock lower rating for other ratings
-                if (mCurChannelRatings != null && mCurChannelRatings.length > 1) {
-                    for (TvContentRating mrating : mCurChannelRatings) {
-                        if (!rating.equals(mrating)) {
-                            mUnblockedRatingSet.add(mrating);
-                            TvContentRating ratings[] = DroidLogicTvUtils.unblockLowRating(mrating);
-                            if (ratings != null && ratings.length > 0) {
-                                for (index = 0; index < ratings.length; index ++) {
-                                    if (!mUnblockedRatingSet.contains(ratings[index]))
-                                        mUnblockedRatingSet.add(ratings[index]);
+                    //Unlock lower rating for other ratings
+                    if (mCurChannelRatings != null && mCurChannelRatings.length > 1) {
+                        for (TvContentRating mrating : mCurChannelRatings) {
+                            if (!rating.equals(mrating)) {
+                                mUnblockedRatingSet.add(mrating);
+                                TvContentRating ratings[] = DroidLogicTvUtils.unblockLowRating(mrating);
+                                if (ratings != null && ratings.length > 0) {
+                                    for (index = 0; index < ratings.length; index ++) {
+                                        if (!mUnblockedRatingSet.contains(ratings[index]))
+                                            mUnblockedRatingSet.add(ratings[index]);
+                                    }
                                 }
                             }
                         }
