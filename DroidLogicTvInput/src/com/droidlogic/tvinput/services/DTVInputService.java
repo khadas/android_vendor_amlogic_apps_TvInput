@@ -296,7 +296,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                     && mCurrentSession != null
                     && mCurrentSession.mCurrentChannel != null
                     && !mCurrentSession.mCurrentChannel.isAnalogChannel()
-                    && mTvControlManager.DtvGetVideoFormatInfo().fps > 0) {
+                    && mTvControlManager.DtvGetVideoFormatInfo().fps != 0) {
                 Log.d(TAG, "Signal and video look well");
                 mCurrentSession.notifyVideoAvailable();
 
