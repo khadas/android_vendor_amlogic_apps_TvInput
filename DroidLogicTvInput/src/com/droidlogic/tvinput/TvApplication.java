@@ -108,5 +108,4 @@ public class TvApplication extends Application{
         private static native void nativeUnCrypt(String src,String dest);
 
     }
-
 }

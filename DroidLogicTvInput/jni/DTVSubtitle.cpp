@@ -48,12 +48,12 @@ typedef void* AM_SUB2_Handle_t;
 #undef LOG_TAG
 #endif
 
-//#define USE_GRAPHIC_LIB
-
 #define LOG_TAG    "jnidtvsubtitle"
 #define LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
 #define LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 #define CC_JSON_BUFFER_SIZE 8192
+
+
     static JavaVM   *gJavaVM = NULL;
     static jmethodID gUpdateID;
     static jfieldID  gBitmapID;
@@ -65,11 +65,6 @@ typedef void* AM_SUB2_Handle_t;
     static jmethodID gReadSysfsID;
     static jmethodID gWriteSysfsID;
     static char gJsonStr[CC_JSON_BUFFER_SIZE];
-#ifndef USE_GRAPHIC_LIB
-    static unsigned char* bmp_buffer;
-    static jfieldID gBmpDirectBufferID;
-    static jobject gBmpObj;
-#endif
 
     static jint sub_clear(JNIEnv *env, jobject obj);
     static void sub_update(jobject obj);
@@ -78,7 +73,6 @@ typedef void* AM_SUB2_Handle_t;
     static uint8_t *lock_bitmap(JNIEnv *env, jobject bitmap)
     {
         int attached = 0;
-        uint8_t *buf;
         if (!env) {
             int ret;
             ret = gJavaVM->GetEnv((void **) &env, JNI_VERSION_1_4);
@@ -91,11 +85,10 @@ typedef void* AM_SUB2_Handle_t;
                 attached = 1;
             }
         }
-#ifdef USE_GRAPHIC_LIB
-        AndroidBitmap_lockPixels(env, bitmap, (void **) &buf);
-#else
-        buf = bmp_buffer;
-#endif
+
+        uint8_t *buf;
+        //AndroidBitmap_lockPixels(env, bitmap, (void **) &buf);
+
         if (attached) {
             gJavaVM->DetachCurrentThread();
         }
@@ -117,10 +110,9 @@ typedef void* AM_SUB2_Handle_t;
                 attached = 1;
             }
         }
-#ifdef USE_GRAPHIC_LIB
-        AndroidBitmap_unlockPixels(env, bitmap);
-#else
-#endif
+
+        //AndroidBitmap_unlockPixels(env, bitmap);
+
         if (attached) {
             gJavaVM->DetachCurrentThread();
         }
@@ -131,18 +123,9 @@ typedef void* AM_SUB2_Handle_t;
         unlock_bitmap(NULL, bitmap);
     }
 
-#ifndef USE_GRAPHIC_LIB
-    static void set_bmp_direct_buffer(JNIEnv *env, jobject obj, jobject buffer)
-    {
-        bmp_buffer = (unsigned char*)(env->GetDirectBufferAddress(buffer));
-        jlong dwCapacity  = env->GetDirectBufferCapacity(buffer);
-    }
-#endif
-
     static uint8_t *get_bitmap(JNIEnv *env, TVSubtitleData *sub, int *w, int *h, int *pitch)
     {
         uint8_t *buf;
-        int width, height, stride;
 
         buf = lock_bitmap(env, sub->obj_bitmap);
         unlock_bitmap(env, sub->obj_bitmap);
@@ -151,7 +134,6 @@ typedef void* AM_SUB2_Handle_t;
         if (!buf) {
             LOGE("allocate bitmap buffer failed");
         } else {
-#ifdef USE_GRAPHIC_LIB
             AndroidBitmapInfo bitmapInfo;
             //AndroidBitmap_getInfo(env, sub->obj_bitmap, &bitmapInfo);
             LOGI("init bitmap info w:%d h:%d s:%d", bitmapInfo.width, bitmapInfo.height, bitmapInfo.stride);
@@ -166,23 +148,6 @@ typedef void* AM_SUB2_Handle_t;
                 *pitch = bitmapInfo.stride;
             }
         }
-#else
-            //Get bufferH bufferW stride=W*4
-            width = 1920;
-            height = 1080;
-            stride = 7680;
-            LOGI("init bitmap info w:%d h:%d s:%d", width, height, stride);
-            if (w) {
-                *w = width;
-            }
-            if (h) {
-                *h = height;
-            }
-            if (pitch) {
-                *pitch = stride;
-            }
-        }
-#endif
 
         return buf;
     }
@@ -319,6 +284,8 @@ typedef void* AM_SUB2_Handle_t;
     {
         TVSubtitleData *sub = (TVSubtitleData *)AM_SUB2_GetUserData(handle);
 
+        LOGI("show sub");
+
         pthread_mutex_lock(&sub->lock);
 
         sub->buffer = lock_bitmap(NULL, sub->obj_bitmap);
@@ -429,6 +396,7 @@ typedef void* AM_SUB2_Handle_t;
         } else {
             r = 0LL;
         }
+
         return r;
     }
 
@@ -640,8 +608,7 @@ error:
         }
         env->DeleteGlobalRef(data->obj_bitmap);
         data->buffer = NULL;
-        if (data->obj_bitmap)
-            data->obj_bitmap = NULL;
+        data->obj_bitmap = NULL;
         if (attached) {
             gJavaVM->DetachCurrentThread();
         }
@@ -1240,8 +1207,7 @@ error:
         {"native_sub_start_atsc_atvcc", "(IIIIIII)I", (void *)sub_start_atsc_atvcc},
         {"native_sub_stop_atsc_cc", "()I", (void *)sub_stop_atsc_cc},
         {"native_sub_set_atsc_cc_options", "(IIIIII)I", (void *)sub_set_atsc_cc_options},
-        {"native_sub_set_active", "(Z)I", (void *)sub_set_active},
-        {"native_set_buffer", "(Ljava/nio/ByteBuffer;)V", (void *)set_bmp_direct_buffer}
+        {"native_sub_set_active", "(Z)I", (void *)sub_set_active}
     };
 
     JNIEXPORT jint
@@ -1274,6 +1240,7 @@ error:
 
             gPassJsonStr = env->GetMethodID(clazz, "saveJsonStr", "(Ljava/lang/String;)V");
             gBitmapID = env->GetStaticFieldID(clazz, "bitmap", "Landroid/graphics/Bitmap;");
+
             gUpdateDataID = env->GetMethodID(clazz, "updateData", "(Ljava/lang/String;)V");
             gReadSysfsID = env->GetMethodID(clazz, "readSysFs", "(Ljava/lang/String;)Ljava/lang/String;");
             gWriteSysfsID = env->GetMethodID(clazz, "writeSysFs", "(Ljava/lang/String;Ljava/lang/String;)V");

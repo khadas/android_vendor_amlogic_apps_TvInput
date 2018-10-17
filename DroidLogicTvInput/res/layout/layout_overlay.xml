@@ -35,7 +35,7 @@
             />
     </LinearLayout>
 
-    <com.droidlogic.tvinput.widget.MarqueeTextView
+    <TextView
         android:id="@+id/msg_text_eas"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

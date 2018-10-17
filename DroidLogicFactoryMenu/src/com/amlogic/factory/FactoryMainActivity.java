@@ -265,7 +265,7 @@ public class FactoryMainActivity extends Activity implements TvControlManager.Up
                     public void onClick(DialogInterface dialog, int which) {
                         tv.SSMInitDevice();
                         tv.FactoryCleanAllTableForProgram();
-                        sendBroadcast(new Intent(Intent.ACTION_MASTER_CLEAR));
+                        // cannot use this hidden intent:sendBroadcast(new Intent(Intent.ACTION_MASTER_CLEAR));
                     }
                 };
                 ConfirmDialog(msg, listener);
@@ -491,50 +491,47 @@ public class FactoryMainActivity extends Activity implements TvControlManager.Up
         public void onClick(DialogInterface dialog, int which) {
             Map<String, String> map = mListSubMenuData.get(mSubMenuPos);
             int value = Integer.parseInt(whitebalanceEditText.getText().toString());
-            SystemControlManager.SourceInput source = SystemControlManager.SourceInput.values()[mCurInputPortPos];
-            SystemControlManager.color_temperature mode = SystemControlManager.color_temperature.values()[mColorTemperaturePos];
-            SystemControlManager.SignalFmt sigFmt = null;
-            SystemControlManager.TransFmt transFmt = SystemControlManager.TransFmt.values()[reshowTvinTransFmtPos];
+            TvControlManager.SourceInput_Type source = TvControlManager.SourceInput_Type.values()[mCurInputPortPos];
             // TODO Auto-generated method stub
             switch (mSubMenuPos) {
                 case 2:
                     if (value >= 0 && value < 2047) {
-                        mSystemControlManager.FactoryWhiteBalanceSetRedGain(source, sigFmt.valueOf(mCurInputPortPos), transFmt, mode, value);
+                        mSystemControlManager.FactoryWhiteBalanceSetRedGain(source.toInt(), mColorTemperaturePos, value);
                         map.put("sub_value", "" + value);
                         sAdapter.notifyDataSetChanged();
                     }
                     break;
                 case 3:
                     if (value >= 0 && value < 2047) {
-                        mSystemControlManager.FactoryWhiteBalanceSetGreenGain(source, sigFmt.valueOf(mCurInputPortPos), transFmt, mode, value);
+                        mSystemControlManager.FactoryWhiteBalanceSetGreenGain(source.toInt(), mColorTemperaturePos, value);
                         map.put("sub_value", "" + value);
                         sAdapter.notifyDataSetChanged();
                     }
                     break;
                 case 4:
                     if (value >= 0 && value < 2047) {
-                        mSystemControlManager.FactoryWhiteBalanceSetBlueGain(source, sigFmt.valueOf(mCurInputPortPos), transFmt, mode, value);
+                        mSystemControlManager.FactoryWhiteBalanceSetBlueGain(source.toInt(), mColorTemperaturePos, value);
                         map.put("sub_value", "" + value);
                         sAdapter.notifyDataSetChanged();
                     }
                     break;
                 case 5:
                     if (value >= -1023 && value < 1024) {
-                        mSystemControlManager.FactoryWhiteBalanceSetRedOffset(source, sigFmt.valueOf(mCurInputPortPos), transFmt, mode, value);
+                        mSystemControlManager.FactoryWhiteBalanceSetRedOffset(source.toInt(), mColorTemperaturePos, value);
                         map.put("sub_value", "" + value);
                         sAdapter.notifyDataSetChanged();
                     }
                     break;
                 case 6:
                     if (value >= -1023 && value < 1024) {
-                        mSystemControlManager.FactoryWhiteBalanceSetGreenOffset(source, sigFmt.valueOf(mCurInputPortPos), transFmt, mode, value);
+                        mSystemControlManager.FactoryWhiteBalanceSetGreenOffset(source.toInt(), mColorTemperaturePos, value);
                         map.put("sub_value", "" + value);
                         sAdapter.notifyDataSetChanged();
                     }
                     break;
                 case 7:
                     if (value >= -1023 && value < 1024) {
-                        mSystemControlManager.FactoryWhiteBalanceSetBlueOffset(source, sigFmt.valueOf(mCurInputPortPos), transFmt, mode, value);
+                        mSystemControlManager.FactoryWhiteBalanceSetBlueOffset(source.toInt(), mColorTemperaturePos, value);
                         map.put("sub_value", "" + value);
                         sAdapter.notifyDataSetChanged();
                     }

@@ -15,8 +15,9 @@ import android.util.Xml;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.os.SystemProperties;
+import java.lang.reflect.Field;
 
-import com.android.internal.util.XmlUtils;
+//import com.android.internal.util.XmlUtils;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import com.droidlogic.app.tv.TvControlManager;
@@ -24,6 +25,7 @@ import com.droidlogic.app.tv.TvControlManager;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.lang.reflect.Method;
 
 import com.droidlogic.tvinput.R;
 
@@ -51,11 +53,23 @@ public class ContentFragment extends Fragment {
             mListener = listener;
         }
 
+        private void skipCurrentTag(XmlResourceParser parser) {
+            try {
+                Class<?> cls = Class.forName("com.android.internal.util.XmlUtils");
+                Object xmlutils = cls.newInstance();
+                Method method = cls.getMethod("skipCurrentTag", XmlResourceParser.class);
+                method.invoke(parser);
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
+        }
+
         void read() {
             XmlResourceParser parser = null;
             try {
                 parser = mContext.getResources().getXml(mXmlResource);
                 AttributeSet attrs = Xml.asAttributeSet(parser);
+
 
                 int type;
                 while ((type = parser.next()) != XmlPullParser.END_DOCUMENT
@@ -82,7 +96,7 @@ public class ContentFragment extends Fragment {
                     if (mNodeNameRequested.equals(nodeName)) {
                         mListener.handleRequestedNode(mContext, parser, attrs);
                     } else {
-                        XmlUtils.skipCurrentTag(parser);
+                        skipCurrentTag(parser);
                     }
                 }
 
@@ -144,13 +158,14 @@ public class ContentFragment extends Fragment {
         @Override
         public void handleRequestedNode(Context context, XmlResourceParser parser,
                 AttributeSet attrs) throws XmlPullParserException, IOException {
-            TypedArray sa = context.getResources().obtainAttributes(attrs,
-                    com.android.internal.R.styleable.Preference);
 
-            String key = getStringFromTypedArray(sa,
-                    com.android.internal.R.styleable.Preference_key);
-            String title = getStringFromTypedArray(sa,
-                    com.android.internal.R.styleable.Preference_title);
+            TypedArray sa = null;//context.getResources().obtainAttributes(attrs,
+                    //com.android.internal.R.styleable.Preference);
+
+            String key = null;//getStringFromTypedArray(sa,
+                    //com.android.internal.R.styleable.Preference_key);
+            String title = null; //getStringFromTypedArray(sa,
+                    //com.android.internal.R.styleable.Preference_title);
             sa.recycle();
 
             //Log.d(TAG, "@@@@@@@@@@@@@@@@ key=" + key + "  title=" + title);

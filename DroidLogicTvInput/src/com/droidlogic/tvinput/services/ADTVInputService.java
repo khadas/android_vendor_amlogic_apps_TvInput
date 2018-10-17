@@ -23,7 +23,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.database.ContentObserver;
-import android.database.IContentObserver;
+//import android.database.IContentObserver;
 import android.provider.Settings;
 
 import com.droidlogic.tvinput.Utils;
@@ -106,7 +106,6 @@ public class ADTVInputService extends DTVInputService {
                     muteVideo(false);
 
                 openTvAudio(DroidLogicTvUtils.SOURCE_TYPE_ATV);
-                mSystemControlManager.writeSysFs("/sys/class/tsync/mode", "0");
                 if (false) {
                     mTvControlManager.PlayATVProgram(info.getFrequency() + info.getFineTune(),
                         info.getVideoStd(),
@@ -296,12 +295,15 @@ public class ADTVInputService extends DTVInputService {
         ResolveInfo rInfo = getResolveInfo(ADTVInputService.class.getName());
         if (rInfo != null) {
             try {
-                info = new TvInputInfo.Builder(this, rInfo)
-                    .setLabel(getTvInputInfoLabel(hardwareInfo.getDeviceId()))
-                    .setTvInputHardwareInfo(hardwareInfo)
-                    //.setCanRecord(true)
-                    .build();
+                info = TvInputInfo.createTvInputInfo(
+                           getApplicationContext(),
+                           rInfo,
+                           hardwareInfo,
+                           getTvInputInfoLabel(hardwareInfo.getDeviceId()),
+                           null);
             } catch (Exception e) {
+                // TODO: handle exception
+                 e.printStackTrace();
             }
         }
         updateInfoListIfNeededLocked(hardwareInfo, info, false);

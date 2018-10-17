@@ -23,7 +23,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.database.ContentObserver;
-import android.database.IContentObserver;
+//import android.database.IContentObserver;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -808,11 +808,12 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
             }
         }
 
+        /*
         @Override
         public IContentObserver releaseContentObserver() {
             // TODO Auto-generated method stub
             return super.releaseContentObserver();
-        }
+        }*/
     }
 
     private final class ChannelObserver extends ContentObserver {
@@ -831,11 +832,12 @@ public class ShortCutActivity extends Activity implements ListItemSelectedListen
             }
         }
 
+        /*
         @Override
         public IContentObserver releaseContentObserver() {
             // TODO Auto-generated method stub
             return super.releaseContentObserver();
-        }
+        }*/
     }
 
 }

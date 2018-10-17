@@ -20,7 +20,6 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
 import java.lang.Exception;
-import java.nio.ByteBuffer;
 import java.util.Locale;
 
 import android.util.Log;
@@ -38,7 +37,6 @@ public class DTVSubtitleView extends View {
     private static Object lock = new Object();
     private static final int BUFFER_W = 1920;
     private static final int BUFFER_H = 1080;
-    private static int BUFFER_STRIDE;
 
     private static final int MODE_NONE = 0;
     private static final int MODE_DTV_TT = 1;
@@ -149,7 +147,6 @@ public class DTVSubtitleView extends View {
     private native int native_sub_stop_atsc_cc();
     private native static int native_sub_set_atsc_cc_options(int fg_color, int fg_opacity, int bg_color, int bg_opacity, int font_style, int font_size);
     private native int native_sub_set_active(boolean active);
-    private native void native_set_buffer(ByteBuffer array);
 
     static {
         System.loadLibrary("am_adp");
@@ -264,12 +261,9 @@ public class DTVSubtitleView extends View {
     private boolean   visible;
     private boolean   destroy;
     private static Bitmap bitmap = null;
-    private static ByteBuffer bitmap_bytebuffer;
     private static DTVSubtitleView activeView = null;
     private void update() {
         //Log.d(TAG, "update");
-        bitmap_bytebuffer.rewind();
-        bitmap.copyPixelsFromBuffer(bitmap_bytebuffer);
         postInvalidate();
     }
 
@@ -324,12 +318,6 @@ public class DTVSubtitleView extends View {
 
                 if (native_sub_init() < 0) {
                 }
-
-                mPaint = new Paint();
-                bitmap = Bitmap.createBitmap(BUFFER_W, BUFFER_H, Bitmap.Config.ARGB_8888);
-                bitmap_bytebuffer = ByteBuffer.allocateDirect(BUFFER_H * BUFFER_W * 4);
-                Log.e(TAG, "bitmap_bytebuffer " + bitmap_bytebuffer.capacity());
-                native_set_buffer(bitmap_bytebuffer);
 
                 //setLayerType(View.LAYER_TYPE_SOFTWARE, null);
 
@@ -386,6 +374,10 @@ public class DTVSubtitleView extends View {
 
             }
             init_count = 1;
+            if (mPaint == null)
+                mPaint = new Paint();
+            if (bitmap == null)
+                bitmap = Bitmap.createBitmap(BUFFER_W, BUFFER_H, Bitmap.Config.ARGB_8888);
         }
     }
 
@@ -763,10 +755,11 @@ public class DTVSubtitleView extends View {
                     cw = null;
                     return;
                 }
-//                if (!ci.cc_setting.is_enabled)
-//                    return;
+                if (!ci.cc_setting.is_enabled)
+                    return;
                 ci.caption_screen.updateCaptionScreen(canvas.getWidth(), canvas.getHeight());
 
+                cw = ci.new CaptionWindow(json_str);
                 if (cw != null)
                     cw.draw(canvas);
                 break;
@@ -785,6 +778,7 @@ public class DTVSubtitleView extends View {
                 }
                 canvas.setDrawFilter(new PaintFlagsDrawFilter(0, Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG));
                 canvas.drawBitmap(bitmap, sr, dr, mPaint);
+
                 native_sub_unlock();
                 break;
             default:
@@ -800,7 +794,6 @@ public class DTVSubtitleView extends View {
                     stopDecoder();
                     native_sub_clear();
                     native_sub_destroy();
-                    bitmap_bytebuffer = null;
                 }
             }
         }
