@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <declare-styleable name="SOURCE_BUTTON">
-        <attr name="source_id" format="integer" />
-    </declare-styleable>
-</resources>
