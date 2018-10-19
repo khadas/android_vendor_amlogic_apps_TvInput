@@ -1895,6 +1895,10 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             if (index == -2)
                 return -2;
 
+            /*if not selected, don't start it*/
+            if (index == -1)
+                return -1;
+
             /*if valid*/
             if (index >= 0 && index < mCurrentSubtitles.size())
                 return index;
