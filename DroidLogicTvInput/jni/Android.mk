@@ -34,6 +34,10 @@ LOCAL_C_INCLUDES := \
 ifeq ($(BOARD_HAS_ADTV),true)
 LOCAL_CFLAGS += -DSUPPORT_ADTV
 
+ifeq ($(BOARD_VNDK_VERSION), current)
+LOCAL_CFLAGS += -DUSE_VENDOR_ICU
+endif
+
 LOCAL_C_INCLUDES += \
   external/libzvbi/src \
 	$(DVB_PATH)/include/am_mw \
