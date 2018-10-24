@@ -77,9 +77,6 @@ import java.util.HashMap;
 import java.util.Map;
 import android.net.Uri;
 import android.view.Surface;
-//import android.util.NtpTrustedTime;
-//import android.util.TrustedTime;
-import android.os.SystemClock;
 import android.os.SystemProperties;
 
 import org.json.JSONObject;
@@ -557,36 +554,6 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
 
         public void doFinalRelease() {
-            if (mSystemControlManager.getPropertyBoolean("persist.sys.getdtvtime.isneed", false)) {
-                int autoTimeValue = Settings.Global.getInt(mContext.getContentResolver(), Settings.Global.AUTO_TIME, 0);
-                //NtpTrustedTime mTime = NtpTrustedTime.getInstance(mContext);
-
-                if (autoTimeValue == 0) {
-                    Settings.Global.putInt(mContext.getContentResolver(), Settings.Global.AUTO_TIME, 1);
-                    try {
-                        Class clazz         = ClassLoader.getSystemClassLoader().loadClass("android.util.NtpTrustedTime");
-                        Method method       = clazz.getMethod("forceRefresh");
-                        method.invoke(clazz);
-                        method              = clazz.getMethod("getCacheAge");
-                        Object objlong      = method.invoke(clazz);
-                        long mCachedAge     =  Long.valueOf(String.valueOf(objlong)).longValue();
-                        objlong             = clazz.getMethod("getCachedNtpTime");
-                        long mCachedNtpTime = Long.valueOf(String.valueOf(objlong)).longValue();
-                        if (mCachedAge != Long.MAX_VALUE) {
-                            Log.d("DroidLogic", "I have mCachedAge");
-                            SystemClock.setCurrentTimeMillis(mCachedNtpTime + mCachedAge);
-                            Log.d("DroidLogic", "autoTimeValue changed 0");
-                        }
-                    }catch (Exception e) {
-                        e.printStackTrace();
-                    }
-
-                } else if (autoTimeValue == 1) {
-                    Settings.Global.putInt(mContext.getContentResolver(), Settings.Global.AUTO_TIME, 1);
-                    Log.d("DroidLogic", "autoTimeValue changed 1");
-                }
-            }
-
             if (mSubtitleView != null)
                 mSubtitleView.setSubtitleDataListener(null);
             stopSubtitle();
