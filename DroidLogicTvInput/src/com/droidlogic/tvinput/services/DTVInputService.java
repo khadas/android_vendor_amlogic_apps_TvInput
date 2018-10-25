@@ -380,9 +380,9 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
     }
 
     /*set below 3 vars true to enable tracks-auto-select in this service.*/
-    protected static boolean subtitleAutoSave = false;
-    protected static boolean audioAutoSave = false;
-    protected static boolean subtitleAutoStart = false;
+    protected static boolean subtitleAutoSave = true;
+    protected static boolean audioAutoSave = true;
+    protected static boolean subtitleAutoStart = true;
     protected static boolean subtitleTifMode = true;
 
     /*associate audio*/
@@ -1370,6 +1370,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                         mSystemControlManager.setProperty(DTV_AUDIO_TRACK_IDX, ""+audio.id);
                         mSystemControlManager.setProperty(DTV_AUDIO_TRACK_ID, trackId);
                         startAudioADByMain(mCurrentChannel, audio.id);
+                        index = audio.id;
                     } else {
                         Log.d(TAG, "same audio track");
                     }
