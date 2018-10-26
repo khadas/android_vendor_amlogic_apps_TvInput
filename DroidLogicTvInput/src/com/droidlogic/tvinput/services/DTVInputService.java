@@ -110,17 +110,17 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
     protected static final String DTV_AUDIO_TRACK_IDX = "tv.dtv.audio_track_idx";
     protected static final String DTV_AUDIO_AD_TRACK_IDX = "tv.dtv.audio_ad_track_idx";
-    protected static final String DTV_SUBTITLE_TRACK_IDX = "vendor.tv.dtv.subtitle_track_idx";
+    protected static final String DTV_SUBTITLE_TRACK_IDX = "tv.dtv.subtitle_track_idx";
     protected static final String DTV_AUDIO_TRACK_ID = "tv.dtv.audio_track_id";
 
-    protected static final String DTV_SUBTITLE_AUTO_START = "vendor.tv.dtv.subtitle.autostart";
-    protected static final String DTV_SUBTITLE_DTV_XDS = "vendor.tv.dtv.subtitle.xds";
-    protected static final String DTV_SUBTITLE_TIF_COMPATIABLE = "vendor.tv.dtv.subtitle.tif";
+    protected static final String DTV_SUBTITLE_AUTO_START = "tv.dtv.subtitle.autostart";
+    protected static final String DTV_SUBTITLE_DTV_XDS = "tv.dtv.subtitle.xds";
+    protected static final String DTV_SUBTITLE_TIF_COMPATIABLE = "tv.dtv.subtitle.tif";
 
-    protected static final String DTV_SUBTITLE_CS_PREFER = "persist.vendor.sys.cs.prefer";
-    protected static final String DTV_SUBTITLE_CC_PREFER = "persist.vendor.sys.cc.prefer";
+    protected static final String DTV_SUBTITLE_CS_PREFER = "persist.sys.cs.prefer";
+    protected static final String DTV_SUBTITLE_CC_PREFER = "persist.sys.cc.prefer";
 
-    protected static final String DTV_SUBTITLE_CAPTION_EXIST = "vendor.tv.dtv.caption.exist";
+    protected static final String DTV_SUBTITLE_CAPTION_EXIST = "tv.dtv.caption.exist";
 
     protected static final String DTV_TYPE_DEFAULT = "tv.dtv.type.default";
     protected static final String DTV_STANDARD_FORCE = "tv.dtv.standard.force";
