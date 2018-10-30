@@ -1077,7 +1077,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
         protected long getCurrentProgramTime() {
             if (mTvTime != null) {
-                if (mCurrentTimeMs != 0)
+                if (mRecordingId != null && mCurrentTimeMs != 0)
                     return mCurrentTimeMs;
                 else
                     return mTvTime.getTime();
