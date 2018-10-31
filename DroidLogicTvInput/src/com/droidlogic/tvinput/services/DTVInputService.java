@@ -3366,6 +3366,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                                 int mode = new TvControlManager.TvMode(tvservice.getType()).getMode();
                                 mUpdateFrequency = tvservice.getFrequency();
 
+                                mEasText = null;
                                 enterServiceLocked(null);
                                 enterChannelLocked(null, true);
                                 stopSubtitle();
