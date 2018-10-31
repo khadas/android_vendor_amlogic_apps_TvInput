@@ -1441,6 +1441,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             }
             if (isRadioChannel() && mOverlayView != null) {
                 mOverlayView.setImage(R.drawable.bg_radio);
+                mOverlayView.setImageVisibility(true);
             }
 
             if (mIsChannelScrambled && mTvControlManager.DtvGetVideoFormatInfo().fps <= 0) {
