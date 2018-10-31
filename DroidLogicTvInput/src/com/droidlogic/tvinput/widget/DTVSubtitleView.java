@@ -756,24 +756,21 @@ public class DTVSubtitleView extends View {
         Rect sr, dr;
         String json_data;
 
+        if (!active || !visible || (play_mode == PLAY_NONE)) {
+            /* Clear canvas */
+            canvas.drawPaint(clear_paint);
+            return;
+        }
+
         switch (sub_params.mode)
         {
             case MODE_AV_CC:
             case MODE_DTV_CC:
             case MODE_ATV_CC:
                 /* For atsc */
-                if (!active || !visible || (play_mode == PLAY_NONE)) {
-                    /* Clear canvas */
-                    if (ci == null)
-                        return;
-                    ci.window_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
-                    canvas.drawPaint(ci.window_paint);
-                    ci.window_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC));
-                    cw = null;
+                if (!ci.cc_setting.is_enabled) {
                     return;
                 }
-//                if (!ci.cc_setting.is_enabled)
-//                    return;
                 ci.caption_screen.updateCaptionScreen(canvas.getWidth(), canvas.getHeight());
 
                 if (cw != null)
