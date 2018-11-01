@@ -55,6 +55,8 @@ import java.util.HashMap;
 import java.util.Map;
 import android.net.Uri;
 import android.view.Surface;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class ADTVInputService extends DTVInputService {
 
@@ -131,7 +133,17 @@ public class ADTVInputService extends DTVInputService {
                     mTvControlManager.startPlay("ntsc", param.toString());
                 }
             } else {
-
+                String subPidString = new String("\"pid\":0");
+                int subCount = (info.getSubtitlePids() == null)? 0 : info.getSubtitlePids().length;
+                if (subCount != 0) {
+                    subPidString = new String("");
+                    for (int i = 0; i < subCount; i++) {
+                        subPidString = subPidString + "\"pid" + i+ "\":" + info.getSubtitlePids()[i];
+                        if (i != (subCount - 1 ))
+                            subPidString = subPidString + ",";
+                    }
+                    Log.e(TAG, "subpid string: " + subPidString);
+                }
                 TvControlManager.FEParas fe = new TvControlManager.FEParas(info.getFEParas());
                 int mixingLevel = mAudioADMixingLevel;
                 if (mixingLevel < 0)
@@ -166,8 +178,10 @@ public class ADTVInputService extends DTVInputService {
                         .append(",\"para\":{")
                         .append("\"max\":{"+"\"time\":"+timeshiftMaxTime+"}")//",\"size\":"+timeshiftMaxSize+
                         .append(",\"path\":\""+timeshiftPath+"\"")
-                        .append("}")
-                        .append("}");
+                        .append(",\"subpid\":{" + subPidString)
+                        .append("},\"subcnt\":" + subCount)
+                        .append("}}");
+                    Log.e(TAG, "playProgram adtvparam: " + param.toString());
                     mTvControlManager.startPlay("atsc", param.toString());
                     initTimeShiftStatus();
                 }

@@ -980,6 +980,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             mTvControlManager.SetAVPlaybackListener(this);
             mTvControlManager.SetAudioEventListener(this);
             openTvAudio(DroidLogicTvUtils.SOURCE_TYPE_DTV);
+
             if (false) {
                 mTvControlManager.PlayDTVProgram(
                     fe,
@@ -993,14 +994,29 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                     mixingLevel);
             } else {
                 //("{\"fe\":{\"mod\":7,\"freq\":785028615,\"mode\":16777219},\"v\":{\"pid\":33,\"fmt\":0},\"a\":{\"pid\":36,\"fmt\":3},\"p\":{\"pid\":33}}")
+                String subPidString = new String("\"pid\":0");
+                int subCount = (info.getSubtitlePids() == null)? 0 : info.getSubtitlePids().length;
+                if (subCount != 0) {
+                    subPidString = new String("");
+                    for (int i = 0; i < subCount; i++) {
+                        subPidString = subPidString + "\"pid" + i+ "\":" + info.getSubtitlePids()[i];
+                        if (i != (subCount - 1 ))
+                            subPidString = subPidString + ",";
+                    }
+                    Log.e(TAG, "subpid string: " + subPidString);
+                }
                 StringBuilder param = new StringBuilder("{")
                     .append("\"type\":\"dtv\"")
                     .append(",\"fe\":" + info.getFEParas())
                     .append(",\"v\":{\"pid\":"+info.getVideoPid()+",\"fmt\":"+info.getVfmt()+"}")
                     .append(",\"a\":{\"pid\":"+(audio != null ? audio.mPid : -1)+",\"fmt\":"+(audio != null ? audio.mFormat : -1)+",\"AudComp\":"+info.getAudioCompensation()+"}")
                     .append(",\"p\":{\"pid\":"+info.getPcrPid()+"}")
-                    .append(",\"para\":{"+"\"disableTimeShifting\":1"+"}")
+                    .append(",\"para\":{"+"\"disableTimeShifting\":1")
+                    .append(",\"subpid\":{" + subPidString + "}")
+                    .append(",\"subcnt\":" + subCount)
+                    .append("}")
                     .append("}");
+                Log.e(TAG, "playProgram dtvparam: " + param.toString());
                 mTvControlManager.startPlay("atsc", param.toString());
                 initTimeShiftStatus();
             }
