@@ -255,7 +255,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         DTVSessionImpl session = sessionMap.get(sessionId);
         if (session != null) {
             session.stopSubtitle();
-            releasePlayer();
+            //releasePlayer();
             session.setMonitor(null);
         }
     }
@@ -554,12 +554,15 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
 
         public void doFinalRelease() {
-            if (mSubtitleView != null)
-                mSubtitleView.setSubtitleDataListener(null);
-            stopSubtitle();
-            mTvControlManager.SetAVPlaybackListener(null);
-            mTvControlManager.SetAudioEventListener(null);
-            releasePlayer();
+            if (getCurrentSessionId() == mId) {
+                if (mSubtitleView != null) {
+                    mSubtitleView.setSubtitleDataListener(null);
+                }
+                stopSubtitle();
+                mTvControlManager.SetAVPlaybackListener(null);
+                mTvControlManager.SetAudioEventListener(null);
+                releasePlayer();
+            }
             setMonitor(null);
             releaseWorkThread();
             synchronized(mLock) {
