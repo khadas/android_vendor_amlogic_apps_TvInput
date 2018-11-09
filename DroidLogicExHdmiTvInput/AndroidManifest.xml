@@ -6,7 +6,7 @@
 
     <uses-sdk
         android:minSdkVersion="22"
-        android:targetSdkVersion="22"/>
+        />
 
     <uses-permission android:name="droidlogic.permission.SYSTEM_CONTROL" />
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />

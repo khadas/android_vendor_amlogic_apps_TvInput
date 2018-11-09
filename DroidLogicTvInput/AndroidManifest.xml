@@ -4,9 +4,7 @@
     android:sharedUserId="android.uid.system"
     android:versionName="1.0" >
 
-    <uses-sdk
-        android:minSdkVersion="24"
-        android:targetSdkVersion="25"/>
+    <uses-sdk android:minSdkVersion="24" />
 
     <uses-permission android:name="droidlogic.permission.SYSTEM_CONTROL" />
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
