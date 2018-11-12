@@ -220,6 +220,7 @@ public class ATVInputService extends DroidLogicTvInputService {
 
         private boolean playProgram(ChannelInfo info) {
             info.print();
+            /* open atv audio and mute when notify Video Available */
             openTvAudio(DroidLogicTvUtils.SOURCE_TYPE_ATV);
             mTvControlManager.PlayATVProgram(info.getFrequency() + info.getFineTune(),
                 info.getVideoStd(),
