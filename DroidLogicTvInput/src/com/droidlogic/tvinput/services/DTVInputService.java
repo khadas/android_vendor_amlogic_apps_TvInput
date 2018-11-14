@@ -1125,7 +1125,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         protected long getCurrentProgramTime() {
             if (mTvTime != null) {
                 if (mRecordingId != null && mCurrentTimeMs != 0)
-                    return mCurrentTimeMs;
+                    return mCurrentTimeMs + mTvTime.getDiffTime();
                 else
                     return mTvTime.getTime();
             }
@@ -3615,15 +3615,15 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                     }
                     mRecordStartTimeMs = mRecordStartTimeMs_0 + param;
 
-                    Log.d(TAG, "[timeshift] start:"+new Date(mRecordStartTimeMs).toString());
+                    Log.d(TAG, "[timeshift] start:"+new Date(mRecordStartTimeMs + mTvTime.getDiffTime()).toString());
                     break;
                 case TvControlManager.EVENT_AV_TIMESHIFT_CURRENT_TIME_CHANGED:
                     mCurrentTimeMs = mRecordStartTimeMs_0 + param;
                     if (mRecordingId == null) {
-                        Log.d(TAG, "[timeshift] current:"+new Date(mCurrentTimeMs).toString());
-                        Log.d(TAG, "[timeshift] end    :"+new Date().toString());
+                        Log.d(TAG, "[timeshift] current:"+new Date(mCurrentTimeMs + mTvTime.getDiffTime()).toString());
+                        Log.d(TAG, "[timeshift] end    :"+new Date(System.currentTimeMillis() + mTvTime.getDiffTime()).toString());
                     } else {
-                        Log.d(TAG, "[timeshift] current:"+mCurrentTimeMs);
+                        Log.d(TAG, "[timeshift] current:"+(mCurrentTimeMs + mTvTime.getDiffTime()));
                     }
                     break;
             }
@@ -3641,8 +3641,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         }
 
         protected void doTimeShiftSeekTo(long timeMs) {
-            String para = "{\"offset\":"+ (timeMs - mRecordStartTimeMs) + "}";
-            Log.d(TAG, "[timeshift] doTimeShiftSeekTo:"+"offset:"+(timeMs - mRecordStartTimeMs));
+            String para = "{\"offset\":"+ (timeMs - (mRecordStartTimeMs + mTvTime.getDiffTime())) + "}";
+            Log.d(TAG, "[timeshift] doTimeShiftSeekTo:"+"offset:"+(timeMs - (mRecordStartTimeMs + mTvTime.getDiffTime())));
             mTvControlManager.seekPlay("atsc", para);
         }
 
@@ -3723,13 +3723,13 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         }
 
         public long getStartPosition() {
-            if (DEBUG) Log.d("ttt", "start:"+new Date(mRecordStartTimeMs).toString());
-            return mRecordStartTimeMs;
+            if (DEBUG) Log.d("ttt", "start:"+new Date(mRecordStartTimeMs + mTvTime.getDiffTime()).toString());
+            return mRecordStartTimeMs + mTvTime.getDiffTime();
         }
 
         public long getCurrentPosition() {
-            if (DEBUG) Log.d("ttt", "current:"+new Date(mCurrentTimeMs).toString());
-            return mCurrentTimeMs;
+            if (DEBUG) Log.d("ttt", "current:"+new Date(mCurrentTimeMs + mTvTime.getDiffTime()).toString());
+            return mCurrentTimeMs + mTvTime.getDiffTime();
         }
 
         protected boolean mPlayPaused;
