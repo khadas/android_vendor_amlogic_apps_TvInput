@@ -606,7 +606,7 @@ error:
             }
             attached = 1;
         }
-        env->CallVoidMethod(obj, gUpdateID, NULL);
+//        env->CallVoidMethod(obj, gUpdateID, NULL);
 
         bmp = env->GetStaticObjectField(env->FindClass("com/droidlogic/tvinput/widget/DTVSubtitleView"), gBitmapID);
         if (!data->obj_bitmap)

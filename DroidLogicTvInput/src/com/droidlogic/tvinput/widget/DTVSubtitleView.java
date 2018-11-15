@@ -127,9 +127,9 @@ public class DTVSubtitleView extends View {
     public static final int CC_COLOR_MAGENTA = 7;
     public static final int CC_COLOR_CYAN = 8;
     static final int VFMT_ATV = 100;
-    private Paint clear_paint;
 
     public static final int JSON_MSG_NORMAL = 0;
+    public static final int UPDATE_BITMAP = 1;
 
     private static int init_count = 0;
     private static CaptioningManager captioningManager = null;
@@ -137,7 +137,10 @@ public class DTVSubtitleView extends View {
     private static CustomFonts cf = null;
     private static CcImplement ci = null;
     private static String json_str;
+    private static Bitmap bitmap = null;
+    private static ByteBuffer bitmap_bytebuffer = null;
     private Paint mPaint;
+    private Paint clear_paint;
 
     public static boolean cc_is_started = false;
 
@@ -279,14 +282,12 @@ public class DTVSubtitleView extends View {
     private static int       play_mode;
     private boolean   visible;
     private boolean   destroy;
-    private static Bitmap bitmap = null;
-    private static ByteBuffer bitmap_bytebuffer;
     private static DTVSubtitleView activeView = null;
     private void update() {
-        //Log.d(TAG, "update");
-        bitmap_bytebuffer.rewind();
-        bitmap.copyPixelsFromBuffer(bitmap_bytebuffer);
-        postInvalidate();
+        if (handler != null)
+            handler.obtainMessage(UPDATE_BITMAP).sendToTarget();
+        else
+            Log.e(TAG, "update was called, but handler is null");
     }
 
     private void stopDecoder() {
@@ -342,10 +343,6 @@ public class DTVSubtitleView extends View {
                 }
 
                 mPaint = new Paint();
-                bitmap = Bitmap.createBitmap(BUFFER_W, BUFFER_H, Bitmap.Config.ARGB_8888);
-                bitmap_bytebuffer = ByteBuffer.allocateDirect(BUFFER_H * BUFFER_W * 4);
-                Log.e(TAG, "bitmap_bytebuffer " + bitmap_bytebuffer.capacity());
-                native_set_buffer(bitmap_bytebuffer);
 
                 //setLayerType(View.LAYER_TYPE_SOFTWARE, null);
 
@@ -410,6 +407,11 @@ public class DTVSubtitleView extends View {
                 mPaint = new Paint();
             if (bitmap == null)
                 bitmap = Bitmap.createBitmap(BUFFER_W, BUFFER_H, Bitmap.Config.ARGB_8888);
+            if (bitmap_bytebuffer == null) {
+                bitmap_bytebuffer = ByteBuffer.allocateDirect(BUFFER_H * BUFFER_W * 4);
+                native_set_buffer(bitmap_bytebuffer);
+                Log.e(TAG, "bitmap_bytebuffer " + bitmap_bytebuffer.capacity());
+            }
         }
     }
 
@@ -593,6 +595,8 @@ public class DTVSubtitleView extends View {
                             sub_params.dvb_sub.pid,
                             sub_params.dvb_sub.composition_page_id,
                             sub_params.dvb_sub.ancillary_page_id);
+                    if (bitmap_bytebuffer != null)
+                        bitmap_bytebuffer.rewind();
                     break;
                 case MODE_DTV_TT:
                     ret = native_sub_start_dtv_tt(sub_params.dtv_tt.dmx_id,
@@ -822,7 +826,6 @@ public class DTVSubtitleView extends View {
                     stopDecoder();
                     native_sub_clear();
                     native_sub_destroy();
-                    bitmap_bytebuffer = null;
                 }
             }
         }
@@ -831,7 +834,9 @@ public class DTVSubtitleView extends View {
     protected void finalize() throws Throwable {
         // Resource may not be available during gc process
         // dispose();
+        Log.e(TAG, "Finalize");
         super.finalize();
+        init_count = 0;
     }
 
     public void setVisible(boolean value) {
@@ -847,6 +852,11 @@ public class DTVSubtitleView extends View {
             switch (msg.what) {
                 case JSON_MSG_NORMAL:
                     cw = (CcImplement.CaptionWindow)msg.obj;
+                    postInvalidate();
+                    break;
+                case UPDATE_BITMAP:
+                    bitmap_bytebuffer.rewind();
+                    bitmap.copyPixelsFromBuffer(bitmap_bytebuffer);
                     postInvalidate();
                     break;
             }
