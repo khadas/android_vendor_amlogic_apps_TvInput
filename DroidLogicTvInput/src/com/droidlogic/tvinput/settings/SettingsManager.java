@@ -1720,4 +1720,12 @@ public class SettingsManager {
     public void deleteChannels(String type) {
             mTvDataBaseManager.deleteChannels(mInputId, type);
     }
+
+    public void deleteAtvOrDtvChannels(boolean isatv) {
+        mTvDataBaseManager.deleteAtvOrDtvChannels(isatv);
+    }
+
+    public void deleteOtherTypeAtvOrDtvChannels(String type, boolean isatv) {
+        mTvDataBaseManager.deleteOtherTypeAtvOrDtvChannels(type, isatv);
+    }
 }

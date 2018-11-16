@@ -324,6 +324,7 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
         switch (autoscanmode) {
         case ManualScanEdit.SCAN_ATV_DTV:
             Log.d(TAG, "MANUAL_SCAN_ATV_DTV");
+            deleteOtherTypeAtvOrDtvChannels(mode, true, true);
             mode.setExt(mode.getExt() | 1);//mixed adtv
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_MODE, mode.getMode());
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_TYPE_DTV, TvControlManager.ScanType.SCAN_DTV_MANUAL);
@@ -331,6 +332,7 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
         break;
         case ManualScanEdit.SCAN_ONLY_ATV:
             Log.d(TAG, "MANUAL_SCAN_ONLY_ATV");
+            deleteOtherTypeAtvOrDtvChannels(mode, true, false);
             mode.setExt(mode.getExt() | 1);//mixed adtv
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_MODE, mode.getMode());
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_TYPE_DTV, TvControlManager.ScanType.SCAN_DTV_NONE);
@@ -342,6 +344,7 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
         break;
         case ManualScanEdit.SCAN_ONLY_DTV:
             Log.d(TAG, "MANUAL_SCAN_ONLY_DTV");
+            deleteOtherTypeAtvOrDtvChannels(mode, false, true);
             mode.setExt(mode.getExt() | 1);//mixed adtv
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_MODE, mode.getMode());
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_TYPE_DTV, TvControlManager.ScanType.SCAN_DTV_MANUAL);
@@ -850,10 +853,10 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
     private void deleteChannels(TvControlManager.TvMode mode, boolean deleteAtv, boolean deleteDtv)
     {
         Log.d(TAG, " delete mode:"+mode.getBase()+" atv:"+deleteAtv+" dtv:"+deleteDtv);
-        ArrayList<ChannelInfo> allChannels = mTvDataBaseManager.getChannelList(mSettingsManager.getInputId(), TvContract.Channels.SERVICE_TYPE_AUDIO_VIDEO);
-        allChannels.addAll(mTvDataBaseManager.getChannelList(mSettingsManager.getInputId(), TvContract.Channels.SERVICE_TYPE_AUDIO));
+        //ArrayList<ChannelInfo> allChannels = mTvDataBaseManager.getChannelList(mSettingsManager.getInputId(), TvContract.Channels.SERVICE_TYPE_AUDIO_VIDEO);
+        //allChannels.addAll(mTvDataBaseManager.getChannelList(mSettingsManager.getInputId(), TvContract.Channels.SERVICE_TYPE_AUDIO));
         if (deleteAtv) {
-            if (DroidLogicTvUtils.isAtscCountry(mContext)) {
+            /*if (DroidLogicTvUtils.isAtscCountry(mContext)) {
                 for (ChannelInfo channelInfo : allChannels) {
                     if (channelInfo.isAnalogChannel() && mode.toType().equals(channelInfo.getSignalType())) {
                         mTvDataBaseManager.deleteChannel(channelInfo);
@@ -863,10 +866,23 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
                 mSettingsManager.deleteChannels(TvContract.Channels.TYPE_NTSC);
                 mSettingsManager.deleteChannels(TvContract.Channels.TYPE_PAL);
                 mSettingsManager.deleteChannels(TvContract.Channels.TYPE_SECAM);
-            }
+            }*/
+            mSettingsManager.deleteAtvOrDtvChannels(true);//delete all atv channels
         }
-        if (deleteDtv)
-            mSettingsManager.deleteChannels(mode.toType());
+        if (deleteDtv) {
+            //mSettingsManager.deleteChannels(mode.toType());
+            mSettingsManager.deleteAtvOrDtvChannels(false);//delete all dtv channels
+        }
+    }
+
+    private void deleteOtherTypeAtvOrDtvChannels(TvControlManager.TvMode mode, boolean deleteAtv, boolean deleteDtv) {
+        Log.d(TAG, "other type delete mode:"+mode.getBase()+" atv:"+deleteAtv+" dtv:"+deleteDtv);
+        if (deleteAtv) {
+            mSettingsManager.deleteOtherTypeAtvOrDtvChannels(mode.toType(), true);//delete all other atv channels
+        }
+        if (deleteDtv) {
+            mSettingsManager.deleteOtherTypeAtvOrDtvChannels(mode.toType(), false);//delete all other dtv channels
+        }
     }
 
     private void startAutosearchAccrodingTvMode() {
