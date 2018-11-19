@@ -432,6 +432,34 @@ public class AV2InputService extends DroidLogicTvInputService {
             return mATVContentRatings;
         }
 
+        protected ChannelInfo.Subtitle parseSubtitleIdString(String subtitleId) {
+            if (subtitleId == null)
+                return null;
+
+            Map<String, String> parsedMap = DroidLogicTvUtils.stringToMap(subtitleId);
+            return new ChannelInfo.Subtitle(Integer.parseInt(parsedMap.get("type")),
+                    Integer.parseInt(parsedMap.get("pid")),
+                    Integer.parseInt(parsedMap.get("stype")),
+                    Integer.parseInt(parsedMap.get("uid1")),
+                    Integer.parseInt(parsedMap.get("uid2")),
+                    parsedMap.get("lang"),
+                    Integer.parseInt(parsedMap.get("id")));
+        }
+
+        @Override
+        public boolean onSelectTrack(int type, String trackId) {
+            int index = -1;
+            notifyTrackSelected(type, trackId);
+            ChannelInfo.Subtitle subtitle = parseSubtitleIdString(trackId);
+
+            index = subtitle.id;
+            Log.d(TAG, "onSelectTrack: [type:" + type + "] [id:" + trackId + "] " + "index" + index);
+            startSubtitleAnalog(subtitle.mPid);
+//            mCurrentChannel.setSubtitleTrackIndex(index);
+//            mTvDataBaseManager.updateChannelInfo(mCurrentChannel);
+            return true;
+        }
+
         @Override
         public void onSubtitleData(String json) {
             Log.d(TAG, "onSubtitleData curchannel:"+(mCurrentChannel!=null?mCurrentChannel.toString():"null"));
@@ -611,6 +639,22 @@ public class AV2InputService extends DroidLogicTvInputService {
         protected void startSubtitle() {
             Log.d(TAG, "start Subtitle:");
             startSubtitleAutoAnalog();
+        }
+
+        protected void startSubtitleAnalog(int pid)
+        {
+            Log.d(TAG, "start Subtitle Analog pid " + pid);
+
+            if (mSubtitleView == null) {
+                Log.d(TAG, "subtitle view is null");
+                return;
+            }
+            mSubtitleView.stop();
+            setSubtitleParam(ChannelInfo.Subtitle.TYPE_ATV_CC, pid, 0, 0, 0);//we need xds data
+
+            mSubtitleView.setActive(true);
+            mSubtitleView.startSub();
+            enableSubtitleShow(true);
         }
 
         protected void startSubtitleAutoAnalog() {
@@ -843,6 +887,33 @@ public class AV2InputService extends DroidLogicTvInputService {
             List < TvTrackInfo > tracks = new ArrayList<>();;
             String AudioSelectedId = null;
             String SubSelectedId = null;
+            if (DroidLogicTvUtils.isAtscCountry(mContext)) {
+                mCurrentSubtitles = new ArrayList<ChannelInfo.Subtitle>();
+                int count = 0;
+                for (int i=0; i<4; i++)
+                {
+                    ChannelInfo.Subtitle sub = new ChannelInfo.Subtitle(
+                            ChannelInfo.Subtitle.TYPE_ATV_CC,
+                            ChannelInfo.Subtitle.CC_CAPTION_CC1 + i,
+                            ChannelInfo.Subtitle.TYPE_ATV_CC,
+                            0,
+                            0,
+                            "CC"+(i+1),
+                            count++);
+                    mCurrentSubtitles.add(sub);
+                }
+                for (int i=0; i<4; i++) {
+                    ChannelInfo.Subtitle s = new ChannelInfo.Subtitle(
+                            ChannelInfo.Subtitle.TYPE_ATV_CC,
+                            ChannelInfo.Subtitle.CC_CAPTION_TEXT1 + i,
+                            ChannelInfo.Subtitle.TYPE_ATV_CC,
+                            0,
+                            0,
+                            "TX"+(i+1),
+                            count++);
+                    mCurrentSubtitles.add(s);
+                }
+            }
 
             SubSelectedId = addSubtitleTracks(tracks, ch);
 

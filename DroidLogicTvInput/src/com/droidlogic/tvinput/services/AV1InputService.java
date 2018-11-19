@@ -885,34 +885,35 @@ public class AV1InputService extends DroidLogicTvInputService {
 
         protected void notifyTracks(ChannelInfo ch) {
             List < TvTrackInfo > tracks = new ArrayList<>();;
+            String AudioSelectedId = null;
             String SubSelectedId = null;
-
-            mCurrentSubtitles = new ArrayList<ChannelInfo.Subtitle>();
-            int count = 0;
-            for (int i=0; i<4; i++)
-            {
-                ChannelInfo.Subtitle sub = new ChannelInfo.Subtitle(
-                        ChannelInfo.Subtitle.TYPE_ATV_CC,
-                        ChannelInfo.Subtitle.CC_CAPTION_CC1 + i,
-                        ChannelInfo.Subtitle.TYPE_ATV_CC,
-                        0,
-                        0,
-                        "CC"+(i+1),
-                        count++);
-                mCurrentSubtitles.add(sub);
+            if (DroidLogicTvUtils.isAtscCountry(mContext)) {
+                mCurrentSubtitles = new ArrayList<ChannelInfo.Subtitle>();
+                int count = 0;
+                for (int i=0; i<4; i++)
+                {
+                    ChannelInfo.Subtitle sub = new ChannelInfo.Subtitle(
+                            ChannelInfo.Subtitle.TYPE_ATV_CC,
+                            ChannelInfo.Subtitle.CC_CAPTION_CC1 + i,
+                            ChannelInfo.Subtitle.TYPE_ATV_CC,
+                            0,
+                            0,
+                            "CC"+(i+1),
+                            count++);
+                    mCurrentSubtitles.add(sub);
+                }
+                for (int i=0; i<4; i++) {
+                    ChannelInfo.Subtitle s = new ChannelInfo.Subtitle(
+                            ChannelInfo.Subtitle.TYPE_ATV_CC,
+                            ChannelInfo.Subtitle.CC_CAPTION_TEXT1 + i,
+                            ChannelInfo.Subtitle.TYPE_ATV_CC,
+                            0,
+                            0,
+                            "TX"+(i+1),
+                            count++);
+                    mCurrentSubtitles.add(s);
+                }
             }
-            for (int i=0; i<4; i++) {
-                ChannelInfo.Subtitle s = new ChannelInfo.Subtitle(
-                        ChannelInfo.Subtitle.TYPE_ATV_CC,
-                        ChannelInfo.Subtitle.CC_CAPTION_TEXT1 + i,
-                        ChannelInfo.Subtitle.TYPE_ATV_CC,
-                        0,
-                        0,
-                        "TX"+(i+1),
-                        count++);
-                mCurrentSubtitles.add(s);
-            }
-
 
             SubSelectedId = addSubtitleTracks(tracks, ch);
 
@@ -920,6 +921,9 @@ public class AV1InputService extends DroidLogicTvInputService {
                 Log.d(TAG, "notify Tracks["+tracks.size()+"]");
                 notifyTracksChanged(tracks);
             }
+
+            Log.d(TAG, "\tAuto Aud: [" + AudioSelectedId + "]");
+            notifyTrackSelected(TvTrackInfo.TYPE_AUDIO, AudioSelectedId);
 
             Log.d(TAG, "\tAuto Sub: [" + SubSelectedId + "]");
             notifyTrackSelected(TvTrackInfo.TYPE_SUBTITLE, SubSelectedId);
