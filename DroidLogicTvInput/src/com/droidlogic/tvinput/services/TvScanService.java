@@ -105,32 +105,56 @@ public class TvScanService extends Service {
 
     public void setAtsccSearchSysT(int value) {
         Log.d(TAG, "=====init setAtsccSearchSys");
-        mOptionUiManagerT.setAtsccSearchSys(value);
+        if (mOptionUiManagerT != null) {
+            mOptionUiManagerT.setAtsccSearchSys(value);
+        } else {
+            Log.d(TAG, "Oops！ mOptionUiManagerT is null.");
+        }
     }
 
     public void callAutosearch() {
         Log.d(TAG, "=====init callAutosearch");
-        mOptionUiManagerT.callAutosearch();
+        if (mOptionUiManagerT != null) {
+            mOptionUiManagerT.callAutosearch();
+        } else {
+            Log.d(TAG, "Oops！ mOptionUiManagerT is null.");
+        }
     }
 
     public void callManualSearch() {
         Log.d(TAG, "=====init callManualSearch");
-        mOptionUiManagerT.callManualSearch();
+        if (mOptionUiManagerT != null) {
+            mOptionUiManagerT.callManualSearch();
+        } else {
+            Log.d(TAG, "Oops！ mOptionUiManagerT is null.");
+        }
     }
 
     public void setSearchSysT (boolean value1, boolean value2){
         Log.d(TAG, "=====init setSearchSys");
-        mOptionUiManagerT.setSearchSys(value1, value2);
+        if (mOptionUiManagerT != null) {
+            mOptionUiManagerT.setSearchSys(value1, value2);
+        } else {
+            Log.d(TAG, "Oops！ mOptionUiManagerT is null.");
+        }
     }
 
     public void setFrequencyT (String value1, String value2) {
         Log.d(TAG, "=====init setFrequency");
-        mOptionUiManagerT.setFrequency(value1, value2);
+        if (mOptionUiManagerT != null) {
+            mOptionUiManagerT.setFrequency(value1, value2);
+        } else {
+            Log.d(TAG, "Oops！ mOptionUiManagerT is null.");
+        }
     }
 
     public void releaseT() {
         Log.d(TAG, "=====init release");
-        mOptionUiManagerT.release();
+        if (mOptionUiManagerT != null) {
+            mOptionUiManagerT.release();
+        } else {
+            Log.d(TAG, "Oops！ mOptionUiManagerT is null.");
+        }
         mOptionUiManagerT = null;
     }
 
