@@ -223,6 +223,7 @@ public class EASProcessManager{
     private void launchLiveTv(Uri uri) {
         if (DEBUG) Log.d(TAG, "launchLiveTv="+uri);
         Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.setData(uri);
         mContext.startActivity(intent);
    }
