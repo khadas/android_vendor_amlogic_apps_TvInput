@@ -381,6 +381,11 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
             fe.setMode(tvMode);
             fe.setVideoStd(atvVideoStd);
             fe.setAudioStd(atvAudioStd);
+            if (TvContract.Channels.TYPE_DVB_C.equals(tvMode.toType())) {
+                int qammode = mTvControlDataManager.getInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_SEARCH_DVBC_QAM, DroidLogicTvUtils.TV_SEARCH_DVBC_QAM16);
+                fe.setModulation(qammode);
+                Log.d(TAG, "doScanCmdForAtscManual dvbc qam = " + qammode);
+            }
             TvControlManager.ScanParas scan = new TvControlManager.ScanParas();
             if (atvScanType != TvControlManager.ScanType.SCAN_ATV_NONE) {
                 //atvFreq1 = dtvFreq;// - 5750000;
@@ -1064,6 +1069,11 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
                 fe.setMode(tvMode);
                 fe.setVideoStd(atvVideoStd);
                 fe.setAudioStd(atvAudioStd);
+                if (TvContract.Channels.TYPE_DVB_C.equals(tvMode.toType())) {
+                    int qammode = mTvControlDataManager.getInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_SEARCH_DVBC_QAM, DroidLogicTvUtils.TV_SEARCH_DVBC_QAM16);
+                    fe.setModulation(qammode);
+                    Log.d(TAG, "doScanCmd dvbc qam = " + qammode);
+                }
                 TvControlManager.ScanParas scan = new TvControlManager.ScanParas();
                 if (atvScanType != TvControlManager.ScanType.SCAN_ATV_NONE) {
                     scan.setMode(TvControlManager.ScanParas.MODE_ATV_DTV);
