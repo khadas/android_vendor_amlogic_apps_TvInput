@@ -4278,7 +4278,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                         continue;
                         RrtSearchInfo rrtSearchInfo = mTvControlManager.SearchRrtInfo(region, dimension, value);
                         if (rrtSearchInfo != null) {
-                            if (rrtSearchInfo.rating_region_name == null ||rrtSearchInfo.dimensions_name == null || rrtSearchInfo.rating_value_text == null)
+                            if (TextUtils.isEmpty(rrtSearchInfo.rating_region_name)
+                                    ||TextUtils.isEmpty(rrtSearchInfo.dimensions_name) || TextUtils.isEmpty(rrtSearchInfo.rating_value_text))
                                 continue;
                             TvContentRating r = TvContentRating.createRating(RatingDomain,rrtSearchInfo.dimensions_name, rrtSearchInfo.rating_value_text, null);
                             if (r != null) {
