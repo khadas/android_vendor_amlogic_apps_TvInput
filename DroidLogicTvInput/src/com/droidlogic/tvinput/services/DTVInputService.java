@@ -717,7 +717,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 mHandler = new Handler(mHandlerThread.getLooper(), new Handler.Callback() {
                     @Override
                     public boolean handleMessage(Message msg) {
-                            //Log.d(TAG, "handleMessage:"+msg.what);
+                            Log.d(TAG, "handleMessage:"+msg.what);
                             if (mIsSessionReleasing && msg != null && msg.what != MSG_RELEASE) {
                                 Log.d(TAG, "discard this message because session is releasing:"+ msg.what);
                                 return true;
@@ -3710,6 +3710,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
             mTvControlManager.SetAVPlaybackListener(this);
             mTvControlManager.SetAudioEventListener(this);
+            openTvAudio(DroidLogicTvUtils.SOURCE_TYPE_DTV);
             StringBuilder param =
                 new StringBuilder("{")
                     .append("\"type\":\"dtv\"")
