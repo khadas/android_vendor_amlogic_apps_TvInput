@@ -950,7 +950,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             setMonitor(info);
             mLastChannel = mCurrentChannel;
             checkContentBlockNeeded(info);
-            showRadioPicture(1000);//display after 1s
+            //dealt in TvControlManager.EVENT_AV_PLAYBACK_RESUME
+            //showRadioPicture(1000);//display after 1s
             return true;
         }
 
@@ -1374,7 +1375,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                     break;
                 case TvControlManager.EVENT_AV_PLAYBACK_RESUME:
                     if (mCurrentChannel != null && ChannelInfo.isRadioChannel(mCurrentChannel)) {
-                        //notifyVideoUnavailable(TvInputManager.VIDEO_UNAVAILABLE_REASON_AUDIO_ONLY);
+                        showRadioPicture(1000);
+                        notifyVideoUnavailable(TvInputManager.VIDEO_UNAVAILABLE_REASON_AUDIO_ONLY);
                     }
                     break;
                 case TvControlManager.EVENT_AV_VIDEO_AVAILABLE:
@@ -1525,9 +1527,9 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             if (mOverlayView != null) {
                 switch (reason) {
                     case TvInputManager.VIDEO_UNAVAILABLE_REASON_AUDIO_ONLY:
-                        mOverlayView.setImage(R.drawable.bg_radio);
+                        /*mOverlayView.setImage(R.drawable.bg_radio);
                         mSystemControlManager.writeSysFs("/sys/class/video/disable_video",
-                                "2");
+                                "2");*///dealt in TvControlManager.EVENT_AV_PLAYBACK_RESUME
                         break;
                     case TvInputManager.VIDEO_UNAVAILABLE_REASON_TUNING:
                     case TvInputManager.VIDEO_UNAVAILABLE_REASON_BUFFERING:
@@ -1556,7 +1558,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                             mOverlayView.setImage(R.drawable.bg_radio);
                             mOverlayView.setImageVisibility(true);
                             mOverlayView.setTextVisibility(false);
-                            mSystemControlManager.writeSysFs("/sys/class/video/disable_video", "2");
+                            //mSystemControlManager.writeSysFs("/sys/class/video/disable_video", "2");
                         }
                     }
                 }, time);
