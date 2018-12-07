@@ -7,6 +7,7 @@
  * Description: C++ file
  */
 
+#include <string.h>
 #include <pthread.h>
 #include <core/SkBitmap.h>
 #ifdef SUPPORT_ADTV
@@ -43,7 +44,6 @@ typedef void* AM_SUB2_Handle_t;
         int              dmx_id;
         int              filter_handle;
         jobject          obj;
-        SkBitmap        *bitmap;
         jobject          obj_bitmap;
         int              bmp_w;
         int              bmp_h;
@@ -57,7 +57,7 @@ typedef void* AM_SUB2_Handle_t;
 #undef LOG_TAG
 #endif
 
-//#define USE_GRAPHIC_LIB
+#define USE_GRAPHIC_LIB
 
 #define LOG_TAG    "jnidtvsubtitle"
 #define LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
@@ -74,11 +74,7 @@ typedef void* AM_SUB2_Handle_t;
     static jmethodID gReadSysfsID;
     static jmethodID gWriteSysfsID;
     static char gJsonStr[CC_JSON_BUFFER_SIZE];
-#ifndef USE_GRAPHIC_LIB
     static unsigned char* bmp_buffer;
-    static jfieldID gBmpDirectBufferID;
-    static jobject gBmpObj;
-#endif
 
     static jint sub_clear(JNIEnv *env, jobject obj);
     static void sub_update(jobject obj);
@@ -140,13 +136,11 @@ typedef void* AM_SUB2_Handle_t;
         unlock_bitmap(NULL, bitmap);
     }
 
-#ifndef USE_GRAPHIC_LIB
     static void set_bmp_direct_buffer(JNIEnv *env, jobject obj, jobject buffer)
     {
         bmp_buffer = (unsigned char*)(env->GetDirectBufferAddress(buffer));
         jlong dwCapacity  = env->GetDirectBufferCapacity(buffer);
     }
-#endif
 
     static uint8_t *get_bitmap(JNIEnv *env, TVSubtitleData *sub, int *w, int *h, int *pitch)
     {
@@ -162,7 +156,7 @@ typedef void* AM_SUB2_Handle_t;
         } else {
 #ifdef USE_GRAPHIC_LIB
             AndroidBitmapInfo bitmapInfo;
-            //AndroidBitmap_getInfo(env, sub->obj_bitmap, &bitmapInfo);
+            AndroidBitmap_getInfo(env, sub->obj_bitmap, &bitmapInfo);
             LOGI("init bitmap info w:%d h:%d s:%d", bitmapInfo.width, bitmapInfo.height, bitmapInfo.stride);
 
             if (w) {

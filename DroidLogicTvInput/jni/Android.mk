@@ -46,22 +46,30 @@ LOCAL_C_INCLUDES += \
 	vendor/amlogic/external/libzvbi/src \
 	$(BOARD_AML_VENDOR_PATH)/external/libzvbi/src
 
-LOCAL_SHARED_LIBRARIES += \
-  libzvbi \
+#LOCAL_PRIVATE_PLATFORM_APIS := true
+
+LOCAL_STATIC_LIBRARIES += \
   libam_mw \
+  libsqlite \
+  libzvbi \
   libam_adp
 endif
 
-LOCAL_SHARED_LIBRARIES += \
-  liblog \
-  libcutils
+LOCAL_LDLIBS := -llog -landroid -lstdc++
 
+LOCAL_SHARED_LIBRARIES += \
+  libjnigraphics \
+  libicuuc \
+  liblog \
+  libcutils \
+  libicui18n
+LOCAL_PRODUCT_MODULE := true
 #LOCAL_STATIC_LIBRARIES := libskia
 
 LOCAL_PRELINK_MODULE := false
 
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26 && echo OK),OK)
-LOCAL_PROPRIETARY_MODULE := true
+#LOCAL_PROPRIETARY_MODULE := true
 endif
 
 include $(BUILD_SHARED_LIBRARY)
@@ -83,12 +91,15 @@ LOCAL_C_INCLUDES := \
 	bionic/libc/include
 
 LOCAL_SHARED_LIBRARIES += \
+  libicui18n \
+  libicuuc \
   liblog \
   libcutils
 
 #LOCAL_STATIC_LIBRARIES := libskia
 
 LOCAL_PRELINK_MODULE := false
+LOCAL_PRODUCT_MODULE := true
 
 #DVB define
 ifeq ($(BOARD_HAS_ADTV),true)
@@ -99,15 +110,17 @@ LOCAL_C_INCLUDES += \
 	$(DVB_PATH)/include/am_mw \
 	$(DVB_PATH)/include/am_adp \
 	$(DVB_PATH)/android/ndk/include \
+LOCAL_PRIVATE_PLATFORM_APIS := true
 
-LOCAL_SHARED_LIBRARIES += \
-  libzvbi \
+LOCAL_STATIC_LIBRARIES += \
   libam_mw \
+  libzvbi \
+  libsqlite \
   libam_adp
 endif
 
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26 && echo OK),OK)
-LOCAL_PROPRIETARY_MODULE := true
+#LOCAL_PROPRIETARY_MODULE := true
 endif
 
 include $(BUILD_SHARED_LIBRARY)
@@ -115,22 +128,13 @@ include $(BUILD_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26 && echo OK),OK)
-MULTI_FONT_PATH_32 := $(TARGET_OUT_VENDOR)/lib/
-MULTI_FONT_PATH_64 := $(TARGET_OUT_VENDOR)/lib64/
-else
-MULTI_FONT_PATH_32 := $(TARGET_OUT)/lib/
-MULTI_FONT_PATH_64 := $(TARGET_OUT)/lib64/
-endif
-
 LOCAL_MODULE    := libvendorfont
 LOCAL_MULTILIB := both
 LOCAL_MODULE_SUFFIX := .so
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_CLASS := SHARED_LIBRARIES
 
-LOCAL_MODULE_PATH_32 := $(MULTI_FONT_PATH_32)
-LOCAL_MODULE_PATH_64 := $(MULTI_FONT_PATH_64)
+LOCAL_PRODUCT_MODULE := true
 LOCAL_SRC_FILES_arm := arm/$(LOCAL_MODULE)$(LOCAL_MODULE_SUFFIX)
 LOCAL_SRC_FILES_arm64 := arm64/$(LOCAL_MODULE)$(LOCAL_MODULE_SUFFIX)
 
@@ -152,11 +156,12 @@ LOCAL_C_INCLUDES := \
     libnativehelper/include/nativehelper
 
 LOCAL_SHARED_LIBRARIES += libvendorfont liblog libcutils
+LOCAL_PRODUCT_MODULE := true
 
 LOCAL_PRELINK_MODULE := false
 
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26 && echo OK),OK)
-LOCAL_PROPRIETARY_MODULE := true
+#LOCAL_PROPRIETARY_MODULE := true
 endif
 
 include $(BUILD_SHARED_LIBRARY)
