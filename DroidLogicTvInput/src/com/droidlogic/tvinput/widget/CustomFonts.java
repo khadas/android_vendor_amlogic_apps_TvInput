@@ -27,6 +27,9 @@ public class CustomFonts {
     Typeface prop_sans_it_tf;
     Typeface small_capital_tf;
     Typeface small_capital_it_tf;
+    Typeface cursive_tf;
+    Typeface cursive_it_tf;
+
     CustomFonts(Context context)
     {
         try {
@@ -38,8 +41,9 @@ public class CustomFonts {
             prop_sans_it_tf = Typeface.createFromFile(new File(context.getDataDir(), "font/cinecavD_serif_it.ttf"));
             small_capital_tf = Typeface.createFromFile(new File(context.getDataDir(), "font/cinecavD_sc.ttf"));
             small_capital_it_tf = Typeface.createFromFile(new File(context.getDataDir(), "font/cinecavD_sc_it.ttf"));
-        } catch (Exception e)
-        {
+            cursive_tf = Typeface.createFromFile(new File(context.getDataDir(), "font/cinecavD_script.ttf"));
+            cursive_it_tf = Typeface.createFromFile(new File(context.getDataDir(), "font/cinecavD_script_it.ttf"));
+        } catch (Exception e) {
             Log.e(TAG, "error " + e.toString());
         }
     }

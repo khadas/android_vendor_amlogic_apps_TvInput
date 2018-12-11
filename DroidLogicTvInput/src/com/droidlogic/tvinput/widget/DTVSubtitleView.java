@@ -43,6 +43,7 @@ import android.util.Log;
 import android.view.accessibility.CaptioningManager;
 import android.widget.Toast;
 import android.graphics.Bitmap;
+import com.droidlogic.app.SystemControlManager;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -127,6 +128,8 @@ public class DTVSubtitleView extends View {
     public static final int CC_COLOR_MAGENTA = 7;
     public static final int CC_COLOR_CYAN = 8;
     static final int VFMT_ATV = 100;
+
+    private static SystemControlManager mSystemControlManager;
 
     public static final int JSON_MSG_NORMAL = 0;
     public static final int UPDATE_BITMAP = 1;
@@ -327,7 +330,7 @@ public class DTVSubtitleView extends View {
         }
     }
 
-    private void init() {
+    private void init(Context context) {
         synchronized(lock) {
             if (init_count == 0) {
                 play_mode = PLAY_NONE;
@@ -343,11 +346,11 @@ public class DTVSubtitleView extends View {
 
                 //setLayerType(View.LAYER_TYPE_SOFTWARE, null);
 
-                cf = new CustomFonts(getContext());
+                cf = new CustomFonts(context);
                 if (ci == null) {
-                    ci = new CcImplement(getContext(), cf);
+                    ci = new CcImplement(context, cf);
                 }
-                captioningManager = (CaptioningManager) getContext().getSystemService(Context.CAPTIONING_SERVICE);
+                captioningManager = (CaptioningManager) context.getSystemService(Context.CAPTIONING_SERVICE);
                 captioningManager.addCaptioningChangeListener(new CaptioningManager.CaptioningChangeListener() {
                     @Override
                     public void onEnabledChanged(boolean enabled) {
@@ -409,22 +412,24 @@ public class DTVSubtitleView extends View {
                 native_set_buffer(bitmap_bytebuffer);
                 Log.e(TAG, "bitmap_bytebuffer " + bitmap_bytebuffer.capacity());
             }
+            cw = ci.new CaptionWindow();
+            mSystemControlManager = SystemControlManager.getInstance();
         }
     }
 
     public DTVSubtitleView(Context context) {
         super(context);
-        init();
+        init(context);
     }
 
     public DTVSubtitleView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init();
+        init(context);
     }
 
     public DTVSubtitleView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        init();
+        init(context);
     }
 
     public void setMargin(int left, int top, int right, int bottom) {
@@ -776,6 +781,7 @@ public class DTVSubtitleView extends View {
         if (!active || !visible || (play_mode == PLAY_NONE)) {
             /* Clear canvas */
             canvas.drawPaint(clear_paint);
+            json_str = null;
             return;
         }
 
@@ -785,13 +791,17 @@ public class DTVSubtitleView extends View {
             case MODE_DTV_CC:
             case MODE_ATV_CC:
                 /* For atsc */
-                if (!ci.cc_setting.is_enabled) {
+                if (!ci.cc_setting.is_enabled)
                     return;
-                }
+                String screen_mode = mSystemControlManager.readSysFs("/sys/class/video/screen_mode");
+                String video_status = mSystemControlManager.readSysFs("/sys/class/video/video_state");
+                String ratio = mSystemControlManager.readSysFs("/sys/class/video/frame_aspect_ratio");
+                cw.UpdatePositioning(ratio, screen_mode, video_status);
                 ci.caption_screen.updateCaptionScreen(canvas.getWidth(), canvas.getHeight());
+                cw.style_use_broadcast = ci.isStyle_use_broadcast();
 
-                if (cw != null)
-                    cw.draw(canvas);
+                cw.updateCaptionWindow(json_str);
+                cw.draw(canvas);
                 break;
             case MODE_DTV_TT:
             case MODE_DVB_SUB:
@@ -848,7 +858,7 @@ public class DTVSubtitleView extends View {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case JSON_MSG_NORMAL:
-                    cw = (CcImplement.CaptionWindow)msg.obj;
+                    json_str = (String)msg.obj;
                     postInvalidate();
                     break;
             }
@@ -860,7 +870,7 @@ public class DTVSubtitleView extends View {
             return;
 
         if (!TextUtils.isEmpty(str)) {
-            handler.obtainMessage(JSON_MSG_NORMAL, ci.new CaptionWindow(str)).sendToTarget();
+            handler.obtainMessage(JSON_MSG_NORMAL, str).sendToTarget();
         }
     }
 
