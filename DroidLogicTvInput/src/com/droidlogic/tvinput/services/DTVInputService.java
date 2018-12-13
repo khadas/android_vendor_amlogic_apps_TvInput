@@ -3015,7 +3015,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                         }
                     }
                     if (on) {
-                        if (tvservice != null) {
+                        if (tvservice != null && epgScanner != null) {
                             Log.d(TAG, "rescanService["+MODE_Service+"]"+" rescanTs["+MODE_Ts+"]");
                             epgScanner.stopScan(MODE_Service|MODE_Ts);
                             epgScanner.startScan(MODE_Service|MODE_Ts);
