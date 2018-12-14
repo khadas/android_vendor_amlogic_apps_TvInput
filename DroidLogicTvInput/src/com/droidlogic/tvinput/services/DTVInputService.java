@@ -2439,8 +2439,6 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
                 current_cc_pid = pid;
 
-                mSubtitleView.stop();
-
                 setSubtitleParam(vfmt, type, pid, stype, id1, id2);
 
                 mSubtitleView.setActive(true);

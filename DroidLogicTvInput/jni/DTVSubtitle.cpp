@@ -57,8 +57,6 @@ typedef void* AM_SUB2_Handle_t;
 #undef LOG_TAG
 #endif
 
-#define USE_GRAPHIC_LIB
-
 #define LOG_TAG    "jnidtvsubtitle"
 #define LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
 #define LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
@@ -96,11 +94,7 @@ typedef void* AM_SUB2_Handle_t;
                 attached = 1;
             }
         }
-#ifdef USE_GRAPHIC_LIB
         AndroidBitmap_lockPixels(env, bitmap, (void **) &buf);
-#else
-        buf = bmp_buffer;
-#endif
         if (attached) {
             gJavaVM->DetachCurrentThread();
         }
@@ -122,10 +116,7 @@ typedef void* AM_SUB2_Handle_t;
                 attached = 1;
             }
         }
-#ifdef USE_GRAPHIC_LIB
         AndroidBitmap_unlockPixels(env, bitmap);
-#else
-#endif
         if (attached) {
             gJavaVM->DetachCurrentThread();
         }
@@ -136,25 +127,17 @@ typedef void* AM_SUB2_Handle_t;
         unlock_bitmap(NULL, bitmap);
     }
 
-    static void set_bmp_direct_buffer(JNIEnv *env, jobject obj, jobject buffer)
-    {
-        bmp_buffer = (unsigned char*)(env->GetDirectBufferAddress(buffer));
-        jlong dwCapacity  = env->GetDirectBufferCapacity(buffer);
-    }
-
     static uint8_t *get_bitmap(JNIEnv *env, TVSubtitleData *sub, int *w, int *h, int *pitch)
     {
         uint8_t *buf;
         int width, height, stride;
 
         buf = lock_bitmap(env, sub->obj_bitmap);
-        unlock_bitmap(env, sub->obj_bitmap);
         LOGI("bitmap buffer [%p]", buf);
 
         if (!buf) {
             LOGE("allocate bitmap buffer failed");
         } else {
-#ifdef USE_GRAPHIC_LIB
             AndroidBitmapInfo bitmapInfo;
             AndroidBitmap_getInfo(env, sub->obj_bitmap, &bitmapInfo);
             LOGI("init bitmap info w:%d h:%d s:%d", bitmapInfo.width, bitmapInfo.height, bitmapInfo.stride);
@@ -169,24 +152,7 @@ typedef void* AM_SUB2_Handle_t;
                 *pitch = bitmapInfo.stride;
             }
         }
-#else
-            //Get bufferH bufferW stride=W*4
-            width = 1920;
-            height = 1080;
-            stride = 7680;
-            LOGI("init bitmap info w:%d h:%d s:%d", width, height, stride);
-            if (w) {
-                *w = width;
-            }
-            if (h) {
-                *h = height;
-            }
-            if (pitch) {
-                *pitch = stride;
-            }
-        }
-#endif
-
+        unlock_bitmap(env, sub->obj_bitmap);
         return buf;
     }
 
@@ -600,7 +566,6 @@ error:
             }
             attached = 1;
         }
-//        env->CallVoidMethod(obj, gUpdateID, NULL);
 
         bmp = env->GetStaticObjectField(env->FindClass("com/droidlogic/tvinput/widget/DTVSubtitleView"), gBitmapID);
         if (!data->obj_bitmap)
@@ -1245,7 +1210,6 @@ error:
         {"native_sub_stop_atsc_cc", "()I", (void *)sub_stop_atsc_cc},
         {"native_sub_set_atsc_cc_options", "(IIIIII)I", (void *)sub_set_atsc_cc_options},
         {"native_sub_set_active", "(Z)I", (void *)sub_set_active},
-        {"native_set_buffer", "(Ljava/nio/ByteBuffer;)V", (void *)set_bmp_direct_buffer}
     };
 
     JNIEXPORT jint
@@ -1281,7 +1245,6 @@ error:
             gUpdateDataID = env->GetMethodID(clazz, "updateData", "(Ljava/lang/String;)V");
             gReadSysfsID = env->GetMethodID(clazz, "readSysFs", "(Ljava/lang/String;)Ljava/lang/String;");
             gWriteSysfsID = env->GetMethodID(clazz, "writeSysFs", "(Ljava/lang/String;Ljava/lang/String;)V");
-
 
             LOGI("load jnitvsubtitle ok");
             return JNI_VERSION_1_4;

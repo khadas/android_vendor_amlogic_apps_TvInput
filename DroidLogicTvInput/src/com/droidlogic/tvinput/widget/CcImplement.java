@@ -584,6 +584,7 @@ public class CcImplement {
                 if (!TextUtils.isEmpty(jsonStr))
                     ccObj = new JSONObject(jsonStr);
                 else {
+                    init_flag = false;
                     return;
                 }
                 ccVersion = ccObj.getString("type");
@@ -604,7 +605,13 @@ public class CcImplement {
                         windows[i].updateWindow(windowArr.getJSONObject(i));
                 }
                 else {
+                    init_flag = false;
                     Log.d(TAG, "ccType unknown");
+                    return;
+                }
+
+                if (windows_count == 0) {
+                    init_flag = false;
                     return;
                 }
             }

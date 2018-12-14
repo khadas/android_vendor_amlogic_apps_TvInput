@@ -36,13 +36,11 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
 import java.lang.Exception;
-import java.nio.ByteBuffer;
 import java.util.Locale;
 
 import android.util.Log;
 import android.view.accessibility.CaptioningManager;
 import android.widget.Toast;
-import android.graphics.Bitmap;
 import com.droidlogic.app.SystemControlManager;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -55,7 +53,6 @@ public class DTVSubtitleView extends View {
     private static Object lock = new Object();
     private static final int BUFFER_W = 1920;
     private static final int BUFFER_H = 1080;
-    private static int BUFFER_STRIDE;
 
     private static final int MODE_NONE = 0;
     private static final int MODE_DTV_TT = 1;
@@ -132,7 +129,8 @@ public class DTVSubtitleView extends View {
     private static SystemControlManager mSystemControlManager;
 
     public static final int JSON_MSG_NORMAL = 0;
-    public static final int UPDATE_BITMAP = 1;
+    public static final int SUB_VIEW_SHOW = 1;
+    public static final int SUB_VIEW_CLEAN = 2;
 
     private static int init_count = 0;
     private static CaptioningManager captioningManager = null;
@@ -141,9 +139,10 @@ public class DTVSubtitleView extends View {
     private static CcImplement ci = null;
     private static String json_str;
     private static Bitmap bitmap = null;
-    private static ByteBuffer bitmap_bytebuffer = null;
-    private Paint mPaint;
-    private Paint clear_paint;
+    private static Paint mPaint;
+    private static Paint clear_paint;
+    private boolean need_clear_canvas;
+    private boolean decoding_status;
 
     public static boolean cc_is_started = false;
 
@@ -171,12 +170,12 @@ public class DTVSubtitleView extends View {
     private native int native_sub_stop_atsc_cc();
     private native static int native_sub_set_atsc_cc_options(int fg_color, int fg_opacity, int bg_color, int bg_opacity, int font_style, int font_size);
     private native int native_sub_set_active(boolean active);
-    private native void native_set_buffer(ByteBuffer array);
 
     static {
 //        System.loadLibrary("am_adp");
 //        System.loadLibrary("am_mw");
 //        System.loadLibrary("zvbi");
+        bitmap = Bitmap.createBitmap(BUFFER_W, BUFFER_H, Bitmap.Config.ARGB_8888);
         System.loadLibrary("jnidtvsubtitle");
     }
 
@@ -291,6 +290,7 @@ public class DTVSubtitleView extends View {
     }
 
     private void stopDecoder() {
+        Log.e(TAG, "subtitleView stopSub");
         synchronized(lock) {
             if (!cc_is_started)
                 return;
@@ -327,6 +327,7 @@ public class DTVSubtitleView extends View {
             }
             cc_is_started = false;
             play_mode = PLAY_NONE;
+            need_clear_canvas = true;
         }
     }
 
@@ -338,18 +339,19 @@ public class DTVSubtitleView extends View {
                 destroy = false;
                 tt_params = new TTParams();
                 sub_params = new SubParams();
+                need_clear_canvas = true;
 
                 if (native_sub_init() < 0) {
                 }
 
-                mPaint = new Paint();
-
-                //setLayerType(View.LAYER_TYPE_SOFTWARE, null);
-
+                decoding_status = false;
                 cf = new CustomFonts(context);
-                if (ci == null) {
-                    ci = new CcImplement(context, cf);
-                }
+                ci = new CcImplement(context, cf);
+                cw = ci.new CaptionWindow();
+                mPaint = new Paint();
+                clear_paint = new Paint();
+                clear_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+                mSystemControlManager = SystemControlManager.getInstance();
                 captioningManager = (CaptioningManager) context.getSystemService(Context.CAPTIONING_SERVICE);
                 captioningManager.addCaptioningChangeListener(new CaptioningManager.CaptioningChangeListener() {
                     @Override
@@ -396,24 +398,8 @@ public class DTVSubtitleView extends View {
                 });
                 ci.cc_setting.UpdateCcSetting(captioningManager);
                 Log.e(TAG, "subtitle view init");
-
             }
-            init_count = 1;
-
-            clear_paint = new Paint();
-            clear_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
-
-            if (mPaint == null)
-                mPaint = new Paint();
-            if (bitmap == null)
-                bitmap = Bitmap.createBitmap(BUFFER_W, BUFFER_H, Bitmap.Config.ARGB_8888);
-            if (bitmap_bytebuffer == null) {
-                bitmap_bytebuffer = ByteBuffer.allocateDirect(BUFFER_H * BUFFER_W * 4);
-                native_set_buffer(bitmap_bytebuffer);
-                Log.e(TAG, "bitmap_bytebuffer " + bitmap_bytebuffer.capacity());
-            }
-            cw = ci.new CaptionWindow();
-            mSystemControlManager = SystemControlManager.getInstance();
+            init_count += 1;
         }
     }
 
@@ -537,7 +523,7 @@ public class DTVSubtitleView extends View {
 
         Log.d(TAG, "show");
 
-        visible = true;
+        handler.obtainMessage(SUB_VIEW_SHOW, true).sendToTarget();
         update();
     }
 
@@ -546,15 +532,14 @@ public class DTVSubtitleView extends View {
             return;
 
         Log.d(TAG, "hide");
-
-        visible = false;
+        handler.obtainMessage(SUB_VIEW_SHOW, false).sendToTarget();
         update();
     }
 
     public void startTT() {
         synchronized(lock) {
-            //if (activeView != this)
-              //  return;
+            if (activeView != this)
+                return;
 
             stopDecoder();
 
@@ -597,8 +582,6 @@ public class DTVSubtitleView extends View {
                             sub_params.dvb_sub.pid,
                             sub_params.dvb_sub.composition_page_id,
                             sub_params.dvb_sub.ancillary_page_id);
-                    if (bitmap_bytebuffer != null)
-                        bitmap_bytebuffer.rewind();
                     break;
                 case MODE_DTV_TT:
                     ret = native_sub_start_dtv_tt(sub_params.dtv_tt.dmx_id,
@@ -663,6 +646,8 @@ public class DTVSubtitleView extends View {
         synchronized(lock) {
             if (activeView != this)
                 return;
+
+            handler.obtainMessage(SUB_VIEW_CLEAN).sendToTarget();
             stopDecoder();
             native_sub_clear();
             tt_params.mode  = MODE_NONE;
@@ -778,12 +763,17 @@ public class DTVSubtitleView extends View {
         Rect sr, dr;
         String json_data;
 
-        if (!active || !visible || (play_mode == PLAY_NONE)) {
+        if (need_clear_canvas) {
             /* Clear canvas */
             canvas.drawPaint(clear_paint);
             json_str = null;
+            need_clear_canvas = false;
             return;
         }
+        if (!active || !visible || (play_mode == PLAY_NONE)) {
+            return;
+        }
+
 
         switch (sub_params.mode)
         {
@@ -801,7 +791,10 @@ public class DTVSubtitleView extends View {
                 cw.style_use_broadcast = ci.isStyle_use_broadcast();
 
                 cw.updateCaptionWindow(json_str);
-                cw.draw(canvas);
+                if (cw.init_flag)
+                    decoding_status = true;
+                if (decoding_status)
+                    cw.draw(canvas);
                 break;
             case MODE_DTV_TT:
             case MODE_DVB_SUB:
@@ -826,6 +819,7 @@ public class DTVSubtitleView extends View {
     }
 
     public void dispose() {
+        Log.e(TAG, "Subview dispose");
         synchronized(lock) {
             if (!destroy) {
                 destroy = true;
@@ -839,16 +833,17 @@ public class DTVSubtitleView extends View {
     }
 
     protected void finalize() throws Throwable {
+        Log.e(TAG, "Subview finalize");
         // Resource may not be available during gc process
-        // dispose();
+        dispose();
         Log.e(TAG, "Finalize");
         super.finalize();
-        init_count = 0;
+        init_count --;
     }
 
     public void setVisible(boolean value) {
         Log.d(TAG, "force set visible to:" + value);
-        visible = value;
+        handler.obtainMessage(SUB_VIEW_SHOW, value).sendToTarget();
         postInvalidate();
     }
 
@@ -860,6 +855,24 @@ public class DTVSubtitleView extends View {
                 case JSON_MSG_NORMAL:
                     json_str = (String)msg.obj;
                     postInvalidate();
+                    break;
+                case SUB_VIEW_SHOW:
+                    visible = (Boolean) msg.obj;
+                    if (!visible) {
+                        json_str = null;
+                        need_clear_canvas = true;
+                        decoding_status = false;
+                    }
+                    postInvalidate();
+                    break;
+                case SUB_VIEW_CLEAN:
+                    json_str = null;
+                    need_clear_canvas = true;
+                    decoding_status = false;
+                    postInvalidate();
+                    break;
+                default:
+                    Log.e(TAG, "Wrong message what");
                     break;
             }
         }
