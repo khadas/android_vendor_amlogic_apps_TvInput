@@ -619,6 +619,7 @@ public class CcImplement {
             {
                 Log.e(TAG, "Window init failed, exception: " + e.toString());
                 init_flag = false;
+                return;
             }
             init_flag = true;
         }
