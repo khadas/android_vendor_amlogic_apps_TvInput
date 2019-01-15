@@ -200,12 +200,12 @@ public class AV1InputService extends DroidLogicTvInputService {
              }
          }
 
-        protected void setSubtitleParam(int type, int pid, int stype, int id1, int id2) {
+        protected void setSubtitleParam(int type, int pid, int stype, int id1, int id2, String lang) {
             if (type == ChannelInfo.Subtitle.TYPE_ATV_CC) {
                 //CCStyleParams ccParam = getCaptionStyle();
                 CCStyleParams ccParam = getCaptionStyle();//new CCStyleParams(1,3,2,3,0,2);
                 DTVSubtitleView.AVCCParams params =
-                    new DTVSubtitleView.AVCCParams(pid,
+                    new DTVSubtitleView.AVCCParams(pid, id1, lang,
                         ccParam.fg_color,
                         ccParam.fg_opacity,
                         ccParam.bg_color,
@@ -650,7 +650,7 @@ public class AV1InputService extends DroidLogicTvInputService {
                 return;
             }
             mSubtitleView.stop();
-            setSubtitleParam(ChannelInfo.Subtitle.TYPE_ATV_CC, pid, 0, 0, 0);//we need xds data
+            setSubtitleParam(ChannelInfo.Subtitle.TYPE_ATV_CC, pid, 0, 0, 0, "");//we need xds data
 
             mSubtitleView.setActive(true);
             mSubtitleView.startSub();
@@ -671,7 +671,8 @@ public class AV1InputService extends DroidLogicTvInputService {
                 temp = ccPrefer > 0 ? ccPrefer : ChannelInfo.Subtitle.CC_CAPTION_VCHIP_ONLY;//parse xds vchip only
             }
             mSubtitleView.stop();
-            setSubtitleParam(ChannelInfo.Subtitle.TYPE_ATV_CC, mCurrentCCStyle == -1 ? temp : mCurrentCCStyle, 0, 0, 0);//we need xds data
+            setSubtitleParam(ChannelInfo.Subtitle.TYPE_ATV_CC, mCurrentCCStyle == -1 ? temp : mCurrentCCStyle, 0, 0, 0,
+            "");//we need xds data
 
             mSubtitleView.setActive(true);
             mSubtitleView.startSub();

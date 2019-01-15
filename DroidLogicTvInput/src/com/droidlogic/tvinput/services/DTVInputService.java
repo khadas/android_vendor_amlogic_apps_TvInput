@@ -43,6 +43,7 @@ import android.database.ContentObserver;
 import android.provider.Settings;
 import android.graphics.Color;
 import android.widget.Toast;
+import android.annotation.NonNull;
 import java.lang.reflect.Method;
 import java.lang.reflect.Field;
 
@@ -175,6 +176,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
     public boolean is_subtitle_enabled;
     // cur channnel ratings
     private TvContentRating[] mCurChannelRatings = null;
+    private Uri mCurrentChannelUri = null;
+    protected final Set<TvContentRating> mUnblockedRatingSet = new HashSet<>();
 
     protected Map<Integer, DTVSessionImpl> sessionMap = new HashMap<>();
     protected final BroadcastReceiver mChannelScanStartReceiver = new BroadcastReceiver() {
@@ -323,6 +326,10 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         mTvControlManager.stopPlay("atsc", null);
     }
 
+    protected void stopTv() {
+        mTvControlManager.StopTv();
+    }
+
     public String getCacheStoragePath() {
         File baseDir;
         int maxCacheSizeMb = SystemProperties.getInt(MAX_CACHE_SIZE_KEY, MAX_CACHE_SIZE_DEF);
@@ -446,7 +453,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         protected TvInputManager mTvInputManager;
         protected TvDataBaseManager mTvDataBaseManager;
         protected TvContentRating mLastBlockedRating;
-        protected final Set<TvContentRating> mUnblockedRatingSet = new HashSet<>();
+        //protected final Set<TvContentRating> mUnblockedRatingSet = new HashSet<>();//declare in dtvinputservice
         protected ChannelInfo mCurrentChannel;
         protected List<ChannelInfo.Subtitle> mCurrentSubtitles;
         protected ChannelInfo.Subtitle mCurrentSubtitle;
@@ -570,7 +577,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 stopSubtitle();
                 mTvControlManager.SetAVPlaybackListener(null);
                 mTvControlManager.SetAudioEventListener(null);
-                releasePlayer();
+                stopTv();
             }
             setMonitor(null);
             releaseWorkThread();
@@ -684,6 +691,13 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 if (mSubtitleView != null) {
                     mSubtitleView.gotoPage(number);
                 }
+            } else if (DroidLogicTvUtils.ACTION_TIF_BEFORE_TUNE.equals(action)) {
+                boolean status = bundle.getBoolean(DroidLogicTvUtils.ACTION_TIF_BEFORE_TUNE, false);
+                Log.d(TAG, "do private cmd:"+ DroidLogicTvUtils.ACTION_TIF_BEFORE_TUNE + ", status:" + status);
+                setTuningScreen(true);
+            } else if (DroidLogicTvUtils.ACTION_TIF_AFTER_TUNE.equals(action)) {
+                boolean status = bundle.getBoolean(DroidLogicTvUtils.ACTION_TIF_AFTER_TUNE, false);
+                Log.d(TAG, "do private cmd:"+ DroidLogicTvUtils.ACTION_TIF_AFTER_TUNE + ", status:" + status);
             }
         }
 
@@ -830,7 +844,13 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             mCurrentUri = uri;
             stopSubtitle();
 
-            mUnblockedRatingSet.clear();
+            if (uri != null && !uri.equals(mCurrentChannelUri)) {
+                mUnblockedRatingSet.clear();//keep set for same channel
+            } else if (uri == null) {
+                mUnblockedRatingSet.clear();
+            }
+            mCurrentChannelUri = uri;
+
             mChannelBlocked = -1;
             isUnlockCurrent_NR = false;
 
@@ -900,7 +920,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
         private ChannelInfo mLastChannel = null;
         protected boolean tryPlayProgram(ChannelInfo info) {
-            boolean needstaticframe = mTvControlManager.getBlackoutEnalbe() == 0;
+            boolean needstaticframe = mTvControlManager.getBlackoutEnable() == 0;
             boolean needdisablestaticframe = false;
             if (mCurrentChannel != null && info != null) {
                 if (DroidLogicTvUtils.isAtscCountry(mContext)) {
@@ -918,17 +938,20 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                     if (DEBUG) Log.d(TAG, "disable show last frame as diffrent video type");
                     needdisablestaticframe = true;//radio to video or video to radio, this case last frame is not needed
                 }
-                if (mIsBlocked || mIsPreviousChannelBlocked) {
+                boolean lastRatingBlockStatus = mSystemControlManager.getPropertyBoolean(DroidLogicTvUtils.TV_CURRENT_BLOCK_STATUS, false);
+                boolean lastChannelBlockStatus = mSystemControlManager.getPropertyBoolean(DroidLogicTvUtils.TV_CURRENT_CHANNELBLOCK_STATUS, false);
+                if (/*mIsBlocked || mIsPreviousChannelBlocked || */lastRatingBlockStatus || lastChannelBlockStatus) {
                     if (DEBUG) Log.d(TAG, "disable show last frame as previous blocked");
                     needdisablestaticframe = true;//blocked channel to non blocked, this case last frame is not needed
                 }
             }
             if (needstaticframe && !needdisablestaticframe) {
                 if (DEBUG) Log.d(TAG, "enable show last frame");
-                mTvControlManager.setBlackoutEnable(0);
+                mTvControlManager.setBlackoutEnable(0, 0);
             } else {
                 if (DEBUG) Log.d(TAG, "disable show last frame");
-                mTvControlManager.setBlackoutEnable(1);
+                mTvControlManager.setBlackoutEnable(1, 0);
+                setTuningScreen(true);
             }
 
             mCurrentChannel = info;
@@ -1040,6 +1063,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             tryStartSubtitle(info);
             startAudioADByMain(info, audioAuto);
             isUnlockCurrent_NR = false;
+            setTuningScreen(false);
             return true;
         }
 
@@ -1158,7 +1182,13 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 TvContentRating[] newparseratings = null;
                 if (mCurrentProgram != null) {
                     json = mCurrentProgram.getInternalProviderData();
-                    newparseratings = parseDRatingsT(json, -1, null, mCurrentProgram.getTitle());
+                    Log.d(TAG, "getContentRatingsOfCurrentProgram programid = " + mCurrentProgram.getId() + ", channel json = " + json);
+                    newparseratings = parseDRatingsT(json, mTvDataBaseManager, mCurrentProgram.getTitle(), channelInfo.getUri(), mCurrentProgram.getId(), mCurrentProgram.getStartTimeUtcMillis());
+                } else if (DEBUG) {
+                    Log.d(TAG, "getContentRatingsOfCurrentProgram mCurrentProgram = null");
+                }
+                if (true || DEBUG) {
+                    Log.d(TAG, "getContentRatingsOfCurrentProgram newrating = " + Program.contentRatingsToString(newparseratings) + ", ratings = " + Program.contentRatingsToString(ratings));
                 }
                 if (newparseratings != null && !TextUtils.equals(Program.contentRatingsToString(newparseratings), Program.contentRatingsToString(ratings))) {
                     ratings = newparseratings;
@@ -1548,6 +1578,20 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             }
         }
 
+        @Override
+        public void notifyContentAllowed() {
+            Log.d(TAG, "notifyContentAllowed ");
+            super.notifyContentAllowed();
+            setTuningScreen(false);
+        }
+
+        @Override
+        public void notifyContentBlocked(@NonNull final TvContentRating rating) {
+            Log.d(TAG, "notifyContentBlocked: "+rating);
+            super.notifyContentBlocked(rating);
+            setTuningScreen(true);
+        }
+
         //update overlay display need run in main handler
         private void showRadioPicture(final int time) {
             if (mMainHandler != null) {
@@ -1569,6 +1613,20 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             if (mCurrentChannel != null)
                 return ChannelInfo.isRadioChannel(mCurrentChannel);
             return false;
+        }
+
+        //update overlay display need run in main handler
+        private void setTuningScreen(final boolean status) {
+            if (mMainHandler != null) {
+                mMainHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (mOverlayView != null) {
+                            mOverlayView.setTuningImageVisibility(status);
+                        }
+                    }
+                });
+            }
         }
 
         protected String generateAudioIdString(ChannelInfo.Audio audio) {
@@ -1653,7 +1711,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             int CaptionType
                 = isAnalog ? ChannelInfo.Subtitle.TYPE_ATV_CC : ChannelInfo.Subtitle.TYPE_DTV_CC;
             int count = 0;
-
+            //stype indicates the source type, where cc comes from
             if (!isAnalog) {
                 for (int i = 0; i < CaptionCSMax; i++) {
                     ChannelInfo.Subtitle s
@@ -1702,7 +1760,10 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             while (iter.hasNext()) {
                 ChannelInfo.Subtitle s = iter.next();
                 if (s.mType == sub.mType && s.mPid == sub.mPid)
+                    {
+                    Log.e(TAG, "pid "+s.mPid + " id1 "+s.mId1 + " id2 "+s.mId2);
                     return s;
+                    }
             }
             return null;
         }
@@ -1723,12 +1784,14 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             while (iter.hasNext()) {
                 ChannelInfo.Subtitle s = iter.next();
                 ChannelInfo.Subtitle sub = null;
+
                 sub = getExistSubtitleFromList(channelSubs, s);
                 if (sub != null)
-                    s = new ChannelInfo.Subtitle.Builder(sub).setId(s.id).setLang(s.mLang).build();
+                    s = new ChannelInfo.Subtitle.Builder(sub).setId(s.id).setLang(s.mLang + "-" +
+                        sub.mLang).setId1(sub.mId1).build();
                 sub = getExistSubtitleFromList(programSubs, s);
                 if (sub != null)
-                    s = new ChannelInfo.Subtitle.Builder(sub).setId(s.id).setLang(s.mLang).build();;
+                    s = new ChannelInfo.Subtitle.Builder(sub).setId(s.id).setLang(s.mLang).setId1(sub.mId1).build();
                 subtitles.add(s);
             }
         }
@@ -1861,7 +1924,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 Log.d(TAG, "\t" + "   [id1:" + s.mId1 + "] [id2:" + s.mId2 + "] [stype:" + s.mStype + "]");
             }
 
-            if (auto >= 0)
+            if (auto >= 0 && mCurrentSubtitles.size() > 0)
                 return generateSubtitleIdString(mCurrentSubtitles.get(auto));
 
             return null;
@@ -1985,7 +2048,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 return;
             startSubtitle(channel.getVfmt(),channel.isAnalogChannel()?
                                 ChannelInfo.Subtitle.TYPE_ATV_CC : ChannelInfo.Subtitle.TYPE_DTV_CC,
-                            15/*ChannelInfo.Subtitle.CC_CAPTION_XDS*/, 0, 0, 0);
+                            15/*ChannelInfo.Subtitle.CC_CAPTION_XDS*/, 0, 0, 0, "");
             enableSubtitleShow(false);
             mSystemControlManager.setProperty(DTV_SUBTITLE_TRACK_IDX, "-3");
         }
@@ -2076,7 +2139,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             //Log.d(TAG, "check_program_pmt_rating_block cur channel: " + mCurrentChannel.getServiceId() +" PMT ServiceId:" + ServiceId + " ratings:" + json);
             if ((mCurrentChannel != null && mCurrentChannel.isAtscChannel()) || isAtscForcedStandard()) {
                 //Log.d(TAG, "PMT get mCurrentPmtContentRatings");
-                mCurrentPmtContentRatings = parseDRatingsT(json, -1, null, "");
+                mCurrentPmtContentRatings = parseDRatingsT(json, null, "", mCurrentChannel.getUri(), -1, -1);
                 if (DEBUG) Log.d(TAG, "PMT save mCurrentPmtContentRatings = " + Program.contentRatingsToString(mCurrentPmtContentRatings));
                 saveCurrentChannelRatings();
                 if (mHandler != null)
@@ -2197,7 +2260,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
              }
          }
 
-        protected void setSubtitleParam(int vfmt, int type, int pid, int stype, int id1, int id2) {
+        protected void setSubtitleParam(int vfmt, int type, int pid, int stype, int id1, int id2, String lang) {
             if (type == ChannelInfo.Subtitle.TYPE_DVB_SUBTITLE) {
                 DTVSubtitleView.DVBSubParams params =
                     new DTVSubtitleView.DVBSubParams(0, pid, id1, id2);
@@ -2208,13 +2271,14 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 pgno = (id1 == 0) ? 800 : id1 * 100;
                 pgno += (id2 & 15) + ((id2 >> 4) & 15) * 10 + ((id2 >> 8) & 15) * 100;
                 DTVSubtitleView.DTVTTParams params =
-                    new DTVSubtitleView.DTVTTParams(0, pid, pgno, 0x3F7F, getTeletextRegionID("English"));
+                    new DTVSubtitleView.DTVTTParams(0, pid, pgno, 0x3F7F, getTeletextRegionID("English"), type, stype);
                 mSubtitleView.setSubParams(params);
 
             } else if (type == ChannelInfo.Subtitle.TYPE_DTV_CC) {
                 CCStyleParams ccParam = getCaptionStyle();
                 DTVSubtitleView.DTVCCParams params =
                     new DTVSubtitleView.DTVCCParams(vfmt, pid,
+                        id1, lang,
                         ccParam.fg_color,
                         ccParam.fg_opacity,
                         ccParam.bg_color,
@@ -2223,12 +2287,12 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                         ccParam.font_size);
                 mSubtitleView.setSubParams(params);
                 mSubtitleView.setMargin(225, 128, 225, 128);
-                Log.d(TAG, "DTV CC pid="+pid+",fg_color="+ccParam.fg_color+", fg_op="+ccParam.fg_opacity+", bg_color="+ccParam.bg_color+", bg_op="+ccParam.bg_opacity);
+                Log.d(TAG, "DTV CC pid="+pid+" dp "+id1+" lang "+lang+ ",fg_color="+ccParam.fg_color+", fg_op="+ccParam.fg_opacity+", bg_color="+ccParam.bg_color+", bg_op="+ccParam.bg_opacity);
 
             } else if (type == ChannelInfo.Subtitle.TYPE_ATV_CC) {
                 CCStyleParams ccParam = getCaptionStyle();
                 DTVSubtitleView.ATVCCParams params =
-                    new DTVSubtitleView.ATVCCParams(pid,
+                    new DTVSubtitleView.ATVCCParams(pid, id1, lang,
                         ccParam.fg_color,
                         ccParam.fg_opacity,
                         ccParam.bg_color,
@@ -2238,14 +2302,16 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
                 mSubtitleView.setSubParams(params);
                 mSubtitleView.setMargin(225, 128, 225, 128);
-                Log.d(TAG, "ATV CC pid="+pid+",fg_color="+ccParam.fg_color+", fg_op="+ccParam.fg_opacity+", bg_color="+ccParam.bg_color+", bg_op="+ccParam.bg_opacity);
+                Log.d(TAG, "ATV CC pid="+pid+" dp "+id1+ " lang "+lang+",fg_color="+ccParam.fg_color+", fg_op="+ccParam.fg_opacity+", bg_color="+ccParam.bg_color+", bg_op="+ccParam.bg_opacity);
             } else if (type == ChannelInfo.Subtitle.TYPE_DTV_TELETEXT_IMG) {
-                Log.e(TAG, "TELETEXT_IMG");
                 int pgno;
                 pgno = (id1 == 0) ? 800 : id1 * 100;
                 pgno += (id2 & 15) + ((id2 >> 4) & 15) * 10 + ((id2 >> 8) & 15) * 100;
                 DTVSubtitleView.DTVTTParams params =
-                        new DTVSubtitleView.DTVTTParams(0, pid, pgno, 0x3F7F, getTeletextRegionID("English"));
+                        new DTVSubtitleView.DTVTTParams(0, pid, pgno, 0x3F7F, getTeletextRegionID("English"), type, stype);
+                mSubtitleView.setSubParams(params);
+            } else if (type == ChannelInfo.Subtitle.TYPE_ISDB_SUB) {
+                DTVSubtitleView.ISDBParams params = new DTVSubtitleView.ISDBParams(0, pid, 0);
                 mSubtitleView.setSubParams(params);
             }
         }
@@ -2306,7 +2372,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         protected void convertStyle() {
         }
 
-        private int getRawUserStyle(){
+        /*private int getRawUserStyle(){
             try {
                 Class clazz = ClassLoader.getSystemClassLoader().loadClass("android.view.accessibility.CaptioningManager");
                 Method method = clazz.getMethod("getUserStyle");
@@ -2330,7 +2396,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                 e.printStackTrace();
             }
             return null;
-        }
+        }*/
 
         protected CCStyleParams getCaptionStyle()
         {
@@ -2345,7 +2411,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
              */
             CaptioningManager.CaptionStyle userStyle = mCaptioningManager.getUserStyle();
 
-            int style = getRawUserStyle();
+            int style = mCaptioningManager.getRawUserStyle();
             float textSize = mCaptioningManager.getFontScale();
             int fg_color = userStyle.foregroundColor & 0x00ffffff;
             int fg_opacity = userStyle.foregroundColor & 0xff000000;
@@ -2354,12 +2420,12 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             int fontStyle = DTVSubtitleView.CC_FONTSTYLE_DEFAULT;
 
             for (int i = 0; i < typeface.length; ++i) {
-                if (typeface[i].equals(getRawTypeface(userStyle))) {
+                if (typeface[i].equals(userStyle.mRawTypeface)) {
                     fontStyle = i;
                     break;
                 }
             }
-            Log.d(TAG, "get style: " + style + ", fontStyle" + fontStyle + ", typeface: " + getRawTypeface(userStyle));
+            Log.d(TAG, "get style: " + style + ", fontStyle" + fontStyle + ", typeface: " + userStyle.mRawTypeface);
 
             int fg = userStyle.foregroundColor;
             int bg = userStyle.backgroundColor;
@@ -2424,7 +2490,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             return params;
         }
 
-        protected void startSubtitle(int vfmt, int type, int pid, int stype, int id1, int id2) {
+        protected void startSubtitle(int vfmt, int type, int pid, int stype, int id1, int id2, String lang) {
             synchronized (mSubtitleLock) {
                 Log.d(TAG, "start Subtitle [" + type + " " + pid + " " + stype + " " + id1 + " " + id2 + "]");
                 if (mSubtitleView == null) {
@@ -2439,7 +2505,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
 
                 current_cc_pid = pid;
 
-                setSubtitleParam(vfmt, type, pid, stype, id1, id2);
+                setSubtitleParam(vfmt, type, pid, stype, id1, id2, lang);
 
                 mSubtitleView.setActive(true);
                 mSubtitleView.startSub();
@@ -2450,7 +2516,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
             mCurrentSubtitle = subtitle;
             if (subtitle != null) {
                 enableSubtitleShow(true);
-                startSubtitle(vfmt, subtitle.mType, subtitle.mPid, subtitle.mStype, subtitle.mId1, subtitle.mId2);
+                startSubtitle(vfmt, subtitle.mType, subtitle.mPid, subtitle.mStype, subtitle.mId1, subtitle.mId2,
+                subtitle.mLang);
             }
         }
 
@@ -3085,7 +3152,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                                     .setChannelId(ContentUris.parseId(channelUri))
                                     .setTitle(TvMultilingualText.getText((evt.name == null ? null : new String(evt.name)), languages))
                                     .setDescription(TvMultilingualText.getText((evt.ext_descr == null ? null : new String(evt.ext_descr)), languages))
-                                    .setContentRatings(evt.rrt_ratings == null ? null : parseDRatingsT(new String(evt.rrt_ratings), evt.evt_id, mTvDataBaseManager, (evt.name == null ? null : new String(evt.name))))
+                                    .setContentRatings(evt.rrt_ratings == null ? null : parseDRatingsT(new String(evt.rrt_ratings), mTvDataBaseManager, (evt.name == null ? null : new String(evt.name)), channelUri, -1, start * 1000))
                                     //.setContentRatings(evt.rrt_ratings == null ? null : DroidLogicTvUtils.parseDRatings(new String(evt.rrt_ratings)))
                                     //.setCanonicalGenres(programInfo.genres)
                                     //.setPosterArtUri(programInfo.posterArtUri)
@@ -3183,7 +3250,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                                     .setChannelId(cid)
                                     .setTitle(TvMultilingualText.getText((evt.name == null ? null : new String(evt.name)), languages))
                                     .setDescription(TvMultilingualText.getText((evt.ext_descr == null ? null : new String(evt.ext_descr)), languages))
-                                    .setContentRatings(evt.rrt_ratings == null ? null : parseDRatingsT(new String(evt.rrt_ratings), evt.evt_id, mTvDataBaseManager, (evt.name == null ? null : new String(evt.name))))
+                                    .setContentRatings(evt.rrt_ratings == null ? null : parseDRatingsT(new String(evt.rrt_ratings), mTvDataBaseManager, (evt.name == null ? null : new String(evt.name)), c.getUri(), -1, start * 1000))
                                     //.setContentRatings(evt.rrt_ratings == null ? null : DroidLogicTvUtils.parseDRatings(new String(evt.rrt_ratings)))
                                     //.setCanonicalGenres(programInfo.genres)
                                     //.setPosterArtUri(programInfo.posterArtUri)
@@ -3300,6 +3367,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                                                     String.valueOf(mEitVersions[event.eitNumber]));
                                                     //String.valueOf(event.eitNumber));
                                     }
+                                    refreshChannelMap();
                                     for (ChannelInfo ch : channelMap) {
                                         if (!isAlive) {
                                             Log.e(TAG, "DTVMonitor is destroyed, exit EVENT_EIT_CHANGED");
@@ -3348,7 +3416,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                         boolean updated = false;
                         synchronized (this) {
                             if (tvservice != null
-                                && tvservice.getServiceId() == event.channel.getServiceId()) {
+                                    && tvservice.getServiceId() == event.channel.getServiceId()) {
                                     tvservice.setVideoPid(event.channel.getVideoPid());
                                     tvservice.setVfmt(event.channel.getVfmt());
                                     tvservice.setPcrPid(event.channel.getPcrPid());
@@ -4227,7 +4295,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         return ratings_arry;
     }
 
-    public TvContentRating[] parseDRatingsT(String jsonString, int programid, TvDataBaseManager tvdatamanager, String title) {
+    public TvContentRating[] parseDRatingsT(String jsonString, TvDataBaseManager tvdatamanager, String title, Uri channeluri, long programid, long starttime) {
         String RatingDomain = DroidContentRatingsParser.DOMAIN_RRT_RATINGS;
         int rrt5count = 0;
         int nonerrt5count = 0;
@@ -4277,11 +4345,28 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                     //Log.d(TAG, "   dimension:"+ dimension+",rating_value:"+value);
                     if (dimension == -1 || value == -1)
                         continue;
-                        RrtSearchInfo rrtSearchInfo = mTvControlManager.SearchRrtInfo(region, dimension, value);
+                        RrtSearchInfo rrtSearchInfo = mTvControlManager.SearchRrtInfo(region, dimension, value, (int)programid);
                         if (rrtSearchInfo != null) {
-                            if (TextUtils.isEmpty(rrtSearchInfo.rating_region_name)
-                                    ||TextUtils.isEmpty(rrtSearchInfo.dimensions_name) || TextUtils.isEmpty(rrtSearchInfo.rating_value_text))
+                            if (rrtSearchInfo.status == -1) {
+                                if (tvdatamanager != null && channeluri != null && starttime > -1) {
+                                    Program program = tvdatamanager.getProgramByStartTime(channeluri, starttime);
+                                    if (program != null) {
+                                        TvContentRating[] allprogramratings = program.getContentRatings();
+                                        if (allprogramratings != null && allprogramratings.length > 0) {
+                                            for (TvContentRating singone : allprogramratings) {
+                                                if (DroidContentRatingsParser.DOMAIN_RRT_RATINGS.equals(singone.getDomain())) {
+                                                    /*if (DEBUG)*/ Log.d(TAG, "programid = " + program.getId() + " parse ratings status erro, add previous = " + singone.flattenToString());
+                                                    RatingList.add(singone);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                break;
+                            } else if (TextUtils.isEmpty(rrtSearchInfo.rating_region_name)
+                                    || TextUtils.isEmpty(rrtSearchInfo.dimensions_name) || TextUtils.isEmpty(rrtSearchInfo.rating_value_text)) {
                                 continue;
+                            }
                             TvContentRating r = TvContentRating.createRating(RatingDomain,rrtSearchInfo.dimensions_name, rrtSearchInfo.rating_value_text, null);
                             if (r != null) {
                                 RatingList.add(r);

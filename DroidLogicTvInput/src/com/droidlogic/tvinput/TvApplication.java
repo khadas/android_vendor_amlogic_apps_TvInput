@@ -35,7 +35,12 @@ public class TvApplication extends Application{
         mContext = getApplicationContext();
         File uncryteDir = new File(mContext.getDataDir(),uncryptDirStr);
         if (uncryteDir == null || uncryteDir.listFiles() == null || uncryteDir.listFiles().length == 0 ) {
-            FileUtils.unzipUncry(uncryteDir);
+            try {
+                InputStream instream = getAssets().open(fonts);
+                if (instream != null) {
+                    FileUtils.unzipUncry(uncryteDir,instream);
+                }
+            }catch (IOException ex) {}
         }
     }
 
@@ -44,14 +49,21 @@ public class TvApplication extends Application{
         static {
             System.loadLibrary("jnifont");
         }
-        static void unzipUncry(File uncryteDir) {
+        static void unzipUncry(File uncryteDir,InputStream instream) {
             File zipFile = new File(mContext.getDataDir(),"fonts.zip");
             File unZipDir = new File(mContext.getDataDir(),unZipDirStr);
             try {
-                copyToFileOrThrow(mContext.getAssets().open(fonts),zipFile);
+                copyToFileOrThrow(instream,zipFile);
                 upZipFile(zipFile,unZipDir.getCanonicalPath());
                 uncryteDir.mkdirs();
                 nativeUnCrypt(unZipDir.getCanonicalPath()+"/",uncryteDir.getCanonicalPath()+"/");
+                zipFile.delete();
+                if (unZipDir.exists() && unZipDir.listFiles() != null) {
+                    for (File f:unZipDir.listFiles()) {
+                        f.delete();
+                    }
+                    unZipDir.delete();
+                }
             }catch(IOException ex){
                 ex.printStackTrace();
             }

@@ -48,6 +48,7 @@ import com.droidlogic.app.tv.TvControlDataManager;
 import com.droidlogic.app.tv.TvInSignalInfo;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.app.tv.TvMultilingualText;
+import com.droidlogic.app.tv.TvScanConfig;
 import com.droidlogic.tvinput.R;
 
 public class SettingsManager {
@@ -943,7 +944,7 @@ public class SettingsManager {
     }
 
     public String getSwitchChannelStatus () {
-        if (mTvControlManager.getBlackoutEnalbe() == 0)
+        if (mTvControlManager.getBlackoutEnable() == 0)
             return mResources.getString(R.string.static_frame);
         else
             return mResources.getString(R.string.black_frame);
@@ -965,15 +966,41 @@ public class SettingsManager {
     }
 
     public int getTvSearchTypeSys() {
-        int mode = mTvControlDataManager.getInt(mContext.getContentResolver(), ATSC_TV_SEARCH_SYS, TvControlManager.ATV_VIDEO_STD_AUTO);
-        if (mode == -1) {
-            mode = 0;
+        String searchColorSystem = DroidLogicTvUtils.getTvSearchTypeSys(mContext);
+        int colorSystem = TvControlManager.ATV_VIDEO_STD_AUTO;
+        if (searchColorSystem.equals(TvScanConfig.TV_COLOR_SYS.get(TvScanConfig.TV_COLOR_SYS_AUTO_INDEX))) {
+            colorSystem = TvControlManager.ATV_VIDEO_STD_AUTO;
+        } else if (searchColorSystem.equals(TvScanConfig.TV_COLOR_SYS.get(TvScanConfig.TV_COLOR_SYS_PAL_INDEX))) {
+            colorSystem = TvControlManager.ATV_VIDEO_STD_PAL;
+        } else if (searchColorSystem.equals(TvScanConfig.TV_COLOR_SYS.get(TvScanConfig.TV_COLOR_SYS_NTSC_INDEX))) {
+            colorSystem = TvControlManager.ATV_VIDEO_STD_NTSC;
+        } else if (searchColorSystem.equals(TvScanConfig.TV_COLOR_SYS.get(TvScanConfig.TV_COLOR_SYS_SECAM_INDEX))) {
+            colorSystem = TvControlManager.ATV_VIDEO_STD_SECAM;
+        } else {
+            Log.w(TAG, "unsupport color System: " + searchColorSystem + ", set default: AUTO");
         }
-        return mode;
+        return colorSystem;
     }
 
     public int getTvSearchSoundSys() {
-        return mTvControlDataManager.getInt(mContext.getContentResolver(), ATSC_TV_SEARCH_SOUND_SYS, TvControlManager.ATV_AUDIO_STD_AUTO);
+        String searchAudioSystem = DroidLogicTvUtils.getTvSearchSoundSys(mContext);
+        int audioSystem = TvControlManager.ATV_AUDIO_STD_AUTO;
+        if (searchAudioSystem.equals(TvScanConfig.TV_SOUND_SYS.get(TvScanConfig.TV_SOUND_SYS_AUTO_INDEX))) {
+            audioSystem = TvControlManager.ATV_AUDIO_STD_AUTO;
+        } else if (searchAudioSystem.equals(TvScanConfig.TV_SOUND_SYS.get(TvScanConfig.TV_SOUND_SYS_DK_INDEX))) {
+            audioSystem = TvControlManager.ATV_AUDIO_STD_DK;
+        } else if (searchAudioSystem.equals(TvScanConfig.TV_SOUND_SYS.get(TvScanConfig.TV_SOUND_SYS_I_INDEX))) {
+            audioSystem = TvControlManager.ATV_AUDIO_STD_I;
+        } else if (searchAudioSystem.equals(TvScanConfig.TV_SOUND_SYS.get(TvScanConfig.TV_SOUND_SYS_BG_INDEX))) {
+            audioSystem = TvControlManager.ATV_AUDIO_STD_BG;
+        } else if (searchAudioSystem.equals(TvScanConfig.TV_SOUND_SYS.get(TvScanConfig.TV_SOUND_SYS_M_INDEX))) {
+            audioSystem = TvControlManager.ATV_AUDIO_STD_M;
+        } else if (searchAudioSystem.equals(TvScanConfig.TV_SOUND_SYS.get(TvScanConfig.TV_SOUND_SYS_L_INDEX))) {
+            audioSystem = TvControlManager.ATV_AUDIO_STD_L;
+        } else {
+            Log.w(TAG, "unsupport audio System: " + searchAudioSystem + ", set default: AUTO");
+        }
+        return audioSystem;
     }
 
     public String getDefaultDtvType() {

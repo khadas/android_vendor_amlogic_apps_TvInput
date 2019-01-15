@@ -263,7 +263,7 @@ public class CcImplement {
     }
 
 
-    class CaptionScreen
+    public class CaptionScreen
     {
         int width;
         int height;
@@ -405,11 +405,11 @@ public class CcImplement {
                 case 1:
                 case 4:
                 case 7:
-                    return offset - row_length/2 + safe_title_width / 2;
+                    return offset - row_length/2;
                 case 2:
                 case 5:
                 case 8:
-                    return offset - row_length + safe_title_width;
+                    return offset - row_length;
                 default:
                     return -1;
             }
@@ -1330,13 +1330,20 @@ public class CcImplement {
                         window_paint.setTextSize((float)this.font_size);
                         // window_paint.setLetterSpacing((float) 0.05);
                         max_single_font_width = window_paint.measureText("_");
+                        text_paint.setTypeface(this.font_face);
+                        text_paint.setTextSize((float)font_size);
+                        text_paint.setTextScaleX((float)font_scale);
                         if (ccVersion.matches("cea708")) {
-                            if (is_monospace)
-                                string_length_on_paint = (data.length() + 1) * max_single_font_width;
+                            if (is_monospace) {
+//                                string_length_on_paint = (data.length() + 1) * max_single_font_width;
+                                string_length_on_paint = text_paint.measureText(data);
+                            }
                             else
-                                string_length_on_paint = window_paint.measureText(data) + max_single_font_width;
-                            // string_length_on_paint = (data.length()+1) * max_single_font_width;
+                                string_length_on_paint = text_paint.measureText(data);
+//                                string_length_on_paint = window_paint.measureText(data) + max_single_font_width;
+//                             string_length_on_paint = (data.length()+1) * max_single_font_width;
                         } else {
+//                            string_length_on_paint = text_paint.measureText(data);
                             string_length_on_paint = data.length() * caption_screen.fixed_char_width;
                         }
                         /* Convert */
@@ -1419,6 +1426,7 @@ public class CcImplement {
                             if (fill_opacity_int != 0xff)
                                 background_paint.setXfermode(porter_src);
                             canvas.drawRect((float) str_left, (float) str_top, (float) str_right, (float) str_bottom, background_paint);
+//                            canvas.drawRect((float) str_left, (float) str_top, (float) str_left + text_paint.measureText(data), (float) str_bottom, background_paint);
                         }
                         if (!justify.equalsIgnoreCase("full")) {
                             draw_text(canvas, data, font_face, font_size,

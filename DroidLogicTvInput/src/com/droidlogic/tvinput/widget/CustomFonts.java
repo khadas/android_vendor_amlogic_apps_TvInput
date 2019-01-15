@@ -45,6 +45,15 @@ public class CustomFonts {
             cursive_it_tf = Typeface.createFromFile(new File(context.getDataDir(), "font/cinecavD_script_it.ttf"));
         } catch (Exception e) {
             Log.e(TAG, "error " + e.toString());
+        } finally {
+            if (mono_serif_tf == null) mono_serif_tf = Typeface.DEFAULT;
+            if (mono_serif_it_tf == null) mono_serif_it_tf = Typeface.DEFAULT;
+            if (casual_tf == null) casual_tf = Typeface.DEFAULT;
+            if (casual_it_tf == null) casual_it_tf = Typeface.DEFAULT;
+            if (prop_sans_tf == null) prop_sans_tf = Typeface.DEFAULT;
+            if (prop_sans_it_tf == null) prop_sans_it_tf = Typeface.DEFAULT;
+            if (small_capital_tf == null) small_capital_tf = Typeface.DEFAULT;
+            if (small_capital_it_tf == null) small_capital_it_tf = Typeface.DEFAULT;
         }
     }
 }

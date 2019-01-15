@@ -1104,11 +1104,11 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
 
     public void setCountry(String country) {
         Log.d(TAG, "setCountry = " + country);
-        mTvControlDataManager.putString(ChannelSearchActivity.this.getContentResolver(), DroidLogicTvUtils.KEY_SEARCH_COUNTRY, country);
+        mTvControlDataManager.putString(ChannelSearchActivity.this.getContentResolver(), DroidLogicTvUtils.TV_SEARCH_COUNTRY, country);
     }
 
     public String getCountry() {
-        String country = mTvControlDataManager.getString(ChannelSearchActivity.this.getContentResolver(), DroidLogicTvUtils.KEY_SEARCH_COUNTRY);
+        String country = mTvControlDataManager.getString(ChannelSearchActivity.this.getContentResolver(), DroidLogicTvUtils.TV_SEARCH_COUNTRY);
         if (TextUtils.isEmpty(country)) {
             country = getSupportCountry().get(0);
             setCountry(country);
@@ -1121,7 +1121,7 @@ public class ChannelSearchActivity extends Activity implements OnClickListener {
     public void setCountryByIndex(int index) {
         String country = getSupportCountry().get(index);
         Log.d(TAG, "setCountryByIndex = " + country);
-        mTvControlDataManager.putString(ChannelSearchActivity.this.getContentResolver(), DroidLogicTvUtils.KEY_SEARCH_COUNTRY, country);
+        mTvControlDataManager.putString(ChannelSearchActivity.this.getContentResolver(), DroidLogicTvUtils.TV_SEARCH_COUNTRY, country);
     }
 
     public String getCountryByIndex(int index) {

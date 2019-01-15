@@ -38,6 +38,7 @@ import com.droidlogic.app.tv.TvControlManager;
 import com.droidlogic.app.tv.TvControlDataManager;
 import com.droidlogic.app.tv.TvDataBaseManager;
 import com.droidlogic.app.tv.TvMultilingualText;
+import com.droidlogic.app.tv.TvScanConfig;
 import com.droidlogic.tvinput.R;
 
 import java.lang.StringBuilder;
@@ -163,6 +164,9 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
     /* 0: freq table list sacn mode */
     /* 1: all band sacn mode */
     private int mATvAutoScanMode = 0;
+    private static final String AUTO_QAM_FAST_SEARCH_PATH = "/sys/kernel/debug/demod/dvbc_channel_fast";
+    private static final String AUTO_QAM_FAST_SEARCH_ON = "fast_search on";
+    private static final String AUTO_QAM_FAST_SEARCH_OFF = "fast_search off";
 
     public boolean isSearching() {
         return (isSearching != SEARCH_STOPPED);
@@ -286,7 +290,16 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
             atvfrequency = Integer.valueOf(channel) * 1000000;
             frequencyend = Integer.valueOf(channelend) * 1000000;
             atvfrequencyend = Integer.valueOf(channelend) * 1000000;
-        } else {
+        } else if (TvContract.Channels.TYPE_DVB_C.equals(mSettingsManager.getDtvType()) && DroidLogicTvUtils.TV_SEARCH_MODE_NIT.equals(mTvControlDataManager.getString(mContext.getContentResolver(), DroidLogicTvUtils.TV_SEARCH_MODE))) {
+            //frequency = getDvbFrequencyByPd(Integer.valueOf(channel));
+            //atvfrequency = getAtvFrequencyByPd(Integer.valueOf(channel));
+            //frequencyend = getDvbFrequencyByPd(Integer.valueOf(channelend));
+            //atvfrequencyend = getAtvFrequencyByPd(Integer.valueOf(channelend));
+            frequency = Integer.valueOf(channel) * 1000000;
+            atvfrequency = Integer.valueOf(channel) * 1000000;
+            frequencyend = Integer.valueOf(channelend) * 1000000;
+            atvfrequencyend = Integer.valueOf(channelend) * 1000000;
+        }else {
             frequency = getDvbFrequencyByPd(Integer.valueOf(channel));
             atvfrequency = getAtvFrequencyByPd(Integer.valueOf(channel));
             frequencyend = 0;
@@ -347,7 +360,12 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
             deleteOtherTypeAtvOrDtvChannels(mode, false, true);
             mode.setExt(mode.getExt() | 1);//mixed adtv
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_MODE, mode.getMode());
-            bundle.putInt(DroidLogicTvUtils.PARA_SCAN_TYPE_DTV, TvControlManager.ScanType.SCAN_DTV_MANUAL);
+            if (TvContract.Channels.TYPE_DVB_C.equals(mSettingsManager.getDtvType()) && DroidLogicTvUtils.TV_SEARCH_MODE_NIT.equals(mTvControlDataManager.getString(mContext.getContentResolver(), DroidLogicTvUtils.TV_SEARCH_MODE))) {
+                //get more frequency from nit tables
+                bundle.putInt(DroidLogicTvUtils.PARA_SCAN_TYPE_DTV, TvControlManager.ScanType.SCAN_DTV_AUTO);
+            } else {
+                bundle.putInt(DroidLogicTvUtils.PARA_SCAN_TYPE_DTV, TvControlManager.ScanType.SCAN_DTV_MANUAL);
+            }
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_TYPE_ATV, TvControlManager.ScanType.SCAN_ATV_NONE);
         break;
         }
@@ -383,8 +401,21 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
             fe.setAudioStd(atvAudioStd);
             if (TvContract.Channels.TYPE_DVB_C.equals(tvMode.toType())) {
                 int qammode = mTvControlDataManager.getInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_SEARCH_DVBC_QAM, DroidLogicTvUtils.TV_SEARCH_DVBC_QAM16);
+                int symbol = 0;
+                String mode = mTvControlDataManager.getString(mContext.getContentResolver(), DroidLogicTvUtils.TV_SEARCH_MODE);
+                if (qammode == DroidLogicTvUtils.TV_SEARCH_DVBC_QAMAUTO) {
+                    mSystemControlManager.writeSysFs(AUTO_QAM_FAST_SEARCH_PATH, AUTO_QAM_FAST_SEARCH_ON);
+                } else {
+                    mSystemControlManager.writeSysFs(AUTO_QAM_FAST_SEARCH_PATH, AUTO_QAM_FAST_SEARCH_OFF);
+                }
                 fe.setModulation(qammode);
-                Log.d(TAG, "doScanCmdForAtscManual dvbc qam = " + qammode);
+                if (DroidLogicTvUtils.TV_SEARCH_MODE_NIT.equals(mode)) {
+                    symbol = mTvControlDataManager.getInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_SEARCH_DVBC_SYMBOL_RATE, DroidLogicTvUtils.TV_SEARCH_DVBC_SYMBOL_RATE_DEFAULT);
+                    if (symbol > 0) {
+                       fe.setSymbolrate(symbol);
+                    }
+                }
+                Log.d(TAG, "doScanCmdForAtscManual dvbc qam = " + qammode + ", symbol = " + symbol);
             }
             TvControlManager.ScanParas scan = new TvControlManager.ScanParas();
             if (atvScanType != TvControlManager.ScanType.SCAN_ATV_NONE) {
@@ -804,13 +835,13 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
         TvControlManager.TvMode mode = new TvControlManager.TvMode(mSettingsManager.getDtvType());
         //mSettingsManager.sendBroadcastToTvapp("search_channel");
         if (mSettingsManager.getCurentVirtualTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_ADTV) {
-            Log.d(TAG, "ADTV");
+            Log.d(TAG, "startAutosearch ADTV");
 
             deleteChannels(mode, true, true);
 
             Bundle bundle = new Bundle();
             int[] freqPair = new int[2];
-            mTvControlManager.ATVGetMinMaxFreq(freqPair);
+            TvScanConfig.GetTvAtvMinMaxFreq(DroidLogicTvUtils.getCountry(mContext), freqPair);
             mode.setExt(mode.getExt() | 1);//mixed adtv
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_MODE, mode.getMode());
             bundle.putInt(DroidLogicTvUtils.PARA_SCAN_TYPE_DTV, TvControlManager.ScanType.SCAN_DTV_ALLBAND);
@@ -824,7 +855,7 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
             doScanCmd(DroidLogicTvUtils.ACTION_DTV_AUTO_SCAN, bundle);  //ww
             mTvControlDataManager.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_DTV_CHANNEL_INDEX, -1);
         } else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_TV) {
-            Log.d(TAG, "SOURCE_TYPE_TV");
+            Log.d(TAG, "startAutosearch SOURCE_TYPE_TV");
 
             deleteChannels(mode, true, false);
 
@@ -838,7 +869,7 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
             doScanCmd(DroidLogicTvUtils.ACTION_ATV_AUTO_SCAN, bundle);
             mTvControlDataManager.putInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_ATV_CHANNEL_INDEX, -1);
         } else if (mSettingsManager.getCurentTvSource() == TvControlManager.SourceInput_Type.SOURCE_TYPE_DTV) {
-            Log.d(TAG, "SOURCE_TYPE_DTV");
+            Log.d(TAG, "startAutosearch SOURCE_TYPE_DTV");
 
             deleteChannels(mode, true, false);
 
@@ -905,9 +936,10 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
             autoscanmode = checkLiveTvAutoScanMode();
         }
 
-        mATvAutoScanMode = mTvControlManager.GetAtvAutoScanMode();
+        String countryId = DroidLogicTvUtils.getCountry(mContext);
+        mATvAutoScanMode = TvScanConfig.GetTvAtvStepScan(countryId);
         if (mATvAutoScanMode == TvControlManager.ScanType.SCAN_ATV_AUTO_ALL_BAND && autoscanmode == ScanEdit.SCAN_ONLY_ATV) {
-            mTvControlManager.ATVGetMinMaxFreq(freqPair);
+            TvScanConfig.GetTvAtvMinMaxFreq(countryId, freqPair);
             Log.d(TAG, "freqPair[0] " + freqPair[0] + ", freqPair[1] " + freqPair[1]);
         }
 
@@ -1071,6 +1103,11 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
                 fe.setAudioStd(atvAudioStd);
                 if (TvContract.Channels.TYPE_DVB_C.equals(tvMode.toType())) {
                     int qammode = mTvControlDataManager.getInt(mContext.getContentResolver(), DroidLogicTvUtils.TV_SEARCH_DVBC_QAM, DroidLogicTvUtils.TV_SEARCH_DVBC_QAM16);
+                    if (qammode == DroidLogicTvUtils.TV_SEARCH_DVBC_QAMAUTO) {
+                        mSystemControlManager.writeSysFs(AUTO_QAM_FAST_SEARCH_PATH, AUTO_QAM_FAST_SEARCH_ON);
+                    } else {
+                        mSystemControlManager.writeSysFs(AUTO_QAM_FAST_SEARCH_PATH, AUTO_QAM_FAST_SEARCH_OFF);
+                    }
                     fe.setModulation(qammode);
                     Log.d(TAG, "doScanCmd dvbc qam = " + qammode);
                 }
@@ -1298,6 +1335,8 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
                 if (radioNumber != 0) {
                     prompt += " " + radioNumber + " " + mResources.getString(R.string.radio_channel);
                 }
+                //this log print for auto test
+                Log.d("TvStoreManager", "video channel number =" + channelNumber + " radio channel number =" + radioNumber);
                 showToast(prompt);
                 break;
 
@@ -1464,7 +1503,7 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
     public void callManualSearch () {
         mLiveTvManualSearch = true;
         mLiveTvAutoSearch = false;
-        mATvAutoScanMode = mTvControlManager.GetAtvAutoScanMode();
+        mATvAutoScanMode = TvScanConfig.GetTvAtvStepScan(DroidLogicTvUtils.getCountry(mContext));
         if (TvContract.Channels.TYPE_ATSC_C.equals(mSettingsManager.getDtvType()) && mAtsccMode == ATSC_C_AUTO_SET) {
             mSystemControlManager.writeSysFs(AUTO_ATSC_C_PATH, AUTO_ATSC_C_MODE_ENABLE);
             mSystemControlManager.writeSysFs(AUTO_ATSC_C_ATV_PATH, AUTO_ATSC_C_MODE_ENABLE);

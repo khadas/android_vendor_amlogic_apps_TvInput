@@ -33,7 +33,6 @@
 #define EVENT_EIT_CHANGED            11
 #define EVENT_PMT_RATING             12
 
-
 static JavaVM   *gJavaVM = NULL;
 static jclass    gEventClass;
 static jmethodID gEventInitID;
@@ -99,6 +98,8 @@ typedef struct {
     AM_SI_AudioInfo_t mAudioInfo;
     AM_SI_SubtitleInfo_t mSubtitleInfo;
     AM_SI_TeletextInfo_t mTeletextInfo;
+    AM_SI_CaptionInfo_t mCcapInfo;
+    AM_SI_IsdbsubtitleInfo_t mIsdbInfo;
 #endif
     int mPcrPID;
     int mSdtVersion;
@@ -373,7 +374,12 @@ static void format_audio_strings(AM_SI_AudioInfo_t *ai, char *pids, char *fmts, 
         gen_type_n_string(array,fmt,"%d",n,(strings)[1],n_s); \
         gen_type_n_string(array,lang,"%s",n,(strings)[2],n_s); \
         gen_type_n_string(array,audio_exten,"%d",n,(strings)[3],n_s); \
-        }while(0)
+}while(0)
+#define gen_isdb_3strings(array, n, strings, n_s) do { \
+        gen_type_n_string(array,pid,"%d",n,(strings)[0],n_s); \
+        gen_type_n_string(array,type,"%d",n,(strings)[1],n_s); \
+        gen_type_n_string(array,lang,"%s",n,(strings)[2],n_s); \
+}while(0)
 #define gen_subtitle_5strings(array, n, strings, n_s) do { \
         gen_type_n_string(array,pid,"%d",n,(strings)[0],n_s); \
         gen_type_n_string(array,type,"%d",n,(strings)[1],n_s); \
@@ -388,6 +394,15 @@ static void format_audio_strings(AM_SI_AudioInfo_t *ai, char *pids, char *fmts, 
         gen_type_n_string(array,page_no,"%d",n,(strings)[3],n_s); \
         gen_type_n_string(array,lang,"%s",n,(strings)[4],n_s); \
         }while(0)
+#define gen_cc_6strings(array, n, strings, n_s) do { \
+        gen_type_n_string(array,service_number,"%d",n,(strings)[0],n_s); \
+        gen_type_n_string(array,type,"%d",n,(strings)[1],n_s); \
+        gen_type_n_string(array,pid_or_line21,"%d",n,(strings)[2],n_s); \
+        gen_type_n_string(array,private_data,"0x%x",n,(strings)[3],n_s); \
+        gen_type_n_string(array,flags,"%d",n,(strings)[4],n_s); \
+        gen_type_n_string(array,lang,"%s",n,(strings)[5],n_s); \
+}while(0)
+
 
 
 static int check_pmt_update(EPGChannelData *c1, EPGChannelData *c2)
@@ -472,6 +487,48 @@ static int check_pmt_update(EPGChannelData *c1, EPGChannelData *c2)
             }
         }
     }
+    {
+        if (c1->mCcapInfo.caption_count != c2->mCcapInfo.caption_count)
+            ret |= 16;
+    }
+    {//check subtitle
+        for (i=0; i<c1->mCcapInfo.caption_count; i++) {
+            for (j=0; j<c2->mCcapInfo.caption_count; j++) {
+                if (c1->mCcapInfo.captions[i].service_number == c2->mCcapInfo.captions[j].service_number &&
+                    c1->mCcapInfo.captions[i].type == c2->mCcapInfo.captions[j].type &&
+                    c1->mCcapInfo.captions[i].pid_or_line21 == c2->mCcapInfo.captions[j].pid_or_line21 &&
+                    c1->mCcapInfo.captions[i].flags == c2->mCcapInfo.captions[j].flags &&
+                    c1->mCcapInfo.captions[i].private_data == c2->mCcapInfo.captions[j].private_data &&
+                    !strncmp(c1->mCcapInfo.captions[i].lang, c2->mCcapInfo.captions[j].lang, 3))
+                    break;
+            }
+            if (j >= c2->mCcapInfo.caption_count) {
+                //notify
+                ret |= 16;
+                break;
+            }
+        }
+    }
+
+    {
+        if (c1->mIsdbInfo.isdb_count != c2->mIsdbInfo.isdb_count)
+            ret |= 32;
+    }
+    {//check subtitle
+        for (i=0; i<c1->mIsdbInfo.isdb_count; i++) {
+            for (j=0; j<c2->mIsdbInfo.isdb_count; j++) {
+                if (c1->mIsdbInfo.isdbs[i].pid == c2->mIsdbInfo.isdbs[j].pid &&
+                    c1->mIsdbInfo.isdbs[i].type == c2->mIsdbInfo.isdbs[j].type &&
+                    !strncmp(c1->mIsdbInfo.isdbs[i].lang, c2->mIsdbInfo.isdbs[j].lang, 3))
+                    break;
+            }
+            if (j >= c2->mIsdbInfo.isdb_count) {
+                //notify
+                ret |= 32;
+                break;
+            }
+        }
+    }
 
     {
         if (ret & 1) {
@@ -507,6 +564,28 @@ static int check_pmt_update(EPGChannelData *c1, EPGChannelData *c2)
                 str_prev_tinfo[0], str_prev_tinfo[1], str_prev_tinfo[2],str_prev_tinfo[3], str_prev_tinfo[4]);
             log_info("changed to ->\npid [%s]\ntype [%s]\nid1 [%s]\nid2 [%s]\nlang [%s]",
                 str_cur_tinfo[0], str_cur_tinfo[1], str_cur_tinfo[2],str_cur_tinfo[3], str_cur_tinfo[4]);
+        }
+        if (ret & 16) {
+            char str_prev_tinfo[6][256], str_cur_tinfo[6][256];
+            gen_cc_6strings(c1->mCcapInfo.captions, c1->mCcapInfo.caption_count, str_prev_tinfo, 256);
+            gen_cc_6strings(c2->mCcapInfo.captions, c2->mCcapInfo.caption_count, str_cur_tinfo, 256);
+            log_info(">>> CC changed pid/type/id1/id2/id3/lang");
+            log_info("pid [%s]\ntype [%s]\nid1 [%s]\nid2 [%s]\nid3 [%s]\nlang [%s]",
+                str_prev_tinfo[0], str_prev_tinfo[1], str_prev_tinfo[2],str_prev_tinfo[3],
+                str_prev_tinfo[4], str_prev_tinfo[5]);
+            log_info("changed to ->\npid [%s]\ntype [%s]\nid1 [%s]\nid2 [%s]\nid3 [%s]\nlang [%s]",
+                str_cur_tinfo[0], str_cur_tinfo[1], str_cur_tinfo[2],str_cur_tinfo[3],
+                str_cur_tinfo[4], str_cur_tinfo[5]);
+        }
+        if (ret & 32) {
+            char str_prev_tinfo[3][256], str_cur_tinfo[3][256];
+            gen_isdb_3strings(c1->mIsdbInfo.isdbs, c1->mIsdbInfo.isdb_count, str_prev_tinfo, 256);
+            gen_isdb_3strings(c2->mIsdbInfo.isdbs, c2->mIsdbInfo.isdb_count, str_cur_tinfo, 256);
+            log_info(">>> Isdb changed pid/type/lang");
+            log_info("pid [%s]\ntype [%s]\nlang [%s]",
+                str_prev_tinfo[0], str_prev_tinfo[1], str_prev_tinfo[2]);
+            log_info("changed to ->\npid [%s]\ntype [%s]\nlang [%s]",
+                str_cur_tinfo[0], str_cur_tinfo[1], str_cur_tinfo[2]);
         }
     }
     return ret;
@@ -604,6 +683,23 @@ FUNC_get_int_array(sid1s, sub_t, sub_count, subs, id1);
 FUNC_get_int_array(sid2s, sub_t, sub_count, subs, id2);
 FUNC_get_string_array(slangs, sub_t, sub_count, subs, lang);
 
+void format_cc_to_subtitle(AM_SI_CaptionInfo_t *cap_info, AM_SI_SubtitleInfo_t* sub_info)
+{
+    int i;
+    if (!cap_info || !sub_info)
+        return;
+    sub_info->subtitle_count = cap_info->caption_count;
+    for (i=0; i<sub_info->subtitle_count; i++)
+    {
+        sub_info->subtitles[i].type = 4;
+        sub_info->subtitles[i].pid = cap_info->captions[i].service_number
+                    + (cap_info->captions[i].type ? (8) : (1));
+        sub_info->subtitles[i].comp_page_id = cap_info->captions[i].private_data;
+        sub_info->subtitles[i].anci_page_id = cap_info->captions[i].flags;
+        strncpy(sub_info->subtitles[i].lang, cap_info->captions[i].lang, 10);
+    }
+}
+
 static void PMT_Update(AM_EPG_Handle_t handle, dvbpsi_pmt_t *pmts)
 {
     dvbpsi_pmt_t *pmt;
@@ -611,6 +707,8 @@ static void PMT_Update(AM_EPG_Handle_t handle, dvbpsi_pmt_t *pmts)
     dvbpsi_descriptor_t *descr;
     EPGChannelData *pch_cur = &gChannelMonitored,
             ch;
+    EPGData *p_data;
+    EPGEventData edata;
 
     if (!pmts)
         return;
@@ -636,9 +734,10 @@ static void PMT_Update(AM_EPG_Handle_t handle, dvbpsi_pmt_t *pmts)
             AM_SI_ExtractAVFromES(es, &ch.mVideoPID, &ch.mVideoFormat, &ch.mAudioInfo);
             AM_SI_ExtractDVBSubtitleFromES(es, &ch.mSubtitleInfo);
             AM_SI_ExtractDVBTeletextFromES(es, &ch.mTeletextInfo);
-        AM_SI_LIST_END()
+            AM_SI_ExtractATSCCaptionFromES(es, &ch.mCcapInfo);
+            AM_SI_ExtractDVBIsdbsubtitleFromES(es, &ch.mIsdbInfo);
+            AM_SI_LIST_END()
     AM_SI_LIST_END()
-
     if (pch_cur->mServiceId == pmts->i_program_number
         && check_pmt_update(pch_cur, &ch)) {
 
@@ -669,6 +768,37 @@ static void PMT_Update(AM_EPG_Handle_t handle, dvbpsi_pmt_t *pmts)
                 sub.subs[nsub].id1 = ch.mTeletextInfo.teletexts[i].magazine_no;
                 sub.subs[nsub].id2 = ch.mTeletextInfo.teletexts[i].page_no;
                 strncpy(sub.subs[nsub].lang, ch.mTeletextInfo.teletexts[i].lang, 10);
+                nsub++;
+            }
+            sub.sub_count = nsub;
+        }
+        {
+            int nsub = sub.sub_count;
+            int i;
+            for (i=0; i<ch.mCcapInfo.caption_count; i++)
+            {
+                sub.subs[i].type = 4;
+                sub.subs[i].stype = 4;
+                sub.subs[i].pid = ch.mCcapInfo.captions[i].service_number
+                    + (ch.mCcapInfo.captions[i].type ? (8) : (1));
+                sub.subs[i].id1 = ch.mCcapInfo.captions[i].private_data;
+                sub.subs[i].id2 = ch.mCcapInfo.captions[i].flags;
+                strncpy(sub.subs[i].lang, ch.mCcapInfo.captions[i].lang, 10);
+                nsub++;
+            }
+            sub.sub_count = nsub;
+        }
+        {
+            int nsub = sub.sub_count;
+            int i;
+            for (i=0; i<ch.mIsdbInfo.isdb_count; i++)
+            {
+                sub.subs[i].type = 7;
+                sub.subs[i].stype = 7;
+                sub.subs[i].pid = ch.mIsdbInfo.isdbs[i].pid;
+                sub.subs[i].id1 = 0;
+                sub.subs[i].id2 = 0;
+                strncpy(sub.subs[i].lang, ch.mIsdbInfo.isdbs[i].lang, 10);
                 nsub++;
             }
             sub.sub_count = nsub;
@@ -1261,8 +1391,8 @@ static int get_channel_data(JNIEnv* env, jobject obj, jobject channel, EPGChanne
     jintArray sid1s = (jintArray)(*env)->GetObjectField(env, channel, (*env)->GetFieldID(env, objclass, "mSubtitleId1s", "[I"));
     jintArray sid2s = (jintArray)(*env)->GetObjectField(env, channel, (*env)->GetFieldID(env, objclass, "mSubtitleId2s", "[I"));
     jobjectArray slangs = (jobjectArray)(*env)->GetObjectField(env, channel, (*env)->GetFieldID(env, objclass, "mSubtitleLangs", "[Ljava/lang/String;"));
-    if (sids && stypes && sstypes && sid1s && sid2s) {
 
+    if (sids && stypes && sstypes && sid1s && sid2s) {
         jint *psids = (*env)->GetIntArrayElements(env, sids, 0);
         jint *pstypes = (*env)->GetIntArrayElements(env, stypes, 0);
         jint *psstypes = (*env)->GetIntArrayElements(env, sstypes, 0);
@@ -1295,6 +1425,28 @@ static int get_channel_data(JNIEnv* env, jobject obj, jobject channel, EPGChanne
                 (*env)->ReleaseStringUTFChars(env, jstr, str);
                 (*env)->DeleteLocalRef(env, jstr);
                 pch->mTeletextInfo.teletext_count++;
+            } else if (pstypes[i] == 4) {//captions
+                jstring jstr = (*env)->GetObjectArrayElement(env, slangs, i);
+                const char *str = (char *)(*env)->GetStringUTFChars(env, jstr, 0);
+                int ii = pch->mCcapInfo.caption_count;
+                pch->mCcapInfo.captions[ii].service_number = psids[i];
+                pch->mCcapInfo.captions[ii].type = psstypes[i];
+                pch->mCcapInfo.captions[ii].private_data = psid1s[i];
+                pch->mCcapInfo.captions[ii].flags = psid2s[i];
+                strncpy(pch->mCcapInfo.captions[ii].lang, str, 10);
+                (*env)->ReleaseStringUTFChars(env, jstr, str);
+                (*env)->DeleteLocalRef(env, jstr);
+                pch->mCcapInfo.caption_count++;
+            } else if (pstypes[i] == 7) {//isdbts
+                jstring jstr = (*env)->GetObjectArrayElement(env, slangs, i);
+                const char *str = (char *)(*env)->GetStringUTFChars(env, jstr, 0);
+                int ii = pch->mIsdbInfo.isdb_count;
+                pch->mIsdbInfo.isdbs[ii].pid = psids[i];
+                pch->mIsdbInfo.isdbs[ii].type = 7;
+                strncpy(pch->mIsdbInfo.isdbs[ii].lang, str, 10);
+                (*env)->ReleaseStringUTFChars(env, jstr, str);
+                (*env)->DeleteLocalRef(env, jstr);
+                pch->mIsdbInfo.isdb_count++;
             }
         }
         (*env)->ReleaseIntArrayElements(env, sids,    psids,    JNI_ABORT);

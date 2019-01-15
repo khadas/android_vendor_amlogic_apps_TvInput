@@ -37,5 +37,6 @@ public class OverlayView extends DroidLogicOverlayView {
         mTextView = (TextView) findViewById(R.id.msg_text);
         mSubtitleView = (DTVSubtitleView) findViewById(R.id.subtitle);
         mEasTextView = (TextView) findViewById(R.id.msg_text_eas);
+        mTuningImageView = (ImageView) findViewById(R.id.tuning_image);
     }
 }

@@ -35,6 +35,13 @@
             />
     </LinearLayout>
 
+    <ImageView
+        android:id="@+id/tuning_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/black"
+        android:visibility="gone" />
+
     <com.droidlogic.tvinput.widget.MarqueeTextView
         android:id="@+id/msg_text_eas"
         android:layout_width="match_parent"
