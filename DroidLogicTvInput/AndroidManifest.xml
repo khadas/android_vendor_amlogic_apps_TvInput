@@ -136,6 +136,12 @@
             </intent-filter>
         </service>
 
+        <service android:name=".services.AudioEffectsService">
+            <intent-filter>
+                <action android:name="com.droidlogic.tvinput.services.AudioEffectsService" />
+            </intent-filter>
+        </service>
+
         <service
             android:name=".services.AUXInputService"
             android:permission="android.permission.BIND_TV_INPUT" >

@@ -8,6 +8,7 @@ LOCAL_SRC_FILES := $(call all-java-files-under, src)
 
 LOCAL_SRC_FILES += src/com/droidlogic/tvinput/services/ITvScanService.aidl
 LOCAL_SRC_FILES += src/com/droidlogic/tvinput/services/IUpdateUiCallbackListener.aidl
+LOCAL_SRC_FILES += src/com/droidlogic/tvinput/services/IAudioEffectsService.aidl
 
 LOCAL_CERTIFICATE := platform
 LOCAL_PACKAGE_NAME := DroidLogicTvInput
