@@ -250,6 +250,8 @@
                         android:fontFamily="sans-serif"
                         android:textColor="@color/ut_scan_description_text"
                         android:textSize="@dimen/ut_scan_description_text_size"
+                        android:inputType="number"
+                        android:imeOptions="actionDone"
                         android:hint=""/>
                 </LinearLayout>
 
@@ -277,6 +279,8 @@
                         android:fontFamily="sans-serif"
                         android:textColor="@color/ut_scan_description_text"
                         android:textSize="@dimen/ut_scan_description_text_size"
+                        android:inputType="number"
+                        android:imeOptions="actionDone"
                         android:hint=""/>
                 </LinearLayout>
 
