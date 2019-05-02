@@ -47,7 +47,7 @@ import com.droidlogic.app.tv.TvControlDataManager;
 import android.app.AlertDialog;
 import com.droidlogic.app.SystemControlManager;
 import android.media.tv.TvContract;
-import vendor.amlogic.hardware.tvserver.V1_0.FreqList;
+import com.droidlogic.app.tv.TvControlManager.FreqList;
 
 import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.app.tv.TvChannelParams;

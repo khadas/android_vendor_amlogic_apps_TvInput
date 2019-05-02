@@ -46,9 +46,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import vendor.amlogic.hardware.tvserver.V1_0.FreqList;
-
-//import com.droidlogic.app.tv.TvControlManager.FreqList;
+import com.droidlogic.app.tv.TvControlManager.FreqList;
 
 public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManager.ScannerEventListener {
     public static final String TAG = "OptionUiManagerT";
@@ -730,7 +728,7 @@ public class OptionUiManagerT implements  OnFocusChangeListener, TvControlManage
     }
 
     private int getDvbFrequencyByPd(int tvMode, int pdNumber) {
-        ArrayList<FreqList> m_fList = mTvControlManager.DTVGetScanFreqList(tvMode);
+        ArrayList<TvControlManager.FreqList> m_fList = mTvControlManager.DTVGetScanFreqList(tvMode);
         String type = TvControlManager.TvMode.fromMode(tvMode).toType();
         int size = m_fList.size();
         int the_freq = -1;
