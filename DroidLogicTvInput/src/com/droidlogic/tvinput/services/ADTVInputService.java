@@ -15,6 +15,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ContentUris;
 import android.content.pm.ResolveInfo;
+import android.media.AudioRoutesInfo;
+import android.media.IAudioRoutesObserver;
+import android.media.IAudioService;
 import android.media.tv.TvContentRating;
 import android.media.tv.TvInputManager;
 import android.media.tv.TvInputInfo;
@@ -27,7 +30,10 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.IBinder;
 import android.os.Message;
+import android.os.RemoteException;
+import android.os.ServiceManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -118,8 +124,31 @@ public class ADTVInputService extends DTVInputService {
 
     public class ADTVSessionImpl extends DTVInputService.DTVSessionImpl implements TvControlManager.AVPlaybackListener, TvControlManager.AudioEventListener {
 
+        final IAudioService mAudioService;
+        AudioRoutesInfo mCurAudioRoutesInfo;
+        final IAudioRoutesObserver.Stub mAudioRoutesObserver = new IAudioRoutesObserver.Stub() {
+            @Override
+            public void dispatchAudioRoutesChanged(final AudioRoutesInfo newRoutes) {
+                if ((mCurrentChannel != null) &&
+                        ((newRoutes.mainType != mCurAudioRoutesInfo.mainType) ||
+                            (!newRoutes.toString().equals(mCurAudioRoutesInfo.toString())))) {
+                    mCurAudioRoutesInfo = newRoutes;
+                    openTvAudio(
+                            mCurrentChannel.isAnalogChannel() ? DroidLogicTvUtils.SOURCE_TYPE_ATV :
+                                DroidLogicTvUtils.SOURCE_TYPE_DTV);
+                }
+            }
+        };
+
         protected ADTVSessionImpl(Context context, String inputId, int deviceId) {
             super(context, inputId, deviceId);
+            IBinder b = ServiceManager.getService(Context.AUDIO_SERVICE);
+            mAudioService = IAudioService.Stub.asInterface(b);
+            try {
+                mCurAudioRoutesInfo = mAudioService.startWatchingRoutes(mAudioRoutesObserver);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
 
         @Override
