@@ -1361,7 +1361,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
         @Override
         public void HandleAudioEvent(int cmd, int param1, int param2) {
             AudioManager audioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
-            Log.d(TAG, "cmd ="+cmd+" param1 ="+param1+" param2 ="+param2);
+            Log.d(TAG, "audio cmd start ="+cmd+" param1 ="+param1+" param2 ="+param2);
 
             switch (cmd) {
                 case 1://ADEC_START_DECODE
@@ -1425,6 +1425,7 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                     Log.i(TAG,"unkown audio cmd!");
                     break;
             }
+            Log.d(TAG, "audio cmd end ="+cmd+" param1 ="+param1+" param2 ="+param2);
         }
 
         @Override
