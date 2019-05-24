@@ -1,5 +1,6 @@
 package com.droidlogic.tvinput.widget;
 
+import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -10,6 +11,8 @@ import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.File;
 
 public class IsdbImplement {
     final String TAG = "IsdbImplement";
@@ -29,15 +32,20 @@ public class IsdbImplement {
 
     double video_h_v_rate_on_screen;
     int video_h_v_rate_origin;
+    Context mContext = null;
+
+    Typeface mono_serif_tf;
 
     Paint text_paint;
     Paint background_paint;
 
-    IsdbImplement()
+    IsdbImplement(Context context)
     {
+        this.mContext = context;
         cc_paint_height = 1080;
         background_paint = new Paint();
         text_paint = new Paint();
+        mono_serif_tf = Typeface.createFromFile(new File(context.getDataDir(), "font/cinecavD_serif.ttf"));
     }
 
     void updateVideoPosition(String ratio, String screen_mode, String video_status)
@@ -96,6 +104,8 @@ public class IsdbImplement {
     void draw(Canvas canvas, String jsonStr)
     {
         JSONObject ccObj;
+        text_paint.setAntiAlias(true);
+        text_paint.setSubpixelText(true);
         if (TextUtils.isEmpty(jsonStr)) {
             Log.e(TAG, "empty json");
             return;
@@ -119,8 +129,8 @@ public class IsdbImplement {
             text_paint.setColor(Color.WHITE);
             text_paint.setSubpixelText(true);
             font_actual_size = (cc_paint_height * fsize / y_dimension) / 2;
-            text_paint.setTextSize((int)font_actual_size);
-            text_paint.setTypeface(Typeface.DEFAULT);
+            text_paint.setTextSize((int)(font_actual_size*1.25));
+            text_paint.setTypeface(mono_serif_tf);
         } catch (Exception e) {
             Log.e(TAG, "get params failed: " + e.toString());
             return;
@@ -140,7 +150,7 @@ public class IsdbImplement {
                     String str = target_row.getString("text");
                     Log.e(TAG, "x:"+x+" y:"+y +" str:"+str + " horizon? " + horizon_layout);
 
-                    double str_left = x * cc_paint_width / x_dimension + safe_area_left;
+                    double str_left = x * cc_paint_width / x_dimension / 4 + safe_area_left;
                     double str_bottom = y * cc_paint_height / y_dimension + safe_area_top;
                     canvas.drawRect((float) str_left,
                             (float) str_bottom + text_paint.getFontMetrics().ascent,

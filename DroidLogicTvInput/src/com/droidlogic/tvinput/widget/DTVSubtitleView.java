@@ -379,7 +379,7 @@ public class DTVSubtitleView extends View {
                 cf = new CustomFonts(context);
                 ci = new CcImplement(context, cf);
                 cw = ci.new CaptionWindow();
-                isdbi = new IsdbImplement();
+                isdbi = new IsdbImplement(context);
                 mPaint = new Paint();
                 clear_paint = new Paint();
                 clear_paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));

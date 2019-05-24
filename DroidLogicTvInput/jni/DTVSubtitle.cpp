@@ -479,7 +479,12 @@ error:
         if (utf8)
         {
             for (i=0; i<strlen(utf8); i++)
-                gJchar[i] = utf8[i];
+            {
+                if (utf8[i] == 0xEF)
+                    gJchar[i] = 0x266A;
+                else
+                    gJchar[i] = utf8[i];
+            }
             return gJchar;
         }
         else
