@@ -70,11 +70,38 @@ import org.json.JSONObject;
 public class ADTVInputService extends DTVInputService {
 
     private static final String TAG = "ADTVInputService";
+    private IAudioService mAudioService;
+    private AudioRoutesInfo mCurAudioRoutesInfo;
+    final IAudioRoutesObserver.Stub mAudioRoutesObserver = new IAudioRoutesObserver.Stub() {
+        @Override
+        public void dispatchAudioRoutesChanged(final AudioRoutesInfo newRoutes) {
+            if ((mCurrentSession != null && mCurrentSession.mCurrentChannel != null &&
+                    mCurrentSession.mHandler != null) &&
+                    ((newRoutes.mainType != mCurAudioRoutesInfo.mainType) ||
+                        (!newRoutes.toString().equals(mCurAudioRoutesInfo.toString())))) {
+                mCurAudioRoutesInfo = newRoutes;
+                mCurrentSession.mHandler.postDelayed(new Runnable() {
+                    public void run() {
+                        mCurrentSession.openTvAudio(
+                                mCurrentSession.mCurrentChannel.isAnalogChannel() ? DroidLogicTvUtils.SOURCE_TYPE_ATV :
+                                    DroidLogicTvUtils.SOURCE_TYPE_DTV);
+                    }
+                }, newRoutes.mainType == AudioRoutesInfo.MAIN_SPEAKER ? 0 : 1000);
+            }
+        }
+    };
 
     @Override
     public void onCreate() {
         super.onCreate();
         initInputService(DroidLogicTvUtils.DEVICE_ID_ADTV, ADTVInputService.class.getName());
+        IBinder b = ServiceManager.getService(Context.AUDIO_SERVICE);
+        mAudioService = IAudioService.Stub.asInterface(b);
+        try {
+            mCurAudioRoutesInfo = mAudioService.startWatchingRoutes(mAudioRoutesObserver);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
