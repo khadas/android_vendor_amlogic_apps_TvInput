@@ -16,6 +16,7 @@ import android.content.IntentFilter;
 import android.content.ContentUris;
 import android.content.pm.ResolveInfo;
 import android.media.AudioRoutesInfo;
+import android.media.AudioSystem;
 import android.media.IAudioRoutesObserver;
 import android.media.IAudioService;
 import android.media.tv.TvContentRating;
@@ -78,6 +79,7 @@ public class ADTVInputService extends DTVInputService {
     private static final String TAG = "ADTVInputService";
     private IAudioService mAudioService;
     private AudioRoutesInfo mCurAudioRoutesInfo;
+    private ChannelInfo.Audio mCurrentAudio;
     final IAudioRoutesObserver.Stub mAudioRoutesObserver = new IAudioRoutesObserver.Stub() {
         @Override
         public void dispatchAudioRoutesChanged(final AudioRoutesInfo newRoutes) {
@@ -88,11 +90,27 @@ public class ADTVInputService extends DTVInputService {
                 mCurAudioRoutesInfo = newRoutes;
                 mCurrentSession.mHandler.postDelayed(new Runnable() {
                     public void run() {
-                        mCurrentSession.openTvAudio(
-                                mCurrentSession.mCurrentChannel.isAnalogChannel() ? DroidLogicTvUtils.SOURCE_TYPE_ATV :
-                                    DroidLogicTvUtils.SOURCE_TYPE_DTV);
+                        if (mCurrentSession.mCurrentChannel.isAnalogChannel()) {
+                            mCurrentSession.openTvAudio(DroidLogicTvUtils.SOURCE_TYPE_ATV);
+                        } else {
+                            mCurrentAudio = null;
+                            mCurrentSession.openTvAudio(DroidLogicTvUtils.SOURCE_TYPE_DTV);
+                            if ((mCurrentSession.getAudioAuto(mCurrentSession.mCurrentChannel) >= 0) &&
+                                    (mCurrentSession.mCurrentAudios != null)) {
+                                mCurrentAudio = mCurrentSession.mCurrentAudios.get(
+                                        mCurrentSession.getAudioAuto(mCurrentSession.mCurrentChannel));
+                            }
+                            AudioSystem.setParameters("fmt=" +
+                                    ((mCurrentAudio != null) ? String.valueOf(mCurrentAudio.mFormat) : "-1"));
+                            AudioSystem.setParameters("has_dtv_video=" +
+                                    (ChannelInfo.isVideoChannel(mCurrentSession.mCurrentChannel) ?
+                                            "1" : "0"));
+                            AudioSystem.setParameters("cmd=1");
+                        }
                     }
-                }, newRoutes.mainType == AudioRoutesInfo.MAIN_SPEAKER ? 0 : 1000);
+                }, newRoutes.mainType != AudioRoutesInfo.MAIN_HDMI ? 500 : 1500);
+            } else if (mCurrentSession == null) {
+                mCurAudioRoutesInfo = newRoutes;
             }
         }
     };
