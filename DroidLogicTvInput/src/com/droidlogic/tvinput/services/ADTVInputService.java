@@ -80,6 +80,8 @@ public class ADTVInputService extends DTVInputService {
     private IAudioService mAudioService;
     private AudioRoutesInfo mCurAudioRoutesInfo;
     private ChannelInfo.Audio mCurrentAudio;
+    private Runnable mHandleTvAudioRunnable;
+    private int mDelayTime;
     final IAudioRoutesObserver.Stub mAudioRoutesObserver = new IAudioRoutesObserver.Stub() {
         @Override
         public void dispatchAudioRoutesChanged(final AudioRoutesInfo newRoutes) {
@@ -88,7 +90,9 @@ public class ADTVInputService extends DTVInputService {
                     ((newRoutes.mainType != mCurAudioRoutesInfo.mainType) ||
                         (!newRoutes.toString().equals(mCurAudioRoutesInfo.toString())))) {
                 mCurAudioRoutesInfo = newRoutes;
-                mCurrentSession.mHandler.postDelayed(new Runnable() {
+                mCurrentSession.mHandler.removeCallbacks(mHandleTvAudioRunnable);
+                mDelayTime = newRoutes.mainType != AudioRoutesInfo.MAIN_HDMI ? 500 : 1500;
+                mHandleTvAudioRunnable = new Runnable() {
                     public void run() {
                         if (mCurrentSession.mCurrentChannel.isAnalogChannel()) {
                             mCurrentSession.openTvAudio(DroidLogicTvUtils.SOURCE_TYPE_ATV);
@@ -108,7 +112,13 @@ public class ADTVInputService extends DTVInputService {
                             AudioSystem.setParameters("cmd=1");
                         }
                     }
-                }, newRoutes.mainType != AudioRoutesInfo.MAIN_HDMI ? 500 : 1500);
+                };
+                try {
+                    mCurrentSession.mHandler.postDelayed(mHandleTvAudioRunnable,
+                            mAudioService.isBluetoothA2dpOn() ? mDelayTime + 2000 : mDelayTime);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
             } else if (mCurrentSession == null) {
                 mCurAudioRoutesInfo = newRoutes;
             }
@@ -132,8 +142,8 @@ public class ADTVInputService extends DTVInputService {
     public Session onCreateSession(String inputId) {
         registerInput(inputId);
         mCurrentSession = new ADTVSessionImpl(this, inputId, getHardwareDeviceId(inputId));
-        registerInputSession(mCurrentSession);
         mCurrentSession.setSessionId(id);
+        registerInputSession(mCurrentSession);
         sessionMap.put(id, mCurrentSession);
         id++;
 
@@ -142,31 +152,8 @@ public class ADTVInputService extends DTVInputService {
 
     public class ADTVSessionImpl extends DTVInputService.DTVSessionImpl implements TvControlManager.AVPlaybackListener, TvControlManager.AudioEventListener {
 
-        final IAudioService mAudioService;
-        AudioRoutesInfo mCurAudioRoutesInfo;
-        final IAudioRoutesObserver.Stub mAudioRoutesObserver = new IAudioRoutesObserver.Stub() {
-            @Override
-            public void dispatchAudioRoutesChanged(final AudioRoutesInfo newRoutes) {
-                if ((mCurrentChannel != null) &&
-                        ((newRoutes.mainType != mCurAudioRoutesInfo.mainType) ||
-                            (!newRoutes.toString().equals(mCurAudioRoutesInfo.toString())))) {
-                    mCurAudioRoutesInfo = newRoutes;
-                    openTvAudio(
-                            mCurrentChannel.isAnalogChannel() ? DroidLogicTvUtils.SOURCE_TYPE_ATV :
-                                DroidLogicTvUtils.SOURCE_TYPE_DTV);
-                }
-            }
-        };
-
         protected ADTVSessionImpl(Context context, String inputId, int deviceId) {
             super(context, inputId, deviceId);
-            IBinder b = ServiceManager.getService(Context.AUDIO_SERVICE);
-            mAudioService = IAudioService.Stub.asInterface(b);
-            try {
-                mCurAudioRoutesInfo = mAudioService.startWatchingRoutes(mAudioRoutesObserver);
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
         }
 
         @Override
@@ -178,6 +165,11 @@ public class ADTVInputService extends DTVInputService {
         protected boolean playProgram(ChannelInfo info) {
             if (info == null)
                 return false;
+
+            if (mSurface == null) {
+                Log.d(TAG, "surface is null, drop playProgram");
+                return true;
+            }
 
             info.print();
 
@@ -192,7 +184,6 @@ public class ADTVInputService extends DTVInputService {
 
                 /* open atv audio and mute when notify Video Available */
                 openTvAudio(DroidLogicTvUtils.SOURCE_TYPE_ATV);
-                mSystemControlManager.writeSysFs("/sys/class/tsync/mode", "0");
                 if (false) {
                     mTvControlManager.PlayATVProgram(info.getFrequency() + info.getFineTune(),
                         info.getVideoStd(),
@@ -214,6 +205,7 @@ public class ADTVInputService extends DTVInputService {
                         .append("," + fe.toString("fe"))
                         .append(",\"a\":{\"AudComp\":"+info.getAudioCompensation()+"}")
                         .append("}");
+
                     mTvControlManager.startPlay("ntsc", param.toString());
                 }
             } else {
@@ -265,7 +257,8 @@ public class ADTVInputService extends DTVInputService {
                         .append(",\"subpid\":{" + subPidString)
                         .append("},\"subcnt\":" + subCount)
                         .append("}}");
-                    Log.e(TAG, "playProgram adtvparam: " + param.toString());
+                    Log.d(TAG, "playProgram adtvparam: " + param.toString());
+
                     mTvControlManager.startPlay("atsc", param.toString());
                     initTimeShiftStatus();
                 }

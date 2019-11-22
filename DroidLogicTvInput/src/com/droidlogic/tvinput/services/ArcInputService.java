@@ -15,6 +15,7 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import com.droidlogic.tvinput.Utils;
 
+import com.droidlogic.app.SystemControlManager;
 import com.droidlogic.app.tv.DroidLogicTvInputService;
 import com.droidlogic.app.tv.DroidLogicTvUtils;
 import com.droidlogic.app.tv.TvInputBaseSession;
@@ -36,11 +37,13 @@ import android.media.AudioManager;
 import android.media.tv.TvInputManager;
 
 public class ArcInputService extends DroidLogicTvInputService {
-    private static final String TAG = ArcInputService.class.getSimpleName();;
+    private static final String TAG = ArcInputService.class.getSimpleName();
+    private static final String SYS_NODE_EARC = "/sys/class/extcon/earcrx/state";
     private ArcInputSession mCurrentSession;
     private int id = 0;
     private Map<Integer, ArcInputSession> sessionMap = new HashMap<>();
     private AudioManager mAudioManager;
+    private SystemControlManager mSystemControlManager;
 
     @Override
     public Session onCreateSession(String inputId) {
@@ -51,6 +54,9 @@ public class ArcInputService extends DroidLogicTvInputService {
         mCurrentSession.setSessionId(id);
         sessionMap.put(id, mCurrentSession);
         id++;
+        if (mSystemControlManager == null) {
+            mSystemControlManager =  SystemControlManager.getInstance();
+        }
         if (mAudioManager == null)
             mAudioManager = (AudioManager)getApplicationContext().getSystemService (Context.AUDIO_SERVICE);
         return mCurrentSession;
@@ -71,7 +77,9 @@ public class ArcInputService extends DroidLogicTvInputService {
         if (result == ACTION_SUCCESS) {
             ArcInputSession session = sessionMap.get(sessionId);
             if (session != null) {
-                mAudioManager.setParameters("spdifin/arcin switch=1");
+                if (TextUtils.isEmpty(mSystemControlManager.readSysFs(SYS_NODE_EARC))) {
+                    mAudioManager.setParameters("spdifin/arcin switch=1");
+                }
                 //notifyVideoUnavailable for cts test
                 session.notifyVideoUnavailable(TvInputManager.VIDEO_UNAVAILABLE_REASON_AUDIO_ONLY);
             }
@@ -90,6 +98,7 @@ public class ArcInputService extends DroidLogicTvInputService {
 
         @Override
         public boolean onSetSurface(Surface surface) {
+            super.onSetSurface(surface);
             return setSurfaceInService(surface,this);
         }
         @Override

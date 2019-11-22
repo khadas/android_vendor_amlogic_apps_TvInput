@@ -120,8 +120,8 @@ public class AUXInputService extends DroidLogicTvInputService {
         super.onCreateSession(inputId);
         Utils.logd(TAG, "onCreateSession:"+inputId);
         mCurrentSession = new AUXInputSession(getApplicationContext(), inputId, getHardwareDeviceId(inputId));
-        registerInputSession(mCurrentSession);
         mCurrentSession.setSessionId(id);
+        registerInputSession(mCurrentSession);
         sessionMap.put(id, mCurrentSession);
         id++;
 
@@ -270,6 +270,7 @@ public class AUXInputService extends DroidLogicTvInputService {
 
         @Override
         public boolean onSetSurface(Surface surface) {
+            super.onSetSurface(surface);
             return setSurfaceInService(surface,this);
         }
         @Override
@@ -588,7 +589,7 @@ public class AUXInputService extends DroidLogicTvInputService {
                 else
                     mSubtitleView.hide();
             }
-            mSessionHandler.sendMessage(mSessionHandler.obtainMessage(enable ? MSG_SUBTITLE_SHOW : MSG_SUBTITLE_HIDE));
+            sendSessionMessage(enable ? MSG_SUBTITLE_SHOW : MSG_SUBTITLE_HIDE);
         }*/
 
         private TvContentRating getCurrentRating() {

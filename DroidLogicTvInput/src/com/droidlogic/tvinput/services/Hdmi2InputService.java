@@ -56,8 +56,8 @@ public class Hdmi2InputService extends DroidLogicTvInputService {
         super.onCreateSession(inputId);
 
         mCurrentSession = new Hdmi2InputSession(getApplicationContext(), inputId, getHardwareDeviceId(inputId));
-        registerInputSession(mCurrentSession);
         mCurrentSession.setSessionId(id);
+        registerInputSession(mCurrentSession);
         sessionMap.put(id, mCurrentSession);
         id++;
 
@@ -77,7 +77,7 @@ public class Hdmi2InputService extends DroidLogicTvInputService {
         public Hdmi2InputSession(Context context, String inputId, int deviceId) {
             super(context, inputId, deviceId);
             Utils.logd(TAG, "=====new HdmiInputSession=====");
-            initOverlayView(R.layout.layout_overlay);
+            initOverlayView(R.layout.layout_overlay_no_subtitle);
             if (mOverlayView != null) {
                 mOverlayView.setImage(R.drawable.bg_no_signal);
             }
@@ -85,6 +85,7 @@ public class Hdmi2InputService extends DroidLogicTvInputService {
 
         @Override
         public boolean onSetSurface(Surface surface) {
+            super.onSetSurface(surface);
             return setSurfaceInService(surface,this);
         }
 

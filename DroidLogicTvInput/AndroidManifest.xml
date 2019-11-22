@@ -30,7 +30,8 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:defaultToDeviceProtectedStorage="true"
-        android:directBootAware="true">
+        android:directBootAware="true"
+        android:persistent="true">
 
         <uses-library android:name="droidlogic.software.core" />
         <uses-library android:name="droidlogic.tv.software.core" />

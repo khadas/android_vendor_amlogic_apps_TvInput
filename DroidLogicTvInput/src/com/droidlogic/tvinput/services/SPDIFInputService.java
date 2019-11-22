@@ -53,8 +53,8 @@ public class SPDIFInputService extends DroidLogicTvInputService {
         super.onCreateSession(inputId);
 
         mCurrentSession = new SPDIFInputSession(getApplicationContext(), inputId, getHardwareDeviceId(inputId));
-        registerInputSession(mCurrentSession);
         mCurrentSession.setSessionId(id);
+        registerInputSession(mCurrentSession);
         sessionMap.put(id, mCurrentSession);
         id++;
 
@@ -90,7 +90,7 @@ public class SPDIFInputService extends DroidLogicTvInputService {
         public SPDIFInputSession(Context context, String inputId, int deviceId) {
             super(context, inputId, deviceId);
             Utils.logd(TAG, "=====new SPDIFInputSession=====");
-            initOverlayView(R.layout.layout_overlay);
+            initOverlayView(R.layout.layout_overlay_no_subtitle);
             if (mOverlayView != null) {
                 mOverlayView.setImage(R.drawable.spdifin);
             }
@@ -98,6 +98,7 @@ public class SPDIFInputService extends DroidLogicTvInputService {
 
         @Override
         public boolean onSetSurface(Surface surface) {
+            super.onSetSurface(surface);
             return setSurfaceInService(surface,this);
         }
 

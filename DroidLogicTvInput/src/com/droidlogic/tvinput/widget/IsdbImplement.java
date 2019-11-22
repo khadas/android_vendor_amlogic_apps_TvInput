@@ -53,7 +53,14 @@ public class IsdbImplement {
         cc_paint_height = 1080;
         background_paint = new Paint();
         text_paint = new Paint();
-        mono_serif_tf = Typeface.createFromFile(new File(context.getDataDir(), "font/cinecavD_serif.ttf"));
+        try {
+            mono_serif_tf = Typeface.createFromFile(new File(context.getDataDir(), "font/cinecavD_serif.ttf"));
+        } catch (Exception e) {
+            Log.e(TAG, "create typeface failed: " + e.toString());
+        } finally {
+            if (mono_serif_tf == null)
+                mono_serif_tf = Typeface.MONOSPACE;
+        }
     }
 
     void updateVideoPosition(String ratio, String screen_mode, String video_status)
