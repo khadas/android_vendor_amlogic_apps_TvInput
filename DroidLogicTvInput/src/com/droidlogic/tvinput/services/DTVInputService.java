@@ -65,6 +65,7 @@ import com.droidlogic.app.tv.TvStoreManager;
 import com.droidlogic.app.tv.TvInSignalInfo;
 import com.droidlogic.app.tv.TvControlDataManager;
 import com.droidlogic.app.SystemControlManager;
+import com.droidlogic.app.DataProviderManager;
 import com.droidlogic.tvinput.widget.DTVSubtitleView;
 
 import com.droidlogic.tvinput.R;
@@ -1216,8 +1217,8 @@ public class DTVInputService extends DroidLogicTvInputService implements TvContr
                     if (DEBUG) Log.d(TAG, "disable show last frame as diffrent video type");
                     needdisablestaticframe = true;//radio to video or video to radio, this case last frame is not needed
                 }
-                boolean lastRatingBlockStatus = mSystemControlManager.getPropertyBoolean(DroidLogicTvUtils.TV_CURRENT_BLOCK_STATUS, false);
-                boolean lastChannelBlockStatus = mSystemControlManager.getPropertyBoolean(DroidLogicTvUtils.TV_CURRENT_CHANNELBLOCK_STATUS, false);
+                boolean lastRatingBlockStatus = DataProviderManager.getBooleanValue(mContext, DroidLogicTvUtils.TV_CURRENT_BLOCK_STATUS, false);
+                boolean lastChannelBlockStatus = DataProviderManager.getBooleanValue(mContext, DroidLogicTvUtils.TV_CURRENT_CHANNELBLOCK_STATUS, false);
                 if (/*mIsBlocked || mIsPreviousChannelBlocked || */lastRatingBlockStatus || lastChannelBlockStatus) {
                     if (DEBUG) Log.d(TAG, "disable show last frame as previous blocked");
                     needdisablestaticframe = true;//blocked channel to non blocked, this case last frame is not needed
