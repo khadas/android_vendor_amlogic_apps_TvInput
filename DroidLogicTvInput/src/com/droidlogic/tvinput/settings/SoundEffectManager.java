@@ -89,6 +89,9 @@ public class SoundEffectManager {
     public static final String DB_ID_SOUND_EFFECT_DBX_ADVANCED_MODE_SONICS      = "db_id_sound_effect_dbx_advanced_mode_sonics";
     public static final String DB_ID_SOUND_EFFECT_DBX_ADVANCED_MODE_VOLUME      = "db_id_sound_effect_dbx_advanced_mode_volume";
     public static final String DB_ID_SOUND_EFFECT_DBX_ADVANCED_MODE_SURROUND    = "db_id_sound_effect_dbx_advanced_mode_surround";
+    public static final String DB_ID_SOUND_EFFECT_VIRTUALBASS_ENABLE            = "db_id_sound_effect_virtualbass_on";
+    public static final String DB_ID_SOUND_EFFECT_VIRTUALBASS_MAX_LEVEL         = "db_id_sound_effect_virtualbass_level";
+
     private static final String[] DB_ID_AUDIO_OUTPUT_SPEAKER_DELAY_ARRAY    = {
             "db_id_audio_output_speaker_delay_atv",
             "db_id_audio_output_speaker_delay_dtv",
@@ -137,6 +140,8 @@ public class SoundEffectManager {
     public static final int SET_DBX_SOUND_MODE_ADVANCED_SONICS          = 22;
     public static final int SET_DBX_SOUND_MODE_ADVANCED_VOLUME          = 23;
     public static final int SET_DBX_SOUND_MODE_ADVANCED_SURROUND        = 24;
+    public static final int SET_VIRTUALBASS_ENABLE                      = 25;
+    public static final int SET_VIRTUALBASS_MAX_LEVEL                   = 26;
 
     //SoundMode mode.  Parameter ID
     public static final int PARAM_SRS_PARAM_DIALOGCLARTY_MODE           = 1;
@@ -167,6 +172,10 @@ public class SoundEffectManager {
     public static final int DEFAULT_AGC_ATTRACK_TIME                    = 10;   //ms
     public static final int DEFAULT_AGC_RELEASE_TIME                    = 2;    //s
     public static final int DEFAULT_AGC_SOURCE_ID                       = 3;
+    //VirtualBass effect define
+    public static final int PARAM_VIRTUALBASS_ENABLE                        = 0;
+    public static final int PARAM_VIRTUALBASS_MAX_LEVEL                     = 1;
+    public static final boolean DEFAULT_VIRTUALBASS_ENABLE                  = true; //enable 1, disable 0
     //virtual surround
     public static final int PARAM_VIRTUALSURROUND                       = 0;
 
@@ -221,6 +230,7 @@ public class SoundEffectManager {
     private AudioEffect mTrebleBass;
     private AudioEffect mSoundMode;
     private AudioEffect mAgc;
+    private AudioEffect mVirtualBass;
     private AudioEffect mVirtualSurround;
     private AudioEffect mDbx;
 
@@ -257,6 +267,7 @@ public class SoundEffectManager {
         creatVirtualSurroundAudioEffects();
         creatBalanceAudioEffects();
         creatDbxAudioEffects();
+		creatVirtualBassAudioEffects();
     }
     private boolean creatVirtualXAudioEffects() {
         try {
@@ -378,6 +389,19 @@ public class SoundEffectManager {
             return true;
         } catch (RuntimeException e) {
             Log.e(TAG, "Unable to create Agc audio effect", e);
+            return false;
+        }
+    }
+
+	private boolean creatVirtualBassAudioEffects() {
+        try {
+            if (mVirtualBass == null) {
+                if (CanDebug()) Log.d(TAG, "creatVirtualBassAudioEffects");
+                mVirtualBass = new AudioEffect(EFFECT_TYPE_VIRTUAL_BASS, AudioEffect.EFFECT_TYPE_NULL, 0, 0);
+            }
+            return true;
+        } catch (RuntimeException e) {
+            Log.e(TAG, "Unable to create VirtualBass audio effect", e);
             return false;
         }
     }
@@ -555,6 +579,23 @@ public class SoundEffectManager {
             Log.w(TAG, "getAgcEnableStatus erro get: " + value[0] + ", saved: " + saveresult);
         } else if (CanDebug()) {
             Log.d(TAG, "getAgcEnableStatus = " + saveresult);
+        }
+        return saveresult == 1;
+    }
+
+    public boolean getVirtualBassEnableStatus () {
+        int saveresult = -1;
+        if (!creatVirtualBassAudioEffects()) {
+            Log.e(TAG, "getVirtualBassEnableStatus mVirtualBass creat fail");
+            return DEFAULT_VIRTUALBASS_ENABLE;
+        }
+        int[] value = new int[1];
+        mVirtualBass.getParameter(PARAM_VIRTUALBASS_ENABLE, value);
+        saveresult = getSavedAudioParameters(SET_VIRTUALBASS_ENABLE);
+        if (saveresult != value[0]) {
+            Log.w(TAG, "getVirtualBassEnableStatus erro get: " + value[0] + ", saved: " + saveresult);
+        } else if (CanDebug()) {
+            Log.d(TAG, "getVirtualBassEnableStatus = " + saveresult);
         }
         return saveresult == 1;
     }
@@ -860,6 +901,20 @@ public class SoundEffectManager {
         }
     }
 
+    public void setVirtualBassEnable (boolean enable) {
+        if (!creatVirtualBassAudioEffects()) {
+            Log.e(TAG, "setVirtualBassEnable mVirtualBass creat fail");
+            return;
+        }
+        int dbSwitch = enable ? 1 : 0;
+        int result = mVirtualBass.setEnabled(true);
+        if (result == AudioEffect.SUCCESS) {
+            if (CanDebug()) Log.d(TAG, "setVirtualBassEnable = " + dbSwitch);
+            mVirtualBass.setParameter(PARAM_VIRTUALBASS_ENABLE, dbSwitch);
+            saveAudioParameters(SET_VIRTUALBASS_ENABLE, dbSwitch);
+        }
+    }
+
     public void setAgcMaxLevel (int step) {
         if (!creatAgcAudioEffects()) {
             Log.e(TAG, "setAgcMaxLevel mAgc creat fail");
@@ -870,6 +925,19 @@ public class SoundEffectManager {
             if (CanDebug()) Log.d(TAG, "setAgcMaxLevel = " + step);
             mAgc.setParameter(PARAM_AGC_MAX_LEVEL, step);
             saveAudioParameters(SET_AGC_MAX_LEVEL, step);
+        }
+    }
+
+	public void setVirtualBassMaxLevel (int step) {
+        if (!creatVirtualBassAudioEffects()) {
+            Log.e(TAG, "setVirtualBassMaxLevel mVirtualBass creat fail");
+            return;
+        }
+        int result = mVirtualBass.setEnabled(true);
+        if (result == AudioEffect.SUCCESS) {
+            if (CanDebug()) Log.d(TAG, "setVirtualBassMaxLevel = " + step);
+            mVirtualBass.setParameter(PARAM_VIRTUALBASS_MAX_LEVEL, step);
+            saveAudioParameters(SET_VIRTUALBASS_MAX_LEVEL, step);
         }
     }
 
@@ -1272,6 +1340,12 @@ public class SoundEffectManager {
             case SET_DBX_SOUND_MODE_ADVANCED_SURROUND:
                 Settings.Global.putInt(mContext.getContentResolver(), DB_ID_SOUND_EFFECT_DBX_ADVANCED_MODE_SURROUND, value);
                 break;
+            case SET_VIRTUALBASS_ENABLE:
+                Settings.Global.putInt(mContext.getContentResolver(), DB_ID_SOUND_EFFECT_VIRTUALBASS_ENABLE, value);
+                break;
+            case SET_VIRTUALBASS_MAX_LEVEL:
+                Settings.Global.putInt(mContext.getContentResolver(), DB_ID_SOUND_EFFECT_VIRTUALBASS_MAX_LEVEL, value);
+                 break;
             default:
                 break;
         }
@@ -1381,6 +1455,12 @@ public class SoundEffectManager {
                 result = Settings.Global.getInt(mContext.getContentResolver(), DB_ID_SOUND_EFFECT_DBX_ADVANCED_MODE_SURROUND,
                         AudioEffectManager.SOUND_EFFECT_DBX_SOUND_MODE_ARRAY_DEFAULT[AudioEffectManager.DBX_SOUND_MODE_ADVANCED][AudioEffectManager.DBX_ADVANCED_MODE_PRARM_TYPE_SURROUND]);
                 break;
+			case SET_VIRTUALBASS_ENABLE:
+                result = Settings.Global.getInt(mContext.getContentResolver(), DB_ID_SOUND_EFFECT_VIRTUALBASS_ENABLE, AudioEffectManager.SOUND_EFFECT_VIRTUALBASS_ENABLE_DEFAULT);
+                break;
+            case SET_VIRTUALBASS_MAX_LEVEL:
+                result = Settings.Global.getInt(mContext.getContentResolver(), DB_ID_SOUND_EFFECT_VIRTUALBASS_MAX_LEVEL, AudioEffectManager.SOUND_EFFECT_VIRTUALBASS_MAX_LEVEL);
+                break;
             default:
                 break;
         }
@@ -1457,6 +1537,7 @@ public class SoundEffectManager {
         setAgcReleaseTime(getSavedAudioParameters(SET_AGC_RELEASE_TIME));
         setSourceIdForAvl(getSavedAudioParameters(SET_AGC_SOURCE_ID));
         setVirtualSurround(getSavedAudioParameters(SET_VIRTUAL_SURROUND));
+		setVirtualBassEnable(true);//getSavedAudioParameters(SET_VIRTUALBASS_ENABLE)
 
         OutputModeManager opm = new OutputModeManager(mContext);
         int audioOutPutLatency = Settings.Global.getInt(mContext.getContentResolver(), OutputModeManager.DB_FIELD_AUDIO_OUTPUT_LATENCY,
