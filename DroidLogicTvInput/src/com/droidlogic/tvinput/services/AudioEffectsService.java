@@ -324,6 +324,18 @@ public class AudioEffectsService extends PersistentService {
             Log.d(TAG, "resetSoundEffectSettings");
             mSoundEffectManager.resetSoundEffectSettings();
         }
+		
+		public boolean getVirtualBassEnableStatus () {
+            return mSoundEffectManager.getVirtualBassEnableStatus();
+        }
+
+        public void setVirtualBassEnable (boolean enable) {
+            mSoundEffectManager.setVirtualBassEnable(enable);
+        }
+
+        public void setVirtualBassMaxLevel (int step) {
+            mSoundEffectManager.setVirtualBassMaxLevel(step);
+        }
     };
 
     private void handleActionStartUp() {
